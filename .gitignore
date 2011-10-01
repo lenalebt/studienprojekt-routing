@@ -1,0 +1,68 @@
+# In dieser Datei werden Dateien und Ordner hinzugefügt,
+# die nicht unter Versionskontrolle stehen sollen.
+
+#Das Buildverzeichnis sollte nicht getrackt werden, so vorhanden
+build/
+
+
+#Keine Backups von Dateien tracken.
+*.bak
+*.backup
+*.*~
+*~
+
+#Objektdateien und builds
+*.o
+*.out
+*.obj
+*.dll
+*.a
+*.la
+
+
+#Keine PDFs/EPubs tracken. Die kommen höchstwahrscheinlich von TeX.
+*.pdf
+*.epub
+
+
+# Keine Projektdateien vom QtCreator/VisualStudio tracken
+#
+#QtCreator
+*.user
+#
+#VisualStudio
+*.sln
+#fehlt noch: Visualstudio-Dateien, das oben sind Projektmappen.
+Release/
+Debug/
+
+
+#TeX-Detailkram
+*.aux
+*.blg
+*.glg
+*.glo
+*.gls
+*.ist
+*.lof
+*.log
+*.out
+*.toc
+*.4ct
+*.4tc
+*.css
+*.dvi
+*.idv
+*.lg
+*.tmp
+*.xref
+*.lot
+
+
+#Für den Fall der Fälle: CMake-Dateien nicht tracken, bis auf die
+#CMakeLists.txt
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/
+Makefile
+!CMakeLists.txt
