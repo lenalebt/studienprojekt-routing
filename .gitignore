@@ -18,6 +18,8 @@ build/
 *.dll
 *.a
 *.la
+*.exe
+*.class
 
 
 #Keine PDFs/EPubs tracken. Die kommen höchstwahrscheinlich von TeX.
