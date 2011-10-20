@@ -9,6 +9,21 @@ PROJECT(biker)
 SET (biker_VERSION_MAJOR 0)
 SET (biker_VERSION_MINOR 1)
 
+#Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
+MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
+IF (CMAKE_BUILD_TYPE STREQUAL Debug)
+    MESSAGE("CMAKE_BUILD_TYPE set to Debug.")
+ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
+    MESSAGE("CMAKE_BUILD_TYPE set to Release.")
+ENDIF ()
+
+#Evtl muss man mal für die Compiler verschiedene Einstellungen machen: Wenn, dann hier.
+IF ( CMAKE_COMPILER_IS_GNUCXX )
+    MESSAGE ("Using Gnu g++ compiler...")
+ELSE ( MSVC )
+    MESSAGE ("Using MS Visual Studio compiler...")
+ENDIF()
+
 #Hier CMake-Module speichern, die zum Auffinden von Libs nötig sind
 SET(CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
