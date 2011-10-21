@@ -42,6 +42,8 @@ FIND_PACKAGE(SPATIALITE REQUIRED)
 FIND_PACKAGE(ZZIP REQUIRED)
 #Boost für Kommandozeilenoptionen und so
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+#Google Protocol Buffers (->Protobuf) zum Lesen von .pbf-Dateien
+FIND_PACKAGE(ProtocolBuffers REQUIRED)
 
 #Hier Quelldateien eintragen
 SET(biker_SOURCES
