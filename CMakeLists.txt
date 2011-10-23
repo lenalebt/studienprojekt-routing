@@ -33,6 +33,7 @@ SET(CMAKE_MODULE_PATH
 #Qt-Einstellungen hier vornehmen.
 SET(QT_USE_QTNETWORK TRUE)
 SET(QT_USE_QTXML TRUE)
+SET(QT_USE_QTSQL TRUE)
 
 #Qt für ganz viel Krams
 FIND_PACKAGE(Qt4 REQUIRED)
@@ -46,7 +47,8 @@ FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 FIND_PACKAGE(ProtocolBuffers REQUIRED)
 
 #Hier Quelldateien eintragen
-SET(biker_SOURCES
+SET(
+    biker_SOURCES
     src/main.cpp
     
     #src/DataPrimitives
@@ -54,7 +56,8 @@ SET(biker_SOURCES
     )
 
 #Hier Header eintragen
-SET(biker_HEADERS
+SET(
+    biker_HEADERS
     src/main.hpp
     
     #src/DataPrimitives
@@ -62,11 +65,21 @@ SET(biker_HEADERS
     src/DataPrimitives/DataPrimitiveDefines.hpp
     )
 
+#Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])
+SET(
+    biker_UIS
+    )
+
 #Hier die Dateien eintragen, die durch den moc müssen
 #Das sind vor allem jene, in denen Q_OBJECT steht.
 QT4_WRAP_CPP(
     biker_HEADERS_MOC
     ${biker_HEADERS}
+    )
+
+QT4_WRAP_UI(
+    biker_UIS_H
+    ${biker_UIS}
     )
 
 INCLUDE(
@@ -78,9 +91,11 @@ ADD_DEFINITIONS(
     )
 
 INCLUDE_DIRECTORIES(
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${SPATIALITE_INCLUDE_DIR}
     ${ZZIP_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}
+    ${PROTOBUF_INCLUDE_DIRS}
     )
 
 #Hier ausführbare Dateien hinschreiben, und welche Dateien dazugehören
@@ -99,6 +114,7 @@ TARGET_LINK_LIBRARIES(biker
     ${SPATIALITE_LIBRARY}
     ${ZZIP_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${PROTOBUF_LIBRARIES}
     )
 
 INSTALL (TARGETS biker
