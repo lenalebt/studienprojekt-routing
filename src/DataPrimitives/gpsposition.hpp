@@ -3,6 +3,8 @@
 
 #include "math.h"
 
+#define EARTH_RADIUS 6371000
+
 /**
  * @brief GPSPosition speichert Längen- und Breitengrad und ist entsprechend eine Repräsentation eines
  * Punktes auf der Erdoberfläche.
@@ -15,8 +17,6 @@
  * 
  * @copyright Lizenz: GNU GPL v3
  */
-
-#define EARTH_RADIUS 6371000
 
 class GPSPosition
 {

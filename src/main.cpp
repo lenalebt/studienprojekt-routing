@@ -1,18 +1,6 @@
-//      This program is free software; you can redistribute it and/or modify
-//      it under the terms of the GNU General Public License as published by
-//      the Free Software Foundation; either version 2 of the License, or
-//      (at your option) any later version.
-//      
-//      This program is distributed in the hope that it will be useful,
-//      but WITHOUT ANY WARRANTY; without even the implied warranty of
-//      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//      GNU General Public License for more details.
-//      
-//      You should have received a copy of the GNU General Public License
-//      along with this program; if not, write to the Free Software
-//      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-//      MA 02110-1301, USA.
-//      
+/**
+ * @copyright: Lizenz: GNU GPL v3
+ */ 
 
 #include "main.hpp"
 #include <iostream>
@@ -21,9 +9,15 @@
 namespace po = boost::program_options;
 using namespace std;
 
-int main ( int argc, char* argv[] )
+/**
+ * @brief Parst die Kommandozeilenparameter.
+ * @param argc Anzahl Aufrufargumente
+ * @param argv Werte der Aufrufparameter
+ * @return
+ * @todo Diese Funktion ist noch komplett unfertig.
+ */
+int parseProgramOptions(int argc, char* argv[])
 {
-    //first parse commandline options
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")
@@ -35,8 +29,21 @@ int main ( int argc, char* argv[] )
 
     if (vm.count("help")) {
         cout << desc << "\n";
-        return 1;
+        return EXIT_FAILURE;
     }
     
-    return 0;
+    return EXIT_SUCCESS;
+}
+
+/**
+ * @brief Main-Funktion
+ * @param argc Anzahl Aufrufargumente
+ * @param argv Werte der Aufrufparameter
+ * @return ob das Programm erfolgreich beendet wurde
+ * @todo Noch kein effektiver Inhalt.
+ */
+int main ( int argc, char* argv[] )
+{
+    //first parse commandline options
+    return parseProgramOptions(argc, argv);
 }
