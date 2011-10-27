@@ -9,6 +9,30 @@ PROJECT(biker)
 SET (biker_VERSION_MAJOR 0)
 SET (biker_VERSION_MINOR 1)
 
+#Hier Quelldateien eintragen
+SET(
+    biker_SOURCES
+    src/main.cpp
+    
+    #src/DataPrimitives
+    src/DataPrimitives/gpsposition.cpp
+    )
+
+#Hier Header eintragen
+SET(
+    biker_HEADERS
+    src/main.hpp
+    
+    #src/DataPrimitives
+    src/DataPrimitives/gpsposition.hpp
+    src/DataPrimitives/DataPrimitiveDefines.hpp
+    )
+
+#Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])
+SET(
+    biker_UIS
+    )
+
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
 MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
 IF (CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -62,30 +86,6 @@ IF(DOXYGEN_FOUND)
     ENDIF()
     ADD_DEPENDENCIES(doc doxygen)
 ENDIF()
-
-#Hier Quelldateien eintragen
-SET(
-    biker_SOURCES
-    src/main.cpp
-    
-    #src/DataPrimitives
-    src/DataPrimitives/gpsposition.cpp
-    )
-
-#Hier Header eintragen
-SET(
-    biker_HEADERS
-    src/main.hpp
-    
-    #src/DataPrimitives
-    src/DataPrimitives/gpsposition.hpp
-    src/DataPrimitives/DataPrimitiveDefines.hpp
-    )
-
-#Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])
-SET(
-    biker_UIS
-    )
 
 #Hier die Dateien eintragen, die durch den moc müssen
 #Das sind vor allem jene, in denen Q_OBJECT steht.
