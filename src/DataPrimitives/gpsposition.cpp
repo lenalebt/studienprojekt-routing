@@ -19,42 +19,42 @@
 
 #define EARTH_RADIUS 6371000
 
-Position_Datatype GPSPosition::getLon() const
+double GPSPosition::getLon() const
 {
     return this->lon;
 }
-Position_Datatype GPSPosition::getLat() const
+double GPSPosition::getLat() const
 {
     return this->lat;
 }
 
-void GPSPosition::setLon(Position_Datatype lon)
+void GPSPosition::setLon(double lon)
 {
     this->lon = lon;
 }
 
-void GPSPosition::setLat(Position_Datatype lat)
+void GPSPosition::setLat(double lat)
 {
     this->lat = lat;
 }
 
-Position_Datatype GPSPosition::getRadLon() const
+double GPSPosition::getRadLon() const
 {
-    return deg2rad<Position_Datatype>(this->lon);
+    return deg2rad<double>(this->lon);
 }
-Position_Datatype GPSPosition::getRadLat() const
+double GPSPosition::getRadLat() const
 {
-    return deg2rad<Position_Datatype>(this->lat);
-}
-
-void GPSPosition::setRadLon(Position_Datatype lon)
-{
-    this->lon = rad2deg<Position_Datatype>(lon);
+    return deg2rad<double>(this->lat);
 }
 
-void GPSPosition::setRadLat(Position_Datatype lat)
+void GPSPosition::setRadLon(double lon)
 {
-    this->lat = rad2deg<Position_Datatype>(lat);
+    this->lon = rad2deg<double>(lon);
+}
+
+void GPSPosition::setRadLat(double lat)
+{
+    this->lat = rad2deg<double>(lat);
 }
 
 double GPSPosition::calcCourseAngle(GPSPosition p2) const

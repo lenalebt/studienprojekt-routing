@@ -24,14 +24,14 @@
 class GPSPosition
 {
 public:
-    virtual Position_Datatype getLon() const;
-    virtual Position_Datatype getLat() const;
-    virtual Position_Datatype getRadLon() const;
-    virtual Position_Datatype getRadLat() const;
-    virtual void setLon(Position_Datatype lon);
-    virtual void setLat(Position_Datatype lat);
-    virtual void setRadLon(Position_Datatype lon);
-    virtual void setRadLat(Position_Datatype lat);
+    virtual double getLon() const;
+    virtual double getLat() const;
+    virtual double getRadLon() const;
+    virtual double getRadLat() const;
+    virtual void setLon(double lon);
+    virtual void setLat(double lat);
+    virtual void setRadLon(double lon);
+    virtual void setRadLat(double lat);
 
     //Die folgenden Funktionen dienen zur Berechnung von Zusammenhängen mehrerer Koordinaten (Entfernung, ...)
     /**
@@ -57,11 +57,11 @@ public:
     virtual bool isInitialized() const;
 
     GPSPosition() : lon(0.0), lat(0.0) {}
-    GPSPosition(Position_Datatype lon, Position_Datatype lat) : lon(lon), lat(lat) {}
+    GPSPosition(double lon, double lat) : lon(lon), lat(lat) {}
     virtual ~GPSPosition() {}
 protected:
-    Position_Datatype lon;
-    Position_Datatype lat;
+    double lon;
+    double lat;
 
 private:
     double calcXi(GPSPosition p2) const;
