@@ -1,3 +1,6 @@
+/**
+ * @copyright Lizenz: GNU GPL v3
+ */
 
 #include "gpsposition.hpp"
 

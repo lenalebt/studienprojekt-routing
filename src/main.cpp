@@ -1,5 +1,5 @@
 /**
- * @copyright: Lizenz: GNU GPL v3
+ * @copyright Lizenz: GNU GPL v3
  */ 
 
 #include "main.hpp"
