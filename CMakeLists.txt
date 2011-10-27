@@ -25,7 +25,6 @@ SET(
     
     #src/DataPrimitives
     src/DataPrimitives/gpsposition.hpp
-    src/DataPrimitives/DataPrimitiveDefines.hpp
     )
 
 #Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])
