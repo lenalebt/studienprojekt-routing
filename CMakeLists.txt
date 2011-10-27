@@ -45,6 +45,23 @@ FIND_PACKAGE(ZZIP REQUIRED)
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 #Google Protocol Buffers (->Protobuf) zum Lesen von .pbf-Dateien
 FIND_PACKAGE(ProtocolBuffers REQUIRED)
+#Doxygen zum Erzeugen der Doku. Nicht notwendig zum Kompilieren.
+FIND_PACKAGE(Doxygen)
+
+IF(DOXYGEN_FOUND)
+    #Konfigurationsdatei hinzufügen
+    CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    #Doxygen als neues Target hinzufügen
+    ADD_CUSTOM_TARGET(doxygen ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    #"make clean" soll auch Doxygen-Sachen entfernen
+    SET_PROPERTY(DIRECTORY APPEND PROPERTY
+	     ADDITIONAL_MAKE_CLEAN_FILES api-doc)
+    GET_TARGET_PROPERTY(DOC_TARGET doc TYPE)
+    IF(NOT DOC_TARGET)
+        ADD_CUSTOM_TARGET(doc)
+    ENDIF()
+    ADD_DEPENDENCIES(doc doxygen)
+ENDIF()
 
 #Hier Quelldateien eintragen
 SET(
