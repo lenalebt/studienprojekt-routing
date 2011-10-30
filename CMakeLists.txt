@@ -40,9 +40,14 @@ ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
     MESSAGE("CMAKE_BUILD_TYPE set to Release.")
 ENDIF ()
 
+#Programmversion dem Quelltext bekannt machen
+ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
+
 #Evtl muss man mal für die Compiler verschiedene Einstellungen machen: Wenn, dann hier.
 IF ( CMAKE_COMPILER_IS_GNUCXX )
     MESSAGE ("Using Gnu g++ compiler...")
+    #Der gcc soll bei mehr Sachen warnen, und pedantischer reagieren
+    ADD_DEFINITIONS(-Wall -pedantic)
 ELSE ( MSVC )
     MESSAGE ("Using MS Visual Studio compiler...")
 ENDIF()

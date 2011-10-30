@@ -6,6 +6,9 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
+#define QUOTEME_(x) #x
+#define QUOTEME(x) QUOTEME_(x)
+
 namespace po = boost::program_options;
 using namespace std;
 
@@ -45,6 +48,7 @@ int parseProgramOptions(int argc, char* argv[])
  */
 int main ( int argc, char* argv[] )
 {
+    cout << "Biker Version " << QUOTEME(VERSION) << endl;
     //first parse commandline options
     return parseProgramOptions(argc, argv);
 }
