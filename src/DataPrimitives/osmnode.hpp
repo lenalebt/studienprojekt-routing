@@ -9,8 +9,10 @@
 
 /**
  * @brief Eine OSMNode stellt einen Knoten nach dem OSM-Datenmodell im Speicher dar.
+ * 
  * Eine OSMNode wird beim Einlesen der OSM-Daten erstellt und wird temporär dafür
  * verwendet, den Routinggraphen zu erstellen.
+ * 
  * @author Lena Brueder
  * @date 2011-11-01
  * @copyright GNU GPL v3
