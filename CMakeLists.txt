@@ -24,7 +24,7 @@ ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
 IF ( CMAKE_COMPILER_IS_GNUCXX )
     MESSAGE ("Using Gnu g++ compiler...")
     #Der gcc soll bei mehr Sachen warnen, und pedantischer reagieren
-    ADD_DEFINITIONS(-Wall -pedantic)
+    ADD_DEFINITIONS(-Wall -pedantic -Wno-long-long)
 ELSE ( MSVC )
     MESSAGE ("Using MS Visual Studio compiler...")
 ENDIF()
