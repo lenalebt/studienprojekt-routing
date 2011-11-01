@@ -25,6 +25,8 @@ SET(
     
     #src/DataPrimitives
     src/DataPrimitives/gpsposition.hpp
+    src/DataPrimitives/osmproperty.hpp
+    src/DataPrimitives/osmnode.hpp
     )
 
 #Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])

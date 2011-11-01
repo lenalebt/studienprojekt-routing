@@ -13,12 +13,12 @@ double GPSPosition::getLat() const
     return this->lat;
 }
 
-void GPSPosition::setLon(double lon)
+void GPSPosition::setLon(const double lon)
 {
     this->lon = lon;
 }
 
-void GPSPosition::setLat(double lat)
+void GPSPosition::setLat(const double lat)
 {
     this->lat = lat;
 }
@@ -32,17 +32,17 @@ double GPSPosition::getRadLat() const
     return deg2rad<double>(this->lat);
 }
 
-void GPSPosition::setRadLon(double lon)
+void GPSPosition::setRadLon(const double lon)
 {
     this->lon = rad2deg<double>(lon);
 }
 
-void GPSPosition::setRadLat(double lat)
+void GPSPosition::setRadLat(const double lat)
 {
     this->lat = rad2deg<double>(lat);
 }
 
-double GPSPosition::calcCourseAngle(GPSPosition p2) const
+double GPSPosition::calcCourseAngle(const GPSPosition& p2) const
 {
     if (!p2.isInitialized())
         return 0.0;
@@ -62,7 +62,7 @@ double GPSPosition::calcCourseAngle(GPSPosition p2) const
     }
 }
 
-double GPSPosition::calcDistance(GPSPosition p2) const
+double GPSPosition::calcDistance(const GPSPosition& p2) const
 {
     if (!p2.isInitialized())
         return 0.0;
@@ -80,7 +80,7 @@ double GPSPosition::calcDistance(GPSPosition p2) const
 /**
  * Berechnet xi, das bei der Entfernungs- und Winkelberechnung gebraucht wird.
  */
-double GPSPosition::calcXi(GPSPosition p2) const
+double GPSPosition::calcXi(const GPSPosition& p2) const
 {
     return acos(sin(this->getRadLat()) * sin(p2.getRadLat()) + cos(this->getRadLat()) * cos(p2.getRadLat()) * cos(p2.getRadLon() - this->getRadLon()));
 }
@@ -101,7 +101,7 @@ bool GPSPosition::isInitialized() const
     return !((lon == 0.0) && (lat == 0.0));
 }
 
-GPSPosition GPSPosition::calcPositionInDistance(double courseAngle, double distance) const
+GPSPosition GPSPosition::calcPositionInDistance(const double courseAngle, const double distance) const
 {
     if (!this->isInitialized())
         return GPSPosition();
