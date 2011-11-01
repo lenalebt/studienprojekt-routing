@@ -73,6 +73,8 @@ FIND_PACKAGE(ZZIP REQUIRED)
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
 #Google Protocol Buffers (->Protobuf) zum Lesen von .pbf-Dateien
 FIND_PACKAGE(ProtocolBuffers REQUIRED)
+#zlib zum Entpacken von PBF-Dateien
+FIND_PACKAGE(ZLIB REQUIRED)
 #Doxygen zum Erzeugen der Doku. Nicht notwendig zum Kompilieren.
 FIND_PACKAGE(Doxygen)
 
@@ -117,6 +119,7 @@ INCLUDE_DIRECTORIES(
     ${ZZIP_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
+    ${ZLIB_INCLUDE_DIRS}
     )
 
 #Hier ausführbare Dateien hinschreiben, und welche Dateien dazugehören
@@ -136,6 +139,7 @@ TARGET_LINK_LIBRARIES(biker
     ${ZZIP_LIBRARIES}
     ${Boost_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
+    ${ZLIB_LIBRARIES}
     )
 
 INSTALL (TARGETS biker
