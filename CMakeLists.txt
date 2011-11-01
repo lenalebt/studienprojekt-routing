@@ -9,35 +9,6 @@ PROJECT(biker)
 SET (biker_VERSION_MAJOR 0)
 SET (biker_VERSION_MINOR 1)
 
-#Hier Quelldateien eintragen
-SET(
-    biker_SOURCES
-    src/main.cpp
-    
-    #src/dataprimitives
-    src/dataprimitives/gpsposition.cpp
-    src/dataprimitives/gpsroute.cpp
-    )
-
-#Hier Header eintragen
-SET(
-    biker_HEADERS
-    src/main.hpp
-    
-    #src/dataprimitives
-    src/dataprimitives/gpsposition.hpp
-    src/dataprimitives/gpsroute.hpp
-    src/dataprimitives/osmproperty.hpp
-    src/dataprimitives/osmnode.hpp
-    src/dataprimitives/osmrelation.hpp
-    src/dataprimitives/osmway.hpp
-    )
-
-#Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])
-SET(
-    biker_UIS
-    )
-
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
 MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
 IF (CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -83,6 +54,48 @@ FIND_PACKAGE(ProtocolBuffers REQUIRED)
 FIND_PACKAGE(ZLIB REQUIRED)
 #Doxygen zum Erzeugen der Doku. Nicht notwendig zum Kompilieren.
 FIND_PACKAGE(Doxygen)
+
+#ProtocolBuffers-Compiler ausführen, um Quelldateien zu erstellen
+PROTOBUF_GENERATE_CPP(OSMFORMAT_PROTO_SOURCES OSMFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/osmformat.proto)
+PROTOBUF_GENERATE_CPP(FILEFORMAT_PROTO_SOURCES FILEFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/fileformat.proto)
+
+#Hier Quelldateien eintragen
+SET(
+    biker_SOURCES
+    src/main.cpp
+    
+    #src/dataprimitives
+    src/dataprimitives/gpsposition.cpp
+    src/dataprimitives/gpsroute.cpp
+    
+    #PROTO-SOURCES
+    ${OSMFORMAT_PROTO_SOURCES}
+    ${FILEFORMAT_PROTO_SOURCES}
+    )
+
+#Hier Header eintragen
+SET(
+    biker_HEADERS
+    src/main.hpp
+    
+    #src/dataprimitives
+    src/dataprimitives/gpsposition.hpp
+    src/dataprimitives/gpsroute.hpp
+    src/dataprimitives/osmproperty.hpp
+    src/dataprimitives/osmnode.hpp
+    src/dataprimitives/osmrelation.hpp
+    src/dataprimitives/osmway.hpp
+    
+    #PROTO-HEADERS
+    ${OSMFORMAT_PROTO_HEADERS}
+    ${FILEFORMAT_PROTO_HEADERS}
+    )
+
+#Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])
+SET(
+    biker_UIS
+    )
+
 
 IF(DOXYGEN_FOUND)
     #Konfigurationsdatei hinzufügen
