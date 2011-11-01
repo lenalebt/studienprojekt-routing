@@ -67,10 +67,11 @@ SET(
     #src/dataprimitives
     src/dataprimitives/gpsposition.cpp
     src/dataprimitives/gpsroute.cpp
+    src/dataprimitives/routingnode.cpp
+    src/dataprimitives/routingedge.cpp
     
-    #PROTO-SOURCES
-    ${OSMFORMAT_PROTO_SOURCES}
-    ${FILEFORMAT_PROTO_SOURCES}
+    #src/database/
+    src/database/altitudeprovider.cpp
     )
 
 #Hier Header eintragen
@@ -85,11 +86,33 @@ SET(
     src/dataprimitives/osmnode.hpp
     src/dataprimitives/osmrelation.hpp
     src/dataprimitives/osmway.hpp
+    src/dataprimitives/routingnode.hpp
+    src/dataprimitives/routingedge.hpp
     
-    #PROTO-HEADERS
+    #src/database/
+    src/database/altitudeprovider.hpp
+    )
+
+#Alle Dateien - automatisch erzeugte und selbstgeschriebene
+SET(
+    biker_ALL_SOURCES
+    #Selbst geschriebene Dateien
+    ${biker_SOURCES}
+    
+    #PROTO-SOURCES
+    ${OSMFORMAT_PROTO_SOURCES}
+    ${FILEFORMAT_PROTO_SOURCES}
+    )
+
+SET(
+    biker_ALL_HEADERS
+    #Selbst geschriebene Dateien
+    ${biker_HEADERS}
+    
+    #PROTO-SOURCES
     ${OSMFORMAT_PROTO_HEADERS}
     ${FILEFORMAT_PROTO_HEADERS}
-    )
+    )    
 
 #Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])
 SET(
@@ -98,6 +121,14 @@ SET(
 
 
 IF(DOXYGEN_FOUND)
+    #Semikolon-getrennte Liste in Whitespace-getrennte Liste konvertieren
+    FOREACH(ARG ${biker_HEADERS})
+        SET(biker_HEADERS_WHITESPACE "${biker_HEADERS_WHITESPACE} ${CMAKE_CURRENT_SOURCE_DIR}/${ARG}")
+    ENDFOREACH(ARG ${biker_HEADERS})
+    FOREACH(ARG ${biker_SOURCES})
+        SET(biker_SOURCES_WHITESPACE "${biker_SOURCES_WHITESPACE} ${CMAKE_CURRENT_SOURCE_DIR}/${ARG}")
+    ENDFOREACH(ARG ${biker_SOURCES})
+    
     #Konfigurationsdatei hinzufügen
     CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
     #Doxygen als neues Target hinzufügen
@@ -105,7 +136,7 @@ IF(DOXYGEN_FOUND)
     #"make clean" soll auch Doxygen-Sachen entfernen
     SET_PROPERTY(DIRECTORY APPEND PROPERTY
 	     ADDITIONAL_MAKE_CLEAN_FILES api-doc)
-    GET_TARGET_PROPERTY(DOC_TARGET doc TYPE)
+    GET_TARGET_PROPERTY(DOC_TARGET dkoc TYPE)
     IF(NOT DOC_TARGET)
         ADD_CUSTOM_TARGET(doc)
     ENDIF()
@@ -139,13 +170,19 @@ INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
+    src/database/
+    src/dataprimitives/
+    src/routing/
+    src/
+    src/database/parser/
+    src/database/parser/pbf/
     )
 
 #Hier ausführbare Dateien hinschreiben, und welche Dateien dazugehören
 ADD_EXECUTABLE(
     biker
-    ${biker_SOURCES}
-    ${biker_HEADERS_MOC}
+    ${biker_ALL_SOURCES}
+    ${biker_ALL_HEADERS_MOC}
     )
 
 #Hier hinschreiben, welche Libs zu der ausführbaren Datei gelinkt werden
