@@ -14,9 +14,9 @@ SET(
     biker_SOURCES
     src/main.cpp
     
-    #src/DataPrimitives
-    src/DataPrimitives/gpsposition.cpp
-    src/DataPrimitives/gpsroute.cpp
+    #src/dataprimitives
+    src/dataprimitives/gpsposition.cpp
+    src/dataprimitives/gpsroute.cpp
     )
 
 #Hier Header eintragen
@@ -24,13 +24,13 @@ SET(
     biker_HEADERS
     src/main.hpp
     
-    #src/DataPrimitives
-    src/DataPrimitives/gpsposition.hpp
-    src/DataPrimitives/gpsroute.hpp
-    src/DataPrimitives/osmproperty.hpp
-    src/DataPrimitives/osmnode.hpp
-    src/DataPrimitives/osmrelation.hpp
-    src/DataPrimitives/osmway.hpp
+    #src/dataprimitives
+    src/dataprimitives/gpsposition.hpp
+    src/dataprimitives/gpsroute.hpp
+    src/dataprimitives/osmproperty.hpp
+    src/dataprimitives/osmnode.hpp
+    src/dataprimitives/osmrelation.hpp
+    src/dataprimitives/osmway.hpp
     )
 
 #Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])
