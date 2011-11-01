@@ -3,6 +3,7 @@
 
 #include "osmproperty.hpp"
 #include <QList>
+#include <boost/cstdint.hpp>
 
 /**
  * @brief Ein OSMWay stellt einen Way im OSM-Datenmodell im Speicher dar.
@@ -17,50 +18,50 @@
 class OSMWay
 {
 private:
-    uint64_t id;
-    QList<uint64_t> memberIDList;
+    boost::uint64_t id;
+    QList<boost::uint64_t> memberIDList;
     QList<OSMProperty> properties;
 public:
     /**
      * @brief Erstellt einen Way mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörige Knoten.
      * @param id Die ID des Ways.
      */
-    OSMWay(uint64_t id) : id(id) {};
+    OSMWay(boost::uint64_t id) : id(id) {};
     /**
      * @brief Erstellt einen Way mit angegebener ID und Eigenschaften, ohne zugehörige Knoten.
      * @param id Die ID.
      * @param propList Die zugehörigen Eigenschaften des Ways.
      */
-    OSMWay(uint64_t id, QList<OSMProperty> propList) : id(id), properties(propList) {};
+    OSMWay(boost::uint64_t id, QList<OSMProperty> propList) : id(id), properties(propList) {};
     /**
      * @brief Erstellt einen Way mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID.
      * @param memberIDList Die Liste der zugehörigen Knoten.
      * @param propList Die zugehörigen Eigenschaften des Ways.
      */
-    OSMWay(uint64_t id, QList<uint64_t> memberIDList, QList<OSMProperty> propList) : id(id), memberIDList(memberIDList), properties(propList) {};
+    OSMWay(boost::uint64_t id, QList<boost::uint64_t> memberIDList, QList<OSMProperty> propList) : id(id), memberIDList(memberIDList), properties(propList) {};
     /**
      * @brief Gibt die ID des Ways zurück.
      * @return Die ID.
      */
-    uint64_t getID() const {return id;}
+    boost::uint64_t getID() const {return id;}
     /**
      * @brief Setzt die ID des Ways.
      * @param id Die ID des Ways.
      */
-    void setID(uint64_t id) {this->id = id;}
+    void setID(boost::uint64_t id) {this->id = id;}
     /**
      * @brief Gibt die Liste der zugehörigen Knoten zurück.
      * @return Die Liste der zugehörigen Knoten.
      * @remarks Die Liste der Knoten ist geordnet und hat Einfluss auf die Interpretation der Eigenschaften (wie z.B. Einbahnstraßen).
      */
-    QList<uint64_t> getMemberList() const {return memberIDList;}
+    QList<boost::uint64_t> getMemberList() const {return memberIDList;}
     /**
      * @brief Fügt einen Knoten zur Liste der zugehörigen Knoten hinzu.
      * @param nodeID Die ID des Knotens.
      * @remarks Die Liste der Knoten ist geordnet und hat Einfluss auf die Interpretation der Eigenschaften (wie z.B. Einbahnstraßen).
      */
-    void addMember(uint64_t nodeID) {memberIDList << nodeID;}
+    void addMember(boost::uint64_t nodeID) {memberIDList << nodeID;}
     /**
      * @brief Fügt eine Eigenschaft zur Liste der Eigenschaften hinzu.
      * @param prop Die Eigenschaft, die hinzugefügt werden soll.

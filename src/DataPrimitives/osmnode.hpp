@@ -5,7 +5,7 @@
 #include "osmproperty.hpp"
 #include <QList>
 #include <iostream>
-#include <stdint.h>
+#include <boost/cstdint.hpp>
 
 /**
  * @brief Eine OSMNode stellt einen Knoten nach dem OSM-Datenmodell im Speicher dar.
@@ -20,7 +20,7 @@
 class OSMNode : public GPSPosition
 {
 private:
-    uint64_t id;
+    boost::uint64_t id;
     QList<OSMProperty> properties;
 
 public:
@@ -33,14 +33,14 @@ public:
      * @param id Die ID des Knotens
      * @param pos Die GPSPosition des Knotens
      */
-    OSMNode(uint64_t id, const GPSPosition& pos) : GPSPosition(pos), id(id), properties(props), properties() {}
+    OSMNode(boost::uint64_t id, const GPSPosition& pos) : GPSPosition(pos), id(id), properties(props), properties() {}
     /**
      * @brief Erstellt eine OSMNode mit den entsprechenden übergebenen Werten.
      * @param id Die ID des Knotens
      * @param pos Die GPSPosition des Knotens
      * @param props Die Eigenschaftenliste des Knotens
      */
-    OSMNode(uint64_t id, const GPSPosition& pos, QList<OSMProperty> props) : GPSPosition(pos), id(id), properties(props) {}
+    OSMNode(boost::uint64_t id, const GPSPosition& pos, QList<OSMProperty> props) : GPSPosition(pos), id(id), properties(props) {}
     ~OSMNode() {}
     /**
      * @brief Gibt die Eigenschaftenliste des Knotens zurück.
@@ -56,12 +56,12 @@ public:
      * @brief Gibt die ID des Knotens zurück.
      * @return Die ID.
      */
-    uint64_t getID() const {return id;}
+    boost::uint64_t getID() const {return id;}
     /**
      * @brief Setzt die ID des Knotens.
      * @param id Die ID des Knotens.
      */
-    void setID(uint64_t id) {this->id = id;}
+    void setID(boost::uint64_t id) {this->id = id;}
 };
 
 #endif // OSMNODE_HPP

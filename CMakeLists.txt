@@ -16,6 +16,7 @@ SET(
     
     #src/DataPrimitives
     src/DataPrimitives/gpsposition.cpp
+    src/DataPrimitives/gpsroute.cpp
     )
 
 #Hier Header eintragen
@@ -25,8 +26,11 @@ SET(
     
     #src/DataPrimitives
     src/DataPrimitives/gpsposition.hpp
+    src/DataPrimitives/gpsroute.hpp
     src/DataPrimitives/osmproperty.hpp
     src/DataPrimitives/osmnode.hpp
+    src/DataPrimitives/osmrelation.hpp
+    src/DataPrimitives/osmway.hpp
     )
 
 #Hier UI-Dateien eintragen (für die GUI, falls es eine gibt [->config, etc])
