@@ -67,7 +67,7 @@ SET(QT_USE_QTSQL TRUE)
 FIND_PACKAGE(Qt4 REQUIRED)
 #Spatialite für die Datenbank
 FIND_PACKAGE(SPATIALITE REQUIRED)
-#Quazip zum Entpacken von ZIP-Archiven
+#ZZipLib zum Entpacken von ZIP-Archiven
 FIND_PACKAGE(ZZIP REQUIRED)
 #Boost für Kommandozeilenoptionen und so
 FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
