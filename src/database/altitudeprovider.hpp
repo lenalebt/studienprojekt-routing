@@ -47,7 +47,12 @@ public:
 /**
  * @brief SRTM-Implementierung vom AltitudeProvider.
  * 
- * 
+ * SRTM (Shuttle Radar Topography Mission) war eine Mission der NASA zur
+ * Vermessung der Erde (siehe http://de.wikipedia.org/wiki/SRTM). Die
+ * entstandenen Daten sind frei im Netz verfügbar (ftp://e0srp01u.ecs.nasa.gov/srtm/)
+ * und können ohne Einschränkungen verwendet werden. Sie sind in Europa
+ * nicht sehr genau (1 Pixel entspricht etwa 90m - in Amerika entspricht
+ * ein Pixel etwa 30m).
  * 
  * @author Lena Brüder
  * @date 2011-11-01
