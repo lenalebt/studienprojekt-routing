@@ -91,6 +91,10 @@ SET(
     
     #src/database/
     src/database/altitudeprovider.hpp
+    
+    #src/routing/
+    src/routing/routingmetric.hpp
+    src/routing/potentialfunction.hpp
     )
 
 #Alle Dateien - automatisch erzeugte und selbstgeschriebene

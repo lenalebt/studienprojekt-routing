@@ -40,6 +40,8 @@ public:
      * @return Den Höhenwert an dieser Stelle
      */
     virtual double getAltitude(const GPSPosition& pos)=0;
+    
+    virtual ~AltitudeProvider();
 };
 
 /**
@@ -76,6 +78,8 @@ public:
      * @return Den Höhenwert an dieser Stelle
      */
     double getAltitude(const GPSPosition& pos);
+    
+    ~SRTMProvider();
 };
 
 #endif //ALTITUDEPROVIDER_HPP
