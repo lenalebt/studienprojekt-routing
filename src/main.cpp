@@ -1,4 +1,5 @@
 /**
+ * @file
  * @copyright Lizenz: GNU GPL v3
  */ 
 
@@ -6,7 +7,13 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
+/**
+ * @brief Zur Erzeugung eines Strings aus eines Defines.
+ */
 #define QUOTEME_(x) #x
+/**
+ * @brief Zur Erzeugung eines Strings aus eines Defines.
+ */
 #define QUOTEME(x) QUOTEME_(x)
 
 namespace po = boost::program_options;

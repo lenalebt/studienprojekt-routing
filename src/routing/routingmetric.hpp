@@ -9,7 +9,7 @@
 /**
  * @brief Gibt an, in welcher Einheit eine RoutingMetric die übergebenen
  *      Kanten bewertet.
- * 
+ * @ingroup routing
  */
 enum MeasurementUnit
 {
@@ -30,6 +30,7 @@ enum MeasurementUnit
  * Eine RoutingMetric kann Kanten so bewerten, wie sie es für richtig hält - 
  * einzige Voraussetzung ist, dass sie nur positive Werte für die Kosten zurückgibt.
  * 
+ * @ingroup routing
  * @author Lena Brueder
  * @date 2011-11-02
  * @copyright GNU GPL v3

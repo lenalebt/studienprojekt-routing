@@ -13,6 +13,7 @@
  * in Bogenmaß zuzugreifen - lediglich der Konstruktor ist nur für die (gebräuchlichere) Angabe in
  * Grad verfügbar.
  * 
+ * @ingroup dataprimitives
  * @author Lena Brüder
  * 
  * @copyright Lizenz: GNU GPL v3

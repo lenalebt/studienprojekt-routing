@@ -9,6 +9,7 @@
  * 
  * 
  * 
+ * @ingroup dataprimitives
  * @todo Implementierung fehlt genauso wie eine komplette Definition der
  *  nötigen Eigenschaften. Diese Klasse ist nicht komplett! Sie wurde definiert,
  *  um die Routing-Schnittstellen definieren zu können.

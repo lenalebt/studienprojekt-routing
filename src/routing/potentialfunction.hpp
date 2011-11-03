@@ -11,6 +11,7 @@
  * immer bestraft, und schöne/gute Punkte einfach mit weniger Bestrafung
  * versehen.
  * 
+ * @ingroup routing
  * @author Lena Brueder
  * @date 2011-11-02
  * @copyright GNU GPL v3

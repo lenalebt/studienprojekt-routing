@@ -13,6 +13,7 @@
  * Eine OSMNode wird beim Einlesen der OSM-Daten erstellt und wird temporär dafür
  * verwendet, den Routinggraphen zu erstellen.
  * 
+ * @ingroup dataprimitives
  * @author Lena Brueder
  * @date 2011-11-01
  * @copyright GNU GPL v3

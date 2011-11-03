@@ -7,6 +7,7 @@
  * @brief Eine OSMRelation stellt eine Relation im OSM-Datenmodell im Speicher dar.
  * 
  * 
+ * @ingroup dataprimitives
  * @todo Diese Klasse ist noch nicht implementiert und verfügt noch über keine Eigenschaften!
  * @remarks Bei der Implementierung darauf achten, dass, wo möglich, explizit festgelegt wird
  *      wie viel Platz Variablen benutzen. Beispiel: uint64_t ist ein unsigned int mit 64 bit Breite.

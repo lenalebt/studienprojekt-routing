@@ -6,6 +6,7 @@
  * 
  * 
  * 
+ * @ingroup dataprimitives
  * @author Lena Brüder
  * @date 2011-11-01
  * @copyright GNU GPL v3

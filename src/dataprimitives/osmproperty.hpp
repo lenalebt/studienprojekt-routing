@@ -14,6 +14,7 @@ std::size_t hash_value(QString const& b);
  * Speicher zu halten. <code>boost::flyweight<T></code> übernimmt dies
  * automatisch.
  * 
+ * @ingroup dataprimitives
  * @author Lena Brüder
  * 
  * @copyright Lizenz: GNU GPL v3

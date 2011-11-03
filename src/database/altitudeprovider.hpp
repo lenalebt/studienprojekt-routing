@@ -3,7 +3,6 @@
 
 #include "gpsposition.hpp"
 
-
 /**
  * @brief Ein AltitudeProvider kann für jeden Punkt auf der Erde einen
  *      Höhenwert zurückgeben.
@@ -12,6 +11,7 @@
  * werden.
  * 
  * @see SRTMProvider
+ * @ingroup database
  * @author Lena Brüder
  * @date 2011-11-01
  * @copyright GNU GPL v3
@@ -54,6 +54,7 @@ public:
  * nicht sehr genau (1 Pixel entspricht etwa 90m - in Amerika entspricht
  * ein Pixel etwa 30m).
  * 
+ * @ingroup database
  * @author Lena Brüder
  * @date 2011-11-01
  * @copyright GNU GPL v3
