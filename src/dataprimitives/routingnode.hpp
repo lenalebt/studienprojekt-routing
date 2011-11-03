@@ -1,6 +1,8 @@
 #ifndef ROUTINGNODE_HPP
 #define ROUTINGNODE_HPP
 
+#include <boost/cstdint.hpp>
+
 /**
  * @brief 
  * 

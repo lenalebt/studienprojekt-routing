@@ -91,6 +91,7 @@ SET(
     
     #src/database/
     src/database/altitudeprovider.hpp
+    src/database/database.hpp
     
     #src/routing/
     src/routing/routingmetric.hpp

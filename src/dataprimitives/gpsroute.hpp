@@ -13,6 +13,8 @@
  * @todo Implementierung fehlt genauso wie eine komplette Definition der
  *  nötigen Eigenschaften. Diese Klasse ist nicht komplett! Sie wurde definiert,
  *  um die Routing-Schnittstellen definieren zu können.
+ * @todo Unterscheidung in Wegpunkte und Trackpunkte mit einbauen
+ * @todo Unterstützung für die Erzeugung einer Wegbeschreibung mit einbauen
  * @author Lena Brueder
  * @date 2011-11-01
  * @copyright GNU GPL v3
