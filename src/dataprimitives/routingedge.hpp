@@ -107,23 +107,27 @@ public:
      * @param value 
      */
     virtual void setTrafficLights(bool value);
-    /**
-     * @brief Legt fest, ob an der entsprechenden Kante eine Ampel ist oder nicht.
-     * @param value 
-     */
-    virtual void setTrafficCalmingBumps(bool value);
+    
     /**
      * @brief Legt fest, ob an der entsprechenden Kante Bremsschwellen sind oder nicht.
      * @param value 
      */
-    virtual void setStopSign(bool value);
+    virtual void setTrafficCalmingBumps(bool value);
+    
     /**
      * @brief Legt fest, ob an der entsprechenden Kante ein Stoppschild ist oder nicht.
      * @param value 
      */
-    virtual void setStairs(bool value);
+    virtual void setStopSign(bool value);
+    
     /**
      * @brief Legt fest, ob an der entsprechenden Kante Treppen sind oder nicht.
+     * @param value 
+     */
+    virtual void setStairs(bool value);
+    
+    /**
+     * @brief Legt fest, ob an der entsprechenden Kante Umlaufgitter sind oder nicht.
      * @param value 
      */
     virtual void setCycleBarrier(bool value);

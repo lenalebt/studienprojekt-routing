@@ -1,5 +1,10 @@
 #include "routingedge.hpp"
 
+/**
+ * @file
+ * @todo Testen!
+ */
+
 #define LOWEST_BIT_STREETTYPE 0
 #define LOWEST_BIT_CYCLEWAYTYPE 4
 #define LOWEST_BIT_STREETSURFACETYPE 8
@@ -13,42 +18,42 @@
 #define LOWEST_BIT_CYCLEBARRIER LOWEST_BIT_EXTRAOPTIONS + 3
 #define LOWEST_BIT_STAIRS LOWEST_BIT_EXTRAOPTIONS + 4
 
+#define GET_BIT_FROM_INT(integer,bit) (integer & (1 << bit))
+#define SET_BIT_IN_INT(integer,bit,value) if (value) integer |= (1<<bit); else integer &= ~(1<<bit);
+
 bool RoutingEdge::hasTrafficLights()
 {
-    return (properties & (1<<LOWEST_BIT_TRAFFICLIGHTS));
+    return GET_BIT_FROM_INT(properties, LOWEST_BIT_TRAFFICLIGHTS);
 }
 
 
 bool RoutingEdge::hasTrafficCalmingBumps()
 {
-    return (properties & (1<<LOWEST_BIT_TRAFFICCALMINGBUMPS));
+    return GET_BIT_FROM_INT(properties, LOWEST_BIT_TRAFFICCALMINGBUMPS);
 }
 
 
 bool RoutingEdge::hasStopSign()
 {
-    return (properties & (1<<LOWEST_BIT_STOPSIGN));
+    return GET_BIT_FROM_INT(properties, LOWEST_BIT_STOPSIGN);
 }
 
 
 bool RoutingEdge::hasStairs()
 {
-    return (properties & (1<<LOWEST_BIT_STAIRS));
+    return GET_BIT_FROM_INT(properties, LOWEST_BIT_STAIRS);
 }
 
 
 bool RoutingEdge::hasCycleBarrier()
 {
-    return (properties & (1<<LOWEST_BIT_CYCLEBARRIER));
+    return GET_BIT_FROM_INT(properties, LOWEST_BIT_CYCLEBARRIER);
 }
 
 
 void RoutingEdge::setTrafficLights(bool value)
 {
-    if (value)  //Wenn Wert gesetzt werden soll: Bit setzen über logisches ODER
-        properties |= (1<<LOWEST_BIT_TRAFFICLIGHTS);
-    else    //Wenn nicht: Bit löschen über logisches UND mit Bitmaske, die an einer Stelle Null ist
-        properties &= ~(1<<LOWEST_BIT_TRAFFICLIGHTS);
+    SET_BIT_IN_INT(properties, LOWEST_BIT_TRAFFICLIGHTS, value);
 }
 
 
