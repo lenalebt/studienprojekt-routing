@@ -13,7 +13,7 @@
  * @author Lena Brüder
  * @date 2011-11-01
  * @copyright GNU GPL v3
- * @todo Doxygen-Kommentare, Implementierung, Header
+ * @todo Implementierung, Header
  */
 class RoutingEdge
 {
