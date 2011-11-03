@@ -63,11 +63,11 @@ PROTOBUF_GENERATE_CPP(FILEFORMAT_PROTO_SOURCES FILEFORMAT_PROTO_HEADERS PROTOFIL
 SET(
     biker_SOURCES
     src/main.cpp
+    src/tests.cpp
     
     #src/dataprimitives
     src/dataprimitives/gpsposition.cpp
     src/dataprimitives/gpsroute.cpp
-    src/dataprimitives/routingnode.cpp
     src/dataprimitives/routingedge.cpp
     
     #src/database/
@@ -78,6 +78,7 @@ SET(
 SET(
     biker_HEADERS
     src/main.hpp
+    src/tests.hpp
     
     #src/dataprimitives
     src/dataprimitives/gpsposition.hpp

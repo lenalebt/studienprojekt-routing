@@ -6,6 +6,7 @@
 #include "main.hpp"
 #include <iostream>
 #include <boost/program_options.hpp>
+#include "tests.hpp"
 
 /**
  * @brief Zur Erzeugung eines Strings aus eines Defines.
@@ -32,15 +33,22 @@ int parseProgramOptions(int argc, char* argv[])
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")
+        ("test", "run program tests")
         ;
     
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
     po::notify(vm);    
-
+    
+    //Es soll die Hilfe angezeigt werden: Tun wir das doch!
     if (vm.count("help")) {
         cout << desc << "\n";
         return EXIT_FAILURE;
+    }
+    
+    //Tests ausführen, wenn auf der Kommandozeile so gewollt
+    if (vm.count("test")) {
+        return testProgram();
     }
     
     return EXIT_SUCCESS;
