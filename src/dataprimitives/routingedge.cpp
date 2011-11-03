@@ -5,21 +5,39 @@
  * @todo Testen!
  */
 
-#define LOWEST_BIT_STREETTYPE 0
-#define LOWEST_BIT_CYCLEWAYTYPE 4
-#define LOWEST_BIT_STREETSURFACETYPE 8
+#define LOWEST_BIT_STREETTYPE           0
+#define LOWEST_BIT_CYCLEWAYTYPE         4
+#define LOWEST_BIT_STREETSURFACETYPE    8
 #define LOWEST_BIT_STREETSURFACEQUALITY 12
-#define LOWEST_BIT_TURNTYPE 16
+#define LOWEST_BIT_TURNTYPE             16
 
-#define LOWEST_BIT_EXTRAOPTIONS 32
-#define LOWEST_BIT_TRAFFICLIGHTS LOWEST_BIT_EXTRAOPTIONS + 0
-#define LOWEST_BIT_TRAFFICCALMINGBUMPS LOWEST_BIT_EXTRAOPTIONS + 1
-#define LOWEST_BIT_STOPSIGN LOWEST_BIT_EXTRAOPTIONS + 2
-#define LOWEST_BIT_CYCLEBARRIER LOWEST_BIT_EXTRAOPTIONS + 3
-#define LOWEST_BIT_STAIRS LOWEST_BIT_EXTRAOPTIONS + 4
+#define LOWEST_BIT_EXTRAOPTIONS         32
+#define LOWEST_BIT_TRAFFICLIGHTS        (LOWEST_BIT_EXTRAOPTIONS + 0)
+#define LOWEST_BIT_TRAFFICCALMINGBUMPS  (LOWEST_BIT_EXTRAOPTIONS + 1)
+#define LOWEST_BIT_STOPSIGN             (LOWEST_BIT_EXTRAOPTIONS + 2)
+#define LOWEST_BIT_CYCLEBARRIER         (LOWEST_BIT_EXTRAOPTIONS + 3)
+#define LOWEST_BIT_STAIRS               (LOWEST_BIT_EXTRAOPTIONS + 4)
 
-#define GET_BIT_FROM_INT(integer,bit) (integer & (1 << bit))
-#define SET_BIT_IN_INT(integer,bit,value) if (value) integer |= (1<<bit); else integer &= ~(1<<bit);
+/**
+ * @brief Gibt den Wert eines Bits an einer Stelle in einem Integer zurück.
+ * @todo Testen!
+ */
+#define GET_BIT_FROM_INT(integer,bit)                   ((integer & (((boost::uint64_t)1) << bit)) > 0)
+/**
+ * @brief Setzt den Wert eines Bits an einer Stelle in einem Integer.
+ * @todo Testen!
+ */
+#define SET_BIT_IN_INT(integer,bit,value)               if (value) integer |= (((boost::uint64_t)1)<<bit); else integer &= ~(((boost::uint64_t)1)<<bit);
+/**
+ * @brief Gibt den Wert eines Nibbles (4 Bit) an einer Stelle in einem Integer zurück.
+ * @todo Testen!
+ */
+#define GET_NIBBLE_STARTING_AT_BIT(integer,bit)         (integer & (((boost::uint64_t)0xF) << bit)) >> bit
+/**
+ * @brief Setzt den Wert eines Nibbles (4 Bit) an einer Stelle in einem Integer.
+ * @todo Testen!
+ */
+#define SET_NIBBLE_STARTING_AT_BIT(integer,bit,value)   integer &= ~(((boost::uint64_t)0xF) << bit); integer |= ((value & ((boost::uint64_t)0xF)) << bit) >> bit;
 
 bool RoutingEdge::hasTrafficLights()
 {
@@ -59,85 +77,83 @@ void RoutingEdge::setTrafficLights(bool value)
 
 void RoutingEdge::setTrafficCalmingBumps(bool value)
 {
-    if (value)  //Wenn Wert gesetzt werden soll: Bit setzen über logisches ODER
-        properties |= (1<<LOWEST_BIT_TRAFFICCALMINGBUMPS);
-    else    //Wenn nicht: Bit löschen über logisches UND mit Bitmaske, die an einer Stelle Null ist
-        properties &= ~(1<<LOWEST_BIT_TRAFFICCALMINGBUMPS);
+    SET_BIT_IN_INT(properties, LOWEST_BIT_TRAFFICCALMINGBUMPS, value);
 }
 
 
 void RoutingEdge::setStopSign(bool value)
 {
-    if (value)  //Wenn Wert gesetzt werden soll: Bit setzen über logisches ODER
-        properties |= (1<<LOWEST_BIT_STOPSIGN);
-    else    //Wenn nicht: Bit löschen über logisches UND mit Bitmaske, die an einer Stelle Null ist
-        properties &= ~(1<<LOWEST_BIT_STOPSIGN);
+    SET_BIT_IN_INT(properties, LOWEST_BIT_STOPSIGN, value);
 }
 
 
 void RoutingEdge::setStairs(bool value)
 {
-    if (value)  //Wenn Wert gesetzt werden soll: Bit setzen über logisches ODER
-        properties |= (1<<LOWEST_BIT_STAIRS);
-    else    //Wenn nicht: Bit löschen über logisches UND mit Bitmaske, die an einer Stelle Null ist
-        properties &= ~(1<<LOWEST_BIT_STAIRS);
+    SET_BIT_IN_INT(properties, LOWEST_BIT_STAIRS, value);
 }
 
 
 void RoutingEdge::setCycleBarrier(bool value)
 {
-    if (value)  //Wenn Wert gesetzt werden soll: Bit setzen über logisches ODER
-        properties |= (1<<LOWEST_BIT_CYCLEBARRIER);
-    else    //Wenn nicht: Bit löschen über logisches UND mit Bitmaske, die an einer Stelle Null ist
-        properties &= ~(1<<LOWEST_BIT_CYCLEBARRIER);
+    SET_BIT_IN_INT(properties, LOWEST_BIT_CYCLEBARRIER, value);
 }
 
 
 boost::uint8_t RoutingEdge::getStreetType()
 {
+    return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_STREETTYPE);
 }
 
 
 boost::uint8_t RoutingEdge::getCyclewayType()
 {
+    return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_CYCLEWAYTYPE);
 }
 
 
 boost::uint8_t RoutingEdge::getStreetSurfaceType()
 {
+    return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_STREETSURFACETYPE);
 }
 
 
 boost::uint8_t RoutingEdge::getStreetSurfaceQuality()
 {
+    return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_STREETSURFACEQUALITY);
 }
 
 
 boost::uint8_t RoutingEdge::getTurnType()
 {
+    return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_TURNTYPE);
 }
 
 
 void RoutingEdge::setStreetType(boost::uint8_t streetType)
 {
+    SET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_STREETTYPE, streetType);
 }
 
 
 void RoutingEdge::setCyclewayType(boost::uint8_t cyclewayType)
 {
+    SET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_CYCLEWAYTYPE, cyclewayType);
 }
 
 
 void RoutingEdge::setStreetSurfaceType(boost::uint8_t streetSurfaceType)
 {
+    SET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_STREETSURFACETYPE, streetSurfaceType);
 }
 
 
 void RoutingEdge::setStreetSurfaceQuality(boost::uint8_t streetSurfaceQuality)
 {
+    SET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_STREETSURFACEQUALITY, streetSurfaceQuality);
 }
 
 
 void RoutingEdge::setTurnType(boost::uint8_t turnType)
 {
+    SET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_TURNTYPE, turnType);
 }
