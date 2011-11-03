@@ -124,6 +124,20 @@ SET(
     biker_UIS
     )
 
+INCLUDE_DIRECTORIES(
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${SPATIALITE_INCLUDE_DIR}
+    ${ZZIP_INCLUDE_DIR}
+    ${Boost_INCLUDE_DIR}
+    ${PROTOBUF_INCLUDE_DIRS}
+    ${ZLIB_INCLUDE_DIRS}
+    src/
+    src/routing/
+    src/dataprimitives/
+    src/database/
+    src/database/parser/
+    src/database/parser/pbf/
+    )
 
 IF(DOXYGEN_FOUND)
     #Semikolon-getrennte Liste in Whitespace-getrennte Liste konvertieren
@@ -133,6 +147,10 @@ IF(DOXYGEN_FOUND)
     FOREACH(ARG ${biker_SOURCES})
         SET(biker_SOURCES_WHITESPACE "${biker_SOURCES_WHITESPACE} ${CMAKE_CURRENT_SOURCE_DIR}/${ARG}")
     ENDFOREACH(ARG ${biker_SOURCES})
+    GET_DIRECTORY_PROPERTY(DIRINC INCLUDE_DIRECTORIES)
+    FOREACH(ARG ${DIRINC})
+        SET(biker_INCLUDES_WHITESPACE "${biker_INCLUDES_WHITESPACE} ${ARG}")
+    ENDFOREACH(ARG ${DIRINC})
     
     #Konfigurationsdatei hinzufügen
     CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
@@ -141,7 +159,7 @@ IF(DOXYGEN_FOUND)
     #"make clean" soll auch Doxygen-Sachen entfernen
     SET_PROPERTY(DIRECTORY APPEND PROPERTY
 	     ADDITIONAL_MAKE_CLEAN_FILES api-doc)
-    GET_TARGET_PROPERTY(DOC_TARGET dkoc TYPE)
+    GET_TARGET_PROPERTY(DOC_TARGET doc TYPE)
     IF(NOT DOC_TARGET)
         ADD_CUSTOM_TARGET(doc)
     ENDIF()
@@ -166,21 +184,6 @@ INCLUDE(
 
 ADD_DEFINITIONS(
     ${QT_DEFINITIONS}
-    )
-
-INCLUDE_DIRECTORIES(
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${SPATIALITE_INCLUDE_DIR}
-    ${ZZIP_INCLUDE_DIR}
-    ${Boost_INCLUDE_DIR}
-    ${PROTOBUF_INCLUDE_DIRS}
-    ${ZLIB_INCLUDE_DIRS}
-    src/database/
-    src/dataprimitives/
-    src/routing/
-    src/
-    src/database/parser/
-    src/database/parser/pbf/
     )
 
 #Hier ausführbare Dateien hinschreiben, und welche Dateien dazugehören
