@@ -49,7 +49,7 @@ public:
      */
     virtual void setAndConvertID(boost::uint64_t id)
     {
-        boost::uint64_t mask = 0xFFFFFFFFFFFFFFl;
+        boost::uint64_t mask = 0xFFFFFFFFFFFFFFllu;
         this->id = ((id & mask) << 8);
     }
 };
