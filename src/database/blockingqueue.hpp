@@ -110,7 +110,7 @@ public:
      * @brief Zerstört die Queue und sorgt dafür, dass alle
      *  blockierenden Zugriffe abgebrochen werden.
      */
-    void destroyQueue()
+    void destroyQueue();
 };
 
 
