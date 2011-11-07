@@ -72,6 +72,7 @@ SET(
     
     #src/database/
     src/database/altitudeprovider.cpp
+    src/database/blockingqueue.cpp
     )
 
 #Hier Header eintragen
@@ -93,6 +94,7 @@ SET(
     #src/database/
     src/database/altitudeprovider.hpp
     src/database/database.hpp
+    src/database/blockingqueue.hpp
     
     #src/routing/
     src/routing/routingmetric.hpp

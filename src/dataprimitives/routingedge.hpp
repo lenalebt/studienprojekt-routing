@@ -58,7 +58,6 @@ public:
     /**
      * @brief Setzt die ID des Endknotens auf den entsprechenden Wert.
      * @param endNodeID Die neue ID des Endknotens.
-     * @return 
      */
     virtual void setEndNodeID(boost::uint64_t endNodeID) {this->endNodeID = endNodeID;}
     
@@ -71,7 +70,6 @@ public:
     /**
      * @brief Setzt die Eigenschaften der Kante auf den angegebenen 64Bit-Wert.
      * @param properties Die neuen Eigenschaften der Kante als 64Bit-Wert.
-     * @return 
      */
     virtual void setProperties(boost::uint64_t properties) {this->properties = properties;}
     
