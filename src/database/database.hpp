@@ -6,7 +6,7 @@
 #include "routingedge.hpp"
 #include <boost/shared_ptr.hpp>
 #include <QString>
-#include <QList>
+#include <QVector>
 #include <boost/cstdint.hpp>
 
 /**
@@ -59,7 +59,7 @@ public:
      * @param radius Der Radius um den Suchmittelpunkt, in dem gesucht wird.
      * @return Eine Liste mit mindestens allen Punkten innerhalb des angegebenen Kreises.
      */
-    virtual QList<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& searchMidpoint, double radius)=0;
+    virtual QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& searchMidpoint, double radius)=0;
     
     /**
      * @brief Sucht aus der Datenbank alle Knoten heraus, die sich im
@@ -69,13 +69,13 @@ public:
      * @param brCorner Die untere rechte Ecke des Rechtecks (bottom right)
      * @return Eine Liste mit allen Punkten innerhalb des Rechtecks.
      */
-    virtual QList<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& ulCorner, const GPSPosition& brCorner)=0;
+    virtual QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& ulCorner, const GPSPosition& brCorner)=0;
     
     /**
      * @brief Legt einen Knoten in der Datenbank ab.
      * @param node Ein Knoten, der in der Datenbank abgelegt wird
      */
-    virtual void saveNode(const RoutingNode& node);
+    virtual void saveNode(const RoutingNode& node)=0;
     
     /**
      * @brief Gibt alle Kanten zurück, die von dem Knoten mit angegebener ID
@@ -83,7 +83,7 @@ public:
      * @param startNodeID Die ID des Startknotens der Kante
      * @return Eine Liste mit Kanten, die im angegebenen Knoten starten.
      */
-    virtual QList<boost::shared_ptr<RoutingEdge> > getEdgesByStartNodeID(boost::uint64_t startNodeID)=0;
+    virtual QVector<boost::shared_ptr<RoutingEdge> > getEdgesByStartNodeID(boost::uint64_t startNodeID)=0;
     
     /**
      * @brief Gibt alle Kanten zurück, die in dem Knoten mit angegebener ID
@@ -94,7 +94,7 @@ public:
      * @param endNodeID Die ID des Endknotens der Kante.
      * @return Eine Liste mit Kanten, die im angegebenen Knoten enden.
      */
-    virtual QList<boost::shared_ptr<RoutingEdge> > getEdgesByEndNodeID(boost::uint64_t endNodeID)=0;
+    virtual QVector<boost::shared_ptr<RoutingEdge> > getEdgesByEndNodeID(boost::uint64_t endNodeID)=0;
     
     /**
      * @brief Gibt die Kante zurück, die die angegebene ID hat.
@@ -111,14 +111,16 @@ public:
      * @brief Speichert die übergebene Kante in der Datenbank.
      * @param edge Die Kante, die in der Datenbank abgelegt werden soll.
      */
-    virtual void saveEdge(const RoutingEdge& edge);
+    virtual void saveEdge(const RoutingEdge& edge)=0;
     
     /**
      * @brief Speichert die übergebene Kante in der Datenbank und legt auch den Straßennamen ab.
      * @param edge Die Kante, die in der Datenbank abgelegt werden soll.
      * @param name Der Name der Straße, zu der diese Kante gehört.
      */
-    virtual void saveEdge(const RoutingEdge& edge, QString name);
+    virtual void saveEdge(const RoutingEdge& edge, QString name)=0;
+    
+    virtual QString getStreetName(const RoutingEdge& edge)=0;
     
 };
 

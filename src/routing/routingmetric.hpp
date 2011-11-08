@@ -5,7 +5,7 @@
 #include "routingedge.hpp"
 #include "altitudeprovider.hpp"
 #include "potentialfunction.hpp"
-#include <QList>
+#include <QVector>
 #include <boost/shared_ptr.hpp>
 
 /**
@@ -43,7 +43,7 @@ enum MeasurementUnit
 class RoutingMetric
 {
 protected:
-    QList<boost::shared_ptr<PotentialFunction> > potFuncList;
+    QVector<boost::shared_ptr<PotentialFunction> > potFuncList;
     AltitudeProvider* altitudeProvider;
 public:
     /**
@@ -68,9 +68,9 @@ public:
      * @brief Fügt eine Potentialfunktion in die Bewertung ein.
      * 
      * In der Standardimplementierung wird die PotentialFunction in einer
-     * intern verwaltete Liste abgelegt.
+     * intern verwalteten Liste abgelegt.
      * 
-     * @param potentialFunction Eine beliebige Potentialfunktion.
+     * @param potentialFunction Ein boost::shared_ptr auf eine beliebige Potentialfunktion.
      */
     virtual void addPotentialFunction(boost::shared_ptr<PotentialFunction> potentialFunction) {potFuncList << potentialFunction;}
     /**

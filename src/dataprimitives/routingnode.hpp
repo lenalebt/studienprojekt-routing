@@ -53,6 +53,9 @@ public:
         boost::uint64_t mask = 0xFFFFFFFFFFFFFFllu;
         this->id = ((id & mask) << 8);
     }
+    
+    RoutingNode(int id) : id(id) {}
+    RoutingNode() : id(0) {}
 };
 
 #endif //ROUTINGNODE_HPP

@@ -20,7 +20,10 @@ using namespace std;
 int testProgram()
 {
     //TODO: i18n!
-    cout << "Führe Programmtest durch..." << endl;
+    cout << "starting program tests..." << endl << flush;
+    
+    cout << fixed << 12345678901234567890.0 << endl;
+    cout << fixed << 1.0/0.0 << endl;
     
     //Anpassen, falls Fehler auftraten!
     return EXIT_SUCCESS;

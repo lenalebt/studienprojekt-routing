@@ -3,7 +3,7 @@
 
 #include "gpsposition.hpp"
 #include "osmproperty.hpp"
-#include <QList>
+#include <QVector>
 #include <iostream>
 #include <boost/cstdint.hpp>
 
@@ -22,7 +22,7 @@ class OSMNode : public GPSPosition
 {
 private:
     boost::uint64_t id;
-    QList<OSMProperty> properties;
+    QVector<OSMProperty> properties;
 
 public:
     /**

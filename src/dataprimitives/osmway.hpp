@@ -2,7 +2,7 @@
 #define OSMWAY_HPP
 
 #include "osmproperty.hpp"
-#include <QList>
+#include <QVector>
 #include <boost/cstdint.hpp>
 
 /**
@@ -20,8 +20,8 @@ class OSMWay
 {
 private:
     boost::uint64_t id;
-    QList<boost::uint64_t> memberIDList;
-    QList<OSMProperty> properties;
+    QVector<boost::uint64_t> memberIDList;
+    QVector<OSMProperty> properties;
 public:
     /**
      * @brief Erstellt einen Way mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörige Knoten.
