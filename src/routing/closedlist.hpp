@@ -33,6 +33,8 @@ enum RoutingThread
  * @author Lena Brueder
  * @date 2011-11-08
  * @copyright GNU GPL v3
+ * @todo Eventuell sollte die Klasse selbst merken, welcher Thread auf sie zugreift. Aktuell muss man es
+ *      ihr über Parameter sagen.
  */
 class ClosedList
 {
