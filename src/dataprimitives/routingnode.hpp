@@ -25,7 +25,7 @@ public:
      * @brief Gibt die ID des Knotens zurück.
      * @return Die ID des Knotens.
      */
-    virtual boost::uint64_t getID() {return id;}
+    virtual boost::uint64_t getID() const {return id;}
     
     /**
      * @brief Setzt die ID des Knotens auf den entsprechenden Wert.

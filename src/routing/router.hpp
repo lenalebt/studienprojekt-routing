@@ -29,7 +29,6 @@ public:
      * @param startPosition Die Position, von der aus die Route berechnet werden soll
      * @param endPosition Das Ziel der Route
      * @return Eine Route vom Start zum Ziel, die nach der angegebenen RoutingMetric die beste ist.
-     * @todo 
      */
     virtual GPSRoute calculateShortestRoute(GPSPosition startPosition, GPSPosition endPosition)=0;
 };

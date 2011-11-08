@@ -14,6 +14,7 @@
  * @date 2011-11-01
  * @copyright GNU GPL v3
  * @todo Tests, Header evtl erweitern
+ * @todo evtl besser Bitfelder verwenden zum Speichern der Eigenschaften - ist lesbarer
  */
 class RoutingEdge
 {
@@ -27,7 +28,7 @@ public:
      * @brief Gibt die ID der Kante zurück.
      * @return Die ID der Kante.
      */
-    virtual boost::uint64_t getID() {return id;}
+    virtual boost::uint64_t getID() const {return id;}
     
     /**
      * @brief Setzt die ID der Kante auf den entsprechenden Wert.
@@ -40,7 +41,7 @@ public:
      * @brief Gibt die ID des Startknotens zurück.
      * @return Die ID des Startknotens.
      */
-    virtual boost::uint64_t getStartNodeID() {return startNodeID;}
+    virtual boost::uint64_t getStartNodeID() const {return startNodeID;}
     
     /**
      * @brief Setzt die ID des Startknotens auf den entsprechenden Wert.
@@ -53,7 +54,7 @@ public:
      * @brief Gibt die ID des Endknotens zurück.
      * @return Die ID des Endknotens.
      */
-    virtual boost::uint64_t getEndNodeID() {return endNodeID;}
+    virtual boost::uint64_t getEndNodeID() const {return endNodeID;}
     
     /**
      * @brief Setzt die ID des Endknotens auf den entsprechenden Wert.
@@ -65,7 +66,7 @@ public:
      * @brief Gibt die Eigenschaften der Kante als 64Bit-Wert zurück.
      * @return Die Eigenschaften der Kante als 64Bit-Wert.
      */
-    virtual boost::uint64_t getProperties() {return properties;}
+    virtual boost::uint64_t getProperties() const {return properties;}
     
     /**
      * @brief Setzt die Eigenschaften der Kante auf den angegebenen 64Bit-Wert.
@@ -77,28 +78,28 @@ public:
      * @brief Gibt an, ob an der entsprechenden Kante eine Ampel steht oder nicht.
      * @return Ob eine Ampel vorhanden ist
      */
-    virtual bool hasTrafficLights();
+    virtual bool hasTrafficLights() const;
     /**
      * @brief Gibt an, ob an der entsprechenden Kante Bremsschwellen vorhanden sind
      * @return Ob Bremsschwellen vorhanden sind
      */
-    virtual bool hasTrafficCalmingBumps();
+    virtual bool hasTrafficCalmingBumps() const;
     /**
      * @brief Gibt an, ob an der entsprechenden Kante ein Stoppschild vorhanden ist
      * @return Ob ein Stoppschild vorhanden ist
      */
-    virtual bool hasStopSign();
+    virtual bool hasStopSign() const;
     /**
      * @brief Gibt an, ob an der entsprechenden Kante Treppen sind
      * @return Ob an der Kante Treppen sind
      * @todo Evtl. sind Treppen ein eigener Straßentyp?
      */
-    virtual bool hasStairs();
+    virtual bool hasStairs() const;
     /**
      * @brief Gibt an, ob an der entsprechenden Kante ein Umlaufgitter o.Ä. vorhanden ist
      * @return Ob ein Umlaufgitter vorhanden ist
      */
-    virtual bool hasCycleBarrier();
+    virtual bool hasCycleBarrier() const;
     
     /**
      * @brief Legt fest, ob an der entsprechenden Kante eine Ampel ist oder nicht.
@@ -136,30 +137,30 @@ public:
      * @return Den Typ der Straße
      * @todo Evtl einen Enum für den Straßentyp machen
      */
-    virtual boost::uint8_t getStreetType();
+    virtual boost::uint8_t getStreetType() const;
     /**
      * @brief Gibt den Typ des Radwegs an der Kante an.
      * @return Den Typ des Radwegs
      * @todo Evtl einen Enum für den Radwegtyp machen
      */
-    virtual boost::uint8_t getCyclewayType();
+    virtual boost::uint8_t getCyclewayType() const;
     /**
      * @brief Gibt den Typ des Straßenbelags an
      * @return Den Typ des Straßenbelags
      * @todo Evtl einen Enum für den Belagstyp machen
      */
-    virtual boost::uint8_t getStreetSurfaceType();
+    virtual boost::uint8_t getStreetSurfaceType() const;
     /**
      * @brief Gibt die Qualität des Straßenbelags an.
      * @return Die Qualität des Straßenbelags der Kante
      */
-    virtual boost::uint8_t getStreetSurfaceQuality();
+    virtual boost::uint8_t getStreetSurfaceQuality() const;
     /**
      * @brief Gibt den Abbiegetyp der Kante an.
      * @return Den Abbiegetyp der Kante
      * @todo Evtl einen Enum für den Abbiegetyp machen. Geradeaus, links, rechts, umkehren. Evtl noch mehr?
      */
-    virtual boost::uint8_t getTurnType();
+    virtual boost::uint8_t getTurnType() const;
     
     /**
      * @brief Setzt den Typ der Straße fest
@@ -183,7 +184,7 @@ public:
     virtual void setStreetSurfaceQuality(boost::uint8_t streetSurfaceQuality);
     /**
      * @brief Legt den Abbiegetyp der Kante fest
-     * @param trunType Der Abbiegetyp der Kante
+     * @param turnType Der Abbiegetyp der Kante
      */
     virtual void setTurnType(boost::uint8_t turnType);
 };

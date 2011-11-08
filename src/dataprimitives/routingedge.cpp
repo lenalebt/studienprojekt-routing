@@ -39,31 +39,31 @@
  */
 #define SET_NIBBLE_STARTING_AT_BIT(integer,bit,value)   integer &= ~(((boost::uint64_t)0xF) << bit); integer |= ((value & ((boost::uint64_t)0xF)) << bit) >> bit;
 
-bool RoutingEdge::hasTrafficLights()
+bool RoutingEdge::hasTrafficLights() const
 {
     return GET_BIT_FROM_INT(properties, LOWEST_BIT_TRAFFICLIGHTS);
 }
 
 
-bool RoutingEdge::hasTrafficCalmingBumps()
+bool RoutingEdge::hasTrafficCalmingBumps() const
 {
     return GET_BIT_FROM_INT(properties, LOWEST_BIT_TRAFFICCALMINGBUMPS);
 }
 
 
-bool RoutingEdge::hasStopSign()
+bool RoutingEdge::hasStopSign() const
 {
     return GET_BIT_FROM_INT(properties, LOWEST_BIT_STOPSIGN);
 }
 
 
-bool RoutingEdge::hasStairs()
+bool RoutingEdge::hasStairs() const
 {
     return GET_BIT_FROM_INT(properties, LOWEST_BIT_STAIRS);
 }
 
 
-bool RoutingEdge::hasCycleBarrier()
+bool RoutingEdge::hasCycleBarrier() const
 {
     return GET_BIT_FROM_INT(properties, LOWEST_BIT_CYCLEBARRIER);
 }
@@ -99,31 +99,31 @@ void RoutingEdge::setCycleBarrier(bool value)
 }
 
 
-boost::uint8_t RoutingEdge::getStreetType()
+boost::uint8_t RoutingEdge::getStreetType() const
 {
     return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_STREETTYPE);
 }
 
 
-boost::uint8_t RoutingEdge::getCyclewayType()
+boost::uint8_t RoutingEdge::getCyclewayType() const
 {
     return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_CYCLEWAYTYPE);
 }
 
 
-boost::uint8_t RoutingEdge::getStreetSurfaceType()
+boost::uint8_t RoutingEdge::getStreetSurfaceType() const
 {
     return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_STREETSURFACETYPE);
 }
 
 
-boost::uint8_t RoutingEdge::getStreetSurfaceQuality()
+boost::uint8_t RoutingEdge::getStreetSurfaceQuality() const
 {
     return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_STREETSURFACEQUALITY);
 }
 
 
-boost::uint8_t RoutingEdge::getTurnType()
+boost::uint8_t RoutingEdge::getTurnType() const
 {
     return GET_NIBBLE_STARTING_AT_BIT(properties, LOWEST_BIT_TURNTYPE);
 }

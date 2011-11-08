@@ -14,7 +14,14 @@
  *  nötigen Eigenschaften. Diese Klasse ist nicht komplett! Sie wurde definiert,
  *  um die Routing-Schnittstellen definieren zu können.
  * @todo Unterscheidung in Wegpunkte und Trackpunkte mit einbauen
+ *      (Trackpunkte sind Punkte, die angefahren werden aber nicht unbedingt
+ *      wichtig sind, wie z.B. wenn man durch eine S-Kurve fährt: Wichtig sind nur
+ *      die Endpunkte, man kann die Straße ja nicht verlassen, aber man kann Trackpunkte
+ *      in der Mitte setzen damit es schöner aussieht)
  * @todo Unterstützung für die Erzeugung einer Wegbeschreibung mit einbauen
+ *      (muss noch nicht implementiert werden, es reichen Dummies)
+ * @todo Export inx GPS-Format (XML) einbauen
+ * @todo Export ins JSON-Format (wie bei Cloudmade) einbauen
  * @author Lena Brueder
  * @date 2011-11-01
  * @copyright GNU GPL v3
