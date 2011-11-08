@@ -4,7 +4,9 @@
 #include "routingnode.hpp"
 #include "routingedge.hpp"
 #include "altitudeprovider.hpp"
+#include "potentialfunction.hpp"
 #include <QList>
+#include <boost/shared_ptr.hpp>
 
 /**
  * @brief Gibt an, in welcher Einheit eine RoutingMetric die übergebenen
@@ -41,7 +43,7 @@ enum MeasurementUnit
 class RoutingMetric
 {
 protected:
-    QList<PotentialFunction> potFuncList;
+    QList<boost::shared_ptr<PotentialFunction> > potFuncList;
     AltitudeProvider* altitudeProvider;
 public:
     /**
@@ -70,7 +72,7 @@ public:
      * 
      * @param potentialFunction Eine beliebige Potentialfunktion.
      */
-    virtual void addPotentialFunction(const PotentialFunction& potentialFunction) {potFuncList << potentialFunction;}
+    virtual void addPotentialFunction(boost::shared_ptr<PotentialFunction> potentialFunction) {potFuncList << potentialFunction;}
     /**
      * @brief Gibt an, in welcher Einheit die Bewertung von rateEdge() angegeben wird.
      * 

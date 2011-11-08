@@ -73,6 +73,11 @@ SET(
     #src/database/
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
+    
+    #src/routing/
+    src/routing/routingmetric.cpp
+    src/routing/router.cpp
+    src/routing/heap.cpp
     )
 
 #Hier Header eintragen
@@ -99,6 +104,8 @@ SET(
     #src/routing/
     src/routing/routingmetric.hpp
     src/routing/potentialfunction.hpp
+    src/routing/router.hpp
+    src/routing/heap.hpp
     )
 
 #Alle Dateien - automatisch erzeugte und selbstgeschriebene
