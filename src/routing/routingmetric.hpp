@@ -80,6 +80,27 @@ public:
      * @see MeasurementUnit
      */
     virtual MeasurementUnit getMeasurementUnit() {return VIRTUAL;}
+    
+    /**
+     * @brief Gibt zurück, wie lang man benötigt um diese Kante zu befahren.
+     * 
+     * Die Einheit ist Sekunden. Die Funktion wird verwendet, um dem Benutzer
+     * eine Rückmeldung zu geben über die Zeit, die benötigt wird um eine
+     * Route zu befahren.
+     * 
+     * @remarks Wenn in rateEdge() Sekunden zurückgegeben werden, ist diese
+     *      Funktion identisch zu rateEdge().
+     * @param edge Die Kante, die bewertet werden soll.
+     * @param startNode Der Startknoten der Kante.
+     * @param endNode Der Endknoten der Kante.
+     * @remarks Es werden Start- und Endknoten angegeben, obwohl deren ID
+     *      in der Kante gespeichert ist, weil so der Zugriff auf deren
+     *      Längen- und Breitengrad einfacher und schneller ist.
+     * @attention Die Funktion darf keine negativen Werte zurückgeben!
+     * @return Die Zeit, de man benötigt um die angegebene Kante zu befahren.
+     */
+    virtual double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)=0;
+    
     virtual ~RoutingMetric();
 }; 
 
