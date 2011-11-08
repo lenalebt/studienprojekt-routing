@@ -78,6 +78,7 @@ SET(
     src/routing/routingmetric.cpp
     src/routing/router.cpp
     src/routing/heap.cpp
+    src/routing/closedlist.cpp
     )
 
 #Hier Header eintragen
@@ -106,6 +107,7 @@ SET(
     src/routing/potentialfunction.hpp
     src/routing/router.hpp
     src/routing/heap.hpp
+    src/routing/closedlist.hpp
     )
 
 #Alle Dateien - automatisch erzeugte und selbstgeschriebene

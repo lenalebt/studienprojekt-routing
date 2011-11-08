@@ -120,6 +120,10 @@ public:
      */
     virtual void saveEdge(const RoutingEdge& edge, QString name)=0;
     
+    /**
+     * @brief Gibt zu einer angegebenen Kante den Namen der Straße zurück, sofern es einen gibt.
+     * @return den Namen der zugehörigen Straße, sofern es einen gibt
+     */
     virtual QString getStreetName(const RoutingEdge& edge)=0;
     
 };

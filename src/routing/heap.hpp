@@ -14,6 +14,7 @@
  * @copyright GNU GPL v3
  * @todo Doxygen-Kommentare
  * @todo Hinschreiben, dass operator< für T geschrieben werden muss
+ * @ingroup routing
  */
 template<typename T>
 class Heap
