@@ -187,6 +187,34 @@ public:
      * @param turnType Der Abbiegetyp der Kante
      */
     virtual void setTurnType(boost::uint8_t turnType);
+    
+    /**
+     * @brief Gibt zurück, auf welchem Level die Kante eingeordnet ist.
+     * 
+     * Abkürzungen haben einen Wert größer als Null. Null steht für
+     * "keine Abkürzung", und ist somit der Standardwert. Über diese
+     * Eigenschaft kann geprüft werden, ob eine Kante Abkürzung ist, oder
+     * nicht.
+     * 
+     * @return Das Abkürzungslevel dieser Kante.
+     * @todo Implementierung einer abgeleiteten Klasse, die das hier auch speichert.
+     */
+    virtual boost::uint64_t getRoutingLevel() {return 0;}
+    /**
+     * @brief Setzt fest, auf welchem Level die Kante eingeordnet ist.
+     * 
+     * Abkürzungen haben einen Wert größer als Null. Null steht für
+     * "keine Abkürzung", und ist somit der Standardwert. Über diese
+     * Eigenschaft kann geprüft werden, ob eine Kante Abkürzung ist, oder
+     * nicht.
+     * 
+     * Diese Implementierung gibt immer Null für das Level zurück, und
+     * speichert den Wert auch nicht.
+     * 
+     * @param level Das Abkürzungslevel dieser Kante.
+     * @todo Implementierung einer abgeleiteten Klasse, die das hier auch speichert.
+     */
+    virtual void setRoutingLevel(boost::uint64_t level) {}
 };
 
 #endif //ROUTINGNODE_HPP
