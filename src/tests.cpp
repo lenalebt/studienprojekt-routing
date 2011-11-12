@@ -141,8 +141,8 @@ namespace biker_tests
         node1.setAndConvertID(3);
         CHECK_EQ(node1.getID(), 768u)
         
-        node1.setAndConvertID(4316256737l);
-        CHECK_EQ(node1.getID(), 1104961724672u)
+        node1.setAndConvertID(4316256737ll);
+        CHECK_EQ(node1.getID(), 1104961724672ull)
         
         return EXIT_SUCCESS;
     }
