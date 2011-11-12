@@ -22,8 +22,7 @@ int testProgram()
     //TODO: i18n!
     cout << "starting program tests..." << endl << flush;
     
-    cout << fixed << 12345678901234567890.0 << endl;
-    cout << fixed << 1.0/0.0 << endl;
+    cout << "sizeof(RoutingEdge::PropertyType): " << sizeof(RoutingEdge::PropertyType) << endl;
     
     //Anpassen, falls Fehler auftraten!
     return EXIT_SUCCESS;

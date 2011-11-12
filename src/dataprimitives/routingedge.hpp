@@ -14,7 +14,6 @@
  * @date 2011-11-01
  * @copyright GNU GPL v3
  * @todo Tests, Header evtl erweitern
- * @todo evtl besser Bitfelder verwenden zum Speichern der Eigenschaften - ist lesbarer
  */
 class RoutingEdge
 {
@@ -22,7 +21,23 @@ private:
     boost::uint64_t id;
     boost::uint64_t startNodeID;
     boost::uint64_t endNodeID;
-    boost::uint64_t properties;
+    
+public:
+    typedef struct
+    {
+        unsigned int streetType             : 4;
+        unsigned int cyclewayType           : 4;
+        unsigned int streetSurfaceType      : 4;
+        unsigned int streetSurfaceQuality   : 4;
+        unsigned int turnType               : 4;
+        bool trafficLights          : 1;
+        bool trafficCalmingBumps    : 1;
+        bool stopSign               : 1;
+        bool cycleBarrier           : 1;
+        bool stairs                 : 1;
+    } PropertyType;
+private:
+    PropertyType properties;
 public:
     /**
      * @brief Gibt die ID der Kante zurück.
@@ -66,13 +81,13 @@ public:
      * @brief Gibt die Eigenschaften der Kante als 64Bit-Wert zurück.
      * @return Die Eigenschaften der Kante als 64Bit-Wert.
      */
-    virtual boost::uint64_t getProperties() const {return properties;}
+    //virtual boost::uint64_t getProperties() const {return properties;}
     
     /**
      * @brief Setzt die Eigenschaften der Kante auf den angegebenen 64Bit-Wert.
      * @param properties Die neuen Eigenschaften der Kante als 64Bit-Wert.
      */
-    virtual void setProperties(boost::uint64_t properties) {this->properties = properties;}
+    //virtual void setProperties(boost::uint64_t properties) {this->properties = properties;}
     
     /**
      * @brief Gibt an, ob an der entsprechenden Kante eine Ampel steht oder nicht.
