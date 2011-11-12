@@ -47,7 +47,7 @@ FIND_PACKAGE(SPATIALITE REQUIRED)
 #ZZipLib zum Entpacken von ZIP-Archiven
 FIND_PACKAGE(ZZIP REQUIRED)
 #Boost für Kommandozeilenoptionen und so
-FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS program_options filesystem REQUIRED)
 #Google Protocol Buffers (->Protobuf) zum Lesen von .pbf-Dateien
 FIND_PACKAGE(ProtocolBuffers REQUIRED)
 #zlib zum Entpacken von PBF-Dateien

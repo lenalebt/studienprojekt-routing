@@ -7,6 +7,7 @@
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 /**
  * @brief Zur Erzeugung eines Strings aus eines Defines.
@@ -17,10 +18,22 @@
  */
 #define QUOTEME(x) QUOTEME_(x)
 
-#define CHECK_EQ(a,b)           if (!check_equality(std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?", a, b)) return EXIT_FAILURE;
-#define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?", a, b)) return EXIT_FAILURE;
-#define CHECK(a)                if (!check_equality(std::string(QUOTEME(a)) + " == true?", a, true)) return EXIT_FAILURE;
+std::string basename(std::string filename)
+{
+    boost::filesystem::path p(filename);
+    std::string name = p.filename().generic_string();
+    return name.substr(0, name.length() - 1);
+}
 
+#if defined __FILE__ && defined __LINE__
+    #define LINESTR(a,b)           basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " == " + QUOTEME(b) + "?"
+#else
+    #define LINESTR(a,b)           std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?"
+#endif
+
+#define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
+#define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
+#define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 /**
  * @file
  * @ingroup tests
@@ -47,7 +60,7 @@ namespace biker_tests
     template<typename S, typename T>
     bool check_equality(std::string message, S a, T b)
     {
-        cout << left << setw(50) << message << " - " << flush;
+        cout << left << setw(60) << message << " - " << flush;
         if (a==b)
         {
             cout << "passed!" << endl;
