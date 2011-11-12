@@ -2,6 +2,29 @@
 #define ROUTINGNODE_HPP
 
 #include <boost/cstdint.hpp>
+#include <iostream>
+
+#define BITLENGTH_STREETTYPE            4ull
+#define BITLENGTH_CYCLEWAYTYPE          4ull
+#define BITLENGTH_STREETSURFACETYPE     4ull
+#define BITLENGTH_STREETSURFACEQUALITY  4ull
+#define BITLENGTH_TURNTYPE              4ull
+#define BITLENGTH_TRAFFICLIGHTS         1ull
+#define BITLENGTH_TRAFFICCALMINGBUMPS   1ull
+#define BITLENGTH_STOPSIGN              1ull
+#define BITLENGTH_CYCLEBARRIER          1ull
+#define BITLENGTH_STAIRS                1ull
+
+#define BITPOS_STREETTYPE               (0)
+#define BITPOS_CYCLEWAYTYPE             (BITLENGTH_STREETTYPE)
+#define BITPOS_STREETSURFACETYPE        (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE)
+#define BITPOS_STREETSURFACEQUALITY     (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE)
+#define BITPOS_TURNTYPE                 (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY)
+#define BITPOS_TRAFFICLIGHTS            (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE)
+#define BITPOS_TRAFFICCALMINGBUMPS      (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS)
+#define BITPOS_STOPSIGN                 (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS)
+#define BITPOS_CYCLEBARRIER             (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN)
+#define BITPOS_STAIRS                   (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN + BITLENGTH_CYCLEBARRIER)
 
 /**
  * @brief Beschreibt eine Kante, der in der Datenbank abgelegt werden kann
@@ -18,76 +41,78 @@
 class RoutingEdge
 {
 private:
-    boost::uint64_t id;
-    boost::uint64_t startNodeID;
-    boost::uint64_t endNodeID;
+    boost::uint64_t _id;
+    boost::uint64_t _startNodeID;
+    boost::uint64_t _endNodeID;
     
 public:
     typedef struct
     {
-        unsigned int streetType             : 4;
-        unsigned int cyclewayType           : 4;
-        unsigned int streetSurfaceType      : 4;
-        unsigned int streetSurfaceQuality   : 4;
-        unsigned int turnType               : 4;
-        bool trafficLights          : 1;
-        bool trafficCalmingBumps    : 1;
-        bool stopSign               : 1;
-        bool cycleBarrier           : 1;
-        bool stairs                 : 1;
+        unsigned int streetType             : BITLENGTH_STREETTYPE;
+        unsigned int cyclewayType           : BITLENGTH_CYCLEWAYTYPE;
+        unsigned int streetSurfaceType      : BITLENGTH_STREETSURFACETYPE;
+        unsigned int streetSurfaceQuality   : BITLENGTH_STREETSURFACEQUALITY;
+        unsigned int turnType               : BITLENGTH_TURNTYPE;
+        bool trafficLights                  : BITLENGTH_TRAFFICLIGHTS;
+        bool trafficCalmingBumps            : BITLENGTH_TRAFFICCALMINGBUMPS;
+        bool stopSign                       : BITLENGTH_STOPSIGN;
+        bool cycleBarrier                   : BITLENGTH_CYCLEBARRIER;
+        bool stairs                         : BITLENGTH_STAIRS;
     } PropertyType;
 private:
-    PropertyType properties;
+    PropertyType _properties;
+    
+    friend std::ostream & operator<<(std::ostream &os, const RoutingEdge& p);
 public:
     /**
      * @brief Gibt die ID der Kante zurück.
      * @return Die ID der Kante.
      */
-    virtual boost::uint64_t getID() const {return id;}
+    virtual boost::uint64_t getID() const {return _id;}
     
     /**
      * @brief Setzt die ID der Kante auf den entsprechenden Wert.
      * @param id Die neue ID der Kante.
      * @return 
      */
-    virtual void setID(boost::uint64_t id) {this->id = id;}
+    virtual void setID(boost::uint64_t id) {this->_id = id;}
     
     /**
      * @brief Gibt die ID des Startknotens zurück.
      * @return Die ID des Startknotens.
      */
-    virtual boost::uint64_t getStartNodeID() const {return startNodeID;}
+    virtual boost::uint64_t getStartNodeID() const {return _startNodeID;}
     
     /**
      * @brief Setzt die ID des Startknotens auf den entsprechenden Wert.
      * @param startNodeID Die neue ID des Startknotens.
      * @return 
      */
-    virtual void setStartNodeID(boost::uint64_t startNodeID) {this->startNodeID = startNodeID;}
+    virtual void setStartNodeID(boost::uint64_t startNodeID) {this->_startNodeID = startNodeID;}
     
     /**
      * @brief Gibt die ID des Endknotens zurück.
      * @return Die ID des Endknotens.
      */
-    virtual boost::uint64_t getEndNodeID() const {return endNodeID;}
+    virtual boost::uint64_t getEndNodeID() const {return _endNodeID;}
     
     /**
      * @brief Setzt die ID des Endknotens auf den entsprechenden Wert.
      * @param endNodeID Die neue ID des Endknotens.
      */
-    virtual void setEndNodeID(boost::uint64_t endNodeID) {this->endNodeID = endNodeID;}
+    virtual void setEndNodeID(boost::uint64_t endNodeID) {this->_endNodeID = endNodeID;}
     
     /**
      * @brief Gibt die Eigenschaften der Kante als 64Bit-Wert zurück.
      * @return Die Eigenschaften der Kante als 64Bit-Wert.
      */
-    //virtual boost::uint64_t getProperties() const {return properties;}
+    virtual boost::uint64_t getProperties() const;
     
     /**
      * @brief Setzt die Eigenschaften der Kante auf den angegebenen 64Bit-Wert.
      * @param properties Die neuen Eigenschaften der Kante als 64Bit-Wert.
      */
-    //virtual void setProperties(boost::uint64_t properties) {this->properties = properties;}
+    virtual void setProperties(boost::uint64_t properties);
     
     /**
      * @brief Gibt an, ob an der entsprechenden Kante eine Ampel steht oder nicht.
@@ -230,6 +255,28 @@ public:
      * @todo Implementierung einer abgeleiteten Klasse, die das hier auch speichert.
      */
     virtual void setRoutingLevel(boost::uint64_t level) {}
+    
+    RoutingEdge();
+    RoutingEdge(boost::uint64_t id);
+    
+    /**
+     * @brief Vergleicht zwei RoutingEdges.
+     * 
+     * @return <code>true</code>, wenn die RoutingEdges gleich sind, <code>false</code> sonst.
+     * @todo 
+     */
+    bool operator==(const RoutingEdge& other);
 };
+
+/**
+ * @brief Ausgabeoperator für RoutingEdge.
+ */
+std::ostream& operator<<(std::ostream& os, const RoutingEdge& edge);
+
+/**
+ * @brief Vergleichsoperator für den struct innerhalb der RoutingEdge
+ * @return Ob zwei structs vom Typ RoutingEdge::PropertyType gleich sind
+ */
+bool operator==(const RoutingEdge::PropertyType& a, const RoutingEdge::PropertyType& b);
 
 #endif //ROUTINGNODE_HPP

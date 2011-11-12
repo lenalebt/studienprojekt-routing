@@ -31,10 +31,11 @@ using namespace std;
  */
 int parseProgramOptions(int argc, char* argv[])
 {
+    std::string testName("");
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")
-        ("test", "run program tests")
+        ("test", po::value<std::string>(&testName)->implicit_value("all"), "run program tests")
         ;
     
     po::variables_map vm;
@@ -49,7 +50,7 @@ int parseProgramOptions(int argc, char* argv[])
     
     //Tests ausführen, wenn auf der Kommandozeile so gewollt
     if (vm.count("test")) {
-        return testProgram();
+        return biker_tests::testProgram(testName);
     }
     
     return EXIT_SUCCESS;

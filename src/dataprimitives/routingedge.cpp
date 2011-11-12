@@ -2,119 +2,223 @@
 
 bool RoutingEdge::hasTrafficLights() const
 {
-    return properties.trafficLights;
+    return _properties.trafficLights;
 }
 
 
 bool RoutingEdge::hasTrafficCalmingBumps() const
 {
-    return properties.trafficCalmingBumps;
+    return _properties.trafficCalmingBumps;
 }
 
 
 bool RoutingEdge::hasStopSign() const
 {
-    return properties.stopSign;
+    return _properties.stopSign;
 }
 
 
 bool RoutingEdge::hasStairs() const
 {
-    return properties.stairs;
+    return _properties.stairs;
 }
 
 
 bool RoutingEdge::hasCycleBarrier() const
 {
-    return properties.cycleBarrier;
+    return _properties.cycleBarrier;
 }
 
 
 void RoutingEdge::setTrafficLights(bool value)
 {
-    properties.trafficLights = value;
+    _properties.trafficLights = value;
 }
 
 
 void RoutingEdge::setTrafficCalmingBumps(bool value)
 {
-    properties.trafficCalmingBumps = value;
+    _properties.trafficCalmingBumps = value;
 }
 
 
 void RoutingEdge::setStopSign(bool value)
 {
-    properties.stopSign = value;
+    _properties.stopSign = value;
 }
 
 
 void RoutingEdge::setStairs(bool value)
 {
-    properties.stairs = value;
+    _properties.stairs = value;
 }
 
 
 void RoutingEdge::setCycleBarrier(bool value)
 {
-    properties.cycleBarrier = value;
+    _properties.cycleBarrier = value;
 }
 
 
 boost::uint8_t RoutingEdge::getStreetType() const
 {
-    return properties.streetType;
+    return _properties.streetType;
 }
 
 
 boost::uint8_t RoutingEdge::getCyclewayType() const
 {
-    return properties.cyclewayType;
+    return _properties.cyclewayType;
 }
 
 
 boost::uint8_t RoutingEdge::getStreetSurfaceType() const
 {
-    return properties.streetSurfaceType;
+    return _properties.streetSurfaceType;
 }
 
 
 boost::uint8_t RoutingEdge::getStreetSurfaceQuality() const
 {
-    return properties.streetSurfaceQuality;
+    return _properties.streetSurfaceQuality;
 }
 
 
 boost::uint8_t RoutingEdge::getTurnType() const
 {
-    return properties.turnType;
+    return _properties.turnType;
 }
 
 
 void RoutingEdge::setStreetType(boost::uint8_t streetType)
 {
-    properties.streetType = streetType;
+    _properties.streetType = streetType;
 }
 
 
 void RoutingEdge::setCyclewayType(boost::uint8_t cyclewayType)
 {
-    properties.cyclewayType = cyclewayType;
+    _properties.cyclewayType = cyclewayType;
 }
 
 
 void RoutingEdge::setStreetSurfaceType(boost::uint8_t streetSurfaceType)
 {
-    properties.streetSurfaceType = streetSurfaceType;
+    _properties.streetSurfaceType = streetSurfaceType;
 }
 
 
 void RoutingEdge::setStreetSurfaceQuality(boost::uint8_t streetSurfaceQuality)
 {
-    properties.streetSurfaceQuality = streetSurfaceQuality;
+    _properties.streetSurfaceQuality = streetSurfaceQuality;
 }
 
 
 void RoutingEdge::setTurnType(boost::uint8_t turnType)
 {
-    properties.turnType = turnType;
+    _properties.turnType = turnType;
+}
+
+boost::uint64_t RoutingEdge::getProperties() const
+{
+    return (_properties.cycleBarrier             << BITPOS_CYCLEBARRIER) |
+            (_properties.cyclewayType            << BITPOS_CYCLEWAYTYPE) |
+            (_properties.stairs                  << BITPOS_STAIRS) |
+            (_properties.stopSign                << BITPOS_STOPSIGN) |
+            (_properties.streetSurfaceQuality    << BITPOS_STREETSURFACEQUALITY) |
+            (_properties.streetSurfaceType       << BITPOS_STREETSURFACETYPE) |
+            (_properties.streetType              << BITPOS_STREETTYPE) |
+            (_properties.trafficCalmingBumps     << BITPOS_TRAFFICCALMINGBUMPS) |
+            (_properties.trafficLights           << BITPOS_TRAFFICLIGHTS) |
+            (_properties.turnType                << BITPOS_TURNTYPE);
+            
+}
+
+/**
+ * @todo Implementierung, Plattformunabhängig, ist so evtl falsch.
+ */
+void RoutingEdge::setProperties(boost::uint64_t properties)
+{
+    _properties.cycleBarrier         = (properties >> BITPOS_CYCLEBARRIER)         & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.cyclewayType         = (properties >> BITPOS_CYCLEWAYTYPE)         ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.stairs               = (properties >> BITPOS_STAIRS)               & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.stopSign             = (properties >> BITPOS_STOPSIGN)             & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.streetSurfaceQuality = (properties >> BITPOS_STREETSURFACEQUALITY) ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.streetSurfaceType    = (properties >> BITPOS_STREETSURFACETYPE)    ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.streetType           = (properties >> BITPOS_STREETTYPE)           ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.trafficCalmingBumps  = (properties >> BITPOS_TRAFFICCALMINGBUMPS)  & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.trafficLights        = (properties >> BITPOS_TRAFFICLIGHTS)        & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.turnType             = (properties >> BITPOS_TURNTYPE)             ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+}
+
+
+std::ostream& operator<<(std::ostream& os, const RoutingEdge& edge)
+{
+    os << "RoutingEdge, id " << edge._id << ", startNodeID " << edge._startNodeID <<
+        ", endNodeID " << edge._endNodeID << std::endl;
+    os << "streetType " << edge._properties.streetType << std::endl <<
+        "cyclewayType " << edge._properties.cyclewayType << std::endl <<
+        "streetSurfaceType " << edge._properties.streetSurfaceType << std::endl <<
+        "streetSurfaceQuality " << edge._properties.streetSurfaceQuality << std::endl <<
+        "turnType " << edge._properties.turnType << std::endl <<
+        "trafficLights " << edge._properties.trafficLights << std::endl <<
+        "trafficCalmingBumps " << edge._properties.trafficCalmingBumps << std::endl <<
+        "stopSign " << edge._properties.stopSign << std::endl <<
+        "cycleBarrier " << edge._properties.cycleBarrier << std::endl <<
+        "stairs " << edge._properties.stairs << std::endl <<
+        "properties " << edge.getProperties() << std::endl;
+    
+    return os;
+}
+
+RoutingEdge::RoutingEdge() :
+    _id(0), _startNodeID(0), _endNodeID(0)
+{
+    _properties.cycleBarrier                = false;
+    _properties.cyclewayType                = 0;
+    _properties.stairs                      = false;
+    _properties.stopSign                    = false;
+    _properties.streetSurfaceQuality        = 0;
+    _properties.streetSurfaceType           = 0;
+    _properties.streetType                  = 0;
+    _properties.trafficCalmingBumps         = false;
+    _properties.trafficLights               = false;
+    _properties.turnType                    = 0;
+}
+
+RoutingEdge::RoutingEdge(boost::uint64_t id) :
+    _id(id), _startNodeID(0), _endNodeID(0)
+{
+    _properties.cycleBarrier                = false;
+    _properties.cyclewayType                = 0;
+    _properties.stairs                      = false;
+    _properties.stopSign                    = false;
+    _properties.streetSurfaceQuality        = 0;
+    _properties.streetSurfaceType           = 0;
+    _properties.streetType                  = 0;
+    _properties.trafficCalmingBumps         = false;
+    _properties.trafficLights               = false;
+    _properties.turnType                    = 0;
+}
+
+bool RoutingEdge::operator==(const RoutingEdge& other)
+{
+    return (this->_id == other._id) &&
+        (this->_startNodeID == other._startNodeID) &&
+        (this->_endNodeID == other._endNodeID) &&
+        (this->_properties == other._properties);
+}
+
+bool operator==(const RoutingEdge::PropertyType& a, const RoutingEdge::PropertyType& b)
+{
+    return (a.streetType == b.streetType) &&
+        (a.cyclewayType == b.cyclewayType) &&
+        (a.streetSurfaceType == b.streetSurfaceType) &&
+        (a.streetSurfaceQuality == b.streetSurfaceQuality) &&
+        (a.turnType == b.turnType) &&
+        (a.trafficLights == b.trafficLights) &&
+        (a.trafficCalmingBumps == b.trafficCalmingBumps) &&
+        (a.stopSign == b.stopSign) &&
+        (a.cycleBarrier == b.cycleBarrier) &&
+        (a.stairs == b.stairs);
 }
