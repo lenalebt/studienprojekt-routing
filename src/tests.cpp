@@ -40,8 +40,11 @@ namespace biker_tests
 {
     std::string basename(std::string filename)
     {
-        size_t pos = filename.find_last_of("/\\");
+        //Suche letzten Pfadtrenner
+        size_t pos = filename.find_last_of("/\\:");
+        //Setze die Position hinter den Pfadtrenner - wenn es keinen gibt, nach ganz vorn.
         pos = (pos!=std::string::npos) ? pos+1 : 0;
+        //schneide den Dateinamen aus.
         return filename.substr(pos, filename.length() - pos - (filename.find_last_of("\"") != std::string::npos));
     }
     
@@ -170,6 +173,7 @@ namespace biker_tests
         CHECK_EQ_TYPE(biker_tests::basename("C:\\home\\lala\\test.cpp"), "test.cpp", std::string);
         CHECK_EQ_TYPE(biker_tests::basename("C:\\home\\lala/test.cpp"), "test.cpp", std::string);
         CHECK_EQ_TYPE(biker_tests::basename("\"C:\\home\\lala\\test.cpp\""), "test.cpp", std::string);
+        CHECK_EQ_TYPE(biker_tests::basename("C:test.cpp"), "test.cpp", std::string);
         
         return EXIT_SUCCESS;
     }
