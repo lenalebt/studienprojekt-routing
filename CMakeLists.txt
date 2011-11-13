@@ -41,13 +41,13 @@ SET(QT_USE_QTXML TRUE)
 SET(QT_USE_QTSQL TRUE)
 
 #Qt für ganz viel Krams
-FIND_PACKAGE(Qt4 REQUIRED)
+FIND_PACKAGE(Qt4 4.7 REQUIRED)
 #Spatialite für die Datenbank
 FIND_PACKAGE(SPATIALITE REQUIRED)
 #ZZipLib zum Entpacken von ZIP-Archiven
 FIND_PACKAGE(ZZIP REQUIRED)
 #Boost für Kommandozeilenoptionen und so
-FIND_PACKAGE(Boost COMPONENTS program_options REQUIRED)
+FIND_PACKAGE(Boost 1.42.0 COMPONENTS program_options REQUIRED)
 #Google Protocol Buffers (->Protobuf) zum Lesen von .pbf-Dateien
 FIND_PACKAGE(ProtocolBuffers REQUIRED)
 #zlib zum Entpacken von PBF-Dateien
