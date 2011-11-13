@@ -42,6 +42,7 @@ namespace biker_tests
     {
         size_t pos = filename.find_last_of("/\\");
         pos += (pos!=std::string::npos) ? 1 : 0;
+        cout << pos << endl << flush;
         filename = filename.substr(pos);
         cout << "lala" << flush;
         return filename.substr(0, filename.length() - (filename.find_last_of("\"") != std::string::npos));
