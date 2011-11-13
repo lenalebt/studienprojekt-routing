@@ -7,7 +7,6 @@
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
 
 /**
  * @brief Zur Erzeugung eines Strings aus eines Defines.
@@ -20,9 +19,9 @@
 
 std::string basename(std::string filename)
 {
-    boost::filesystem::path p(filename);
-    std::string name = p.filename().generic_string();
-    return name.substr(0, name.length() - 1);
+    int pos = filename.find_last_of("/\\");
+    pos += (pos!=0) ? 1 : 0;
+    return filename.substr(pos, filename.length() - pos - (filename.find_last_of("\"") != 0));
 }
 
 #if defined __FILE__ && defined __LINE__
