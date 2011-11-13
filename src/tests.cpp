@@ -17,15 +17,8 @@
  */
 #define QUOTEME(x) QUOTEME_(x)
 
-std::string basename(std::string filename)
-{
-    int pos = filename.find_last_of("/\\");
-    pos += (pos!=0) ? 1 : 0;
-    return filename.substr(pos, filename.length() - pos - (filename.find_last_of("\"") != 0));
-}
-
-#if defined __FILE__ && defined __LINE__
-    #define LINESTR(a,b)           basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " == " + QUOTEME(b) + "?"
+#if defined __FILE__ && defined __LINE__ && defined LALA
+    #define LINESTR(a,b)           biker_tests::basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " == " + QUOTEME(b) + "?"
 #else
     #define LINESTR(a,b)           std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?"
 #endif
@@ -45,6 +38,13 @@ using namespace std;
 
 namespace biker_tests
 {
+    std::string basename(std::string filename)
+    {
+        unsigned int pos = filename.find_last_of("/\\");
+        pos += (pos!=std::string::npos) ? 1 : 0;
+        return filename.substr(pos, filename.length() - pos - (filename.find_last_of("\"") != std::string::npos));
+    }
+    
     std::string uint64_t2string(boost::uint64_t integer)
     {
         std::string retVal("");
@@ -92,6 +92,8 @@ namespace biker_tests
             return test_uint64_t2string();
         else if (testName == "routingnode")
             return testRoutingNode();
+        else if (testName == "basename")
+            return testBasename();
         
         //Anpassen, falls Fehler auftraten!
         return EXIT_FAILURE;
@@ -155,6 +157,19 @@ namespace biker_tests
         
         node1.setAndConvertID(4316256737ll);
         CHECK_EQ(node1.getID(), 1104961724672ull)
+        
+        return EXIT_SUCCESS;
+    }
+    
+    int testBasename()
+    {
+        CHECK_EQ_TYPE(biker_tests::basename("test.cpp"), "test.cpp", std::string);
+        CHECK_EQ_TYPE(biker_tests::basename("/test.cpp"), "test.cpp", std::string);
+        CHECK_EQ_TYPE(biker_tests::basename("/home/lala/test.cpp"), "test.cpp", std::string);
+        CHECK_EQ_TYPE(biker_tests::basename("\"/home/lala/test.cpp\""), "test.cpp", std::string);
+        CHECK_EQ_TYPE(biker_tests::basename("C:\\home\\lala\\test.cpp"), "test.cpp", std::string);
+        CHECK_EQ_TYPE(biker_tests::basename("C:\\home\\lala/test.cpp"), "test.cpp", std::string);
+        CHECK_EQ_TYPE(biker_tests::basename("\"C:\\home\\lala\\test.cpp\""), "test.cpp", std::string);
         
         return EXIT_SUCCESS;
     }

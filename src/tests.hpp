@@ -3,6 +3,7 @@
 
 #include <boost/cstdint.hpp>
 #include <boost/algorithm/string.hpp> 
+#include <string>
 
 /**
  * @file
@@ -29,6 +30,7 @@ namespace biker_tests
 
     int testRoutingEdge();
     int testRoutingNode();
+    int testBasename();
     int test_uint64_t2string();
     
     /**
@@ -39,6 +41,17 @@ namespace biker_tests
      * @return Den Wert als String im 2er-System
      */
     std::string uint64_t2string(boost::uint64_t integer);
+    
+    /**
+     * @brief Gibt zu einem gegebenen Dateinamen den Basisnamen,
+     *      ohne Pfadangabe, zurück.
+     * 
+     * Achtet auf Unterschiede zwischen unixoiden Dateiangaben und Windows.
+     * 
+     * @return 
+     * @todo Tests!
+     */
+    std::string basename(std::string filename);
 
 
     template<typename S, typename T>
