@@ -40,7 +40,7 @@ namespace biker_tests
 {
     std::string basename(std::string filename)
     {
-        unsigned int pos = filename.find_last_of("/\\");
+        size_t pos = filename.find_last_of("/\\");
         pos += (pos!=std::string::npos) ? 1 : 0;
         filename = filename.substr(pos);
         cout << "lala" << flush;
