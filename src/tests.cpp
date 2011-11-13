@@ -41,10 +41,10 @@ namespace biker_tests
     std::string basename(std::string filename)
     {
         unsigned int pos = filename.find_last_of("/\\");
-        cout << "A" << flush;
         pos += (pos!=std::string::npos) ? 1 : 0;
-        cout << "B" << flush;
-        return filename.substr(pos, filename.length() - pos - (filename.find_last_of("\"") != std::string::npos));
+        filename = filename.substr(pos);
+        cout << "lala" << flush;
+        return filename.substr(0, filename.length() - (filename.find_last_of("\"") != std::string::npos));
     }
     
     std::string uint64_t2string(boost::uint64_t integer)
