@@ -41,7 +41,9 @@ namespace biker_tests
     std::string basename(std::string filename)
     {
         unsigned int pos = filename.find_last_of("/\\");
+        cout << "A" << flush;
         pos += (pos!=std::string::npos) ? 1 : 0;
+        cout << "B" << flush;
         return filename.substr(pos, filename.length() - pos - (filename.find_last_of("\"") != std::string::npos));
     }
     
