@@ -17,7 +17,7 @@
  */
 #define QUOTEME(x) QUOTEME_(x)
 
-#if defined __FILE__ && defined __LINE__ && defined LALA
+#if defined __FILE__ && defined __LINE__
     #define LINESTR(a,b)           biker_tests::basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " == " + QUOTEME(b) + "?"
 #else
     #define LINESTR(a,b)           std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?"

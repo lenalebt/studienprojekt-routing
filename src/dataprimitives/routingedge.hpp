@@ -37,6 +37,7 @@
  * @date 2011-11-01
  * @copyright GNU GPL v3
  * @todo Tests, Header evtl erweitern
+ * @todo Flag, ob Kante erlaubt für: Fahrrad, Fußgänger (gibt große Straßen wo Fußgänger nicht lang dürfen!)
  */
 class RoutingEdge
 {
