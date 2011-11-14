@@ -217,6 +217,66 @@ ADD_TEST(test-basename          "biker" "--test" "basename")
 ADD_TEST(test-routingedge       "biker" "--test" "routingedge")
 ADD_TEST(test-routingnode       "biker" "--test" "routingnode")
 
+
+#Zum Erstellen von automatischen Installationspaketen
+IF(UNIX)
+    SET(CPACK_SOURCE_GENERATOR
+        TGZ
+        TBZ2
+    )
+    SET(CPACK_GENERATOR
+        TGZ
+        TBZ2
+        RPM
+        DEB
+    )
+ELSE(UNIX)
+    SET(CPACK_SOURCE_GENERATOR
+        ZIP
+    )
+    SET(CPACK_GENERATOR
+        NSIS
+    )
+ENDIF(UNIX)
+
+#Metadaten
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Biker is a bike route planner"
+    )
+SET(CPACK_PACKAGE_VENDOR
+    "-"
+    )
+SET(CPACK_PACKAGE_DESCRIPTION_FILE
+    #"${CMAKE_CURRENT_SOURCE_DIR}/README.TXT"
+    )
+SET(CPACK_RESOURCE_FILE_LICENSE
+    #"${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.TXT"
+    )
+SET(CPACK_PACKAGE_VERSION_MAJOR
+    ${biker_VERSION_MAJOR}
+    )
+SET(CPACK_PACKAGE_VERSION_MINOR
+    ${biker_VERSION_MINOR}
+    )
+SET(CPACK_PACKAGE_CONTACT
+    "Lena.Brueder@rub.de"
+    )
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER
+    "Lena Brueder"
+    )
+#Was sinnvolleres setzen - Internet ist wegen der Kartendaten ;D.
+SET(CPACK_PACKAGE_SECTION
+    "internet"
+    )
+SET(CPACK_SOURCE_IGNORE_FILES
+    ${CMAKE_BINARY_DIR}/*
+    ${CMAKE_CURRENT_BINARY_DIR}/*
+    ${CMAKE_CURRENT_SOURCE_DIR}/.gitignore
+    ${CMAKE_CURRENT_SOURCE_DIR}/.git
+    )
+INCLUDE(CPack)
+
+
 #Hier hinschreiben, welche Libs zu der ausführbaren Datei gelinkt werden
 #müssen.
 TARGET_LINK_LIBRARIES(biker
