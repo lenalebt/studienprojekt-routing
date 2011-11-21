@@ -4,6 +4,7 @@
 
 #include "routingnode.hpp"
 #include "routingedge.hpp"
+#include "osmrelation.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
