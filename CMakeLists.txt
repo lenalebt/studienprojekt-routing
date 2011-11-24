@@ -76,6 +76,7 @@ SET(
     #src/database/
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
+    src/database/spatialitedatabase.cpp
     
     #src/routing/
     src/routing/routingmetric.cpp
@@ -104,6 +105,8 @@ SET(
     src/database/altitudeprovider.hpp
     src/database/database.hpp
     src/database/blockingqueue.hpp
+    src/database/spatialitedatabase.hpp
+    
     
     #src/routing/
     src/routing/routingmetric.hpp
