@@ -37,7 +37,7 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
 
 bool SpatialiteDatabaseConnection::isDBOpen()
 {
-    return true;
+    return _dbOpen;
 }
 
 

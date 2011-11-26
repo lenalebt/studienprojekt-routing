@@ -113,7 +113,7 @@ namespace biker_tests
         else if (testName == "basename")
             return testBasename();
         else if (testName == "spatialitedatabaseconnection")
-            return testBasename();
+            return testSpatialiteDatabaseConnection();
         else if (testName == "gpsposition")
             return testGPSPosition();
         
