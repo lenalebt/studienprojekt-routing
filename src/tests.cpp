@@ -61,15 +61,18 @@ namespace biker_tests
     {
         return check_equality<std::string, std::string>(message, a.toStdString(), b);
     }
-    template<> bool check_equality(std::string message, QString a, QString b)
-    {
-        return check_equality<std::string, std::string>(message, a.toStdString(), b.toStdString());
-    }
     
+    /* Diese Template-Ausprägungen müssen gemacht werden, wenn man einen neuen Typ
+     * braucht, für den man Tests machen möchte. Der Typ muss einen operator<<
+     * bereitstellen für einen Ausgabestrom (Beispieldefinition siehe
+     * src/dataprimitives/routingedge.{h,c}pp), sowie einen operator==
+     * (Beispiel ebenda). Ansonsten nur eine Zeile wie sie hier folgen.
+     */
     template bool check_equality<bool, bool>(std::string message, bool a, bool b);
     template bool check_equality(std::string message, RoutingEdge a, RoutingEdge b);
     //template bool check_equality(std::string message, RoutingNode a, RoutingNode b);
-    //template bool check_equality(std::string message, std::string a, std::string b);
+    template bool check_equality(std::string message, std::string a, std::string b);
+    template bool check_equality(std::string message, QString a, QString b);
     template bool check_equality(std::string message, boost::uint16_t a, boost::uint16_t b);
     template bool check_equality(std::string message, boost::int16_t a,  boost::int16_t b);
     template bool check_equality(std::string message, boost::uint32_t a, boost::uint32_t b);
@@ -80,11 +83,6 @@ namespace biker_tests
     template bool check_equality(std::string message, boost::uint64_t a,  boost::uint32_t b);
     template bool check_equality(std::string message, boost::uint32_t a,  boost::uint64_t b);
     template bool check_equality(std::string message, unsigned long a,  unsigned long long b);
-    
-    //template<> bool check_equality(std::string message, boost::uint16_t a, boost::uint16_t b);
-    //template<> bool check_equality(std::string message, bool a, bool b);
-    //template<> bool check_equality(std::string message, bool a, bool b);
-    //template<> bool check_equality(std::string message, bool a, bool b);
     
     std::string uint64_t2string(boost::uint64_t integer)
     {
@@ -111,6 +109,8 @@ namespace biker_tests
         else if (testName == "routingnode")
             return testRoutingNode();
         else if (testName == "basename")
+            return testBasename();
+        else if (testName == "spatialitedatabaseconnection")
             return testBasename();
         
         //Anpassen, falls Fehler auftraten!
@@ -140,4 +140,9 @@ namespace biker_tests
         
         return EXIT_SUCCESS;
     }
+}
+
+std::ostream& operator<<(std::ostream& os, QString qs)
+{
+    return (os << qs.toStdString());
 }

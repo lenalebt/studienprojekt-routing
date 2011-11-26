@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <QString>
 
 
 /**
@@ -77,5 +78,7 @@ namespace biker_tests
     template<typename S, typename T>
     bool check_equality(std::string message, S a, T b);
 }
+
+std::ostream& operator<<(std::ostream& os, QString qs);
 
 #endif //TESTS_HPP 

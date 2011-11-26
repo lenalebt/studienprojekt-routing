@@ -101,6 +101,16 @@ namespace biker_tests
 {
     int testSpatialiteDatabaseConnection()
     {
+        SpatialiteDatabaseConnection connection;
+        
+        std::cout << "Opening \"test.db\"..." << std::endl;
+        connection.open("test.db");
+        CHECK(connection.isDBOpen());
+        
+        std::cout << "Closing database..." << std::endl;
+        connection.close();
+        CHECK(!connection.isDBOpen());
+        
         return EXIT_SUCCESS;
     }
 }

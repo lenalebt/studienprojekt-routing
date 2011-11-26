@@ -216,10 +216,11 @@ ADD_EXECUTABLE(
 # sollte er auch hier hinzugefügt werden: Dann kann man automatisiertes Testen
 # veranlassen.
 ENABLE_TESTING()
-ADD_TEST(test-uint64_t2string   "biker" "--test" "uint64_t2string")
-ADD_TEST(test-basename          "biker" "--test" "basename")
-ADD_TEST(test-routingedge       "biker" "--test" "routingedge")
-ADD_TEST(test-routingnode       "biker" "--test" "routingnode")
+ADD_TEST(uint64_t2string                  "biker" "--test" "uint64_t2string")
+ADD_TEST(basename                         "biker" "--test" "basename")
+ADD_TEST(routingedge                      "biker" "--test" "routingedge")
+ADD_TEST(routingnode                      "biker" "--test" "routingnode")
+ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 
 
 #Zum Erstellen von automatischen Installationspaketen
