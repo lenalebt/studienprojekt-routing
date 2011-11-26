@@ -219,6 +219,7 @@ ENABLE_TESTING()
 ADD_TEST(uint64_t2string                  "biker" "--test" "uint64_t2string")
 ADD_TEST(basename                         "biker" "--test" "basename")
 ADD_TEST(routingedge                      "biker" "--test" "routingedge")
+ADD_TEST(gpsposition                      "biker" "--test" "gpsposition")
 ADD_TEST(routingnode                      "biker" "--test" "routingnode")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 

@@ -118,6 +118,9 @@ GPSPosition GPSPosition::calcPositionInDistance(const double courseAngle, const 
 
 namespace biker_tests
 {
+    /**
+     * @todo Der Test hat noch keinen Inhalt. Er wird immer bestanden.
+     */
     int testGPSPosition()
     {
         return EXIT_SUCCESS;
