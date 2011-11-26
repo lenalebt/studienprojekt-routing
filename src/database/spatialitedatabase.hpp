@@ -2,12 +2,15 @@
 #define SPATIALITE_HPP
 
 #include "database.hpp"
+#include <spatialite/sqlite3.h>
 
 class SpatialiteDatabaseConnection : public DatabaseConnection
 {
 private:
-    
+    bool _dbOpen;
+    sqlite3* db;
 public:
+    SpatialiteDatabaseConnection();
     void close();
     void open(QString dbConnectionString);
     bool isDBOpen();
@@ -22,5 +25,10 @@ public:
     QString getStreetName(const RoutingEdge& edge);
 
 };
+
+namespace biker_tests
+{
+    int testSpatialiteDatabaseConnection();
+}
 
 #endif //SPATIALITE_HPP
