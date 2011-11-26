@@ -3,6 +3,8 @@
 #include "routingnode.hpp"
 #include "routingedge.hpp"
 #include "osmrelation.hpp"
+#include "gpsposition.hpp"
+#include "spatialitedatabase.hpp"
 #include <QString>
 
 //für EXIT_SUCCESS und EXIT_FAILURE
@@ -112,6 +114,8 @@ namespace biker_tests
             return testBasename();
         else if (testName == "spatialitedatabaseconnection")
             return testBasename();
+        else if (testName == "gpsposition")
+            return testGPSPosition();
         
         //Anpassen, falls Fehler auftraten!
         return EXIT_FAILURE;

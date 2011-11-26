@@ -1,5 +1,5 @@
-#ifndef SPATIALITE_HPP
-#define SPATIALITE_HPP
+#ifndef SPATIALITEDATABASE_HPP
+#define SPATIALITEDATABASE_HPP
 
 #include "database.hpp"
 #include <spatialite/sqlite3.h>
@@ -31,4 +31,4 @@ namespace biker_tests
     int testSpatialiteDatabaseConnection();
 }
 
-#endif //SPATIALITE_HPP
+#endif //SPATIALITEDATABASE_HPP

@@ -1,5 +1,5 @@
 #ifndef ROUTINGEDGE_HPP
-#define ROUTINGNODE_HPP
+#define ROUTINGEDGE_HPP
 
 #include <boost/cstdint.hpp>
 #include <iostream>
