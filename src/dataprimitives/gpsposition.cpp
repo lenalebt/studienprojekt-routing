@@ -119,10 +119,21 @@ GPSPosition GPSPosition::calcPositionInDistance(const double courseAngle, const 
 namespace biker_tests
 {
     /**
-     * @todo Der Test hat noch keinen Inhalt. Er wird immer bestanden.
+     * @todo Der Test ist noch unfertig.
      */
     int testGPSPosition()
     {
+        GPSPosition pos(0.0, 0.0);
+        CHECK(!pos.isInitialized());
+        
+        pos.setLat(1.0);
+        CHECK_EQ(pos.getLat(), 1.0);
+        
+        CHECK(pos.isInitialized());
+        
+        pos.setLon(3.0);
+        CHECK_EQ(pos.getLon(), 3.0);
+        
         return EXIT_SUCCESS;
     }
 }

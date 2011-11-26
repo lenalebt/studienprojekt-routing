@@ -82,9 +82,11 @@ namespace biker_tests
     template bool check_equality(std::string message, boost::int64_t a,  boost::int64_t b);
     template bool check_equality(std::string message, boost::int64_t a,  boost::int32_t b);
     template bool check_equality(std::string message, boost::int32_t a,  boost::int64_t b);
-    template bool check_equality(std::string message, boost::uint64_t a,  boost::uint32_t b);
-    template bool check_equality(std::string message, boost::uint32_t a,  boost::uint64_t b);
-    template bool check_equality(std::string message, unsigned long a,  unsigned long long b);
+    template bool check_equality(std::string message, boost::uint64_t a, boost::uint32_t b);
+    template bool check_equality(std::string message, boost::uint32_t a, boost::uint64_t b);
+    template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
+    template bool check_equality(std::string message, double a,          double b);
+    template bool check_equality(std::string message, float a,           float b);
     
     std::string uint64_t2string(boost::uint64_t integer)
     {

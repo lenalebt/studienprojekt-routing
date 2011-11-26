@@ -103,10 +103,10 @@ public:
     GPSPosition() : lon(0.0), lat(0.0) {}
     /**
      * @brief Initialisiert eine GPSPosition mit den angegebenen Werten.
-     * @param lon der Längengrad
      * @param lat der Breitengrad
+     * @param lon der Längengrad
      */
-    GPSPosition(double lon, double lat) : lon(lon), lat(lat) {}
+    GPSPosition(double lat, double lon) : lon(lon), lat(lat) {}
     virtual ~GPSPosition() {}
 protected:
     /**
