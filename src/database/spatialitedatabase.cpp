@@ -12,7 +12,9 @@ void SpatialiteDatabaseConnection::close()
     _dbOpen = false;
 }
 
-
+/**
+ * @todo Laden der Spatialite-Erweiterungen
+ */
 void SpatialiteDatabaseConnection::open(QString dbConnectionString)
 {
     int rc; //return-Wert speichern
