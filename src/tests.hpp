@@ -4,6 +4,28 @@
 #include <boost/cstdint.hpp>
 #include <boost/algorithm/string.hpp> 
 #include <string>
+#include <iostream>
+#include <iomanip>
+
+
+/**
+ * @brief Zur Erzeugung eines Strings aus eines Defines.
+ */
+#define QUOTEME_(x) #x
+/**
+ * @brief Zur Erzeugung eines Strings aus eines Defines.
+ */
+#define QUOTEME(x) QUOTEME_(x)
+
+#if defined __FILE__ && defined __LINE__
+    #define LINESTR(a,b)           biker_tests::basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " == " + QUOTEME(b) + "?"
+#else
+    #define LINESTR(a,b)           std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?"
+#endif
+
+#define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
+#define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
+#define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 
 /**
  * @file
@@ -28,8 +50,6 @@ namespace biker_tests
      */
     int testProgram(std::string testName);
 
-    int testRoutingEdge();
-    int testRoutingNode();
     int testBasename();
     int test_uint64_t2string();
     
@@ -56,7 +76,6 @@ namespace biker_tests
 
     template<typename S, typename T>
     bool check_equality(std::string message, S a, T b);
-
 }
 
 #endif //TESTS_HPP 

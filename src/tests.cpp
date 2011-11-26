@@ -1,32 +1,14 @@
 #include "tests.hpp"
-#include <iostream>
-#include <iomanip>
 
 #include "routingnode.hpp"
 #include "routingedge.hpp"
 #include "osmrelation.hpp"
+#include <QString>
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
 
-/**
- * @brief Zur Erzeugung eines Strings aus eines Defines.
- */
-#define QUOTEME_(x) #x
-/**
- * @brief Zur Erzeugung eines Strings aus eines Defines.
- */
-#define QUOTEME(x) QUOTEME_(x)
 
-#if defined __FILE__ && defined __LINE__
-    #define LINESTR(a,b)           biker_tests::basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " == " + QUOTEME(b) + "?"
-#else
-    #define LINESTR(a,b)           std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?"
-#endif
-
-#define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
-#define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
-#define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 /**
  * @file
  * @ingroup tests
@@ -49,6 +31,61 @@ namespace biker_tests
         return filename.substr(pos, filename.length() - pos - (filename.find_last_of("\"") != std::string::npos));
     }
     
+    template<typename S, typename T>
+    bool check_equality(std::string message, S a, T b)
+    {
+        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        if (a==b)
+        {
+            std::cout << "passed!" << std::endl;
+            return true;
+        }
+        else
+        {
+            std::cout << "failed!" << std::endl;
+            std::cout << "\tValue A: " << a << std::endl;
+            std::cout << "\tValue B: " << b << std::endl;
+            return false;
+        }
+    }
+    
+    template<> bool check_equality(std::string message, boost::uint8_t a, boost::uint8_t b)
+    {
+        return check_equality<boost::int32_t, boost::int32_t>(message, a, b);
+    }
+    template<> bool check_equality(std::string message, std::string a, QString b)
+    {
+        return check_equality<std::string, std::string>(message, a, b.toStdString());
+    }
+    template<> bool check_equality(std::string message, QString a, std::string b)
+    {
+        return check_equality<std::string, std::string>(message, a.toStdString(), b);
+    }
+    template<> bool check_equality(std::string message, QString a, QString b)
+    {
+        return check_equality<std::string, std::string>(message, a.toStdString(), b.toStdString());
+    }
+    
+    template bool check_equality<bool, bool>(std::string message, bool a, bool b);
+    template bool check_equality(std::string message, RoutingEdge a, RoutingEdge b);
+    //template bool check_equality(std::string message, RoutingNode a, RoutingNode b);
+    //template bool check_equality(std::string message, std::string a, std::string b);
+    template bool check_equality(std::string message, boost::uint16_t a, boost::uint16_t b);
+    template bool check_equality(std::string message, boost::int16_t a,  boost::int16_t b);
+    template bool check_equality(std::string message, boost::uint32_t a, boost::uint32_t b);
+    template bool check_equality(std::string message, boost::uint64_t a, boost::uint64_t b);
+    template bool check_equality(std::string message, boost::int64_t a,  boost::int64_t b);
+    template bool check_equality(std::string message, boost::int64_t a,  boost::int32_t b);
+    template bool check_equality(std::string message, boost::int32_t a,  boost::int64_t b);
+    template bool check_equality(std::string message, boost::uint64_t a,  boost::uint32_t b);
+    template bool check_equality(std::string message, boost::uint32_t a,  boost::uint64_t b);
+    template bool check_equality(std::string message, unsigned long a,  unsigned long long b);
+    
+    //template<> bool check_equality(std::string message, boost::uint16_t a, boost::uint16_t b);
+    //template<> bool check_equality(std::string message, bool a, bool b);
+    //template<> bool check_equality(std::string message, bool a, bool b);
+    //template<> bool check_equality(std::string message, bool a, bool b);
+    
     std::string uint64_t2string(boost::uint64_t integer)
     {
         std::string retVal("");
@@ -58,29 +95,6 @@ namespace biker_tests
             retVal += ((integer & (1ull<<i)) > 0) ? "1" : "0";
         }
         return retVal;
-    }
-
-    template<typename S, typename T>
-    bool check_equality(std::string message, S a, T b)
-    {
-        cout << left << setw(60) << message << " - " << flush;
-        if (a==b)
-        {
-            cout << "passed!" << endl;
-            return true;
-        }
-        else
-        {
-            cout << "failed!" << endl;
-            cout << "\tValue A: " << a << endl;
-            cout << "\tValue B: " << b << endl;
-            return false;
-        }
-    }
-    template<>
-    bool check_equality(std::string message, boost::uint8_t a, boost::uint8_t b)
-    {
-        return check_equality<int, int>(message, a, b);
     }
 
     int testProgram(std::string testName)
@@ -109,58 +123,6 @@ namespace biker_tests
         CHECK_EQ(uint64_t2string(5), "0000000000000000000000000000000000000000000000000000000000000101");
         CHECK_EQ(uint64_t2string(4096), "0000000000000000000000000000000000000000000000000001000000000000");
         CHECK_EQ(uint64_t2string(827659816459016745ull), "0000101101111100011100000011011111001010111001111001101000101001");
-        
-        return EXIT_SUCCESS;
-    }
-
-    int testRoutingEdge()
-    {
-        RoutingEdge edge1(1), edge2(1);
-        
-        CHECK_EQ(edge1.getID(), 1u);
-        
-        edge1.setStairs(true);
-        CHECK(edge1.hasStairs());
-        
-        edge1.setCycleBarrier(true);
-        CHECK(edge1.hasCycleBarrier());
-        
-        edge1.setStopSign(false);
-        CHECK(!edge1.hasStopSign());
-        
-        edge1.setStreetSurfaceQuality(5);
-        CHECK_EQ_TYPE(edge1.getStreetSurfaceQuality(), 5, int);
-        
-        edge1.setCyclewayType(6);
-        CHECK_EQ_TYPE(edge1.getCyclewayType(), 6, int);
-        
-        edge1.setStreetType(15);
-        CHECK_EQ_TYPE(edge1.getStreetType(), 15, int);
-        
-        edge2.setProperties(edge1.getProperties());
-        CHECK_EQ(edge1, edge2);
-        
-        CHECK_EQ(edge1.getProperties(), edge2.getProperties());
-        
-        return EXIT_SUCCESS;
-    }
-    
-    int testRoutingNode()
-    {
-        RoutingNode node1(1), node2(2);
-        CHECK_EQ(node1.getID(), 1u);
-        
-        node1.setAndConvertID(1);
-        CHECK_EQ(node1.getID(), 256u)
-        
-        node1.setAndConvertID(2);
-        CHECK_EQ(node1.getID(), 512u)
-        
-        node1.setAndConvertID(3);
-        CHECK_EQ(node1.getID(), 768u)
-        
-        node1.setAndConvertID(4316256737ll);
-        CHECK_EQ(node1.getID(), 1104961724672ull)
         
         return EXIT_SUCCESS;
     }

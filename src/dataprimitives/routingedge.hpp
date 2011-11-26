@@ -3,6 +3,7 @@
 
 #include <boost/cstdint.hpp>
 #include <iostream>
+#include "tests.hpp"
 
 #define BITLENGTH_STREETTYPE            4ull
 #define BITLENGTH_CYCLEWAYTYPE          4ull
@@ -279,5 +280,10 @@ std::ostream& operator<<(std::ostream& os, const RoutingEdge& edge);
  * @return Ob zwei structs vom Typ RoutingEdge::PropertyType gleich sind
  */
 bool operator==(const RoutingEdge::PropertyType& a, const RoutingEdge::PropertyType& b);
+
+namespace biker_tests
+{
+    int testRoutingEdge();
+}
 
 #endif //ROUTINGNODE_HPP

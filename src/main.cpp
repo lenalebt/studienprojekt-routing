@@ -8,15 +8,6 @@
 #include <boost/program_options.hpp>
 #include "tests.hpp"
 
-/**
- * @brief Zur Erzeugung eines Strings aus eines Defines.
- */
-#define QUOTEME_(x) #x
-/**
- * @brief Zur Erzeugung eines Strings aus eines Defines.
- */
-#define QUOTEME(x) QUOTEME_(x)
-
 namespace po = boost::program_options;
 using namespace std;
 

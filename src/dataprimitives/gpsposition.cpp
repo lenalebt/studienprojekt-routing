@@ -116,3 +116,10 @@ GPSPosition GPSPosition::calcPositionInDistance(const double courseAngle, const 
     return target;
 }
 
+namespace biker_tests
+{
+    int testGPSPosition()
+    {
+        return EXIT_SUCCESS;
+    }
+}

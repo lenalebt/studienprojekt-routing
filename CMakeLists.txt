@@ -72,6 +72,7 @@ SET(
     src/dataprimitives/gpsposition.cpp
     src/dataprimitives/gpsroute.cpp
     src/dataprimitives/routingedge.cpp
+    src/dataprimitives/routingnode.cpp
     
     #src/database/
     src/database/altitudeprovider.cpp

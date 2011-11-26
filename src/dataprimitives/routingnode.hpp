@@ -58,4 +58,9 @@ public:
     RoutingNode() : id(0) {}
 };
 
+namespace biker_tests
+{
+    int testRoutingNode();
+}
+
 #endif //ROUTINGNODE_HPP

@@ -222,3 +222,38 @@ bool operator==(const RoutingEdge::PropertyType& a, const RoutingEdge::PropertyT
         (a.cycleBarrier == b.cycleBarrier) &&
         (a.stairs == b.stairs);
 }
+
+namespace biker_tests
+{
+    int testRoutingEdge()
+    {
+        RoutingEdge edge1(1), edge2(1);
+        
+        CHECK_EQ(edge1.getID(), 1u);
+        
+        edge1.setStairs(true);
+        CHECK(edge1.hasStairs());
+        
+        edge1.setCycleBarrier(true);
+        CHECK(edge1.hasCycleBarrier());
+        
+        edge1.setStopSign(false);
+        CHECK(!edge1.hasStopSign());
+        
+        edge1.setStreetSurfaceQuality(5);
+        CHECK_EQ_TYPE(edge1.getStreetSurfaceQuality(), 5, int);
+        
+        edge1.setCyclewayType(6);
+        CHECK_EQ_TYPE(edge1.getCyclewayType(), 6, int);
+        
+        edge1.setStreetType(15);
+        CHECK_EQ_TYPE(edge1.getStreetType(), 15, int);
+        
+        edge2.setProperties(edge1.getProperties());
+        CHECK_EQ(edge1, edge2);
+        
+        CHECK_EQ(edge1.getProperties(), edge2.getProperties());
+        
+        return EXIT_SUCCESS;
+    }
+}
