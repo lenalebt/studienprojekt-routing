@@ -3,6 +3,16 @@
 
 #include "gpsposition.hpp"
 
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QUrl>
+#include <QFile>
+#include <QDir>
+#include <QMap>
+#include <QCache>
+#include <boost/cstdint.hpp>
+
+
 /**
  * @brief Ein AltitudeProvider kann für jeden Punkt auf der Erde einen
  *      Höhenwert zurückgeben.
@@ -31,7 +41,7 @@ public:
      * @param lat Der Breitengrad.
      * @return Den Höhenwert an dieser Stelle
      */
-    virtual double getAltitude(double lon, double lat)=0;
+    virtual double getAltitude(double lat, double lon)=0;
     /**
      * @brief Gibt einen Höhenwert für einen Punkt auf der Erdoberfläche zurück.
      * 
@@ -42,8 +52,72 @@ public:
      */
     virtual double getAltitude(const GPSPosition& pos)=0;
     
-    virtual ~AltitudeProvider();
+    virtual ~AltitudeProvider() {}
 };
+
+
+/*TODO:
+- Soll sich selber runterladen
+- Soll selber die URL rausfinden zum runterladen
+*/
+/**
+ * @brief 
+ * 
+ * 
+ * 
+ * @author Lena Brüder
+ * @date 2011-11-28
+ * @copyright GNU GPL v3
+ * @todo Doxygen, Implementieren, Definieren, blablabla
+ */
+class SRTMTile
+{
+private:
+    int _lat;
+    int _lon;
+    int _size;
+    
+    boost::uint16_t* _data;
+    
+    bool _valid;
+    QFile _file;
+    QDir _cacheDirectory;
+    
+    /**
+     * @brief Lädt Daten aus der zip-Datei, die mit <code>file</code> bezeichnet ist
+            und speichert sie in <code>data</code>.
+     * 
+     * @todo implementieren
+     */
+    void getData();
+    
+    /**
+     * @brief 
+     * 
+     * @return 
+     * @todo 
+     */
+    void downloadData();
+public:
+    double getAltitude(double lat, double lon);
+    
+    SRTMTile(double lat, double lon, QDir cacheDirectory) : _lat(lat), _lon(lon), _cacheDirectory(cacheDirectory)
+    {
+        //TODO: Daten runterladen und entpacken
+        /*
+        regex.setPattern("<a href=\"([NS])(\\d{2})([EW])(\\d{3})\\.hgt\\.zip");
+        QDir dir;
+        if (!dir.exists(cachedir)) {
+        
+        
+        if (_lat => 0 && _lon => 0){
+            _file = cacheDirectory + "/" + "N" + _lat + "E" + _lon + ".hgt.zip
+        }
+        getData()
+        */
+    }
+};
+
 
 /**
  * @brief SRTM-Implementierung vom AltitudeProvider.
@@ -64,7 +138,11 @@ public:
 class SRTMProvider : public AltitudeProvider
 {
 private:
+    void createFileList();
     
+    QMap<int, QString> fileList;
+    QCache<int, SRTMTile> tileCache;
+    int latLonToIndex(int lat, int lon) { return lat * 1000 + lon; }
 public:
     /**
      * @brief Gibt einen Höhenwert für einen Punkt auf der Erdoberfläche zurück.
@@ -75,7 +153,7 @@ public:
      * @param lat Der Breitengrad.
      * @return Den Höhenwert an dieser Stelle
      */
-    double getAltitude(double lon, double lat);
+    double getAltitude(double lat, double lon);
     /**
      * @brief Gibt einen Höhenwert für einen Punkt auf der Erdoberfläche zurück.
      * 
@@ -86,7 +164,7 @@ public:
      */
     double getAltitude(const GPSPosition& pos);
     
-    ~SRTMProvider();
+    //~SRTMProvider();
 };
 
 #endif //ALTITUDEPROVIDER_HPP
