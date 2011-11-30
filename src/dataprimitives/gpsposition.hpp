@@ -46,21 +46,29 @@ public:
     virtual double getRadLat() const;
     /**
      * @brief Setzt den Längengrad des Punktes in Grad.
+     * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
+     *      umgewandelt, dass er in dem Intervall liegt.
      * @param lon Längengrad in Grad
      */
     virtual void setLon(const double lon);
     /**
      * @brief Setzt den Breitengrad des Punktes in Grad.
+     * @remarks Wenn der Winkel nicht in [-90°, 90°] liegt, wird er
+     *      einfach abgeschnitten.
      * @param lat Breitengrad in Grad
      */
     virtual void setLat(const double lat);
     /**
      * @brief Setzt den Längengrad des Punktes in Bogenmaß.
+     * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
+     *      umgewandelt, dass er in dem Intervall liegt.
      * @param lon Längengrad in Bogenmaß
      */
     virtual void setRadLon(const double lon);
     /**
      * @brief Setzt den Breitengrad des Punktes in Bogenmaß.
+     * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
+     *      einfach abgeschnitten.
      * @param lat Breitengrad in Bogenmaß
      */
     virtual void setRadLat(const double lat);
