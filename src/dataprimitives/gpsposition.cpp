@@ -20,14 +20,25 @@ void GPSPosition::setLon(const double lon)
     
     while (this->lon >= 360.0)
         this->lon -= 360.0;
+    while (this->lon < -360.0)
+        this->lon += 360.0;
+    if (this->lon >= 180.0)
+        this->lon -= 360.0;
+    if (this->lon < -180.0)
+        this->lon += 360.0;
 }
 
+/**
+ * @todo Winkel >90° müssten eigentlich negativ werden, werden es aber noch nicht...
+ */
 void GPSPosition::setLat(const double lat)
 {
     this->lat = lat;
     
     while (this->lat >= 360.0)
         this->lat -= 360.0;
+    while (this->lat < -360.0)
+        this->lat += 360.0;
 }
 
 double GPSPosition::getRadLon() const
@@ -146,6 +157,12 @@ namespace biker_tests
         
         pos.setLon(3.0);
         CHECK_EQ(pos.getLon(), 3.0);
+        
+        pos.setLon(181.0);
+        CHECK_EQ(pos.getLon(), -179.0);
+        
+        pos.setLat(91.0);
+        CHECK_EQ(pos.getLat(), -89.0);
         
         CHECK(fabs(pos.getRadLat() - 0.0174533) < 10e-6);
         
