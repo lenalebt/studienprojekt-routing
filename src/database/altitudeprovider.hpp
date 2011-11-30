@@ -6,11 +6,14 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QUrl>
+#include <QNetworkRequest>
 #include <QFile>
 #include <QDir>
 #include <QMap>
 #include <QCache>
 #include <boost/cstdint.hpp>
+#include <QEventLoop>
+#include <QRegExp>
 
 
 /**
@@ -163,6 +166,15 @@ public:
      * @return Den Höhenwert an dieser Stelle
      */
     double getAltitude(const GPSPosition& pos);
+    /**
+     * @brief Läd Antwort für die übergebe URL in data.
+     * 
+     * 
+     * @param url URL als QUrl die aufgerufen werden soll
+     * @param data QString in den der Inhalt der der NetworkReply gespeichert weden soll
+     * @return enum QNetworkReply::NetworkError (Ist NoError wenn kein Fehler aufgetreten ist.)
+     */
+    QNetworkReply::NetworkError downloadUrl(const QUrl &url, QString &data)
     
     //~SRTMProvider();
 };
