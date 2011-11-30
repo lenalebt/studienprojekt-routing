@@ -16,6 +16,7 @@
  * 
  * @ingroup dataprimitives
  * @author Lena Brüder
+ * @todo Winkel werden noch nicht begrenzt auf ihre gültigen Wertebereiche!
  * 
  * @copyright Lizenz: GNU GPL v3
  */
