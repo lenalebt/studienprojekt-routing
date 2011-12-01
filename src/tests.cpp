@@ -3,6 +3,9 @@
 #include "routingnode.hpp"
 #include "routingedge.hpp"
 #include "osmrelation.hpp"
+#include "osmnode.hpp"
+#include "osmway.hpp"
+#include "osmproperty.hpp"
 #include "gpsposition.hpp"
 #include "spatialitedatabase.hpp"
 #include <QString>
@@ -45,8 +48,8 @@ namespace biker_tests
         else
         {
             std::cout << "failed!" << std::endl;
-            std::cout << "\tValue A: " << a << std::endl;
-            std::cout << "\tValue B: " << b << std::endl;
+            std::cout << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
+            std::cout << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
             return false;
         }
     }
@@ -107,19 +110,28 @@ namespace biker_tests
         cout << "requested test: " << testName << endl;
         
         if (testName == "routingedge")
-            return testRoutingEdge();
+            return biker_tests::testRoutingEdge();
         else if (testName == "uint64_t2string")
-            return test_uint64_t2string();
+            return biker_tests::test_uint64_t2string();
         else if (testName == "routingnode")
-            return testRoutingNode();
+            return biker_tests::testRoutingNode();
         else if (testName == "basename")
-            return testBasename();
+            return biker_tests::testBasename();
         else if (testName == "spatialitedatabaseconnection")
-            return testSpatialiteDatabaseConnection();
+            return biker_tests::testSpatialiteDatabaseConnection();
         else if (testName == "gpsposition")
-            return testGPSPosition();
+            return biker_tests::testGPSPosition();
+        else if (testName == "osmnode")
+            return biker_tests::testOSMNode();
+        else if (testName == "osmway")
+            return biker_tests::testOSMWay();
+        else if (testName == "osmproperty")
+            return biker_tests::testOSMProperty();
+        else if (testName == "osmrelation")
+            return biker_tests::testOSMRelation();
         
         //Anpassen, falls Fehler auftraten!
+        std::cout << "error: did not find test \"" << testName << "\"." << std::endl;
         return EXIT_FAILURE;
     }
     

@@ -33,14 +33,14 @@ public:
      * @param id Die ID.
      * @param propList Die zugehörigen Eigenschaften des Ways.
      */
-    OSMWay(boost::uint64_t id, QList<OSMProperty> propList) : id(id), properties(propList) {};
+    OSMWay(boost::uint64_t id, QVector<OSMProperty> propList) : id(id), properties(propList) {};
     /**
      * @brief Erstellt einen Way mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID.
      * @param memberIDList Die Liste der zugehörigen Knoten.
      * @param propList Die zugehörigen Eigenschaften des Ways.
      */
-    OSMWay(boost::uint64_t id, QList<boost::uint64_t> memberIDList, QList<OSMProperty> propList) : id(id), memberIDList(memberIDList), properties(propList) {};
+    OSMWay(boost::uint64_t id, QVector<boost::uint64_t> memberIDList, QVector<OSMProperty> propList) : id(id), memberIDList(memberIDList), properties(propList) {};
     /**
      * @brief Gibt die ID des Ways zurück.
      * @return Die ID.
@@ -56,7 +56,7 @@ public:
      * @return Die Liste der zugehörigen Knoten.
      * @remarks Die Liste der Knoten ist geordnet und hat Einfluss auf die Interpretation der Eigenschaften (wie z.B. Einbahnstraßen).
      */
-    QList<boost::uint64_t> getMemberList() const {return memberIDList;}
+    QVector<boost::uint64_t> getMemberList() const {return memberIDList;}
     /**
      * @brief Fügt einen Knoten zur Liste der zugehörigen Knoten hinzu.
      * @param nodeID Die ID des Knotens.
@@ -74,7 +74,15 @@ public:
      * @return Die Liste der zugehörigen Eigenschaften.
      * @remarks Die Liste der Eigenschaften ist nicht notwendigerweise geordnet.
      */
-    QList<OSMProperty> getProperties() const {return properties;}
+    QVector<OSMProperty> getProperties() const {return properties;}
 };
+
+/**
+ * @todo: Implementieren, dieser Test ist noch leer.
+ */
+namespace biker_tests
+{
+    int testOSMWay();
+} 
 
 #endif // OSMWAY_HPP

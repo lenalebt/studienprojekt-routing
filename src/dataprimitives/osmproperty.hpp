@@ -74,4 +74,13 @@ public:
     bool operator==(const OSMProperty& prop) const;
 };
 
+/**
+ * @todo: Implementieren, dieser Test ist noch leer.
+ */
+namespace biker_tests
+{
+    int testOSMProperty();
+} 
+
+
 #endif // OSMPROPERTY_HPP
