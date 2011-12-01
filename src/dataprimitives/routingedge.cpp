@@ -241,13 +241,13 @@ namespace biker_tests
         CHECK(!edge1.hasStopSign());
         
         edge1.setStreetSurfaceQuality(5);
-        CHECK_EQ_TYPE(edge1.getStreetSurfaceQuality(), 5, int);
+        CHECK_EQ_TYPE(edge1.getStreetSurfaceQuality(), 5, boost::uint8_t);
         
         edge1.setCyclewayType(6);
-        CHECK_EQ_TYPE(edge1.getCyclewayType(), 6, int);
+        CHECK_EQ_TYPE(edge1.getCyclewayType(), 6, boost::uint8_t);
         
         edge1.setStreetType(15);
-        CHECK_EQ_TYPE(edge1.getStreetType(), 15, int);
+        CHECK_EQ_TYPE(edge1.getStreetType(), 15, boost::uint8_t);
         
         edge2.setProperties(edge1.getProperties());
         CHECK_EQ(edge1, edge2);
