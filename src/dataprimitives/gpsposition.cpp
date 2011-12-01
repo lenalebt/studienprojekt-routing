@@ -123,7 +123,7 @@ namespace biker_tests
      */
     int testGPSPosition()
     {
-        GPSPosition pos(0.0, 0.0);
+        GPSPosition pos;
         CHECK(!pos.isInitialized());
         
         pos.setLat(1.0);
