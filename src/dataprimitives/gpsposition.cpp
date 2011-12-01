@@ -3,6 +3,7 @@
  */
 
 #include "gpsposition.hpp"
+#include <cmath>
 
 double GPSPosition::getLon() const
 {
@@ -16,11 +17,25 @@ double GPSPosition::getLat() const
 void GPSPosition::setLon(const double lon)
 {
     this->lon = lon;
+    
+    while (this->lon >= 360.0)
+        this->lon -= 360.0;
+    while (this->lon < -360.0)
+        this->lon += 360.0;
+    if (this->lon >= 180.0)
+        this->lon -= 360.0;
+    if (this->lon < -180.0)
+        this->lon += 360.0;
 }
 
 void GPSPosition::setLat(const double lat)
 {
-    this->lat = lat;
+    if (lat > 90.0)
+        this->lat = 90.0;
+    else if (lat < -90.0)
+        this->lat = -90.0;
+    else
+        this->lat = lat;
 }
 
 double GPSPosition::getRadLon() const
@@ -35,11 +50,17 @@ double GPSPosition::getRadLat() const
 void GPSPosition::setRadLon(const double lon)
 {
     this->lon = rad2deg<double>(lon);
+    
+    while (this->lon >= 360.0)
+        this->lon -= 360.0;
 }
 
 void GPSPosition::setRadLat(const double lat)
 {
     this->lat = rad2deg<double>(lat);
+    
+    while (this->lat >= 360.0)
+        this->lat -= 360.0;
 }
 
 double GPSPosition::calcCourseAngle(const GPSPosition& p2) const
@@ -133,6 +154,24 @@ namespace biker_tests
         
         pos.setLon(3.0);
         CHECK_EQ(pos.getLon(), 3.0);
+        
+        pos.setLon(181.0);
+        CHECK_EQ(pos.getLon(), -179.0);
+        
+        pos.setLat(91.0);
+        CHECK_EQ(pos.getLat(), 90.0);
+        
+        pos.setLat(-91.0);
+        CHECK_EQ(pos.getLat(), -90.0);
+        
+        pos.setLat(1.0);
+        CHECK(fabs(pos.getRadLat() - 0.0174533) < 10e-6);
+        
+        pos.setLat(-1.0);
+        CHECK(fabs(pos.getRadLat() + 0.0174533) < 10e-6);
+        
+        pos.setLon(1.0+360.0);
+        CHECK(fabs(pos.getRadLon() - 0.0174533) < 10e-6);
         
         return EXIT_SUCCESS;
     }
