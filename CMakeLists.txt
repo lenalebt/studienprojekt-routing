@@ -73,6 +73,10 @@ SET(
     src/dataprimitives/gpsroute.cpp
     src/dataprimitives/routingedge.cpp
     src/dataprimitives/routingnode.cpp
+    src/dataprimitives/osmnode.cpp
+    src/dataprimitives/osmway.cpp
+    src/dataprimitives/osmrelation.cpp
+    src/dataprimitives/osmproperty.cpp
     
     #src/database/
     src/database/altitudeprovider.cpp
@@ -221,6 +225,10 @@ ADD_TEST(basename                         "biker" "--test" "basename")
 ADD_TEST(routingedge                      "biker" "--test" "routingedge")
 ADD_TEST(gpsposition                      "biker" "--test" "gpsposition")
 ADD_TEST(routingnode                      "biker" "--test" "routingnode")
+ADD_TEST(osmnode                          "biker" "--test" "osmway")
+ADD_TEST(osmway                           "biker" "--test" "osmnode")
+ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
+ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 
 

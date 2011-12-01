@@ -12,8 +12,9 @@
  * @remarks Bei der Implementierung darauf achten, dass, wo möglich, explizit festgelegt wird
  *      wie viel Platz Variablen benutzen. Beispiel: uint64_t ist ein unsigned int mit 64 bit Breite.
  *      Man sollte daruf achten, dass alle Zugriffe auf eine restriction nur die Werte 0 und 1 wählen.
- * @author Lena Brueder
+ * @author Thorsten Scheller
  * @date 2011-11-01
+ * @todo Benennungen an das abgemachte Schema anpassen
  * @copyright GNU GPL v3
  */
 class OSMRelation
@@ -119,5 +120,13 @@ public:
      */
     void set_u_turn(unsigned int no_u_turn) {this->this_restriction.no_u_turn = no_u_turn;}
 };
+
+/**
+ * @todo: Implementieren, dieser Test ist noch leer.
+ */
+namespace biker_tests
+{
+    int testOSMRelation();
+} 
 
 #endif // OSMRELATION_HPP

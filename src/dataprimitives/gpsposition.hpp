@@ -115,7 +115,7 @@ public:
      * @param lat der Breitengrad
      * @param lon der Längengrad
      */
-    GPSPosition(double lat, double lon) : lon(lon), lat(lat) {}
+    GPSPosition(double lat, double lon);
     virtual ~GPSPosition() {}
 protected:
     /**

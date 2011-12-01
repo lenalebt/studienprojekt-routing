@@ -137,6 +137,12 @@ GPSPosition GPSPosition::calcPositionInDistance(const double courseAngle, const 
     return target;
 }
 
+GPSPosition::GPSPosition(double lat, double lon)
+{
+    this->setLat(lat);
+    this->setLon(lon);
+}
+
 namespace biker_tests
 {
     /**
@@ -172,6 +178,21 @@ namespace biker_tests
         
         pos.setLon(1.0+360.0);
         CHECK(fabs(pos.getRadLon() - 0.0174533) < 10e-6);
+        
+        pos = GPSPosition(251.0, 251.0);
+        CHECK_EQ(pos.getLat(), 90.0);
+        CHECK_EQ(pos.getLon(), -109.0);
+        
+        
+        pos = GPSPosition(51.0, 7.0);
+        CHECK_EQ(pos.getLat(), 51.0);
+        CHECK_EQ(pos.getLon(), 7.0);
+        
+        GPSPosition pos2 = pos.calcPositionInDistance(0.0, 5000.0);
+        CHECK(fabs(pos2.getLat() - 51.04496608030) < 10e-12);    //TODO: Genauen Wert ausgeben.
+        CHECK(fabs(pos2.getLon() - 7.0) < 10e-12);
+        
+        CHECK(fabs(pos.calcCourseAngle(pos2) - 0.000459404801803) < 10e-10);
         
         return EXIT_SUCCESS;
     }
