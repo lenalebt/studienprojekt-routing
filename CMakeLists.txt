@@ -7,7 +7,7 @@ PROJECT(biker)
 
 #Hier Versionsnummer setzen
 SET (biker_VERSION_MAJOR 0)
-SET (biker_VERSION_MINOR 1)
+SET (biker_VERSION_MINOR 2)
 
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
 MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
