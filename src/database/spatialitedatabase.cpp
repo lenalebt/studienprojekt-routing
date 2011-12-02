@@ -83,7 +83,7 @@ bool SpatialiteDatabaseConnection::createTables()
 	statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PROPERTIES INTEGER NOT NULL)";
 	statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODE)";
 	statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODE)";
-	statements << "CREATE VIRTUAL TABLE NODES ";
+	//TODO: statements << "CREATE VIRTUAL TABLE NODES ";
 	
 	QStringList::const_iterator it;
 	for (it = statements.constBegin(); it != statements.constEnd(); it++)
