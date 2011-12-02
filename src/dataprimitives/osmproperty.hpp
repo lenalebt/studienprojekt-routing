@@ -74,6 +74,8 @@ public:
     bool operator==(const OSMProperty& prop) const;
 };
 
+std::ostream& operator<<(std::ostream& os, const OSMProperty& prop);
+
 /**
  * @todo: Implementieren, dieser Test ist noch leer.
  */
