@@ -25,7 +25,7 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
         _dbOpen = false;
         sqlite3_close(db);
         std::cerr << "Failed to open database file \"" << dbConnectionString.toStdString()
-            << std::endl;
+            << "\"" << std::endl;
         return;
     }
     
@@ -44,7 +44,6 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
         _dbOpen = false;
         sqlite3_close(db);
         std::cerr << "Failed to enable loading of sqlite3 extensions." << std::endl;
-        sqlite3_free(errorMessage);
         return;
     }
     
@@ -68,7 +67,6 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
         _dbOpen = false;
         sqlite3_close(db);
         std::cerr << "Failed to disable loading of sqlite3 extensions." << std::endl;
-        sqlite3_free(errorMessage);
         return;
     }
     
