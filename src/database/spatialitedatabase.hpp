@@ -11,6 +11,8 @@ class SpatialiteDatabaseConnection : public DatabaseConnection
 private:
     bool _dbOpen;
     sqlite3* _db;
+    bool createTables();
+    bool execCreateTableStatement(std::string);
 public:
     SpatialiteDatabaseConnection();
     void close();

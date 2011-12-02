@@ -1,4 +1,5 @@
 #include "spatialitedatabase.hpp"
+#include <QStringList>
 
 SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     _dbOpen(false)
@@ -12,13 +13,14 @@ void SpatialiteDatabaseConnection::close()
     _dbOpen = false;
 }
 
-/**
- * @todo Laden der Spatialite-Erweiterungen
- */
 void SpatialiteDatabaseConnection::open(QString dbConnectionString)
 {
     int rc; //return-Wert speichern
-    rc = sqlite3_open(dbConnectionString.toStdString().c_str(), &_db);
+    rc = sqlite3_open_v2(dbConnectionString.toStdString().c_str(), &_db, 
+		SQLITE_OPEN_READWRITE |
+		SQLITE_OPEN_CREATE |
+		SQLITE_OPEN_FULLMUTEX,
+		NULL);
     
     if (rc != SQLITE_OK)
     {   //Es gab einen Fehler beim Öffnen der Datenbank.
@@ -70,9 +72,44 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
         return;
     }
     
-    _dbOpen = true;
+    _dbOpen = createTables();
 }
 
+bool SpatialiteDatabaseConnection::createTables()
+{
+	bool retVal = true;
+	
+	QStringList statements;
+	statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PROPERTIES INTEGER NOT NULL)";
+	statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODE)";
+	statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODE)";
+	statements << "CREATE VIRTUAL TABLE NODES ";
+	
+	QStringList::const_iterator it;
+	for (it = statements.constBegin(); it != statements.constEnd(); it++)
+	{
+		retVal &= execCreateTableStatement(it->toStdString());
+	}
+	
+	return retVal;
+}
+
+bool SpatialiteDatabaseConnection::execCreateTableStatement(std::string paramCreateTableStatement)
+{
+	char* errorMessage;
+	int rc = sqlite3_exec(_db, paramCreateTableStatement.c_str(), NULL, 0, &errorMessage);
+	
+	if (rc != SQLITE_OK)
+    {
+        sqlite3_close(_db);
+        std::cerr << "Failed to create table. Statement: \"" << paramCreateTableStatement
+            << "\", Error message: \"" << errorMessage << "\"" << std::endl;
+        sqlite3_free(errorMessage);
+        return false;
+    }
+    else
+		return true;
+}
 
 bool SpatialiteDatabaseConnection::isDBOpen()
 {
