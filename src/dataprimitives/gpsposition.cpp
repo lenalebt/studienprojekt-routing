@@ -5,16 +5,16 @@
 #include "gpsposition.hpp"
 #include <cmath>
 
-double GPSPosition::getLon() const
+gps_float GPSPosition::getLon() const
 {
     return this->lon;
 }
-double GPSPosition::getLat() const
+gps_float GPSPosition::getLat() const
 {
     return this->lat;
 }
 
-void GPSPosition::setLon(const double lon)
+void GPSPosition::setLon(const gps_float lon)
 {
     this->lon = lon;
     
@@ -28,7 +28,7 @@ void GPSPosition::setLon(const double lon)
         this->lon += 360.0;
 }
 
-void GPSPosition::setLat(const double lat)
+void GPSPosition::setLat(const gps_float lat)
 {
     if (lat > 90.0)
         this->lat = 90.0;
@@ -38,26 +38,26 @@ void GPSPosition::setLat(const double lat)
         this->lat = lat;
 }
 
-double GPSPosition::getRadLon() const
+gps_float GPSPosition::getRadLon() const
 {
-    return deg2rad<double>(this->lon);
+    return deg2rad<gps_float>(this->lon);
 }
-double GPSPosition::getRadLat() const
+gps_float GPSPosition::getRadLat() const
 {
-    return deg2rad<double>(this->lat);
+    return deg2rad<gps_float>(this->lat);
 }
 
-void GPSPosition::setRadLon(const double lon)
+void GPSPosition::setRadLon(const gps_float lon)
 {
-    this->lon = rad2deg<double>(lon);
+    this->lon = rad2deg<gps_float>(lon);
     
     while (this->lon >= 360.0)
         this->lon -= 360.0;
 }
 
-void GPSPosition::setRadLat(const double lat)
+void GPSPosition::setRadLat(const gps_float lat)
 {
-    this->lat = rad2deg<double>(lat);
+    this->lat = rad2deg<gps_float>(lat);
     
     while (this->lat >= 360.0)
         this->lat -= 360.0;
@@ -137,7 +137,7 @@ GPSPosition GPSPosition::calcPositionInDistance(const double courseAngle, const 
     return target;
 }
 
-GPSPosition::GPSPosition(double lat, double lon)
+GPSPosition::GPSPosition(gps_float lat, gps_float lon)
 {
     this->setLat(lat);
     this->setLon(lon);
