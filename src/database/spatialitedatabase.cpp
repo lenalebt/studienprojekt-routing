@@ -21,7 +21,7 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
     rc = sqlite3_open(dbConnectionString.toStdString().c_str(), &db);
     
     if (rc)
-    {   //Es gab einn Fehler beim Öffnen der Datenbank.
+    {   //Es gab einen Fehler beim Öffnen der Datenbank.
         _dbOpen = false;
         sqlite3_close(db);
         std::cerr << "Failed to open database file \"" << dbConnectionString.toStdString()
