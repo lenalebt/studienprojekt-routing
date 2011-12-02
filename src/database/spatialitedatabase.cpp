@@ -26,12 +26,16 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
         sqlite3_close(db);
         std::cerr << "Failed to open database file \"" << dbConnectionString.toStdString()
             << "\"." << std::endl;
+        return;
     }
     else
     {
         _dbOpen = true;
-        
     }
+    
+    //TODO: auf unterschiedlichen Plattformen ist der Name anders
+    sqlite3_stmt* statement = NULL;
+    sqlite3_prepare_v2(db, ".load \'libspatialite.so\'", -1, &statement, NULL);
 }
 
 
