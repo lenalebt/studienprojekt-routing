@@ -55,7 +55,7 @@ public:
     }
     
     RoutingNode(int id) : id(id) {}
-    RoutingNode(int id, double lat, double lon) : GPSPosition(lat, lon), id(id) {}
+    RoutingNode(int id, gps_float lat, gps_float lon) : GPSPosition(lat, lon), id(id) {}
     RoutingNode() : id(0) {}
 };
 
