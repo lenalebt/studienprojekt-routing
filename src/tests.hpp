@@ -28,6 +28,9 @@
 #define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 
+#define DOUBLE_EQUALITY_BARRIER 10e-12
+#define FLOAT_EQUALITY_BARRIER  10e-6
+
 /**
  * @file
  * @ingroup tests

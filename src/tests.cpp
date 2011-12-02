@@ -66,6 +66,47 @@ namespace biker_tests
     {
         return check_equality<std::string, std::string>(message, a.toStdString(), b);
     }
+    template<> bool check_equality(std::string message, double a, double b)
+    {
+        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        if (fabs(a - b) < DOUBLE_EQUALITY_BARRIER)
+        {
+            std::cout << "passed!" << std::endl;
+            return true;
+        }
+        else
+        {
+            std::cout << "failed!" << std::endl;
+            std::cout << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
+            std::cout << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
+            return false;
+        }
+    }
+    template<> bool check_equality(std::string message, float a, float b)
+    {
+        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        if (fabs(a - b) < FLOAT_EQUALITY_BARRIER)
+        {
+            std::cout << "passed!" << std::endl;
+            return true;
+        }
+        else
+        {
+            std::cout << "failed!" << std::endl;
+            std::cout << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
+            std::cout << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
+            return false;
+        }
+    }
+    template<> bool check_equality(std::string message, float a, double b)
+    {
+        return check_equality<float, float>(message, a, b);
+    }
+    template<> bool check_equality(std::string message, double a, float b)
+    {
+        return check_equality<double, double>(message, a, b);
+    }
+    
     
     /* Diese Template-Ausprägungen müssen gemacht werden, wenn man einen neuen Typ
      * braucht, für den man Tests machen möchte. Der Typ muss einen operator<<
@@ -88,8 +129,6 @@ namespace biker_tests
     template bool check_equality(std::string message, boost::uint64_t a, boost::uint32_t b);
     template bool check_equality(std::string message, boost::uint32_t a, boost::uint64_t b);
     template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
-    template bool check_equality(std::string message, double a,          double b);
-    template bool check_equality(std::string message, float a,           float b);
     template bool check_equality(std::string message, OSMProperty a,     OSMProperty b);
     
     std::string uint64_t2string(boost::uint64_t integer)

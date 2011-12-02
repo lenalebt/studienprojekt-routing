@@ -83,6 +83,7 @@ bool SpatialiteDatabaseConnection::createTables()
 	statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PROPERTIES INTEGER NOT NULL);";
 	statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODE);";
 	statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODE);";
+    //TODO: IF NOT EXISTS
 	statements << "CREATE VIRTUAL TABLE NODES USING rtree(ID, MIN_X, MAX_X, MIN_Y, MAX_Y);";
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     
