@@ -7,7 +7,7 @@ PROJECT(biker)
 
 #Hier Versionsnummer setzen
 SET (biker_VERSION_MAJOR 0)
-SET (biker_VERSION_MINOR 2)
+SET (biker_VERSION_MINOR 02)
 
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
 MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
@@ -190,6 +190,9 @@ IF(DOXYGEN_FOUND)
     ENDIF()
     ADD_DEPENDENCIES(doc doxygen)
 ENDIF()
+
+#Dem Quelltext sagen, wo die spatialite-library ist
+ADD_DEFINITIONS(-DSPATIALITE_LIB=${SPATIALITE_LIBRARY})
 
 #Hier die Dateien eintragen, die durch den moc müssen
 #Das sind vor allem jene, in denen Q_OBJECT steht.
