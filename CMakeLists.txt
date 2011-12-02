@@ -44,6 +44,7 @@ SET(QT_USE_QTSQL TRUE)
 FIND_PACKAGE(Qt4 4.7 REQUIRED)
 #Spatialite für die Datenbank
 FIND_PACKAGE(SPATIALITE REQUIRED)
+FIND_PACKAGE(SQLITE3 REQUIRED)
 #ZZipLib zum Entpacken von ZIP-Archiven
 FIND_PACKAGE(ZZIP REQUIRED)
 #Boost für Kommandozeilenoptionen und so
@@ -154,6 +155,7 @@ INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
+    ${SQLITE_INCLUDE_DIRS}
     src/
     src/routing/
     src/dataprimitives/
@@ -302,6 +304,7 @@ TARGET_LINK_LIBRARIES(biker
     ${Boost_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
+    ${SQLITE3_LIBRARIES}
     )
 
 INSTALL (TARGETS biker
