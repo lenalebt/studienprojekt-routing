@@ -8,7 +8,7 @@ SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
 
 void SpatialiteDatabaseConnection::close()
 {
-    sqlite3_close(db);
+    sqlite3_close(_db);
     _dbOpen = false;
 }
 
@@ -18,12 +18,12 @@ void SpatialiteDatabaseConnection::close()
 void SpatialiteDatabaseConnection::open(QString dbConnectionString)
 {
     int rc; //return-Wert speichern
-    rc = sqlite3_open(dbConnectionString.toStdString().c_str(), &db);
+    rc = sqlite3_open(dbConnectionString.toStdString().c_str(), &_db);
     
     if (rc != SQLITE_OK)
     {   //Es gab einen Fehler beim Öffnen der Datenbank.
         _dbOpen = false;
-        sqlite3_close(db);
+        sqlite3_close(_db);
         std::cerr << "Failed to open database file \"" << dbConnectionString.toStdString()
             << "\"" << std::endl;
         return;
@@ -38,22 +38,22 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
     spatialiteFilename = QUOTEME(SPATIALITE_LIB);
     
     //Erlaube das Laden von Erweiterungen
-    rc = sqlite3_enable_load_extension(db, 1);
+    rc = sqlite3_enable_load_extension(_db, 1);
     if (rc != SQLITE_OK)
     {
         _dbOpen = false;
-        sqlite3_close(db);
+        sqlite3_close(_db);
         std::cerr << "Failed to enable loading of sqlite3 extensions." << std::endl;
         return;
     }
     
     //Lade die Erweiterung
-    rc = sqlite3_load_extension(db, spatialiteFilename.c_str(), 0, &errorMessage);
+    rc = sqlite3_load_extension(_db, spatialiteFilename.c_str(), 0, &errorMessage);
     
     if (rc != SQLITE_OK)
     {
         _dbOpen = false;
-        sqlite3_close(db);
+        sqlite3_close(_db);
         std::cerr << "Failed to load spatialite. Filename: \"" << spatialiteFilename
             << ", Error message: \"" << errorMessage << "\"" << std::endl;
         sqlite3_free(errorMessage);
@@ -61,11 +61,11 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
     }
     
     //Verbiete das laden von Erweiterungen wieder (Sicherheitsfeature?)
-    rc = sqlite3_enable_load_extension(db, 0);
+    rc = sqlite3_enable_load_extension(_db, 0);
     if (rc != SQLITE_OK)
     {
         _dbOpen = false;
-        sqlite3_close(db);
+        sqlite3_close(_db);
         std::cerr << "Failed to disable loading of sqlite3 extensions." << std::endl;
         return;
     }

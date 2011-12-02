@@ -10,7 +10,7 @@ class SpatialiteDatabaseConnection : public DatabaseConnection
 {
 private:
     bool _dbOpen;
-    sqlite3* db;
+    sqlite3* _db;
 public:
     SpatialiteDatabaseConnection();
     void close();
