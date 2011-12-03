@@ -193,6 +193,11 @@ namespace biker_tests
     int testSpatialiteDatabaseConnection()
     {
         SpatialiteDatabaseConnection connection;
+        QFile file("test.db");
+        
+        std::cout << "Removing database test file \"test.db\"..." << std::endl;
+        if (file.exists())
+            file.remove();
         
         std::cout << "Opening \"test.db\"..." << std::endl;
         connection.open("test.db");
