@@ -145,9 +145,6 @@ GPSPosition::GPSPosition(gps_float lat, gps_float lon)
 
 namespace biker_tests
 {
-    /**
-     * @todo Der Test ist noch unfertig.
-     */
     int testGPSPosition()
     {
         GPSPosition pos;

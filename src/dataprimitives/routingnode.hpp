@@ -46,7 +46,6 @@ public:
      * in einer Kante.
      * 
      * @param id Die neue ID des Knotens.
-     * @todo: Testen!
      */
     virtual void setAndConvertID(const boost::uint64_t id)
     {

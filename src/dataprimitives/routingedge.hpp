@@ -37,7 +37,7 @@
  * @author Lena Brüder
  * @date 2011-11-01
  * @copyright GNU GPL v3
- * @todo Tests, Header evtl erweitern
+ * @todo Header evtl erweitern
  * @todo Flag, ob Kante erlaubt für: Fahrrad, Fußgänger (gibt große Straßen wo Fußgänger nicht lang dürfen!)
  */
 class RoutingEdge
@@ -239,7 +239,7 @@ public:
      * nicht.
      * 
      * @return Das Abkürzungslevel dieser Kante.
-     * @todo Implementierung einer abgeleiteten Klasse, die das hier auch speichert.
+     * @todo Implementierung in einer abgeleiteten Klasse, die das hier auch speichert.
      */
     virtual boost::uint64_t getRoutingLevel() {return 0;}
     /**
@@ -254,7 +254,7 @@ public:
      * speichert den Wert auch nicht.
      * 
      * @param level Das Abkürzungslevel dieser Kante.
-     * @todo Implementierung einer abgeleiteten Klasse, die das hier auch speichert.
+     * @todo Implementierung in einer abgeleiteten Klasse, die das hier auch speichert.
      */
     virtual void setRoutingLevel(const boost::uint64_t level) {}
     
@@ -265,7 +265,6 @@ public:
      * @brief Vergleicht zwei RoutingEdges.
      * 
      * @return <code>true</code>, wenn die RoutingEdges gleich sind, <code>false</code> sonst.
-     * @todo 
      */
     bool operator==(const RoutingEdge& other);
 };
