@@ -1,5 +1,6 @@
 #include "spatialitedatabase.hpp"
 #include <QStringList>
+#include <QFile>
 
 SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     _dbOpen(false)
@@ -16,6 +17,9 @@ void SpatialiteDatabaseConnection::close()
 void SpatialiteDatabaseConnection::open(QString dbConnectionString)
 {
     int rc; //return-Wert speichern
+    QFile file(dbConnectionString);
+    bool dbExisted = file.exists();
+    
     rc = sqlite3_open_v2(dbConnectionString.toStdString().c_str(), &_db, 
 		SQLITE_OPEN_READWRITE |
 		SQLITE_OPEN_CREATE |
@@ -72,7 +76,12 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
         return;
     }
     
-    _dbOpen = createTables();
+    //Erstelle Tabellen nur, wenn die Datei vorher nicht existierte.
+    //Grund: IF NOT EXISTS gibt es nicht für virtuelle Tabellen.
+    if (!dbExisted)
+        _dbOpen = createTables();
+    else
+        _dbOpen = true;
 }
 
 bool SpatialiteDatabaseConnection::createTables()
@@ -83,7 +92,6 @@ bool SpatialiteDatabaseConnection::createTables()
 	statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PROPERTIES INTEGER NOT NULL);";
 	statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODE);";
 	statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODE);";
-    //TODO: IF NOT EXISTS
 	statements << "CREATE VIRTUAL TABLE NODES USING rtree(ID, MIN_X, MAX_X, MIN_Y, MAX_Y);";
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     
