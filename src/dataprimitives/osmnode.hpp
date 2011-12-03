@@ -63,7 +63,7 @@ public:
      * @brief Setzt die ID des Knotens.
      * @param id Die ID des Knotens.
      */
-    void setID(boost::uint64_t id) {this->id = id;}
+    void setID(const boost::uint64_t id) {this->id = id;}
 };
 
 /**

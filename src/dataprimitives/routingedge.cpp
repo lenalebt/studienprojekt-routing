@@ -30,31 +30,31 @@ bool RoutingEdge::hasCycleBarrier() const
 }
 
 
-void RoutingEdge::setTrafficLights(bool value)
+void RoutingEdge::setTrafficLights(const bool value)
 {
     _properties.trafficLights = value;
 }
 
 
-void RoutingEdge::setTrafficCalmingBumps(bool value)
+void RoutingEdge::setTrafficCalmingBumps(const bool value)
 {
     _properties.trafficCalmingBumps = value;
 }
 
 
-void RoutingEdge::setStopSign(bool value)
+void RoutingEdge::setStopSign(const bool value)
 {
     _properties.stopSign = value;
 }
 
 
-void RoutingEdge::setStairs(bool value)
+void RoutingEdge::setStairs(const bool value)
 {
     _properties.stairs = value;
 }
 
 
-void RoutingEdge::setCycleBarrier(bool value)
+void RoutingEdge::setCycleBarrier(const bool value)
 {
     _properties.cycleBarrier = value;
 }
@@ -90,31 +90,31 @@ boost::uint8_t RoutingEdge::getTurnType() const
 }
 
 
-void RoutingEdge::setStreetType(boost::uint8_t streetType)
+void RoutingEdge::setStreetType(const boost::uint8_t streetType)
 {
     _properties.streetType = streetType;
 }
 
 
-void RoutingEdge::setCyclewayType(boost::uint8_t cyclewayType)
+void RoutingEdge::setCyclewayType(const boost::uint8_t cyclewayType)
 {
     _properties.cyclewayType = cyclewayType;
 }
 
 
-void RoutingEdge::setStreetSurfaceType(boost::uint8_t streetSurfaceType)
+void RoutingEdge::setStreetSurfaceType(const boost::uint8_t streetSurfaceType)
 {
     _properties.streetSurfaceType = streetSurfaceType;
 }
 
 
-void RoutingEdge::setStreetSurfaceQuality(boost::uint8_t streetSurfaceQuality)
+void RoutingEdge::setStreetSurfaceQuality(const boost::uint8_t streetSurfaceQuality)
 {
     _properties.streetSurfaceQuality = streetSurfaceQuality;
 }
 
 
-void RoutingEdge::setTurnType(boost::uint8_t turnType)
+void RoutingEdge::setTurnType(const boost::uint8_t turnType)
 {
     _properties.turnType = turnType;
 }
@@ -137,7 +137,7 @@ boost::uint64_t RoutingEdge::getProperties() const
 /**
  * @todo Implementierung, Plattformunabhängig, ist so evtl falsch.
  */
-void RoutingEdge::setProperties(boost::uint64_t properties)
+void RoutingEdge::setProperties(const boost::uint64_t properties)
 {
     _properties.cycleBarrier         = (properties >> BITPOS_CYCLEBARRIER)         & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
     _properties.cyclewayType         = (properties >> BITPOS_CYCLEWAYTYPE)         ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);

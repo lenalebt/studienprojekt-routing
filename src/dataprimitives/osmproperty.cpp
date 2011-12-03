@@ -29,6 +29,18 @@ namespace biker_tests
 {
     int testOSMProperty()
     {
+        OSMProperty prop1("key", "value");
+        OSMProperty prop2("key", "value");
+        
+        CHECK_EQ(prop1, prop2);
+        CHECK_EQ_TYPE(prop1.getKey().toStdString(), "key", std::string);
+        CHECK_EQ_TYPE(prop1.getValue().toStdString(), "value", std::string);
+        
+        prop1.setKey("key2");
+        CHECK_EQ_TYPE(prop1.getKey().toStdString(), "key2", std::string);
+        
+        CHECK(!(prop1 == prop2));
+        
         return EXIT_SUCCESS;
     }
 } 

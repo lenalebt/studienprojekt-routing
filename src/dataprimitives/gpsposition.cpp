@@ -189,7 +189,7 @@ namespace biker_tests
         CHECK_EQ(pos.getLon(), 7.0);
         
         GPSPosition pos2 = pos.calcPositionInDistance(0.0, 5000.0);
-        CHECK_EQ(pos2.getLat(), 51.04496608030);    //TODO: Genauen Wert ausgeben.
+        CHECK_EQ(pos2.getLat(), 51.04496608030);
         CHECK_EQ(pos2.getLon(), 7.0);
         
         CHECK_EQ_TYPE(pos.calcCourseAngle(pos2), 0.000459404801803, float);
