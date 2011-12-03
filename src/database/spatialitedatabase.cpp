@@ -88,6 +88,7 @@ bool SpatialiteDatabaseConnection::createTables()
 {
 	bool retVal = true;
 	
+    //Liste von auszuführenden Statements erstellen
 	QStringList statements;
 	statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PROPERTIES INTEGER NOT NULL);";
 	statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODE);";
@@ -95,6 +96,7 @@ bool SpatialiteDatabaseConnection::createTables()
 	statements << "CREATE VIRTUAL TABLE NODES USING rtree(ID, MIN_X, MAX_X, MIN_Y, MAX_Y);";
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     
+    //Alle Statements der Liste ausführen
 	QStringList::const_iterator it;
 	for (it = statements.constBegin(); it != statements.constEnd(); it++)
 	{
@@ -107,6 +109,7 @@ bool SpatialiteDatabaseConnection::createTables()
 bool SpatialiteDatabaseConnection::execCreateTableStatement(std::string paramCreateTableStatement)
 {
 	char* errorMessage;
+    //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
 	int rc = sqlite3_exec(_db, paramCreateTableStatement.c_str(), NULL, 0, &errorMessage);
 	
 	if (rc != SQLITE_OK)
@@ -198,6 +201,10 @@ namespace biker_tests
         std::cout << "Closing database..." << std::endl;
         connection.close();
         CHECK(!connection.isDBOpen());
+        
+        std::cout << "Reopening \"test.db\"..." << std::endl;
+        connection.open("test.db");
+        CHECK(connection.isDBOpen());
         
         return EXIT_SUCCESS;
     }
