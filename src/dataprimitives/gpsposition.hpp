@@ -6,7 +6,7 @@
 
 #define EARTH_RADIUS 6371000
 
-typedef float gps_float;
+typedef double gps_float;
 
 namespace biker_tests
 {
