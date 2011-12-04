@@ -6,7 +6,12 @@
 
 #define EARTH_RADIUS 6371000
 
-typedef double gps_float;
+typedef float gps_float;
+
+namespace biker_tests
+{
+    int testGPSPosition();
+}
 
 /**
  * @brief GPSPosition speichert Längen- und Breitengrad und ist entsprechend eine Repräsentation eines
@@ -118,6 +123,8 @@ public:
      */
     GPSPosition(gps_float lat, gps_float lon);
     virtual ~GPSPosition() {}
+    
+    friend int biker_tests::testGPSPosition();
 protected:
     /**
      * @brief Längengrad
@@ -163,10 +170,5 @@ private:
 
 bool operator==(const GPSPosition& p1, const GPSPosition& p2);
 bool operator!=(const GPSPosition& p1, const GPSPosition& p2);
-
-namespace biker_tests
-{
-    int testGPSPosition();
-}
 
 #endif // GPSPOSITION_HPP

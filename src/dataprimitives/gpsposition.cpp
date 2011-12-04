@@ -189,6 +189,8 @@ namespace biker_tests
         CHECK_EQ(pos2.getLat(), 51.04496608030);
         CHECK_EQ(pos2.getLon(), 7.0);
         
+        CHECK_EQ(pos.calcXi(pos2), 0.000784806152905);
+        
         CHECK_EQ_TYPE(pos.calcCourseAngle(pos2), 0.000459404801803, float);
         
         return EXIT_SUCCESS;
