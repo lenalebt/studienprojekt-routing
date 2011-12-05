@@ -76,6 +76,7 @@ SET(
     src/dataprimitives/routingnode.cpp
     src/dataprimitives/osmnode.cpp
     src/dataprimitives/osmway.cpp
+    src/dataprimitives/osmedge.cpp
     src/dataprimitives/osmrelation.cpp
     src/dataprimitives/osmproperty.cpp
     
@@ -83,6 +84,9 @@ SET(
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
+    
+    #src/database/parser
+    src/database/parser/osmparser.cpp
     
     #src/routing/
     src/routing/routingmetric.cpp
@@ -104,6 +108,7 @@ SET(
     src/dataprimitives/osmnode.hpp
     src/dataprimitives/osmrelation.hpp
     src/dataprimitives/osmway.hpp
+    src/dataprimitives/osmedge.hpp
     src/dataprimitives/routingnode.hpp
     src/dataprimitives/routingedge.hpp
     
@@ -113,6 +118,8 @@ SET(
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
     
+    #src/database/parser
+    src/database/parser/osmparser.hpp
     
     #src/routing/
     src/routing/routingmetric.hpp
@@ -230,10 +237,13 @@ ADD_TEST(basename                         "biker" "--test" "basename")
 ADD_TEST(routingedge                      "biker" "--test" "routingedge")
 ADD_TEST(gpsposition                      "biker" "--test" "gpsposition")
 ADD_TEST(routingnode                      "biker" "--test" "routingnode")
-ADD_TEST(osmnode                          "biker" "--test" "osmway")
-ADD_TEST(osmway                           "biker" "--test" "osmnode")
+ADD_TEST(osmnode                          "biker" "--test" "osmnode")
+ADD_TEST(osmway                           "biker" "--test" "osmway")
+ADD_TEST(osmedge                          "biker" "--test" "osmedge")
 ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
 ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
+ADD_TEST(osmparser                        "biker" "--test" "osmparser")
+ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 
 

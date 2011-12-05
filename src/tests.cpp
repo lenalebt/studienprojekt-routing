@@ -6,8 +6,11 @@
 #include "osmnode.hpp"
 #include "osmway.hpp"
 #include "osmproperty.hpp"
+#include "osmedge.hpp"
 #include "gpsposition.hpp"
+#include "gpsroute.hpp"
 #include "spatialitedatabase.hpp"
+#include "osmparser.hpp"
 #include <QString>
 
 //für EXIT_SUCCESS und EXIT_FAILURE
@@ -165,10 +168,16 @@ namespace biker_tests
             return biker_tests::testOSMNode();
         else if (testName == "osmway")
             return biker_tests::testOSMWay();
+        else if (testName == "osmedge")
+            return biker_tests::testOSMEdge();
         else if (testName == "osmproperty")
             return biker_tests::testOSMProperty();
         else if (testName == "osmrelation")
             return biker_tests::testOSMRelation();
+        else if (testName == "osmparser")
+            return biker_tests::testOSMParser();
+        else if (testName == "gpsroute")
+            return biker_tests::testGPSRoute();
         
         //Anpassen, falls Fehler auftraten!
         std::cout << "error: did not find test \"" << testName << "\"." << std::endl;
@@ -200,7 +209,7 @@ namespace biker_tests
     }
 }
 
-std::ostream& operator<<(std::ostream& os, QString qs)
+std::ostream& operator<<(std::ostream& os, const QString& qs)
 {
     return (os << qs.toStdString());
 }
