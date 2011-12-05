@@ -95,6 +95,7 @@ bool SpatialiteDatabaseConnection::createTables()
 	statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODE);";
 	statements << "CREATE VIRTUAL TABLE NODES USING rtree(ID, MIN_X, MAX_X, MIN_Y, MAX_Y);";
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
+    statements << "CREATE TABLE EDGES_STREETNAME(ID INTEGER PRIMARY KEY, STREETNAME VARCHAR);";
     
     //Alle Statements der Liste ausführen
 	QStringList::const_iterator it;
@@ -173,13 +174,14 @@ SpatialiteDatabaseConnection::getEdgesByEdgeID(boost::uint64_t edgeID)
 
 void SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
 {
-    
+    //TODO
 }
 
 
 void SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString name)
 {
-    
+    saveEdge(edge);
+    //TODO: Straßenname auch speichern.
 }
 
 
