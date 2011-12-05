@@ -6,6 +6,7 @@
 #include "osmnode.hpp"
 #include "osmway.hpp"
 #include "osmproperty.hpp"
+#include "osmedge.hpp"
 #include "gpsposition.hpp"
 #include "gpsroute.hpp"
 #include "spatialitedatabase.hpp"
@@ -166,6 +167,8 @@ namespace biker_tests
             return biker_tests::testOSMNode();
         else if (testName == "osmway")
             return biker_tests::testOSMWay();
+        else if (testName == "osmedge")
+            return biker_tests::testOSMEdge();
         else if (testName == "osmproperty")
             return biker_tests::testOSMProperty();
         else if (testName == "osmrelation")
