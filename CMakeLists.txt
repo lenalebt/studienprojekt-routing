@@ -85,6 +85,9 @@ SET(
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
     
+    #src/database/parser
+    src/database/parser/osmparser.cpp
+    
     #src/routing/
     src/routing/routingmetric.cpp
     src/routing/router.cpp
@@ -115,6 +118,8 @@ SET(
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
     
+    #src/database/parser
+    src/database/parser/osmparser.hpp
     
     #src/routing/
     src/routing/routingmetric.hpp
@@ -237,6 +242,7 @@ ADD_TEST(osmway                           "biker" "--test" "osmway")
 ADD_TEST(osmedge                          "biker" "--test" "osmedge")
 ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
 ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
+ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 

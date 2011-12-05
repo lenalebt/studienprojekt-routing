@@ -10,6 +10,7 @@
 #include "gpsposition.hpp"
 #include "gpsroute.hpp"
 #include "spatialitedatabase.hpp"
+#include "osmparser.hpp"
 #include <QString>
 
 //für EXIT_SUCCESS und EXIT_FAILURE
@@ -173,6 +174,8 @@ namespace biker_tests
             return biker_tests::testOSMProperty();
         else if (testName == "osmrelation")
             return biker_tests::testOSMRelation();
+        else if (testName == "osmparser")
+            return biker_tests::testOSMParser();
         else if (testName == "gpsroute")
             return biker_tests::testGPSRoute();
         
