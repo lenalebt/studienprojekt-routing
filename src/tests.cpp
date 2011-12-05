@@ -7,6 +7,7 @@
 #include "osmway.hpp"
 #include "osmproperty.hpp"
 #include "gpsposition.hpp"
+#include "gpsroute.hpp"
 #include "spatialitedatabase.hpp"
 #include <QString>
 
@@ -169,6 +170,8 @@ namespace biker_tests
             return biker_tests::testOSMProperty();
         else if (testName == "osmrelation")
             return biker_tests::testOSMRelation();
+        else if (testName == "gpsroute")
+            return biker_tests::testGPSRoute();
         
         //Anpassen, falls Fehler auftraten!
         std::cout << "error: did not find test \"" << testName << "\"." << std::endl;
@@ -200,7 +203,7 @@ namespace biker_tests
     }
 }
 
-std::ostream& operator<<(std::ostream& os, QString qs)
+std::ostream& operator<<(std::ostream& os, const QString& qs)
 {
     return (os << qs.toStdString());
 }

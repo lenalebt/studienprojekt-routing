@@ -82,6 +82,6 @@ namespace biker_tests
     bool check_equality(std::string message, S a, T b);
 }
 
-std::ostream& operator<<(std::ostream& os, QString qs);
+std::ostream& operator<<(std::ostream& os, const QString& qs);
 
 #endif //TESTS_HPP 

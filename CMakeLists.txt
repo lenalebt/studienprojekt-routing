@@ -234,6 +234,7 @@ ADD_TEST(osmnode                          "biker" "--test" "osmway")
 ADD_TEST(osmway                           "biker" "--test" "osmnode")
 ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
 ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
+ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 
 
