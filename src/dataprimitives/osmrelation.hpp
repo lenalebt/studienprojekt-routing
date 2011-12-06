@@ -14,111 +14,110 @@
  *      Man sollte daruf achten, dass alle Zugriffe auf eine restriction nur die Werte 0 und 1 wählen.
  * @author Thorsten Scheller
  * @date 2011-11-01
- * @todo Benennungen an das abgemachte Schema anpassen
  * @copyright GNU GPL v3
  */
 class OSMRelation
 {
 private:
     // die vordefinierten Datentypen
-    boost::uint64_t via_id;
-    boost::uint64_t from_id;
-    boost::uint64_t to_id;
+    boost::uint64_t viaId;
+    boost::uint64_t fromId;
+    boost::uint64_t toId;
     // eine Art Zusammenfassung von Boolischen Variablen
     struct restriction{
-        unsigned int no_left:   1;
-        unsigned int no_right:   1;
-        unsigned int no_straight:   1;
-        unsigned int no_u_turn:   1;
-    }this_restriction;
+        unsigned int noLeft:   1;
+        unsigned int noRight:   1;
+        unsigned int noStraight:   1;
+        unsigned int noUTurn:   1;
+    }thisRestriction;
 public:
     /* @brief erstellt eine Relation mit IDs und restriction
-     * @param via_id die ID des Nodes, über die die Relation führt
-     * @param from_id die ID des Ways, von dem aus die Relation beginnt
-     * @param to_id die ID des Ways, an dem die Relation endet
-     * @param no_left die Variable die anzeigt, ob man nach links abbiegen darf (no_left = 0) oder nicht (no_left = 1)
-     * @param no_right die Variable die anzeigt, ob man nach rechts abbiegen darf (no_right = 0) oder nicht (no_right = 1)
-     * @param no_straight die Variable die anzeigt, ob man gerade aus weiter fahren darf (no_straight = 0) oder nicht (no_straight = 1)
-     * @param no_u_turn die Variable die anzeigt, ob man umkehren darf (no_u_turn = 0) oder nicht (no_u_turn = 1)
+     * @param viaId die ID des Nodes, über die die Relation führt
+     * @param fromId die ID des Ways, von dem aus die Relation beginnt
+     * @param toId die ID des Ways, an dem die Relation endet
+     * @param noLeft die Variable die anzeigt, ob man nach links abbiegen darf (noLeft = 0) oder nicht (noLeft = 1)
+     * @param noRight die Variable die anzeigt, ob man nach rechts abbiegen darf (noRight = 0) oder nicht (noRight = 1)
+     * @param noStraight die Variable die anzeigt, ob man gerade aus weiter fahren darf (noStraight = 0) oder nicht (noStraight = 1)
+     * @param noUTurn die Variable die anzeigt, ob man umkehren darf (noUTurn = 0) oder nicht (noUTurn = 1)
      */
-    OSMRelation( boost::uint64_t via_id,  boost::uint64_t from_id,  boost::uint64_t to_id, unsigned int no_left, unsigned int no_straight, unsigned int no_right, unsigned int no_u_turn):
-    via_id(via_id), from_id(from_id), to_id(to_id) {
-    	this->this_restriction.no_left = no_left;
-    	this->this_restriction.no_right = no_right;
-    	this->this_restriction.no_straight = no_straight;
-    	this->this_restriction.no_u_turn = no_u_turn;
+    OSMRelation( boost::uint64_t viaId,  boost::uint64_t fromId,  boost::uint64_t toId, unsigned int noLeft, unsigned int noStraight, unsigned int noRight, unsigned int noUTurn):
+    viaId(viaId), fromId(fromId), toId(toId) {
+    	this->thisRestriction.noLeft = noLeft;
+    	this->thisRestriction.noRight = noRight;
+    	this->thisRestriction.noStraight = noStraight;
+    	this->thisRestriction.noUTurn = noUTurn;
     };
     // ab hier: Get und Set -Funktionen
     /**
-     * @brief Gibt die via_ID der Relation zurück.
-     * @return Die via_ID der Relation.
+     * @brief Gibt die viaId der Relation zurück.
+     * @return Die viaId der Relation.
      */
-    boost::uint64_t getvia_ID() const {return via_id;}
+    boost::uint64_t getViaId() const {return viaId;}
     /**
-     * @brief Setzt die via_ID der Relation.
-     * @param via_id Die via_ID der Relation.
+     * @brief Setzt die viaId der Relation.
+     * @param viaId Die viaId der Relation.
      */
-    void setvia_ID(boost::uint64_t via_id) {this->via_id = via_id;}
+    void setViaId(boost::uint64_t viaId) {this->viaId = viaId;}
     /**
-     * @brief Gibt die from_ID der Relation zurück.
-     * @return Die from_ID der Relation.
+     * @brief Gibt die fromId der Relation zurück.
+     * @return Die fromId der Relation.
      */
-    boost::uint64_t getfrom_ID() const {return from_id;}
+    boost::uint64_t getFromId() const {return fromId;}
     /**
-     * @brief Setzt die from_ID der Relation.
-     * @param from_id Die from_ID der Relation.
+     * @brief Setzt die fromId der Relation.
+     * @param fromId Die fromId der Relation.
      */
-    void setfrom_ID(boost::uint64_t from_id) {this->from_id = from_id;}
+    void setFromId(boost::uint64_t fromId) {this->fromId = fromId;}
     /**
-     * @brief Gibt die to_ID der Relation zurück.
-     * @return Die to_ID der Relation.
+     * @brief Gibt die toId der Relation zurück.
+     * @return Die toId der Relation.
      */
-    boost::uint64_t getto_ID() const {return to_id;}
+    boost::uint64_t getToId() const {return toId;}
     /**
-     * @brief Setzt die to_ID der Relation.
-     * @param to_id Die to_ID der Relation.
+     * @brief Setzt die toId der Relation.
+     * @param toId Die toId der Relation.
      */
-    void setto_ID(boost::uint64_t to_id) {this->to_id = to_id;}
+    void setToId(boost::uint64_t toId) {this->toId = toId;}
     /**
-     * @brief Gibt die restriction.no_left der Relation zurück.
-     * @return Die restriction.no_left der Relation.
+     * @brief Gibt die restriction.noLeft der Relation zurück.
+     * @return Die restriction.noLeft der Relation.
      */
-    unsigned int get_left() const {return this_restriction.no_left ;}
+    unsigned int getLeft() const {return thisRestriction.noLeft ;}
     /**
-     * @brief Setzt die restriction.no_left der Relation.
-     * @param no_left der neue Wert der restriction.no_left der Relation.
+     * @brief Setzt die restriction.noLeft der Relation.
+     * @param noLeft der neue Wert der restriction.noLeft der Relation.
      */
-    void set_left(unsigned int no_left) {this->this_restriction.no_left = no_left;}
+    void setLeft(unsigned int noLeft) {this->thisRestriction.noLeft = noLeft;}
     /**
-     * @brief Gibt die restriction.no_right der Relation zurück.
-     * @return Die restriction.no_right der Relation.
+     * @brief Gibt die restriction.noRight der Relation zurück.
+     * @return Die restriction.noRight der Relation.
      */
-    unsigned int get_right() const {return this_restriction.no_right ;}
+    unsigned int getRight() const {return thisRestriction.noRight ;}
     /**
-     * @brief Setzt die restriction.no_right der Relation.
-     * @param no_right der neue Wert der restriction.no_right der Relation.
+     * @brief Setzt die restriction.noRight der Relation.
+     * @param noRight der neue Wert der restriction.noRight der Relation.
      */
-    void set_right(unsigned int no_right) {this->this_restriction.no_right = no_right;}
+    void setRight(unsigned int noRight) {this->thisRestriction.noRight = noRight;}
     /**
-     * @brief Gibt die restriction.no_straight der Relation zurück.
-     * @return Die restriction.no_straight der Relation.
+     * @brief Gibt die restriction.noStraight der Relation zurück.
+     * @return Die restriction.noStraight der Relation.
      */
-    unsigned int get_straight() const {return this_restriction.no_straight ;}
+    unsigned int getStraight() const {return thisRestriction.noStraight ;}
     /**
-     * @brief Setzt die restriction.no_straight der Relation.
-     * @param no_straight der neue Wert der restriction.no_straight der Relation.
+     * @brief Setzt die restriction.noStraight der Relation.
+     * @param noStraight der neue Wert der restriction.noStraight der Relation.
      */
-    void set_straight(unsigned int no_straight) {this->this_restriction.no_straight = no_straight;}
+    void setStraight(unsigned int noStraight) {this->thisRestriction.noStraight = noStraight;}
     /**
-     * @brief Gibt die restriction.no_u_turn der Relation zurück.
-     * @return Die restriction.no_u_turn der Relation.
+     * @brief Gibt die restriction.noUTurn der Relation zurück.
+     * @return Die restriction.noUTurn der Relation.
      */
-    unsigned int get_u_turn() const {return this_restriction.no_u_turn ;}
+    unsigned int getUTurn() const {return thisRestriction.noUTurn ;}
     /**
-     * @brief Setzt die restriction.no_straight der Relation.
-     * @param no_u_turn der neue Wert der restriction.no_u_turn der Relation.
+     * @brief Setzt die restriction.noStraight der Relation.
+     * @param noUTurn der neue Wert der restriction.noUTurn der Relation.
      */
-    void set_u_turn(unsigned int no_u_turn) {this->this_restriction.no_u_turn = no_u_turn;}
+    void setUTurn(unsigned int noUTurn) {this->thisRestriction.noUTurn = noUTurn;}
 };
 
 /**
