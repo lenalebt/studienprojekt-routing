@@ -201,6 +201,26 @@ RoutingEdge::RoutingEdge(boost::uint64_t id) :
     _properties.turnType                    = 0;
 }
 
+RoutingEdge::RoutingEdge(boost::uint64_t id, boost::uint64_t startNodeID, boost::uint64_t endNodeID) :
+    _id(id), _startNodeID(startNodeID), _endNodeID(endNodeID)
+{
+    _properties.cycleBarrier                = false;
+    _properties.cyclewayType                = 0;
+    _properties.stairs                      = false;
+    _properties.stopSign                    = false;
+    _properties.streetSurfaceQuality        = 0;
+    _properties.streetSurfaceType           = 0;
+    _properties.streetType                  = 0;
+    _properties.trafficCalmingBumps         = false;
+    _properties.trafficLights               = false;
+    _properties.turnType                    = 0;
+}
+RoutingEdge::RoutingEdge(boost::uint64_t id, boost::uint64_t startNodeID, boost::uint64_t endNodeID, boost::uint64_t properties) :
+    _id(id), _startNodeID(startNodeID), _endNodeID(endNodeID)
+{
+    setProperties(properties);
+}
+
 bool RoutingEdge::operator==(const RoutingEdge& other)
 {
     return (this->_id == other._id) &&

@@ -260,6 +260,8 @@ public:
     
     RoutingEdge();
     RoutingEdge(boost::uint64_t id);
+    RoutingEdge(boost::uint64_t id, boost::uint64_t startNodeID, boost::uint64_t endNodeID);
+    RoutingEdge(boost::uint64_t id, boost::uint64_t startNodeID, boost::uint64_t endNodeID, boost::uint64_t properties);
     
     /**
      * @brief Vergleicht zwei RoutingEdges.

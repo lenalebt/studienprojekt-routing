@@ -3,7 +3,8 @@
 #include <QFile>
 
 SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
-    _dbOpen(false), _db(NULL), _saveNodeStatement(NULL)
+    _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
+    _saveEdgeStatement(NULL), _getEdgeStatement(NULL)
 {
     
 }
@@ -154,10 +155,10 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 	}
 	
 	// Parameter an das Statement binden
-	sqlite3_bind_double(_getNodeStatement, 1, node.getLat());
-	sqlite3_bind_double(_getNodeStatement, 2, node.getLat());
-	sqlite3_bind_double(_getNodeStatement, 3, node.getLon());
-	sqlite3_bind_double(_getNodeStatement, 4, node.getLon());
+	sqlite3_bind_double(_getNodeStatement, 1, minCorner.getLat());
+	sqlite3_bind_double(_getNodeStatement, 2, maxCorner.getLat());
+	sqlite3_bind_double(_getNodeStatement, 3, minCorner.getLon());
+	sqlite3_bind_double(_getNodeStatement, 4, maxCorner.getLon());
 	
 	// Statement ausfuehren
 	rc = sqlite3_step(_getNodeStatement);
@@ -180,39 +181,39 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 
 bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
 {
-	int rc;
-	if(_saveNodeStatement == NULL)
-	{		
-		rc = sqlite3_prepare_v2(_db, "INSERT INTO NODES VALUES (@ID, @MIN_LAT, @MAX_LAT, @MIN_LON, @MAX_LON);", -1, &_saveNodeStatement, NULL);
-		if (rc != SQLITE_OK)
-		{	
-			std::cerr << "Failed to create saveNodeStatement." << " Resultcode: " << rc;
-			return false;
-		}
-	}
-	
-	// Parameter an das Statement binden
-	sqlite3_bind_int64(_saveNodeStatement, 1, node.getID());
-	sqlite3_bind_double(_saveNodeStatement, 2, node.getLat());
-	sqlite3_bind_double(_saveNodeStatement, 3, node.getLat());
-	sqlite3_bind_double(_saveNodeStatement, 4, node.getLon());
-	sqlite3_bind_double(_saveNodeStatement, 5, node.getLon());
-	
-	// Statement ausfuehren
-	rc = sqlite3_step(_saveNodeStatement);
-	if (rc != SQLITE_DONE)
-	{	
-		std::cerr << "Failed to execute saveNodeStatement." << " Resultcode: " << rc;
-		return false;
-	}
-	
-	
-	rc = sqlite3_reset(_saveNodeStatement);
-	if(rc != SQLITE_OK)
-	{
-		std::cerr << "Failed to reset saveNodeStatement." << " Resultcode: " << rc;
-	}
-	return true;
+    int rc;
+    if(_saveNodeStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO NODES VALUES (@ID, @MIN_LAT, @MAX_LAT, @MIN_LON, @MAX_LON);", -1, &_saveNodeStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create saveNodeStatement." << " Resultcode: " << rc;
+            return false;
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_saveNodeStatement, 1, node.getID());
+    sqlite3_bind_double(_saveNodeStatement, 2, node.getLat());
+    sqlite3_bind_double(_saveNodeStatement, 3, node.getLat());
+    sqlite3_bind_double(_saveNodeStatement, 4, node.getLon());
+    sqlite3_bind_double(_saveNodeStatement, 5, node.getLon());
+
+    // Statement ausfuehren
+    rc = sqlite3_step(_saveNodeStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute saveNodeStatement." << " Resultcode: " << rc;
+        return false;
+    }
+
+
+    rc = sqlite3_reset(_saveNodeStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset saveNodeStatement." << " Resultcode: " << rc;
+    }
+    return true;
 }
 
 
@@ -239,8 +240,38 @@ SpatialiteDatabaseConnection::getEdgesByEdgeID(boost::uint64_t edgeID)
 
 bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
 {
-    //TODO
-    return false;
+    int rc;
+    if(_saveEdgeStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO EDGES VALUES (@ID, @STARTNODE, @ENDNODE, @PROPERTIES);", -1, &_saveEdgeStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create saveEdgeStatement." << " Resultcode: " << rc;
+            return false;
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_saveEdgeStatement, 1, edge.getID());
+    sqlite3_bind_int64(_saveEdgeStatement, 2, edge.getStartNodeID());
+    sqlite3_bind_int64(_saveEdgeStatement, 3, edge.getEndNodeID());
+    sqlite3_bind_int64(_saveEdgeStatement, 4, edge.getProperties());
+    
+    // Statement ausfuehren
+    rc = sqlite3_step(_saveEdgeStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute saveEdgeStatement." << " Resultcode: " << rc;
+        return false;
+    }
+
+
+    rc = sqlite3_reset(_saveEdgeStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset saveEdgeStatement." << " Resultcode: " << rc;
+    }
+    return true;
 }
 
 
@@ -286,8 +317,14 @@ namespace biker_tests
         CHECK(connection.isDBOpen());
         
         RoutingNode node(25, 51.0, 7.0);
-        std::cout << "Save Node \"test.db\"..." << std::endl;
+        std::cout << "Save Node..." << std::endl;
         CHECK(connection.saveNode(node));
+        node = RoutingNode(26, 51.5, 7.5);
+        CHECK(connection.saveNode(node));
+        
+        RoutingEdge edge(45, 25, 26);
+        std::cout << "Save Edge..." << std::endl;
+        CHECK(connection.saveEdge(edge));
         
         return EXIT_SUCCESS;
     }
