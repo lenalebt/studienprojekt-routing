@@ -42,10 +42,10 @@ public:
      */
     OSMRelation( boost::uint64_t viaId,  boost::uint64_t fromId,  boost::uint64_t toId, unsigned int noLeft, unsigned int noStraight, unsigned int noRight, unsigned int noUTurn):
     viaId(viaId), fromId(fromId), toId(toId) {
-    	this->thisRestriction.noLeft = noLeft;
-    	this->thisRestriction.noRight = noRight;
-    	this->thisRestriction.noStraight = noStraight;
-    	this->thisRestriction.noUTurn = noUTurn;
+        this->thisRestriction.noLeft = noLeft;
+        this->thisRestriction.noRight = noRight;
+        this->thisRestriction.noStraight = noStraight;
+        this->thisRestriction.noUTurn = noUTurn;
     };
     // ab hier: Get und Set -Funktionen
     /**
