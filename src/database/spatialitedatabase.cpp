@@ -324,6 +324,10 @@ namespace biker_tests
         
         RoutingEdge edge(45, 25, 26);
         std::cout << "Save Edge..." << std::endl;
+        edge.setCycleBarrier(true);
+        edge.setCyclewayType(5);
+        CHECK(connection.saveEdge(edge));
+        edge = RoutingEdge(46, 26, 25);
         CHECK(connection.saveEdge(edge));
         
         return EXIT_SUCCESS;
