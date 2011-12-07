@@ -174,7 +174,7 @@ public:
      * @param data QString in den der Inhalt der der NetworkReply gespeichert weden soll
      * @return enum QNetworkReply::NetworkError (Ist NoError wenn kein Fehler aufgetreten ist.)
      */
-    QNetworkReply::NetworkError downloadUrl(const QUrl &url, QString &data)
+    QNetworkReply::NetworkError downloadUrl(const QUrl &url, QString &data);
     
     //~SRTMProvider();
 };

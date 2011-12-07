@@ -1,6 +1,8 @@
 #include "altitudeprovider.hpp"
 #include "tests.hpp"
 
+#include <QtGlobal>
+
 double SRTMProvider::getAltitude(const GPSPosition& pos)
 {
     return this->getAltitude(pos.getLat(), pos.getLon());
@@ -25,41 +27,40 @@ void SRTMProvider::createFileList()
     
     QStringList continents;
     continents << "Africa" << "Australia" << "Eurasia" << "Islands" << "North_America" << "South_America";
-    QString url = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/"
+    QString url = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/";
     
     foreach (QString continent, continents) {
         std::cout << "Downloading data from" << url+continent+"/";
 
-        QString urlTemp = QString(url+continent+"/").toAscii().constData()); // Kontinent zur url hinzufügen
-        srtmUrl = QUrl( const &urlTemp); 									 // urlTemp zu QUrl casten, für spätere Verwendung.
-		QString replyString; 												 // Hierein wird später die NetworkReply aus downloadUrl gespeichert.
+        QString urlTemp = QString(url+continent+"/").toAscii().constData(); // Kontinent zur url hinzufügen
+        QUrl srtmUrl(urlTemp); 				 // urlTemp zu QUrl casten, für spätere Verwendung.
+		QString replyString; 							// Hierein wird später die NetworkReply aus downloadUrl gespeichert.
 		QNetworkReply::NetworkError error = downloadUrl(srtmUrl, replyString);
 		
-		if(error = QNetworkReply::NoError) 									 // Bearbeiten der Liste, falls Herunterladen erfolgreich.
+		if(error == QNetworkReply::NoError) 		 // Bearbeiten der Liste, falls Herunterladen erfolgreich.
 		{
-			// Download nach Listenelementen durchduchen udn diese in fileList eintragen.
+			// Download nach Listenelementen durchsuchen und diese in fileList eintragen.
 			
-			// mit cap() durchgehen über alle gefunden captures, mit caplength vorher Anzahl holen.
-			/*foreach (Match match in Regex.Matches(replyString, "<li>\s*<a\s+href=\"([^\"]+)\"))
-			{
-			String placeHolder = match.cap(i).Value;
-
-			* */
-
-			int index = -1;
-			while ((index = curlData.indexOf(regex, index+1)) != -1) {
-				int lat = regex.cap(2).toInt();
-				int lon = regex.cap(4).toInt();
-				if (regex.cap(1) == "S") {
+			QRegExp regex("(<li>\\s*<a\\s+href=\"([^\"]+)\\)");
+			regex.indexIn(replyString);
+			QStringList dateiListe = regex.capturedTexts();			
+			int capCount = 	regex.captureCount();
+						
+			QRegExp innerRx("([NS])(\\d{2})([EW])(\\d{3})");
+			for (int i=1;i<=capCount;i++){
+				int lat = innerRx.cap(2).toInt();
+				int lon = innerRx.cap(4).toInt();
+				if (innerRx.cap(1) == "S") {
 					lat = -lat;
 				}
-				if (regex.cap(3) == "W") {
+				if (innerRx.cap(3) == "W") {
 					lon = - lon;
 				}
-				//S00E000.hgt.zip
+			    //S00E000.hgt.zip
 				//123456789012345 => 15 bytes long
-				fileList[latLonToIndex(lat, lon)] = continent+"/"+regex.cap().right(15);
+				fileList[latLonToIndex(lat, lon)] = continent+"/"+dateiListe[i].right(15);
 			}
+			
 		}
 		else
 		{
@@ -82,7 +83,7 @@ void SRTMProvider::createFileList()
     QDataStream stream(&file);
     stream << fileList;
     file.close();
-    */
+    
 }
 /*
  * Aus Forum: http://stackoverflow.com/questions/2572985/how-can-i-use-qt-to-get-html-code-of-the-redirected-page
@@ -112,4 +113,4 @@ QNetworkReply::NetworkError SRTMProvider::downloadUrl(const QUrl &url, QString &
 /*SRTMProvider::~SRTMProvider()
 {
     
-}
+}*/
