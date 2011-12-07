@@ -52,7 +52,22 @@ public:
         this->id = convertIDToLongFormat(id);
     }
     
+    /**
+     * @brief Wandelt eine ID in das Format um, in dem Kanten KnotenID
+     *  (für Start- und Endknoten) speichern.
+     * 
+     * @param id Die zu konvertierende ID
+     * @return Die konvertierte ID
+     */
     boost::uint64_t convertIDToLongFormat(const boost::uint64_t id);
+    
+    /**
+     * @brief Wandelt eine ID in das Format um, in dem Knoten ihre ID
+     *  speichern.
+     * 
+     * @param id Die zu konvertierende ID
+     * @return Die konvertierte ID
+     */
     boost::uint64_t convertIDToShortFormat(const boost::uint64_t id);
     
     RoutingNode(int id) : id(id) {}
