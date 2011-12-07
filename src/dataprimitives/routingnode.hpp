@@ -49,8 +49,7 @@ public:
      */
     virtual void setAndConvertID(const boost::uint64_t id)
     {
-        boost::uint64_t mask = 0xFFFFFFFFFFFFFFllu;
-        this->id = ((id & mask) << 8);
+        this->id = convertIDToLongFormat(id);
     }
     
     boost::uint64_t convertIDToLongFormat(const boost::uint64_t id);
