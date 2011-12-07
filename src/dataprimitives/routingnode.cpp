@@ -1,5 +1,15 @@
 #include "routingnode.hpp"
 
+boost::uint64_t RoutingNode::convertIDToLongFormat(const boost::uint64_t id)
+{
+    
+}
+
+boost::uint64_t RoutingNode::convertIDToShortFormat(const boost::uint64_t id)
+{
+    
+}
+
 namespace biker_tests
 {
     int testRoutingNode()
