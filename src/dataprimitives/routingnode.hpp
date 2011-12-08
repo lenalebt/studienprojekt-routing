@@ -3,6 +3,7 @@
 
 #include <boost/cstdint.hpp>
 #include "gpsposition.hpp"
+#include <iostream>
 
 /**
  * @brief Beschreibt einen Knoten, der in der Datenbank abgelegt werden kann
@@ -73,7 +74,11 @@ public:
     RoutingNode(int id) : id(id) {}
     RoutingNode(int id, gps_float lat, gps_float lon) : GPSPosition(lat, lon), id(id) {}
     RoutingNode() : id(0) {}
+    
+    bool operator==(const RoutingNode& other);
 };
+
+std::ostream& operator<<(std::ostream& os, const RoutingNode& node);
 
 namespace biker_tests
 {

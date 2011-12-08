@@ -11,6 +11,20 @@ boost::uint64_t RoutingNode::convertIDToShortFormat(const boost::uint64_t id)
     return (id >> 8);
 }
 
+bool RoutingNode::operator==(const RoutingNode& other)
+{
+    return (this->id == other.id) &&
+        (this->getLat() == other.getLat()) &&
+        (this->getLon() == other.getLon());
+}
+
+std::ostream& operator<<(std::ostream& os, const RoutingNode& node)
+{
+    os << "RoutingNode, id:" << node.getID() << ", lat:" << node.getLat()
+        << ", lon:" << node.getLon();
+    return os;
+}
+
 namespace biker_tests
 {
     int testRoutingNode()
