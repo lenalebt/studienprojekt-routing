@@ -2,6 +2,12 @@
 #include <QStringList>
 #include <QFile>
 
+#include <boost/random/linear_congruential.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/uniform_real.hpp>
+#include <boost/random/variate_generator.hpp>
+#include <boost/generator_iterator.hpp>
+
 SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
     _saveEdgeStatement(NULL), _getEdgeStatement(NULL)
@@ -334,6 +340,41 @@ SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
 		sqlite3_finalize(_saveNodeStatement);
 }
 
+bool SpatialiteDatabaseConnection::beginTransaction()
+{
+    char* errorMessage;
+    //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
+	int rc = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, 0, &errorMessage);
+	
+	if (rc != SQLITE_OK)
+    {
+        sqlite3_close(_db);
+        std::cerr << "Failed to begin transaction."
+            << " Error message: \"" << errorMessage << "\"" << std::endl;
+        sqlite3_free(errorMessage);
+        return false;
+    }
+    else
+		return true;
+}
+bool SpatialiteDatabaseConnection::endTransaction()
+{
+    char* errorMessage;
+    //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
+	int rc = sqlite3_exec(_db, "END TRANSACTION;", NULL, 0, &errorMessage);
+	
+	if (rc != SQLITE_OK)
+    {
+        sqlite3_close(_db);
+        std::cerr << "Failed to begin transaction."
+            << " Error message: \"" << errorMessage << "\"" << std::endl;
+        sqlite3_free(errorMessage);
+        return false;
+    }
+    else
+		return true;
+}
+
 namespace biker_tests
 {
     int testSpatialiteDatabaseConnection()
@@ -377,8 +418,25 @@ namespace biker_tests
         CHECK(!list.isEmpty());
         CHECK(list.size() == 2);
         
-        std::cout << "Node from DB: " << *(list[0]) << std::endl;
+        std::cout << "Node 0 from DB: " << *(list[0]) << std::endl;
+        std::cout << "Node 1 from DB: " << *(list[1]) << std::endl;
         CHECK((*list[0] == node) || (*list[1] == node));
+        
+        boost::minstd_rand generator(42u);
+        boost::uniform_real<> uni_dist(50, 52);
+        boost::variate_generator<boost::minstd_rand&, boost::uniform_real<> > uni(generator, uni_dist);
+        
+        std::cout << "Inserting 10000 Nodes within one transaction..." << std::endl;
+        bool successInsertManyNodes = true;
+        CHECK(connection.beginTransaction());
+        for (int i=0; i<10000; i++)
+        {
+            node = RoutingNode(i + 100, uni(), uni() - (51.0 - 7.0));
+            successInsertManyNodes = successInsertManyNodes && connection.saveNode(node);
+        }
+        CHECK(successInsertManyNodes);
+        CHECK(connection.endTransaction());
+        
         
         return EXIT_SUCCESS;
     }
