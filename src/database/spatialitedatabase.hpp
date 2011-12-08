@@ -2,8 +2,6 @@
 #define SPATIALITEDATABASE_HPP
 
 #include "database.hpp"
-//TODO: sqlite als Voraussetzung? Auf welchen Systemen existiert <spatialite/sqlite3.h>,
-//      und wo nur <sqlite3.h>?
 #include <sqlite3.h>
 
 class SpatialiteDatabaseConnection : public DatabaseConnection
