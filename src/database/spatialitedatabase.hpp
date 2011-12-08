@@ -24,11 +24,16 @@ public:
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& searchMidpoint, double radius);
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& ulCorner, const GPSPosition& brCorner);
     bool saveNode(const RoutingNode& node);
+    /** @todo implementieren */
     QVector<boost::shared_ptr<RoutingEdge> > getEdgesByStartNodeID(boost::uint64_t startNodeID);
+    /** @todo implementieren */
     QVector<boost::shared_ptr<RoutingEdge> > getEdgesByEndNodeID(boost::uint64_t endNodeID);
+    /** @todo implementieren */
     boost::shared_ptr<RoutingEdge> getEdgesByEdgeID(boost::uint64_t edgeID);
     bool saveEdge(const RoutingEdge& edge);
+    /** @todo Speichern von Straßen implementieren */
     bool saveEdge(const RoutingEdge& edge, QString name);
+    /** @todo implementieren */
     QString getStreetName(const RoutingEdge& edge);
 	~SpatialiteDatabaseConnection();
     
