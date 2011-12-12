@@ -25,6 +25,8 @@
  *      Zustand überführen als es vor dem Aufruf der Funktion hatte
  */
 
+#define TEST_PASSED_MSG_WIDTH 80
+
 using namespace std;
 
 namespace biker_tests
@@ -42,7 +44,7 @@ namespace biker_tests
     template<typename S, typename T>
     bool check_equality(std::string message, S a, T b)
     {
-        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        std::cout << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
         if (a==b)
         {
             std::cout << "passed!" << std::endl;
@@ -71,7 +73,7 @@ namespace biker_tests
     }
     template<> bool check_equality(std::string message, double a, double b)
     {
-        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        std::cout << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
         if (fabs(a - b) < DOUBLE_EQUALITY_BARRIER)
         {
             std::cout << "passed!" << std::endl;
@@ -87,7 +89,7 @@ namespace biker_tests
     }
     template<> bool check_equality(std::string message, float a, float b)
     {
-        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        std::cout << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
         if (fabs(a - b) < FLOAT_EQUALITY_BARRIER)
         {
             std::cout << "passed!" << std::endl;
