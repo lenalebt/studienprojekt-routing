@@ -29,54 +29,54 @@ void SRTMProvider::createFileList()
     continents << "Africa" << "Australia" << "Eurasia" << "Islands" << "North_America" << "South_America";
     QString url = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/";
     
-    foreach (QString continent, continents) {
+    foreach (QString continent, continents) { // für jeden Kontinent, die vorhandenen Ziparchive in die Liste eintragen
         std::cout << "Downloading data from" << url+continent+"/";
 
         QString urlTemp = QString(url+continent+"/").toAscii().constData(); // Kontinent zur url hinzufügen
         QUrl srtmUrl(urlTemp); 				 // urlTemp zu QUrl casten, für spätere Verwendung.
-		QString replyString; 							// Hierein wird später die NetworkReply aus downloadUrl gespeichert.
-		QNetworkReply::NetworkError error = downloadUrl(srtmUrl, replyString);
-		
-		if(error == QNetworkReply::NoError) 		 // Bearbeiten der Liste, falls Herunterladen erfolgreich.
-		{
-			// Download nach Listenelementen durchsuchen und diese in fileList eintragen.
-			
-			QRegExp regex("(<li>\\s*<a\\s+href=\"([^\"]+)\\)");
-			regex.indexIn(replyString);
-			QStringList dateiListe = regex.capturedTexts();			
-			int capCount = 	regex.captureCount();
-						
-			QRegExp innerRx("([NS])(\\d{2})([EW])(\\d{3})");
-			for (int i=1;i<=capCount;i++){
-				int lat = innerRx.cap(2).toInt();
-				int lon = innerRx.cap(4).toInt();
-				if (innerRx.cap(1) == "S") {
-					lat = -lat;
-				}
-				if (innerRx.cap(3) == "W") {
-					lon = - lon;
-				}
-			    //S00E000.hgt.zip
-				//123456789012345 => 15 bytes long
-				fileList[latLonToIndex(lat, lon)] = continent+"/"+dateiListe[i].right(15);
-			}
-			
-		}
-		else
-		{
-			// TODO
-			std::cout << "Fehler beim laden der Daten für " << continent << "." << std::endl;
-		}
+        QString replyString; 							// Hierein wird später die NetworkReply aus downloadUrl gespeichert.
+        QNetworkReply::NetworkError error = downloadUrl(srtmUrl, replyString);
+
+        if(error == QNetworkReply::NoError) 		 // Bearbeiten der Liste, falls Herunterladen erfolgreich.
+        {
+            // Download nach Listenelementen durchsuchen und diese in fileList eintragen.
+            
+            QRegExp regex("(<li>\\s*<a\\s+href=\"([^\"]+)\\)");
+            regex.indexIn(replyString);
+            QStringList dateiListe = regex.capturedTexts();			
+            int capCount = 	regex.captureCount();
+                        
+            QRegExp innerRx("([NS])(\\d{2})([EW])(\\d{3})");
+            for (int i=1;i<=capCount;i++){
+                int lat = innerRx.cap(2).toInt();
+                int lon = innerRx.cap(4).toInt();
+                if (innerRx.cap(1) == "S") {
+                    lat = -lat;
+                }
+                if (innerRx.cap(3) == "W") {
+                    lon = - lon;
+                }
+                //S00E000.hgt.zip
+                //123456789012345 => 15 bytes long
+                fileList[latLonToIndex(lat, lon)] = continent+"/"+dateiListe[i].right(15);
+            }
+            
+        }
+        else
+        {
+            // TODO
+            std::cout << "Fehler beim laden der Daten für " << continent << "." << std::endl;
+        }
     }
     
-    if (fileList.size() != SRTM_FILE_COUNT) {
-        std::cerr << "Could not download complete list of tiles from SRTM server. Got" << fileList.size() << "tiles but" << SRTM_FILE_COUNT << "were expected.";
-        //exit(1); //ERROR: SRTM-Filecount was wrong. Should not matter to comment this out.
-    }
+    //if (fileList.size() != SRTM_FILE_COUNT) {
+        //std::cerr << "Could not download complete list of tiles from SRTM server. Got" << fileList.size() << "tiles but" << SRTM_FILE_COUNT << "were expected.";
+        ////exit(1); //ERROR: SRTM-Filecount was wrong. Should not matter to comment this out.
+    //}
     
-    QFile file(cachedir+"srtmfilelist");
-    if (!file.open(QIODevice::WriteOnly)) {
-        std::cerr << "Could not open file" << cachedir+"filelist";
+    QFile file("srtmfilelist"); // TODO cachedir+"filelist" wobei cachedir den Pfad enthalten soll
+    if (!file.open(QIODevice::WriteOnly)) { 
+        std::cerr << "Could not open file" << "filelist"; // TODO cachedir+"filelist" wobei cachedir den Pfad enthalten soll
         //Not a fatal error. We just can't cache the list.
         return;
     }
