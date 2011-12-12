@@ -282,7 +282,7 @@ SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 	}
 	
 	// Parameter an das Statement binden
-	sqlite3_bind_int64(_getEdgeStatement, 1, edgeID);
+	sqlite3_bind_int64(_getEdgeStatement, 1, startNodeID);
 	
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getEdgeStatement)) != SQLITE_DONE)
@@ -322,15 +322,15 @@ SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
                         sqlite3_column_int64(_getEdgeStatement, 3)
                         );
         //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
-        boost::shared_ptr<RoutingNode> ptr(newEdge);
+        boost::shared_ptr<RoutingEdge> ptr(newEdge);
         //den boost::shared_ptr zur Liste hinzufügen
-        retList << ptr;
+		edgeList << ptr;
     }
 	
     if (rc != SQLITE_DONE)
 	{	
 		std::cerr << "Failed to execute getEdgeStatement." << " Resultcode: " << rc;
-		return QVector<boost::shared_ptr<RoutingNode> >();
+		return QVector<boost::shared_ptr<RoutingEdge> >();
 	}
 	
 	rc = sqlite3_reset(_getEdgeStatement);
@@ -361,7 +361,7 @@ SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 	}
 	
 	// Parameter an das Statement binden
-	sqlite3_bind_int64(_getEdgeStatement, 1, edgeID);
+	sqlite3_bind_int64(_getEdgeStatement, 1, endNodeID);
 	
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getEdgeStatement)) != SQLITE_DONE)
@@ -401,15 +401,15 @@ SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
                         sqlite3_column_int64(_getEdgeStatement, 3)
                         );
         //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
-        boost::shared_ptr<RoutingNode> ptr(newEdge);
+        boost::shared_ptr<RoutingEdge> ptr(newEdge);
         //den boost::shared_ptr zur Liste hinzufügen
-        retList << ptr;
+        edgeList << ptr;
     }
 	
     if (rc != SQLITE_DONE)
 	{	
 		std::cerr << "Failed to execute getEdgeStatement." << " Resultcode: " << rc;
-		return QVector<boost::shared_ptr<RoutingNode> >();
+		return QVector<boost::shared_ptr<RoutingEdge> >();
 	}
 	
 	rc = sqlite3_reset(_getEdgeStatement);
@@ -423,9 +423,9 @@ SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 
 
 boost::shared_ptr<RoutingEdge>
-SpatialiteDatabaseConnection::getEdgesByEdgeID(boost::uint64_t edgeID)
+SpatialiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
 {
-	QVector<boost::shared_ptr<RoutingEdge> > edgeList;
+	boost::shared_ptr<RoutingEdge> edge;
       
 	int rc;
 	if(_getEdgeStatement == NULL)
@@ -435,7 +435,7 @@ SpatialiteDatabaseConnection::getEdgesByEdgeID(boost::uint64_t edgeID)
 		if (rc != SQLITE_OK)
 		{	
 			std::cerr << "Failed to create getEdgeStatement." << " Resultcode: " << rc;
-			return QVector<boost::shared_ptr<RoutingEdge> >();
+			return boost::shared_ptr<RoutingEdge>();
 		}
 	}
 	
@@ -480,15 +480,13 @@ SpatialiteDatabaseConnection::getEdgesByEdgeID(boost::uint64_t edgeID)
                         sqlite3_column_int64(_getEdgeStatement, 3)
                         );
         //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
-        boost::shared_ptr<RoutingNode> ptr(newEdge);
-        //den boost::shared_ptr zur Liste hinzufügen
-        retList << ptr;
+        edge.reset(newEdge);
     }
 	
     if (rc != SQLITE_DONE)
 	{	
 		std::cerr << "Failed to execute getEdgeStatement." << " Resultcode: " << rc;
-		return QVector<boost::shared_ptr<RoutingNode> >();
+		return boost::shared_ptr<RoutingEdge>();
 	}
 	
 	rc = sqlite3_reset(_getEdgeStatement);
@@ -497,7 +495,7 @@ SpatialiteDatabaseConnection::getEdgesByEdgeID(boost::uint64_t edgeID)
 		std::cerr << "Failed to reset getEdgeStatement." << " Resultcode: " << rc;
 	}
 	
-	return edgeList;
+	return edge;
 }
 
 
