@@ -33,7 +33,7 @@ public:
      * 
      * @param id Die neue ID des Knotens.
      */
-    virtual void setID(boost::uint64_t id) {this->id = id;}
+    virtual void setID(const boost::uint64_t id) {this->id = id;}
     
     /**
      * @brief Setzt die ID des Knotens auf den entsprechenden Wert und
@@ -46,16 +46,15 @@ public:
      * in einer Kante.
      * 
      * @param id Die neue ID des Knotens.
-     * @todo: Testen!
      */
-    virtual void setAndConvertID(boost::uint64_t id)
+    virtual void setAndConvertID(const boost::uint64_t id)
     {
         boost::uint64_t mask = 0xFFFFFFFFFFFFFFllu;
         this->id = ((id & mask) << 8);
     }
     
     RoutingNode(int id) : id(id) {}
-    RoutingNode(int id, double lat, double lon) : GPSPosition(lat, lon), id(id) {}
+    RoutingNode(int id, gps_float lat, gps_float lon) : GPSPosition(lat, lon), id(id) {}
     RoutingNode() : id(0) {}
 };
 

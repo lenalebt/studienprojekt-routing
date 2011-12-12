@@ -28,6 +28,9 @@
 #define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 
+#define DOUBLE_EQUALITY_BARRIER 10e-8
+#define FLOAT_EQUALITY_BARRIER  10e-5
+
 /**
  * @file
  * @ingroup tests
@@ -79,6 +82,6 @@ namespace biker_tests
     bool check_equality(std::string message, S a, T b);
 }
 
-std::ostream& operator<<(std::ostream& os, QString qs);
+std::ostream& operator<<(std::ostream& os, const QString& qs);
 
 #endif //TESTS_HPP 

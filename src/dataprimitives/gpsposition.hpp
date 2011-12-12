@@ -6,6 +6,13 @@
 
 #define EARTH_RADIUS 6371000
 
+typedef double gps_float;
+
+namespace biker_tests
+{
+    int testGPSPosition();
+}
+
 /**
  * @brief GPSPosition speichert Längen- und Breitengrad und ist entsprechend eine Repräsentation eines
  * Punktes auf der Erdoberfläche.
@@ -27,42 +34,50 @@ public:
      * @brief Gibt den Längengrad des Punktes zurück, in Grad.
      * @return den Längengrad in Grad
      */
-    virtual double getLon() const;
+    virtual gps_float getLon() const;
     /**
      * @brief Gibt den Breitengrad des Punktes zurück, in Grad.
      * @return den Breitengrad in Grad
      */
-    virtual double getLat() const;
+    virtual gps_float getLat() const;
     /**
      * @brief Gibt den Längengrad des Punktes zurück, in Bogenmaß.
      * @return den Längengrad in Bogenmaß
      */
-    virtual double getRadLon() const;
+    virtual gps_float getRadLon() const;
     /**
      * @brief Gibt den Breitengrad des Punktes zurück, in Bogenmaß.
      * @return den Breitengrad in Bogenmaß
      */
-    virtual double getRadLat() const;
+    virtual gps_float getRadLat() const;
     /**
      * @brief Setzt den Längengrad des Punktes in Grad.
+     * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
+     *      umgewandelt, dass er in dem Intervall liegt.
      * @param lon Längengrad in Grad
      */
-    virtual void setLon(const double lon);
+    virtual void setLon(const gps_float lon);
     /**
      * @brief Setzt den Breitengrad des Punktes in Grad.
+     * @remarks Wenn der Winkel nicht in [-90°, 90°] liegt, wird er
+     *      einfach abgeschnitten.
      * @param lat Breitengrad in Grad
      */
-    virtual void setLat(const double lat);
+    virtual void setLat(const gps_float lat);
     /**
      * @brief Setzt den Längengrad des Punktes in Bogenmaß.
+     * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
+     *      umgewandelt, dass er in dem Intervall liegt.
      * @param lon Längengrad in Bogenmaß
      */
-    virtual void setRadLon(const double lon);
+    virtual void setRadLon(const gps_float lon);
     /**
      * @brief Setzt den Breitengrad des Punktes in Bogenmaß.
+     * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
+     *      einfach abgeschnitten.
      * @param lat Breitengrad in Bogenmaß
      */
-    virtual void setRadLat(const double lat);
+    virtual void setRadLat(const gps_float lat);
 
     //Die folgenden Funktionen dienen zur Berechnung von Zusammenhängen mehrerer Koordinaten (Entfernung, ...)
     /**
@@ -106,18 +121,20 @@ public:
      * @param lat der Breitengrad
      * @param lon der Längengrad
      */
-    GPSPosition(double lat, double lon) : lon(lon), lat(lat) {}
+    GPSPosition(gps_float lat, gps_float lon);
     virtual ~GPSPosition() {}
+    
+    friend int biker_tests::testGPSPosition();
 protected:
     /**
      * @brief Längengrad
      */
-    double lon;
+    gps_float lon;
     
     /**
      * @brief Breitengrad
      */
-    double lat;
+    gps_float lat;
 
 private:
     
@@ -153,10 +170,5 @@ private:
 
 bool operator==(const GPSPosition& p1, const GPSPosition& p2);
 bool operator!=(const GPSPosition& p1, const GPSPosition& p2);
-
-namespace biker_tests
-{
-    int testGPSPosition();
-}
 
 #endif // GPSPOSITION_HPP

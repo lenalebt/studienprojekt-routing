@@ -3,43 +3,64 @@
  */
 
 #include "gpsposition.hpp"
+#include <cmath>
 
-double GPSPosition::getLon() const
+gps_float GPSPosition::getLon() const
 {
     return this->lon;
 }
-double GPSPosition::getLat() const
+gps_float GPSPosition::getLat() const
 {
     return this->lat;
 }
 
-void GPSPosition::setLon(const double lon)
+void GPSPosition::setLon(const gps_float lon)
 {
     this->lon = lon;
+    
+    while (this->lon >= 360.0)
+        this->lon -= 360.0;
+    while (this->lon < -360.0)
+        this->lon += 360.0;
+    if (this->lon >= 180.0)
+        this->lon -= 360.0;
+    if (this->lon < -180.0)
+        this->lon += 360.0;
 }
 
-void GPSPosition::setLat(const double lat)
+void GPSPosition::setLat(const gps_float lat)
 {
-    this->lat = lat;
+    if (lat > 90.0)
+        this->lat = 90.0;
+    else if (lat < -90.0)
+        this->lat = -90.0;
+    else
+        this->lat = lat;
 }
 
-double GPSPosition::getRadLon() const
+gps_float GPSPosition::getRadLon() const
 {
-    return deg2rad<double>(this->lon);
+    return deg2rad<gps_float>(this->lon);
 }
-double GPSPosition::getRadLat() const
+gps_float GPSPosition::getRadLat() const
 {
-    return deg2rad<double>(this->lat);
-}
-
-void GPSPosition::setRadLon(const double lon)
-{
-    this->lon = rad2deg<double>(lon);
+    return deg2rad<gps_float>(this->lat);
 }
 
-void GPSPosition::setRadLat(const double lat)
+void GPSPosition::setRadLon(const gps_float lon)
 {
-    this->lat = rad2deg<double>(lat);
+    this->lon = rad2deg<gps_float>(lon);
+    
+    while (this->lon >= 360.0)
+        this->lon -= 360.0;
+}
+
+void GPSPosition::setRadLat(const gps_float lat)
+{
+    this->lat = rad2deg<gps_float>(lat);
+    
+    while (this->lat >= 360.0)
+        this->lat -= 360.0;
 }
 
 double GPSPosition::calcCourseAngle(const GPSPosition& p2) const
@@ -116,14 +137,17 @@ GPSPosition GPSPosition::calcPositionInDistance(const double courseAngle, const 
     return target;
 }
 
+GPSPosition::GPSPosition(gps_float lat, gps_float lon)
+{
+    this->setLat(lat);
+    this->setLon(lon);
+}
+
 namespace biker_tests
 {
-    /**
-     * @todo Der Test ist noch unfertig.
-     */
     int testGPSPosition()
     {
-        GPSPosition pos(0.0, 0.0);
+        GPSPosition pos;
         CHECK(!pos.isInitialized());
         
         pos.setLat(1.0);
@@ -133,6 +157,41 @@ namespace biker_tests
         
         pos.setLon(3.0);
         CHECK_EQ(pos.getLon(), 3.0);
+        
+        pos.setLon(181.0);
+        CHECK_EQ(pos.getLon(), -179.0);
+        
+        pos.setLat(91.0);
+        CHECK_EQ(pos.getLat(), 90.0);
+        
+        pos.setLat(-91.0);
+        CHECK_EQ(pos.getLat(), -90.0);
+        
+        pos.setLat(1.0);
+        CHECK_EQ(pos.getRadLat(), 0.017453292519943);
+        
+        pos.setLat(-1.0);
+        CHECK_EQ(pos.getRadLat(), -0.017453292519943);
+        
+        pos.setLon(1.0+360.0);
+        CHECK_EQ(pos.getRadLon(), 0.017453292519943);
+        
+        pos = GPSPosition(251.0, 251.0);
+        CHECK_EQ(pos.getLat(), 90.0);
+        CHECK_EQ(pos.getLon(), -109.0);
+        
+        
+        pos = GPSPosition(51.0, 7.0);
+        CHECK_EQ(pos.getLat(), 51.0);
+        CHECK_EQ(pos.getLon(), 7.0);
+        
+        GPSPosition pos2 = pos.calcPositionInDistance(0.0, 5000.0);
+        CHECK_EQ(pos2.getLat(), 51.04496608030);
+        CHECK_EQ(pos2.getLon(), 7.0);
+        
+        CHECK_EQ(pos.calcXi(pos2), 0.000784806152905);
+        
+        CHECK_EQ_TYPE(pos.calcCourseAngle(pos2), 0.000459404801803, float);
         
         return EXIT_SUCCESS;
     }

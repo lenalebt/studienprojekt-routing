@@ -2,7 +2,8 @@
 #define GPSROUTE_HPP
 
 #include "gpsposition.hpp"
-#include <QList>
+#include <QVector>
+#include "tests.hpp"
 
 /**
  * @brief Diese Klasse stellt eine Route im Speicher dar.
@@ -92,5 +93,10 @@ public:
 private:
     
 };
+
+namespace biker_tests
+{
+    int testGPSRoute();
+}
 
 #endif // GPSROUTE_HPP

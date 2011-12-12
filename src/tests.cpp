@@ -3,8 +3,14 @@
 #include "routingnode.hpp"
 #include "routingedge.hpp"
 #include "osmrelation.hpp"
+#include "osmnode.hpp"
+#include "osmway.hpp"
+#include "osmproperty.hpp"
+#include "osmedge.hpp"
 #include "gpsposition.hpp"
+#include "gpsroute.hpp"
 #include "spatialitedatabase.hpp"
+#include "osmparser.hpp"
 #include <QString>
 
 //für EXIT_SUCCESS und EXIT_FAILURE
@@ -45,8 +51,8 @@ namespace biker_tests
         else
         {
             std::cout << "failed!" << std::endl;
-            std::cout << "\tValue A: " << a << std::endl;
-            std::cout << "\tValue B: " << b << std::endl;
+            std::cout << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
+            std::cout << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
             return false;
         }
     }
@@ -63,6 +69,47 @@ namespace biker_tests
     {
         return check_equality<std::string, std::string>(message, a.toStdString(), b);
     }
+    template<> bool check_equality(std::string message, double a, double b)
+    {
+        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        if (fabs(a - b) < DOUBLE_EQUALITY_BARRIER)
+        {
+            std::cout << "passed!" << std::endl;
+            return true;
+        }
+        else
+        {
+            std::cout << "failed!" << std::endl;
+            std::cout << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
+            std::cout << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
+            return false;
+        }
+    }
+    template<> bool check_equality(std::string message, float a, float b)
+    {
+        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        if (fabs(a - b) < FLOAT_EQUALITY_BARRIER)
+        {
+            std::cout << "passed!" << std::endl;
+            return true;
+        }
+        else
+        {
+            std::cout << "failed!" << std::endl;
+            std::cout << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
+            std::cout << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
+            return false;
+        }
+    }
+    template<> bool check_equality(std::string message, float a, double b)
+    {
+        return check_equality<float, float>(message, a, b);
+    }
+    template<> bool check_equality(std::string message, double a, float b)
+    {
+        return check_equality<double, double>(message, a, b);
+    }
+    
     
     /* Diese Template-Ausprägungen müssen gemacht werden, wenn man einen neuen Typ
      * braucht, für den man Tests machen möchte. Der Typ muss einen operator<<
@@ -85,8 +132,7 @@ namespace biker_tests
     template bool check_equality(std::string message, boost::uint64_t a, boost::uint32_t b);
     template bool check_equality(std::string message, boost::uint32_t a, boost::uint64_t b);
     template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
-    template bool check_equality(std::string message, double a,          double b);
-    template bool check_equality(std::string message, float a,           float b);
+    template bool check_equality(std::string message, OSMProperty a,     OSMProperty b);
     
     std::string uint64_t2string(boost::uint64_t integer)
     {
@@ -107,19 +153,34 @@ namespace biker_tests
         cout << "requested test: " << testName << endl;
         
         if (testName == "routingedge")
-            return testRoutingEdge();
+            return biker_tests::testRoutingEdge();
         else if (testName == "uint64_t2string")
-            return test_uint64_t2string();
+            return biker_tests::test_uint64_t2string();
         else if (testName == "routingnode")
-            return testRoutingNode();
+            return biker_tests::testRoutingNode();
         else if (testName == "basename")
-            return testBasename();
+            return biker_tests::testBasename();
         else if (testName == "spatialitedatabaseconnection")
-            return testSpatialiteDatabaseConnection();
+            return biker_tests::testSpatialiteDatabaseConnection();
         else if (testName == "gpsposition")
-            return testGPSPosition();
+            return biker_tests::testGPSPosition();
+        else if (testName == "osmnode")
+            return biker_tests::testOSMNode();
+        else if (testName == "osmway")
+            return biker_tests::testOSMWay();
+        else if (testName == "osmedge")
+            return biker_tests::testOSMEdge();
+        else if (testName == "osmproperty")
+            return biker_tests::testOSMProperty();
+        else if (testName == "osmrelation")
+            return biker_tests::testOSMRelation();
+        else if (testName == "osmparser")
+            return biker_tests::testOSMParser();
+        else if (testName == "gpsroute")
+            return biker_tests::testGPSRoute();
         
         //Anpassen, falls Fehler auftraten!
+        std::cout << "error: did not find test \"" << testName << "\"." << std::endl;
         return EXIT_FAILURE;
     }
     
@@ -148,7 +209,7 @@ namespace biker_tests
     }
 }
 
-std::ostream& operator<<(std::ostream& os, QString qs)
+std::ostream& operator<<(std::ostream& os, const QString& qs)
 {
     return (os << qs.toStdString());
 }
