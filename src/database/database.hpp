@@ -108,7 +108,7 @@ public:
      * @return Die Kante, die herausgesucht werden sollte. Wenn die Kante nicht gefunden werden konnte
      *      enthält der shared_ptr einen Nullzeiger.
      */
-    virtual boost::shared_ptr<RoutingEdge> getEdgesByEdgeID(boost::uint64_t edgeID)=0;
+    virtual boost::shared_ptr<RoutingEdge> getEdgeByEdgeID(boost::uint64_t edgeID)=0;
     
     /**
      * @brief Speichert die übergebene Kante in der Datenbank.

@@ -29,7 +29,7 @@ public:
     /** @todo implementieren */
     QVector<boost::shared_ptr<RoutingEdge> > getEdgesByEndNodeID(boost::uint64_t endNodeID);
     /** @todo implementieren */
-    boost::shared_ptr<RoutingEdge> getEdgesByEdgeID(boost::uint64_t edgeID);
+    boost::shared_ptr<RoutingEdge> getEdgeByEdgeID(boost::uint64_t edgeID);
     bool saveEdge(const RoutingEdge& edge);
     /** @todo Speichern von Straßen implementieren */
     bool saveEdge(const RoutingEdge& edge, QString name);
