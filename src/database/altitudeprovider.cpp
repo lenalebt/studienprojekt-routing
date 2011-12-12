@@ -2,6 +2,7 @@
 #include "tests.hpp"
 
 #include <QtGlobal>
+#include <QMutexLocker>
 
 double SRTMProvider::getAltitude(const GPSPosition& pos)
 {
@@ -30,12 +31,17 @@ void SRTMProvider::createFileList()
     QString url = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/";
     
     foreach (QString continent, continents) { // für jeden Kontinent, die vorhandenen Ziparchive in die Liste eintragen
-        std::cout << "Downloading data from" << url+continent+"/";
+        std::cout << "Downloading data from " << url+continent+"/" << std::endl;
 
         QString urlTemp = QString(url+continent+"/").toAscii().constData(); // Kontinent zur url hinzufügen
         QUrl srtmUrl(urlTemp); 				 // urlTemp zu QUrl casten, für spätere Verwendung.
         QString replyString; 							// Hierein wird später die NetworkReply aus downloadUrl gespeichert.
+        
+        
+        
         QNetworkReply::NetworkError error = downloadUrl(srtmUrl, replyString);
+
+
 
         if(error == QNetworkReply::NoError) 		 // Bearbeiten der Liste, falls Herunterladen erfolgreich.
         {
@@ -74,9 +80,9 @@ void SRTMProvider::createFileList()
         ////exit(1); //ERROR: SRTM-Filecount was wrong. Should not matter to comment this out.
     //}
     
-    QFile file("srtmfilelist"); // TODO cachedir+"filelist" wobei cachedir den Pfad enthalten soll
+    QFile file(_cachedir + "srtmfilelist");
     if (!file.open(QIODevice::WriteOnly)) { 
-        std::cerr << "Could not open file" << "filelist"; // TODO cachedir+"filelist" wobei cachedir den Pfad enthalten soll
+        std::cerr << "Could not open file " << _cachedir << "filelist" << std::endl;
         //Not a fatal error. We just can't cache the list.
         return;
     }
@@ -97,9 +103,16 @@ QNetworkReply::NetworkError SRTMProvider::downloadUrl(const QUrl &url, QString &
     QNetworkRequest request(url);
     QNetworkReply *reply = manager.get(request);
 
-    QEventLoop loop;
-    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-    loop.exec();
+
+    //QEventLoop loop;
+    //QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    //loop.exec();
+
+    while (reply->isRunning())
+    {
+		//TODO: SLEEP
+		
+	}
 
     if (reply->error() != QNetworkReply::NoError)
     {
@@ -110,7 +123,36 @@ QNetworkReply::NetworkError SRTMProvider::downloadUrl(const QUrl &url, QString &
     return QNetworkReply::NoError;
 }
 
-/*SRTMProvider::~SRTMProvider()
+SRTMProvider::~SRTMProvider()
 {
-    
-}*/
+	//setzt das isRuning-lag auf false:
+	//isRunning = false;
+	QMutexLocker locker(&mutex);
+    //TODO: Thread herunterfahren, also ihn beenden, und das "sauber"....
+    std::cerr << "TODO: Thread herunterahren!" << std::endl;
+    wait(10000);
+}
+
+
+void SRTMProvider::run()
+{
+	QMutexLocker locker(&mutex);
+	createFileList();
+	
+	//while (isRunning)
+	//{
+	//    mutex.lock();
+	//		//Tu was
+	//	  mutex.unlock();
+	//}
+}
+
+namespace biker_tests
+{
+	int testSRTMProvider()
+	{
+		SRTMProvider s;
+		
+		return EXIT_SUCCESS;
+	}
+}

@@ -14,6 +14,8 @@
 #include <boost/cstdint.hpp>
 #include <QEventLoop>
 #include <QRegExp>
+#include <QThread>
+#include <QMutex>
 
 
 /**
@@ -138,7 +140,7 @@ public:
  * @copyright GNU GPL v3
  * @todo Doxygen-Kommentare und Implementierung
  */
-class SRTMProvider : public AltitudeProvider
+class SRTMProvider : public AltitudeProvider, public QThread
 {
 private:
     void createFileList();
@@ -146,6 +148,9 @@ private:
     QMap<int, QString> fileList;
     QCache<int, SRTMTile> tileCache;
     int latLonToIndex(int lat, int lon) { return lat * 1000 + lon; }
+    QString _cachedir;
+    
+    QMutex mutex;
 public:
     /**
      * @brief Gibt einen Höhenwert für einen Punkt auf der Erdoberfläche zurück.
@@ -176,7 +181,23 @@ public:
      */
     QNetworkReply::NetworkError downloadUrl(const QUrl &url, QString &data);
     
-    //~SRTMProvider();
+    SRTMProvider() : _cachedir("~/.biker/srtm/")
+    {
+		start();
+	}
+    SRTMProvider(QString cachedir) : _cachedir(cachedir)
+    {
+		start();
+	}
+    
+    void run();
+    
+    ~SRTMProvider();
 };
+
+namespace biker_tests
+{
+	int testSRTMProvider();
+}
 
 #endif //ALTITUDEPROVIDER_HPP

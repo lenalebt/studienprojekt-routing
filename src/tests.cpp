@@ -11,6 +11,7 @@
 #include "gpsroute.hpp"
 #include "spatialitedatabase.hpp"
 #include "osmparser.hpp"
+#include "altitudeprovider.hpp"
 #include <QString>
 
 //für EXIT_SUCCESS und EXIT_FAILURE
@@ -180,6 +181,8 @@ namespace biker_tests
             return biker_tests::testOSMParser();
         else if (testName == "gpsroute")
             return biker_tests::testGPSRoute();
+        else if (testName == "srtmprovider")
+            return biker_tests::testSRTMProvider();
         
         //Anpassen, falls Fehler auftraten!
         std::cout << "error: did not find test \"" << testName << "\"." << std::endl;

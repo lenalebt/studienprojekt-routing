@@ -245,6 +245,7 @@ ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
 ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
+ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 
 
