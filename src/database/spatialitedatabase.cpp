@@ -652,16 +652,34 @@ namespace biker_tests
         }
         CHECK(successInsertManyNodes);
         CHECK(connection.endTransaction());
+        CHECK(!connection.saveNode(node));
         
         boost::shared_ptr<RoutingEdge> dbEdge(connection.getEdgeByEdgeID(46));
         CHECK_EQ(edge, *dbEdge);
         
         QVector<boost::shared_ptr<RoutingEdge> > edgeList;
         edgeList = connection.getEdgesByStartNodeID(26);
-        CHECK_EQ(edge, *edgeList[0])
+        CHECK_EQ(edge, *edgeList[0]);
+        edgeList = connection.getEdgesByStartNodeID(26);
+        CHECK_EQ(edge, *edgeList[0]);
         
         edgeList = connection.getEdgesByEndNodeID(25);
-        CHECK_EQ(edge, *edgeList[0])
+        CHECK_EQ(edge, *edgeList[0]);
+        edgeList = connection.getEdgesByEndNodeID(25);
+        CHECK_EQ(edge, *edgeList[0]);
+        
+        
+        std::cout << "Inserting 10000 Edges within one transaction..." << std::endl;
+        bool successInsertManyEdges = true;
+        CHECK(connection.beginTransaction());
+        for (int i=0; i<10000; i++)
+        {
+            edge = RoutingEdge(i + 100, i+99, i+101);
+            successInsertManyEdges = successInsertManyEdges && connection.saveEdge(edge);
+        }
+        CHECK(successInsertManyEdges);
+        CHECK(connection.endTransaction());
+        CHECK(!connection.saveEdge(edge));
         
         return EXIT_SUCCESS;
     }
