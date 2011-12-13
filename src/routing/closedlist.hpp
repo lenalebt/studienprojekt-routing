@@ -101,4 +101,9 @@ public:
     HashClosedList() : _overlappingNode(0) {}
 };
 
+namespace biker_tests
+{
+    int testHashClosedList();
+}
+
 #endif //CLOSEDLIST_HPP 

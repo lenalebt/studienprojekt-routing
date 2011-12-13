@@ -79,4 +79,10 @@ boost::uint64_t HashClosedList::getOverlappingNode() const
     return _overlappingNode;
 }
 
-
+namespace biker_tests
+{
+    int testHashClosedList()
+    {
+        return EXIT_FAILURE;
+    }
+}

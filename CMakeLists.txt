@@ -246,6 +246,9 @@ ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
+ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
+ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
+ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 
 
 #Zum Erstellen von automatischen Installationspaketen
@@ -324,3 +327,4 @@ TARGET_LINK_LIBRARIES(biker
 INSTALL (TARGETS biker
     DESTINATION bin
     )
+

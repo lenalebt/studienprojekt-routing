@@ -5,6 +5,7 @@
 #include <boost/cstdint.hpp>
 #include <QVector>
 #include <QHash>
+#include "tests.hpp"
 
 /**
  * @brief Dies ist ein Interface für einen Heap.
@@ -182,4 +183,8 @@ public:
     }
 };
 
+namespace biker_tests
+{
+    int testBinaryHeap();
+}
 #endif //HEAP_HPP

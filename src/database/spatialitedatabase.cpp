@@ -481,8 +481,7 @@ SpatialiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
                         sqlite3_column_int64(_getEdgeStatementID, 3)
                         );
         //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
-        boost::shared_ptr<RoutingEdge> ptr(newEdge);
-        edge.swap(ptr);
+        edge.reset(newEdge);
     }
 	
     if (rc != SQLITE_DONE)
@@ -674,7 +673,7 @@ namespace biker_tests
         CHECK(connection.beginTransaction());
         for (int i=0; i<10000; i++)
         {
-            edge = RoutingEdge(i + 100, i+99, i+101);
+            edge = RoutingEdge(i + 100, i+99, i+100);
             successInsertManyEdges = successInsertManyEdges && connection.saveEdge(edge);
         }
         CHECK(successInsertManyEdges);
