@@ -6,6 +6,7 @@
 #include <QReadWriteLock>
 #include <QReadLocker>
 #include <QWriteLocker>
+#include "tests.hpp"
 
 /**
  * @brief Gibt an, welcher Thread einen Aufruf gestartet hat.
@@ -60,6 +61,7 @@ public:
     /**
      * @brief Gibt zurück, wie viele Knoten in der Liste der endgültig betrachteten Knoten vorhanden sind
      * @return wie viele Knoten in der Liste der endgültig betrachteten Knoten vorhanden sind
+     * @param thread Gibt an, welcher Thread versucht einen Knoten in der ClosedList abzulegen.
      */
 	virtual int size(RoutingThread thread) const=0;
     
@@ -67,7 +69,6 @@ public:
      * @brief Gibt zurück, welcher Knoten der ist, der zu einer Überlappung der Suchräume des
      *      Graphenalgorithmus führte.
      * @return 0, wenn keine Überlappung gefunden wurde. Die ID des überlappenden Knotens, sonst.
-     * @param thread Gibt an, um welchen Thread es sich handelt.
      */
     virtual boost::uint64_t getOverlappingNode() const=0;
 };
