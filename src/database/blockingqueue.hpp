@@ -117,8 +117,12 @@ public:
     void destroyQueue();
 };
 
+
 namespace biker_tests
 {
+    /**
+     * @todo Implementieren
+     */
     int testBlockingQueue();
 }
 

@@ -96,6 +96,9 @@ private:
 
 namespace biker_tests
 {
+    /**
+     * @todo Implementieren!
+     */
     int testGPSRoute();
 }
 

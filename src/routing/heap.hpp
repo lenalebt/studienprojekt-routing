@@ -26,6 +26,7 @@
  * @author Lena Brueder
  * @date 2011-11-08
  * @copyright GNU GPL v3
+ * @todo Evtl. besser statt operator< einen less-Funktor verwenden?
  */
 template<typename T>
 class Heap
@@ -185,6 +186,9 @@ public:
 
 namespace biker_tests
 {
+    /**
+     * @todo Implementieren
+     */
     int testBinaryHeap();
 }
 #endif //HEAP_HPP

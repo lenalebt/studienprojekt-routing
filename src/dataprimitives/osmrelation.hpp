@@ -120,11 +120,11 @@ public:
     void setUTurn(unsigned int noUTurn) {this->thisRestriction.noUTurn = noUTurn;}
 };
 
-/**
- * @todo: Implementieren, dieser Test ist noch leer.
- */
 namespace biker_tests
 {
+    /**
+     * @todo Implementieren, dieser Test ist noch leer.
+     */
     int testOSMRelation();
 } 
 
