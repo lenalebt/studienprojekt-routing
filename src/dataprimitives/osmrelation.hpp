@@ -5,8 +5,6 @@
 
 /**
  * @brief Eine OSMRelation stellt eine Relation im OSM-Datenmodell im Speicher dar.
- *
- *
  * @ingroup dataprimitives
  * @todo die Routen-Relationen sind noch nicht implementiert
  * @remarks Bei der Implementierung darauf achten, dass, wo möglich, explizit festgelegt wird
@@ -25,10 +23,10 @@ private:
     boost::uint64_t toId;
     // eine Art Zusammenfassung von Boolischen Variablen
     struct restriction{
-        unsigned int noLeft:   1;
-        unsigned int noRight:   1;
-        unsigned int noStraight:   1;
-        unsigned int noUTurn:   1;
+        bool  noLeft:   1;
+        bool  noRight:   1;
+        bool  noStraight:   1;
+        bool  noUTurn:   1;
     }thisRestriction;
 public:
     /* @brief erstellt eine Relation mit IDs und restriction
@@ -40,7 +38,7 @@ public:
      * @param noStraight die Variable die anzeigt, ob man gerade aus weiter fahren darf (noStraight = 0) oder nicht (noStraight = 1)
      * @param noUTurn die Variable die anzeigt, ob man umkehren darf (noUTurn = 0) oder nicht (noUTurn = 1)
      */
-    OSMRelation( boost::uint64_t viaId,  boost::uint64_t fromId,  boost::uint64_t toId, unsigned int noLeft, unsigned int noStraight, unsigned int noRight, unsigned int noUTurn):
+    OSMRelation( boost::uint64_t viaId,  boost::uint64_t fromId,  boost::uint64_t toId, bool  noLeft, bool  noStraight, bool  noRight, bool  noUTurn):
     viaId(viaId), fromId(fromId), toId(toId) {
         this->thisRestriction.noLeft = noLeft;
         this->thisRestriction.noRight = noRight;
@@ -82,49 +80,49 @@ public:
      * @brief Gibt die restriction.noLeft der Relation zurück.
      * @return Die restriction.noLeft der Relation.
      */
-    unsigned int getLeft() const {return thisRestriction.noLeft ;}
+    bool  getLeft() const {return thisRestriction.noLeft ;}
     /**
      * @brief Setzt die restriction.noLeft der Relation.
      * @param noLeft der neue Wert der restriction.noLeft der Relation.
      */
-    void setLeft(unsigned int noLeft) {this->thisRestriction.noLeft = noLeft;}
+    void setLeft(bool  noLeft) {this->thisRestriction.noLeft = noLeft;}
     /**
      * @brief Gibt die restriction.noRight der Relation zurück.
      * @return Die restriction.noRight der Relation.
      */
-    unsigned int getRight() const {return thisRestriction.noRight ;}
+    bool  getRight() const {return thisRestriction.noRight ;}
     /**
      * @brief Setzt die restriction.noRight der Relation.
      * @param noRight der neue Wert der restriction.noRight der Relation.
      */
-    void setRight(unsigned int noRight) {this->thisRestriction.noRight = noRight;}
+    void setRight(bool  noRight) {this->thisRestriction.noRight = noRight;}
     /**
      * @brief Gibt die restriction.noStraight der Relation zurück.
      * @return Die restriction.noStraight der Relation.
      */
-    unsigned int getStraight() const {return thisRestriction.noStraight ;}
+    bool  getStraight() const {return thisRestriction.noStraight ;}
     /**
      * @brief Setzt die restriction.noStraight der Relation.
      * @param noStraight der neue Wert der restriction.noStraight der Relation.
      */
-    void setStraight(unsigned int noStraight) {this->thisRestriction.noStraight = noStraight;}
+    void setStraight(bool  noStraight) {this->thisRestriction.noStraight = noStraight;}
     /**
      * @brief Gibt die restriction.noUTurn der Relation zurück.
      * @return Die restriction.noUTurn der Relation.
      */
-    unsigned int getUTurn() const {return thisRestriction.noUTurn ;}
+    bool  getUTurn() const {return thisRestriction.noUTurn ;}
     /**
      * @brief Setzt die restriction.noStraight der Relation.
      * @param noUTurn der neue Wert der restriction.noUTurn der Relation.
      */
-    void setUTurn(unsigned int noUTurn) {this->thisRestriction.noUTurn = noUTurn;}
+    void setUTurn(bool  noUTurn) {this->thisRestriction.noUTurn = noUTurn;}
 };
 
+/**
+ * @todo: Implementieren, dieser Test ist noch leer.
+ */
 namespace biker_tests
 {
-    /**
-     * @todo Implementieren, dieser Test ist noch leer.
-     */
     int testOSMRelation();
 } 
 
