@@ -12,6 +12,11 @@ double SRTMProvider::getAltitude(const GPSPosition& pos)
 double SRTMProvider::getAltitude(double lat, double lon)
 {
     /*TODO:
+     * fileListe vorhanden?
+     *      falls nein, laden!
+     * Koordinate in fileList?
+     *      falls nein, Koordinate gibt es nicht!
+     * sonst:
     - Zip-Datei für die Koordinate schon vorhanden?
     - Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind.
     - Zip-Datei öffnen und Inhalt im Speicher ablegen.
@@ -35,15 +40,11 @@ void SRTMProvider::createFileList()
 
         QString urlTemp = QString(url+continent+"/").toAscii().constData(); // Kontinent zur url hinzufügen
         QUrl srtmUrl(urlTemp); 				 // urlTemp zu QUrl casten, für spätere Verwendung.
-        QString replyString; 							// Hierein wird später die NetworkReply aus downloadUrl gespeichert.
+        QString replyString; 					// Hierein wird später die NetworkReply aus downloadUrl gespeichert.
         
-        
-        
-        QNetworkReply::NetworkError error = downloadUrl(srtmUrl, replyString);
+        downloadUrl(srtmUrl, replyString);
 
-
-
-        if(error == QNetworkReply::NoError) 		 // Bearbeiten der Liste, falls Herunterladen erfolgreich.
+        if(!replyString.isEmpty()) 		 // Bearbeiten der Liste, falls Herunterladen erfolgreich.
         {
             // Download nach Listenelementen durchsuchen und diese in fileList eintragen.
             
@@ -82,7 +83,7 @@ void SRTMProvider::createFileList()
     
     QFile file(_cachedir + "srtmfilelist");
     if (!file.open(QIODevice::WriteOnly)) { 
-        std::cerr << "Could not open file " << _cachedir << "filelist" << std::endl;
+        std::cerr << "Could not open file " << _cachedir << "srtmfilelist" << std::endl;
         //Not a fatal error. We just can't cache the list.
         return;
     }
@@ -91,17 +92,38 @@ void SRTMProvider::createFileList()
     file.close();
     
 }
-/*
- * Aus Forum: http://stackoverflow.com/questions/2572985/how-can-i-use-qt-to-get-html-code-of-the-redirected-page
- * Stand: 30.11.2011 15:44h
- * User: Claire Huang
- * Wurde angepasst.
-*/
-QNetworkReply::NetworkError SRTMProvider::downloadUrl(const QUrl &url, QString &data)
+
+void SRTMProvider::downloadUrl(const QUrl &url, QString &data)
 {
+    //Instanz von FileDownloader erstellen
+    FileDownloader loader; // oder nur FileDownloader loader?
+    //ihr wollt "simulieren":
+    //return loader.downloadURL(url);
+    extern QByteArray downloadURL(QUrl &url); // Warum will er nicht loader.download...usw.?!?
+    QFuture<QByteArray> future = QtConcurrent::run(ownloadURL, url);
+    // future.waitForFinished(); // result() müsste auch blocken
+    data = QString(future.result());
+    return;
+}
+
+SRTMProvider::~SRTMProvider()
+{
+	
+}
+
+
+void FileDownloader::run()
+{
+    //Wird aufgerufen, wenn start() gestartet wird
+}
+
+QByteArray FileDownloader::downloadURL(QUrl url)
+{
+    //hier der Kram aus der alten downloadurl-funktion
     QNetworkAccessManager manager;
     QNetworkRequest request(url);
     QNetworkReply *reply = manager.get(request);
+    QByteArray data;
 
 
     //QEventLoop loop;
@@ -110,41 +132,12 @@ QNetworkReply::NetworkError SRTMProvider::downloadUrl(const QUrl &url, QString &
 
     while (reply->isRunning())
     {
-		//TODO: SLEEP
+		wait(5);
 		
 	}
-
-    if (reply->error() != QNetworkReply::NoError)
-    {
-        return reply->error();
-    }
-    data = QString(reply->readAll());
-    delete reply;
-    return QNetworkReply::NoError;
-}
-
-SRTMProvider::~SRTMProvider()
-{
-	//setzt das isRuning-lag auf false:
-	//isRunning = false;
-	QMutexLocker locker(&mutex);
-    //TODO: Thread herunterfahren, also ihn beenden, und das "sauber"....
-    std::cerr << "TODO: Thread herunterahren!" << std::endl;
-    wait(10000);
-}
-
-
-void SRTMProvider::run()
-{
-	QMutexLocker locker(&mutex);
-	createFileList();
-	
-	//while (isRunning)
-	//{
-	//    mutex.lock();
-	//		//Tu was
-	//	  mutex.unlock();
-	//}
+    
+    data = reply->readAll();
+    return data;
 }
 
 namespace biker_tests

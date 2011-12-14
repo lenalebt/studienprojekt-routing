@@ -15,7 +15,8 @@
 #include <QEventLoop>
 #include <QRegExp>
 #include <QThread>
-#include <QMutex>
+#include <QFuture>
+#include <QtConcurrentRun>
 
 
 /**
@@ -58,6 +59,16 @@ public:
     virtual double getAltitude(const GPSPosition& pos)=0;
     
     virtual ~AltitudeProvider() {}
+};
+
+class FileDownloader : public QThread
+{
+private:
+    
+public:
+    void run();
+    QByteArray downloadURL(QUrl url);
+    //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error);
 };
 
 
@@ -140,7 +151,7 @@ public:
  * @copyright GNU GPL v3
  * @todo Doxygen-Kommentare und Implementierung
  */
-class SRTMProvider : public AltitudeProvider, public QThread
+class SRTMProvider : public AltitudeProvider
 {
 private:
     void createFileList();
@@ -179,18 +190,12 @@ public:
      * @param data QString in den der Inhalt der der NetworkReply gespeichert weden soll
      * @return enum QNetworkReply::NetworkError (Ist NoError wenn kein Fehler aufgetreten ist.)
      */
-    QNetworkReply::NetworkError downloadUrl(const QUrl &url, QString &data);
+    void downloadUrl(const QUrl &url, QString &data);
     
-    SRTMProvider() : _cachedir("~/.biker/srtm/")
-    {
-		start();
-	}
-    SRTMProvider(QString cachedir) : _cachedir(cachedir)
-    {
-		start();
-	}
+    SRTMProvider() : _cachedir("~/.biker/srtm/") {}
     
-    void run();
+    SRTMProvider(QString cachedir) : _cachedir(cachedir) {}
+    
     
     ~SRTMProvider();
 };
