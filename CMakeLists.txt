@@ -85,6 +85,7 @@ SET(
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
+    src/database/temporarydatabase.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp
@@ -118,6 +119,7 @@ SET(
     src/database/database.hpp
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
+    src/database/temporarydatabase.hpp
     
     #src/database/parser
     src/database/parser/osmparser.hpp
@@ -246,6 +248,7 @@ ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
+ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
 ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
 ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
