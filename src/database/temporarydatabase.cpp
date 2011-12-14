@@ -15,6 +15,12 @@ void TemporaryOSMDatabaseConnection::close()
     _dbOpen = false;
 }
 
+
+/**
+ * @todo Anpassen an die temporäre DB, ist noch fast 1:1 kopiert aus
+ *      SpatialiteDatabaseConnection. Besonders: Erweiterungen (Spatialite)
+ *      nötig? Wahrscheinlich nicht.
+ */
 void TemporaryOSMDatabaseConnection::open(QString dbConnectionString)
 {
     int rc; //return-Wert speichern
@@ -85,6 +91,15 @@ void TemporaryOSMDatabaseConnection::open(QString dbConnectionString)
         _dbOpen = true;
 }
 
+bool TemporaryOSMDatabaseConnection::isDBOpen()
+{
+    return _dbOpen;
+}
+
+/**
+ * @todo Anpassen an die temporäre DB, ist noch fast 1:1 kopiert aus
+ * SpatialiteDatabaseConnection
+ */
 bool TemporaryOSMDatabaseConnection::createTables()
 {
 	bool retVal = true;
@@ -128,8 +143,24 @@ bool TemporaryOSMDatabaseConnection::execCreateTableStatement(std::string paramC
 
 namespace biker_tests
 {
+    /**
+     * @todo Test erweitern
+     */
     int testTemporaryOSMDatabaseConnection()
     {
-        return EXIT_FAILURE;
+        TemporaryOSMDatabaseConnection connection;
+        std::cout << "Opening \"testosm.db\"..." << std::endl;
+        connection.open("testosm.db");
+        CHECK(connection.isDBOpen());
+        
+        std::cout << "Closing database..." << std::endl;
+        connection.close();
+        CHECK(!connection.isDBOpen());
+        
+        std::cout << "Reopening \"test.db\"..." << std::endl;
+        connection.open("testosm.db");
+        CHECK(connection.isDBOpen());
+        
+        return EXIT_SUCCESS;
     }
 }
