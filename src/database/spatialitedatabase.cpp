@@ -16,6 +16,22 @@ SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     
 }
 
+SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
+{
+	if(_saveNodeStatement != NULL)
+		sqlite3_finalize(_saveNodeStatement);
+    if(_getNodeStatement != NULL)
+		sqlite3_finalize(_getNodeStatement);
+    if(_saveEdgeStatement != NULL)
+		sqlite3_finalize(_saveEdgeStatement);
+    if(_getEdgeStatementID != NULL)
+		sqlite3_finalize(_getEdgeStatementID);
+    if(_getEdgeStatementStartNode != NULL)
+		sqlite3_finalize(_getEdgeStatementStartNode);
+    if(_getEdgeStatementEndNode != NULL)
+		sqlite3_finalize(_getEdgeStatementEndNode);
+}
+
 void SpatialiteDatabaseConnection::close()
 {
     sqlite3_close(_db);
@@ -547,12 +563,6 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString nam
 QString SpatialiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
 {
     return "";
-}
-
-SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
-{
-	if(_saveNodeStatement != NULL)
-		sqlite3_finalize(_saveNodeStatement);
 }
 
 bool SpatialiteDatabaseConnection::beginTransaction()
