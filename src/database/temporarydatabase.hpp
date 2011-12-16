@@ -51,6 +51,9 @@ private:
     sqlite3_stmt* _saveOSMEdgePropertyStatement;
     sqlite3_stmt* _getOSMEdgePropertyStatement;
     
+    sqlite3_stmt* _saveOSMRelationStatement;
+    sqlite3_stmt* _getOSMRelationStatement;
+    
     /**
      * @brief Erstellt die Tabellen in der Datenbank
      * @return Ob die Tabellen erstellt werden konnten
@@ -80,8 +83,20 @@ private:
     boost::uint64_t getLastInsertRowID();
 public:
     TemporaryOSMDatabaseConnection();
+    /**
+     * @brief Schließt eine geöffnete DB.
+     */
     void close();
+    
+    /**
+     * @brief Öffnet eine DB.
+     */
     void open(QString dbConnectionString);
+    
+    /**
+     * @brief Gibt an, ob die DB aktuell geöffnet ist, oder nicht
+     * @return Ob die DB geöffnet ist
+     */
     bool isDBOpen();
     
     /**
@@ -112,16 +127,44 @@ public:
      */
     bool endTransaction();
     
+    /**
+     * @brief Legt eine OSMNode in der temporären Datenbank ab.
+     * @return Ob das Ablegen in der Datenbank erfolgreich war, oder nicht
+     */
     bool saveOSMNode(const OSMNode& node);
+    /**
+     * @brief Legt eine OSMEdge in der temporären Datenbank ab.
+     * @return Ob das Ablegen in der Datenbank erfolgreich war, oder nicht
+     * @todo implementieren. Evtl. Sinnvoller, OSMWay abzulegen und OSMEdge zu laden?
+     */
     bool saveOSMEdge(const OSMEdge& edge);
+    /**
+     * @brief Legt eine OSMRelation in der temporären Datenbank ab.
+     * @return Ob das Ablegen in der Datenbank erfolgreich war, oder nicht
+     * @todo implementieren
+     */
     bool saveOSMTurnRestriction(const OSMRelation& relation);
     
     
-    
-    QVector<OSMNode> getNodesByID(boost::uint64_t nodeID);
-    QVector<OSMNode> getNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID);
-    QVector<OSMEdge> getEdgesByStartNodeID(boost::uint64_t startNodeID);
-    QVector<OSMEdge> getEdgesByEndNodeID(boost::uint64_t endNodeID);
+    /**
+     * @brief Lädt einen Knoten nach ID.
+     * @return Den Knoten mit seinen Eigenschaften
+     */
+    boost::shared_ptr<OSMNode> getOSMNodeByID(boost::uint64_t nodeID);
+    /**
+     * @brief Lädt ein paar Knoten, deren IDs in einem Intervall liegen.
+     * @return Eine Liste der entsprechenden Knoten
+     * @todo implementieren
+     */
+    QVector<boost::shared_ptr<OSMNode> > getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID);
+    /**
+     * @brief Lädt eine Liste von Kanten nach Angabe des Startknotens
+     */
+    QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByStartNodeID(boost::uint64_t startNodeID);
+    /**
+     * @brief Lädt eine Liste von Kanten nach Angabe des Endknotens
+     */
+    QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByEndNodeID(boost::uint64_t endNodeID);
     
     friend int biker_tests::testTemporaryOSMDatabaseConnection();
     ~TemporaryOSMDatabaseConnection();

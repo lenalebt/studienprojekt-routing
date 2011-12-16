@@ -9,13 +9,15 @@ TemporaryOSMDatabaseConnection::TemporaryOSMDatabaseConnection() :
     _saveOSMNodeStatement(NULL), _getOSMNodeStatement(NULL),
     _saveOSMNodePropertyStatement(NULL), _getOSMNodePropertyStatement(NULL),
     _saveOSMEdgeStatement(NULL), _getOSMEdgeStatement(NULL),
-    _saveOSMEdgePropertyStatement(NULL), _getOSMEdgePropertyStatement(NULL)
+    _saveOSMEdgePropertyStatement(NULL), _getOSMEdgePropertyStatement(NULL),
+    _saveOSMRelationStatement(NULL), _getOSMRelationStatement(NULL)
 {
     
 }
 
 TemporaryOSMDatabaseConnection::~TemporaryOSMDatabaseConnection()
 {
+    //Prepared Statements löschen
     if(_getLastInsertRowIDStatement != NULL)
 		sqlite3_finalize(_getLastInsertRowIDStatement);
     if(_saveOSMPropertyStatement != NULL)
@@ -38,6 +40,10 @@ TemporaryOSMDatabaseConnection::~TemporaryOSMDatabaseConnection()
 		sqlite3_finalize(_saveOSMEdgePropertyStatement);
     if(_getOSMEdgePropertyStatement != NULL)
 		sqlite3_finalize(_getOSMEdgePropertyStatement);
+    if(_saveOSMRelationStatement != NULL)
+		sqlite3_finalize(_saveOSMRelationStatement);
+    if(_getOSMRelationStatement != NULL)
+		sqlite3_finalize(_getOSMRelationStatement);
     
     if (_dbOpen)
         this->close();
@@ -50,11 +56,6 @@ void TemporaryOSMDatabaseConnection::close()
 }
 
 
-/**
- * @todo Anpassen an die temporäre DB, ist noch fast 1:1 kopiert aus
- *      SpatialiteDatabaseConnection. Besonders: Erweiterungen (Spatialite)
- *      nötig? Wahrscheinlich nicht.
- */
 void TemporaryOSMDatabaseConnection::open(QString dbConnectionString)
 {
     int rc; //return-Wert speichern
@@ -130,10 +131,6 @@ bool TemporaryOSMDatabaseConnection::isDBOpen()
     return _dbOpen;
 }
 
-/**
- * @todo Anpassen an die temporäre DB, ist noch fast 1:1 kopiert aus
- * SpatialiteDatabaseConnection
- */
 bool TemporaryOSMDatabaseConnection::createTables()
 {
 	bool retVal = true;
@@ -142,13 +139,13 @@ bool TemporaryOSMDatabaseConnection::createTables()
 	QStringList statements;
 	statements << "CREATE TABLE IF NOT EXISTS PROPERTIES(PROPERTYID INTEGER PRIMARY KEY, KEY VARCHAR, VALUE VARCHAR);";
     
-    statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER NOT NULL, LAT DOUBLE NOT NULL, LON DOUBLE NOT NULL);";
+    statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER PRIMARY KEY, LAT DOUBLE NOT NULL, LON DOUBLE NOT NULL);";
     statements << "CREATE TABLE IF NOT EXISTS NODEPROPERTYID(NODEID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(NODEID, PROPERTYID));";
     
     statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, WAYID INTEGER NOT NULL);";
     statements << "CREATE TABLE IF NOT EXISTS WAYPROPERTYID(WAYID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(WAYID, PROPERTYID));";
     
-    statements << "CREATE TABLE IF NOT EXISTS TURNRESTRICTIONS(VIAID INTEGER NOT NULL, TOID INTEGER NOT NULL, FROMID INTEGER NOT NULL, NOLEFT BOOLEAN, NORIGHT BOOLEAN, NOSTRAIGHT BOOLEAN, NOUTURN BOOLEAN);";
+    statements << "CREATE TABLE IF NOT EXISTS TURNRESTRICTIONS(VIAID INTEGER NOT NULL, TOID INTEGER NOT NULL, FROMID INTEGER NOT NULL, NOLEFT BOOLEAN, NORIGHT BOOLEAN, NOSTRAIGHT BOOLEAN, NOUTURN BOOLEAN, PRIMARY KEY(VIAID, TOID, FROMID));";
     
     //Alle Statements der Liste ausführen
 	QStringList::const_iterator it;
@@ -182,9 +179,9 @@ bool TemporaryOSMDatabaseConnection::beginTransaction()
 {
     char* errorMessage;
     //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
-	int rc = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, 0, &errorMessage);
-	
-	if (rc != SQLITE_OK)
+    int rc = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, 0, &errorMessage);
+
+    if (rc != SQLITE_OK)
     {
         sqlite3_close(_db);
         std::cerr << "Failed to begin transaction."
@@ -193,15 +190,15 @@ bool TemporaryOSMDatabaseConnection::beginTransaction()
         return false;
     }
     else
-		return true;
+        return true;
 }
 bool TemporaryOSMDatabaseConnection::endTransaction()
 {
     char* errorMessage;
     //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
-	int rc = sqlite3_exec(_db, "END TRANSACTION;", NULL, 0, &errorMessage);
-	
-	if (rc != SQLITE_OK)
+    int rc = sqlite3_exec(_db, "END TRANSACTION;", NULL, 0, &errorMessage);
+
+    if (rc != SQLITE_OK)
     {
         sqlite3_close(_db);
         std::cerr << "Failed to begin transaction."
@@ -210,7 +207,7 @@ bool TemporaryOSMDatabaseConnection::endTransaction()
         return false;
     }
     else
-		return true;
+        return true;
 }
 
 boost::uint64_t TemporaryOSMDatabaseConnection::saveOSMProperty(const OSMProperty& property)
@@ -253,23 +250,23 @@ boost::shared_ptr<OSMProperty> TemporaryOSMDatabaseConnection::getOSMPropertyByI
 {
     boost::shared_ptr<OSMProperty> property;
       
-	int rc;
-	if(_getOSMPropertyStatement == NULL)
-	{		
-		rc = sqlite3_prepare_v2(_db, "SELECT KEY, VALUE FROM PROPERTIES WHERE PROPERTYID=?;",
-			-1, &_getOSMPropertyStatement, NULL);
-		if (rc != SQLITE_OK)
-		{	
-			std::cerr << "Failed to create getOSMPropertyStatement." << " Resultcode: " << rc;
-			return boost::shared_ptr<OSMProperty>();
-		}
-	}
-	
-	// Parameter an das Statement binden
-	sqlite3_bind_int64(_getOSMPropertyStatement, 1, propertyID);
-	
-	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
-	while ((rc = sqlite3_step(_getOSMPropertyStatement)) != SQLITE_DONE)
+    int rc;
+    if(_getOSMPropertyStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT KEY, VALUE FROM PROPERTIES WHERE PROPERTYID=?;",
+            -1, &_getOSMPropertyStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getOSMPropertyStatement." << " Resultcode: " << rc;
+            return boost::shared_ptr<OSMProperty>();
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_getOSMPropertyStatement, 1, propertyID);
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getOSMPropertyStatement)) != SQLITE_DONE)
     {
         bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
@@ -306,20 +303,20 @@ boost::shared_ptr<OSMProperty> TemporaryOSMDatabaseConnection::getOSMPropertyByI
         //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
         property.reset(newproperty);
     }
-	
+
     if (rc != SQLITE_DONE)
-	{	
-		std::cerr << "Failed to execute getOSMPropertyStatement." << " Resultcode: " << rc;
-		return boost::shared_ptr<OSMProperty>();
-	}
-	
-	rc = sqlite3_reset(_getOSMPropertyStatement);
-	if(rc != SQLITE_OK)
-	{
-		std::cerr << "Failed to reset getOSMPropertyStatement." << " Resultcode: " << rc;
-	}
-	
-	return property;
+    {	
+        std::cerr << "Failed to execute getOSMPropertyStatement." << " Resultcode: " << rc;
+        return boost::shared_ptr<OSMProperty>();
+    }
+
+    rc = sqlite3_reset(_getOSMPropertyStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset getOSMPropertyStatement." << " Resultcode: " << rc;
+    }
+
+    return property;
 }
 
 
@@ -327,20 +324,20 @@ boost::uint64_t TemporaryOSMDatabaseConnection::getLastInsertRowID()
 {
     boost::uint64_t retVal=0;
       
-	int rc;
-	if(_getLastInsertRowIDStatement == NULL)
-	{		
-		rc = sqlite3_prepare_v2(_db, "SELECT last_insert_rowid();",
-			-1, &_getLastInsertRowIDStatement, NULL);
-		if (rc != SQLITE_OK)
-		{	
-			std::cerr << "Failed to create getLastInsertRowIDStatement." << " Resultcode: " << rc;
-			return 0;
-		}
-	}
-	
-	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
-	while ((rc = sqlite3_step(_getLastInsertRowIDStatement)) != SQLITE_DONE)
+    int rc;
+    if(_getLastInsertRowIDStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT last_insert_rowid();",
+            -1, &_getLastInsertRowIDStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getLastInsertRowIDStatement." << " Resultcode: " << rc;
+            return 0;
+        }
+    }
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getLastInsertRowIDStatement)) != SQLITE_DONE)
     {
         bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
@@ -372,20 +369,20 @@ boost::uint64_t TemporaryOSMDatabaseConnection::getLastInsertRowID()
         //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
         retVal = sqlite3_column_int64(_getLastInsertRowIDStatement, 0);
     }
-	
+
     if (rc != SQLITE_DONE)
-	{	
-		std::cerr << "Failed to execute getLastInsertRowIDStatement." << " Resultcode: " << rc;
-		return 0;
-	}
-	
-	rc = sqlite3_reset(_getLastInsertRowIDStatement);
-	if(rc != SQLITE_OK)
-	{
-		std::cerr << "Failed to reset getLastInsertRowIDStatement." << " Resultcode: " << rc;
-	}
-	
-	return retVal;
+    {	
+        std::cerr << "Failed to execute getLastInsertRowIDStatement." << " Resultcode: " << rc;
+        return 0;
+    }
+
+    rc = sqlite3_reset(_getLastInsertRowIDStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset getLastInsertRowIDStatement." << " Resultcode: " << rc;
+    }
+
+    return retVal;
 }
 
 bool TemporaryOSMDatabaseConnection::saveOSMNode(const OSMNode& node)
@@ -461,11 +458,197 @@ bool TemporaryOSMDatabaseConnection::saveOSMNode(const OSMNode& node)
     return true;
 }
 
+boost::shared_ptr<OSMNode> TemporaryOSMDatabaseConnection::getOSMNodeByID(boost::uint64_t nodeID)
+{
+    boost::shared_ptr<OSMNode> node;
+      
+    int rc;
+    if(_getOSMNodeStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT LAT, LON FROM NODES WHERE ID=?;",
+            -1, &_getOSMNodeStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getOSMNodeStatement." << " Resultcode: " << rc;
+            return boost::shared_ptr<OSMNode>();
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_getOSMNodeStatement, 1, nodeID);
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getOSMNodeStatement)) != SQLITE_DONE)
+    {
+        bool breakLoop = false;
+        //Es können verschiedene Fehler aufgetreten sein.
+        switch (rc)
+        {
+            case SQLITE_ROW:
+                //noch eine Zeile verfügbar: Gut. Weitermachen.
+                break;
+            case SQLITE_ERROR:
+                breakLoop=true;
+                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
+                break;
+            case SQLITE_BUSY:
+                breakLoop=true;
+                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
+                break;
+            case SQLITE_LOCKED:
+                breakLoop=true;
+                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
+                break;
+            default:
+                breakLoop = true;
+                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
+        }
+        if (breakLoop)
+            break;
+        
+        
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        OSMNode* newNode = new OSMNode(nodeID, GPSPosition(
+                        sqlite3_column_double(_getOSMNodeStatement, 0),
+                        sqlite3_column_double(_getOSMNodeStatement, 1))
+                        );
+        //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
+        node.reset(newNode);
+    }
+
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Failed to execute getOSMNodeStatement." << " Resultcode: " << rc;
+        return boost::shared_ptr<OSMNode>();
+    }
+
+    rc = sqlite3_reset(_getOSMNodeStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset getOSMNodeStatement." << " Resultcode: " << rc;
+    }
+    
+    //Bis hier sind die Grundeigenschaften des Knotens geladen. Es fehlen die Attribute.
+    //Properties laden
+    if(_getOSMNodePropertyStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT PROPERTYID FROM NODEPROPERTYID WHERE NODEID=?;",
+            -1, &_getOSMNodePropertyStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getOSMNodePropertyStatement." << " Resultcode: " << rc;
+            return boost::shared_ptr<OSMNode>();
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_getOSMNodePropertyStatement, 1, nodeID);
+    
+    QVector<boost::uint64_t> propertyIDs;
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getOSMNodePropertyStatement)) != SQLITE_DONE)
+    {
+        bool breakLoop = false;
+        //Es können verschiedene Fehler aufgetreten sein.
+        switch (rc)
+        {
+            case SQLITE_ROW:
+                //noch eine Zeile verfügbar: Gut. Weitermachen.
+                break;
+            case SQLITE_ERROR:
+                breakLoop=true;
+                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
+                break;
+            case SQLITE_BUSY:
+                breakLoop=true;
+                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
+                break;
+            case SQLITE_LOCKED:
+                breakLoop=true;
+                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
+                break;
+            default:
+                breakLoop = true;
+                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
+        }
+        if (breakLoop)
+            break;
+        
+        
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        boost::uint64_t propertyID = sqlite3_column_int64(_getOSMNodePropertyStatement, 0);
+        propertyIDs << propertyID;
+    }
+
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Failed to execute getOSMNodePropertyStatement." << " Resultcode: " << rc;
+        return boost::shared_ptr<OSMNode>();
+    }
+
+    rc = sqlite3_reset(_getOSMNodePropertyStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset getOSMNodePropertyStatement." << " Resultcode: " << rc;
+    }
+    //Bis hier: Liste mit Eigenschaften-IDs laden.
+    
+    //Eigenschaften selbst laden
+    for (QVector<boost::uint64_t>::const_iterator it = propertyIDs.constBegin(); it != propertyIDs.constEnd(); it++)
+    {
+        node->addProperty(*getOSMPropertyByID(*it));
+    }
+    
+    return node;
+}
 
 
+bool TemporaryOSMDatabaseConnection::saveOSMEdge(const OSMEdge& edge)
+{
+    return false;
+}
 
 
+bool TemporaryOSMDatabaseConnection::saveOSMTurnRestriction(const OSMRelation& relation)
+{
+    int rc;
+    if(_saveOSMRelationStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO TURNRESTRICITIONS VALUES (@VIAID, @TOID, @FROMID, @NOLEFT, @NORIGHT, @NOSTRAIGHT, @NOUTURN);", -1, &_saveOSMRelationStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create saveOSMRelationStatement." << " Resultcode: " << rc;
+            return false;
+        }
+    }
 
+    // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
+    sqlite3_bind_int64(_saveOSMRelationStatement, 1, relation.getViaId());
+    sqlite3_bind_int64(_saveOSMRelationStatement, 2, relation.getToId());
+    sqlite3_bind_int64(_saveOSMRelationStatement, 3, relation.getFromId());
+    sqlite3_bind_int64(_saveOSMRelationStatement, 4, relation.getLeft());
+    sqlite3_bind_int64(_saveOSMRelationStatement, 5, relation.getRight());
+    sqlite3_bind_int64(_saveOSMRelationStatement, 6, relation.getStraight());
+    sqlite3_bind_int64(_saveOSMRelationStatement, 7, relation.getUTurn());
+    
+    // Statement ausfuehren
+    rc = sqlite3_step(_saveOSMRelationStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute saveOSMRelationStatement." << " Resultcode: " << rc;
+        return false;
+    }
+
+
+    rc = sqlite3_reset(_saveOSMRelationStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset saveOSMRelationStatement." << " Resultcode: " << rc;
+    }
+    
+    return true;
+}
 
 
 
@@ -533,12 +716,13 @@ namespace biker_tests
         OSMProperty property1("key1", "value1");
         OSMProperty property2("key2", "value2");
         OSMProperty property3("key3", "value3");
-        OSMNode node(1, GPSPosition(51.0, 7.0));
+        OSMNode node(10, GPSPosition(51.0, 7.0));
         node.addProperty(property1);
         node.addProperty(property2);
         node.addProperty(property3);
         CHECK(connection.saveOSMNode(node));
         
+        CHECK_EQ(*connection.getOSMNodeByID(10), node);
         
         std::cout << "Closing database..." << std::endl;
         connection.close();

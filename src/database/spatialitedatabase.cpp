@@ -18,6 +18,7 @@ SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
 
 SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
 {
+    //Prepared Statements löschen
 	if(_saveNodeStatement != NULL)
 		sqlite3_finalize(_saveNodeStatement);
     if(_getNodeStatement != NULL)

@@ -141,6 +141,7 @@ namespace biker_tests
     template bool check_equality(std::string message, boost::uint32_t a, boost::uint64_t b);
     template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
     template bool check_equality(std::string message, OSMProperty a,     OSMProperty b);
+    template bool check_equality(std::string message, OSMNode a,         OSMNode b);
     
     std::string uint64_t2string(boost::uint64_t integer)
     {
