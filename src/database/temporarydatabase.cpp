@@ -5,7 +5,7 @@
 
 TemporaryOSMDatabaseConnection::TemporaryOSMDatabaseConnection() :
     _dbOpen(false), _db(NULL), _getLastInsertRowIDStatement(NULL),
-    _saveOSMPropertyStatement(NULL)
+    _saveOSMPropertyStatement(NULL), _getOSMPropertyStatement(NULL)
 {
     
 }
@@ -216,6 +216,80 @@ boost::uint64_t TemporaryOSMDatabaseConnection::saveOSMProperty(const OSMPropert
     return getLastInsertRowID();
 }
 
+boost::shared_ptr<OSMProperty> TemporaryOSMDatabaseConnection::getOSMPropertyByID(boost::uint64_t propertyID)
+{
+    boost::shared_ptr<OSMProperty> property;
+      
+	int rc;
+	if(_getOSMPropertyStatement == NULL)
+	{		
+		rc = sqlite3_prepare_v2(_db, "SELECT KEY, VALUE FROM PROPERTIES WHERE PROPERTYID=?;",
+			-1, &_getOSMPropertyStatement, NULL);
+		if (rc != SQLITE_OK)
+		{	
+			std::cerr << "Failed to create getOSMPropertyStatement." << " Resultcode: " << rc;
+			return boost::shared_ptr<OSMProperty>();
+		}
+	}
+	
+	// Parameter an das Statement binden
+	sqlite3_bind_int64(_getOSMPropertyStatement, 1, propertyID);
+	
+	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+	while ((rc = sqlite3_step(_getOSMPropertyStatement)) != SQLITE_DONE)
+    {
+        bool breakLoop = false;
+        //Es können verschiedene Fehler aufgetreten sein.
+        switch (rc)
+        {
+            case SQLITE_ROW:
+                //noch eine Zeile verfügbar: Gut. Weitermachen.
+                break;
+            case SQLITE_ERROR:
+                breakLoop=true;
+                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
+                break;
+            case SQLITE_BUSY:
+                breakLoop=true;
+                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
+                break;
+            case SQLITE_LOCKED:
+                breakLoop=true;
+                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
+                break;
+            default:
+                breakLoop = true;
+                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
+        }
+        if (breakLoop)
+            break;
+        
+        
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        OSMProperty* newproperty = new OSMProperty(
+                        QString(reinterpret_cast<const char*>(sqlite3_column_text(_getOSMPropertyStatement, 0))),
+                        QString(reinterpret_cast<const char*>(sqlite3_column_text(_getOSMPropertyStatement, 1)))
+                        );
+        //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
+        property.reset(newproperty);
+    }
+	
+    if (rc != SQLITE_DONE)
+	{	
+		std::cerr << "Failed to execute getOSMPropertyStatement." << " Resultcode: " << rc;
+		return boost::shared_ptr<OSMProperty>();
+	}
+	
+	rc = sqlite3_reset(_getOSMPropertyStatement);
+	if(rc != SQLITE_OK)
+	{
+		std::cerr << "Failed to reset getOSMPropertyStatement." << " Resultcode: " << rc;
+	}
+	
+	return property;
+}
+
+
 boost::uint64_t TemporaryOSMDatabaseConnection::getLastInsertRowID()
 {
     boost::uint64_t retVal=0;
@@ -331,7 +405,7 @@ namespace biker_tests
         connection.open("testosm.db");
         CHECK(connection.isDBOpen());
         
-        
+        std::cout << "Checking OSMProperty..." << std::endl;
         CHECK(connection.beginTransaction());
         OSMProperty property("key", "value");
         CHECK_EQ_TYPE(connection.saveOSMProperty(property), 1, boost::uint64_t);
@@ -341,7 +415,14 @@ namespace biker_tests
         CHECK_EQ_TYPE(connection.saveOSMProperty(property), 3, boost::uint64_t);
         CHECK(connection.endTransaction());
         
-        
+        property.setKey("key");
+        CHECK_EQ(*connection.getOSMPropertyByID(1), property);
+        property.setKey("key2");
+        CHECK_EQ(*connection.getOSMPropertyByID(2), property);
+        property.setKey("key3");
+        CHECK_EQ(*connection.getOSMPropertyByID(3), property);
+        property.setKey("key");
+        CHECK(!(*connection.getOSMPropertyByID(3) == property));
         
         std::cout << "Closing database..." << std::endl;
         connection.close();
