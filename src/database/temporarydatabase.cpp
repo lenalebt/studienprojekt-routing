@@ -145,7 +145,7 @@ bool TemporaryOSMDatabaseConnection::createTables()
     statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, WAYID INTEGER NOT NULL);";
     statements << "CREATE TABLE IF NOT EXISTS WAYPROPERTYID(WAYID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(WAYID, PROPERTYID));";
     
-    statements << "CREATE TABLE IF NOT EXISTS TURNRESTRICTIONS(VIAID INTEGER NOT NULL, TOID INTEGER NOT NULL, FROMID INTEGER NOT NULL, NOLEFT BOOLEAN, NORIGHT BOOLEAN, NOSTRAIGHT BOOLEAN, NOUTURN BOOLEAN, PRIMARY KEY(VIAID, TOID, FROMID));";
+    statements << "CREATE TABLE IF NOT EXISTS TURNRESTRICTIONS(FROMID INTEGER NOT NULL, VIAID INTEGER NOT NULL, TOID INTEGER NOT NULL, NOLEFT BOOLEAN, NORIGHT BOOLEAN, NOSTRAIGHT BOOLEAN, NOUTURN BOOLEAN, PRIMARY KEY(VIAID, TOID, FROMID));";
     
     //Alle Statements der Liste ausführen
 	QStringList::const_iterator it;
@@ -615,7 +615,7 @@ bool TemporaryOSMDatabaseConnection::saveOSMTurnRestriction(const OSMRelation& r
     int rc;
     if(_saveOSMRelationStatement == NULL)
     {
-        rc = sqlite3_prepare_v2(_db, "INSERT INTO TURNRESTRICITIONS VALUES (@VIAID, @TOID, @FROMID, @NOLEFT, @NORIGHT, @NOSTRAIGHT, @NOUTURN);", -1, &_saveOSMRelationStatement, NULL);
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO TURNRESTRICTIONS VALUES (@FROMID, @VIAID, @TOID, @NOLEFT, @NORIGHT, @NOSTRAIGHT, @NOUTURN);", -1, &_saveOSMRelationStatement, NULL);
         if (rc != SQLITE_OK)
         {	
             std::cerr << "Failed to create saveOSMRelationStatement." << " Resultcode: " << rc;
@@ -624,9 +624,9 @@ bool TemporaryOSMDatabaseConnection::saveOSMTurnRestriction(const OSMRelation& r
     }
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
-    sqlite3_bind_int64(_saveOSMRelationStatement, 1, relation.getViaId());
-    sqlite3_bind_int64(_saveOSMRelationStatement, 2, relation.getToId());
-    sqlite3_bind_int64(_saveOSMRelationStatement, 3, relation.getFromId());
+    sqlite3_bind_int64(_saveOSMRelationStatement, 1, relation.getFromId());
+    sqlite3_bind_int64(_saveOSMRelationStatement, 2, relation.getViaId());
+    sqlite3_bind_int64(_saveOSMRelationStatement, 3, relation.getToId());
     sqlite3_bind_int64(_saveOSMRelationStatement, 4, relation.getLeft());
     sqlite3_bind_int64(_saveOSMRelationStatement, 5, relation.getRight());
     sqlite3_bind_int64(_saveOSMRelationStatement, 6, relation.getStraight());
@@ -723,6 +723,16 @@ namespace biker_tests
         CHECK(connection.saveOSMNode(node));
         
         CHECK_EQ(*connection.getOSMNodeByID(10), node);
+        
+        
+        
+        std::cout << "Checking OSMEdge..." << std::endl;
+        //TODO
+        
+        std::cout << "Checking OSMRelation..." << std::endl;
+        OSMRelation relation( 0,  1,  2, true, false, true, false );
+        CHECK(connection.saveOSMTurnRestriction(relation));
+        //TODO: Laden und mehrere Sachen ablegen
         
         std::cout << "Closing database..." << std::endl;
         connection.close();
