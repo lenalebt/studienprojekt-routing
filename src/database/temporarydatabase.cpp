@@ -5,9 +5,42 @@
 
 TemporaryOSMDatabaseConnection::TemporaryOSMDatabaseConnection() :
     _dbOpen(false), _db(NULL), _getLastInsertRowIDStatement(NULL),
-    _saveOSMPropertyStatement(NULL), _getOSMPropertyStatement(NULL)
+    _saveOSMPropertyStatement(NULL), _getOSMPropertyStatement(NULL),
+    _saveOSMNodeStatement(NULL), _getOSMNodeStatement(NULL),
+    _saveOSMNodePropertyStatement(NULL), _getOSMNodePropertyStatement(NULL),
+    _saveOSMEdgeStatement(NULL), _getOSMEdgeStatement(NULL),
+    _saveOSMEdgePropertyStatement(NULL), _getOSMEdgePropertyStatement(NULL)
 {
     
+}
+
+TemporaryOSMDatabaseConnection::~TemporaryOSMDatabaseConnection()
+{
+    if(_getLastInsertRowIDStatement != NULL)
+		sqlite3_finalize(_getLastInsertRowIDStatement);
+    if(_saveOSMPropertyStatement != NULL)
+		sqlite3_finalize(_saveOSMPropertyStatement);
+    if(_getOSMPropertyStatement != NULL)
+		sqlite3_finalize(_getOSMPropertyStatement);
+    if(_saveOSMNodeStatement != NULL)
+		sqlite3_finalize(_saveOSMNodeStatement);
+    if(_getOSMNodeStatement != NULL)
+		sqlite3_finalize(_getOSMNodeStatement);
+    if(_saveOSMNodePropertyStatement != NULL)
+		sqlite3_finalize(_saveOSMNodePropertyStatement);
+    if(_getOSMNodePropertyStatement != NULL)
+		sqlite3_finalize(_getOSMNodePropertyStatement);
+    if(_saveOSMEdgeStatement != NULL)
+		sqlite3_finalize(_saveOSMEdgeStatement);
+    if(_getOSMEdgeStatement != NULL)
+		sqlite3_finalize(_getOSMEdgeStatement);
+    if(_saveOSMEdgePropertyStatement != NULL)
+		sqlite3_finalize(_saveOSMEdgePropertyStatement);
+    if(_getOSMEdgePropertyStatement != NULL)
+		sqlite3_finalize(_getOSMEdgePropertyStatement);
+    
+    if (_dbOpen)
+        this->close();
 }
 
 void TemporaryOSMDatabaseConnection::close()
@@ -355,7 +388,78 @@ boost::uint64_t TemporaryOSMDatabaseConnection::getLastInsertRowID()
 	return retVal;
 }
 
+bool TemporaryOSMDatabaseConnection::saveOSMNode(const OSMNode& node)
+{
+    QVector<OSMProperty> properties = node.getProperties();
+    
+    int rc;
+    if(_saveOSMNodeStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO NODES VALUES (@ID, @LAT, @LON);", -1, &_saveOSMNodeStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create saveOSMNodeStatement." << " Resultcode: " << rc;
+            return false;
+        }
+    }
 
+    // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
+    sqlite3_bind_int64(_saveOSMNodeStatement, 1, node.getID());
+    sqlite3_bind_double(_saveOSMNodeStatement, 2, node.getLat());
+    sqlite3_bind_double(_saveOSMNodeStatement, 3, node.getLon());
+    
+    // Statement ausfuehren
+    rc = sqlite3_step(_saveOSMNodeStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute saveOSMNodeStatement." << " Resultcode: " << rc;
+        return false;
+    }
+
+    rc = sqlite3_reset(_saveOSMNodeStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset saveOSMNodeStatement." << " Resultcode: " << rc;
+    }
+    
+    //Properties speichern. Erstmal Statement zum Verbinden von Node und Property anlegen...
+    if(_saveOSMNodePropertyStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO NODEPROPERTYID VALUES (@NODEID, @PROPERTYID);", -1, &_saveOSMNodePropertyStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create saveOSMNodePropertyStatement." << " Resultcode: " << rc;
+            return false;
+        }
+    }
+    //Dieses wird nämlich später benötigt und es wäre blöd, das in der Schleife abzufragen.
+    
+    for (QVector<OSMProperty>::const_iterator it = properties.constBegin(); it != properties.constEnd(); it++)
+    {
+        //erstmal Property speichern.
+        boost::uint64_t propertyID = saveOSMProperty(*it);
+        
+        //Parameter binden
+        sqlite3_bind_int64(_saveOSMNodePropertyStatement, 1, node.getID());
+        sqlite3_bind_int64(_saveOSMNodePropertyStatement, 2, propertyID);
+        
+        //Statement ausfuehren
+        rc = sqlite3_step(_saveOSMNodePropertyStatement);
+        if (rc != SQLITE_DONE)
+        {	
+            std::cerr << "Failed to execute saveOSMNodePropertyStatement." << " Resultcode: " << rc;
+            return false;
+        }
+        
+        //Statement resetten
+        rc = sqlite3_reset(_saveOSMNodePropertyStatement);
+        if(rc != SQLITE_OK)
+        {
+            std::cerr << "Failed to reset saveOSMNodePropertyStatement." << " Resultcode: " << rc;
+        }
+    }
+    return true;
+}
 
 
 
@@ -413,6 +517,7 @@ namespace biker_tests
         CHECK_EQ_TYPE(connection.saveOSMProperty(property), 2, boost::uint64_t);
         property.setKey("key3");
         CHECK_EQ_TYPE(connection.saveOSMProperty(property), 3, boost::uint64_t);
+        CHECK_EQ_TYPE(connection.saveOSMProperty(property), 4, boost::uint64_t);
         CHECK(connection.endTransaction());
         
         property.setKey("key");
@@ -423,6 +528,17 @@ namespace biker_tests
         CHECK_EQ(*connection.getOSMPropertyByID(3), property);
         property.setKey("key");
         CHECK(!(*connection.getOSMPropertyByID(3) == property));
+        
+        std::cout << "Checking OSMNode..." << std::endl;
+        OSMProperty property1("key1", "value1");
+        OSMProperty property2("key2", "value2");
+        OSMProperty property3("key3", "value3");
+        OSMNode node(1, GPSPosition(51.0, 7.0));
+        node.addProperty(property1);
+        node.addProperty(property2);
+        node.addProperty(property3);
+        CHECK(connection.saveOSMNode(node));
+        
         
         std::cout << "Closing database..." << std::endl;
         connection.close();

@@ -30,6 +30,9 @@ SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
 		sqlite3_finalize(_getEdgeStatementStartNode);
     if(_getEdgeStatementEndNode != NULL)
 		sqlite3_finalize(_getEdgeStatementEndNode);
+    
+    if (_dbOpen)
+        this->close();
 }
 
 void SpatialiteDatabaseConnection::close()

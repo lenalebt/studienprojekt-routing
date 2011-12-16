@@ -37,8 +37,19 @@ private:
     sqlite3* _db;
     
     sqlite3_stmt* _getLastInsertRowIDStatement;
+    
     sqlite3_stmt* _saveOSMPropertyStatement;
     sqlite3_stmt* _getOSMPropertyStatement;
+    
+    sqlite3_stmt* _saveOSMNodeStatement;
+    sqlite3_stmt* _getOSMNodeStatement;
+    sqlite3_stmt* _saveOSMNodePropertyStatement;
+    sqlite3_stmt* _getOSMNodePropertyStatement;
+    
+    sqlite3_stmt* _saveOSMEdgeStatement;
+    sqlite3_stmt* _getOSMEdgeStatement;
+    sqlite3_stmt* _saveOSMEdgePropertyStatement;
+    sqlite3_stmt* _getOSMEdgePropertyStatement;
     
     /**
      * @brief Erstellt die Tabellen in der Datenbank
@@ -113,6 +124,7 @@ public:
     QVector<OSMEdge> getEdgesByEndNodeID(boost::uint64_t endNodeID);
     
     friend int biker_tests::testTemporaryOSMDatabaseConnection();
+    ~TemporaryOSMDatabaseConnection();
 };
 
 
