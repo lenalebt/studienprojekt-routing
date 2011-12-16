@@ -1,6 +1,22 @@
 #include "osmnode.hpp"
 #include <boost/cstdint.hpp>
 
+bool operator==(const OSMNode& p1, const OSMNode& p2)
+{
+    return false;
+}
+std::ostream& operator<<(std::ostream& os, const OSMNode& p)
+{
+    os << "nodeid: " << p.getID() << " lat: " << p.getLat() << 
+        " lon: " << p.getLon();
+    QVector<OSMProperty> props = p.getProperties();
+    for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
+    {
+        os << " " << *it;
+    }
+    return os;
+}
+
 namespace biker_tests
 {
     int testOSMNode()

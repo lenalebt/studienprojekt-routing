@@ -66,6 +66,16 @@ public:
     void setID(const boost::uint64_t id) {this->id = id;}
 };
 
+/**
+ * @brief Vergleicht 2 OSMNodes miteinander
+ * @return Ob die beiden OSMNodes gleich sind
+ */
+bool operator==(const OSMNode& p1, const OSMNode& p2);
+/**
+ * @brief Gibt eine OSMNode auf einem Ausgabestrom aus.
+ */
+std::ostream& operator<<(std::ostream& os, const OSMNode& p);
+
 namespace biker_tests
 {
     /**
