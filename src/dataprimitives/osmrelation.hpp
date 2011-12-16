@@ -29,7 +29,8 @@ private:
         bool  noUTurn:   1;
     }thisRestriction;
 public:
-    /* @brief erstellt eine Relation mit IDs und restriction
+    /**
+     * @brief erstellt eine Relation mit IDs und restriction
      * @param viaId die ID des Nodes, über die die Relation führt
      * @param fromId die ID des Ways, von dem aus die Relation beginnt
      * @param toId die ID des Ways, an dem die Relation endet
@@ -45,6 +46,16 @@ public:
         this->thisRestriction.noStraight = noStraight;
         this->thisRestriction.noUTurn = noUTurn;
     };
+    /**
+     * @brief Erstellt eine leere Relation mit Standardwerten.
+     */
+    OSMRelation() : viaId(0), fromId(0), toId(0)
+    {
+        this->thisRestriction.noLeft = false;
+        this->thisRestriction.noRight = false;
+        this->thisRestriction.noStraight = false;
+        this->thisRestriction.noUTurn = false;
+    }
     // ab hier: Get und Set -Funktionen
     /**
      * @brief Gibt die viaId der Relation zurück.
