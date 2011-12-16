@@ -11,6 +11,12 @@
 #include <sqlite3.h>
 #include "tests.hpp"
 
+
+namespace biker_tests
+{
+    int testTemporaryOSMDatabaseConnection();
+}
+
 /**
  * @brief Diese Klasse ist ein temporärer Speicher für OpenStreetMap-Daten.
  * 
@@ -29,10 +35,14 @@ private:
     bool _dbOpen;
     sqlite3* _db;
     
+    sqlite3_stmt* _getLastInsertRowIDStatement;
+    sqlite3_stmt* _saveOSMPropertyStatement;
+    
     bool createTables();
     bool execCreateTableStatement(std::string);
     
-    int saveProperty(const OSMProperty& property);
+    boost::uint64_t saveOSMProperty(const OSMProperty& property);
+    boost::uint64_t getLastInsertRowID();
 public:
     TemporaryOSMDatabaseConnection();
     void close();
@@ -42,9 +52,9 @@ public:
     bool beginTransaction();
     bool endTransaction();
     
-    bool saveNode(const OSMNode& node);
-    bool saveEdge(const OSMEdge& edge);
-    bool saveRelation(const OSMRelation& relation);
+    bool saveOSMNode(const OSMNode& node);
+    bool saveOSMEdge(const OSMEdge& edge);
+    bool saveOSMTurnRestriction(const OSMRelation& relation);
     
     
     
@@ -52,11 +62,9 @@ public:
     QVector<OSMNode> getNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID);
     QVector<OSMEdge> getEdgesByStartNodeID(boost::uint64_t startNodeID);
     QVector<OSMEdge> getEdgesByEndNodeID(boost::uint64_t endNodeID);
+    
+    friend int biker_tests::testTemporaryOSMDatabaseConnection();
 };
 
-namespace biker_tests
-{
-    int testTemporaryOSMDatabaseConnection();
-}
 
 #endif //TEMPORARYDATABASE_HPP
