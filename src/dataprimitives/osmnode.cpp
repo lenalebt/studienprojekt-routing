@@ -3,6 +3,21 @@
 
 bool operator==(const OSMNode& p1, const OSMNode& p2)
 {
+    if ((p1.getID() == p2.getID()) && (p1.getLat() == p2.getLat()) &&
+        (p1.getLon() == p2.getLon()) && (p1.getProperties().size() == p2.getProperties().size()))
+    {
+        QVector<OSMProperty> props1 = p1.getProperties();
+        QVector<OSMProperty> props2 = p2.getProperties();
+        for (QVector<OSMProperty>::const_iterator it = props1.constBegin(); it != props1.constEnd(); it++)
+        {
+            if (!props2.contains(*it))
+                return false;
+        }
+        return true;
+    }
+    else
+        return false;
+    
     return false;
 }
 std::ostream& operator<<(std::ostream& os, const OSMNode& p)
