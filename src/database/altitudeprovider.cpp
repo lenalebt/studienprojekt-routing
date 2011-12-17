@@ -93,14 +93,20 @@ void SRTMProvider::createFileList()
     
 }
 
+QByteArray SRTMProvider::blubb(QUrl &url)
+{
+    FileDownloader loader;
+    return loader.downloadURL(url);
+}
+
 void SRTMProvider::downloadUrl(const QUrl &url, QString &data)
 {
     //Instanz von FileDownloader erstellen
-    FileDownloader loader; // oder nur FileDownloader loader?
+    //FileDownloader loader; // oder nur FileDownloader loader?
     //ihr wollt "simulieren":
     //return loader.downloadURL(url);
-    extern QByteArray downloadURL(QUrl &url); // Warum will er nicht loader.download...usw.?!?
-    QFuture<QByteArray> future = QtConcurrent::run(ownloadURL, url);
+    extern QByteArray blubb(QUrl &url); // Warum will er nicht loader.download...usw.?!?
+    QFuture<QByteArray> future = QtConcurrent::run(blubb, url);
     // future.waitForFinished(); // result() müsste auch blocken
     data = QString(future.result());
     return;
@@ -110,6 +116,13 @@ SRTMProvider::~SRTMProvider()
 {
 	
 }
+
+
+
+FileDownloader::FileDownloader():QThread()
+{
+}
+  
 
 
 void FileDownloader::run()

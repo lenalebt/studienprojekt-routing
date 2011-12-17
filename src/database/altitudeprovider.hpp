@@ -66,6 +66,7 @@ class FileDownloader : public QThread
 private:
     
 public:
+    FileDownloader();
     void run();
     QByteArray downloadURL(QUrl url);
     //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error);
@@ -160,6 +161,7 @@ private:
     QCache<int, SRTMTile> tileCache;
     int latLonToIndex(int lat, int lon) { return lat * 1000 + lon; }
     QString _cachedir;
+    QByteArray blubb(QUrl &url);
     
     QMutex mutex;
 public:
