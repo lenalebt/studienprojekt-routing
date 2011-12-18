@@ -2,6 +2,7 @@
 #define ALTITUDEPROVIDER_HPP
 
 #include "gpsposition.hpp"
+#include "zip.hpp"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -66,6 +67,7 @@ class FileDownloader : public QThread
 private:
     
 public:
+    FileDownloader();
     void run();
     QByteArray downloadURL(QUrl url);
     //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error);
@@ -160,8 +162,10 @@ private:
     QCache<int, SRTMTile> tileCache;
     int latLonToIndex(int lat, int lon) { return lat * 1000 + lon; }
     QString _cachedir;
+    QUrl _url;
+    QByteArray blubb(const QUrl &dUrl);
+    void loadFileList();
     
-    QMutex mutex;
 public:
     /**
      * @brief Gibt einen Höhenwert für einen Punkt auf der Erdoberfläche zurück.
@@ -192,10 +196,13 @@ public:
      */
     void downloadUrl(const QUrl &url, QString &data);
     
-    SRTMProvider() : _cachedir("~/.biker/srtm/") {}
+    SRTMProvider() : _cachedir("~/.biker/srtm/"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/") {}
     
-    SRTMProvider(QString cachedir) : _cachedir(cachedir) {}
+    SRTMProvider(QString cachedir) : _cachedir(cachedir), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/")  {}
     
+    SRTMProvider(QUrl url) : _cachedir("~/.biker/srtm/"), _url(url)  {}
+    
+    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _url(url)  {}
     
     ~SRTMProvider();
 };

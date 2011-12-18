@@ -3,6 +3,7 @@
 
 #include <QtGlobal>
 #include <QMutexLocker>
+#include <math.h>
 
 double SRTMProvider::getAltitude(const GPSPosition& pos)
 {
@@ -11,20 +12,82 @@ double SRTMProvider::getAltitude(const GPSPosition& pos)
 
 double SRTMProvider::getAltitude(double lat, double lon)
 {
-    /*TODO:
-     * fileListe vorhanden?
-     *      falls nein, laden!
-     * Koordinate in fileList?
-     *      falls nein, Koordinate gibt es nicht!
-     * sonst:
-    - Zip-Datei für die Koordinate schon vorhanden?
-    - Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind.
-    - Zip-Datei öffnen und Inhalt im Speicher ablegen.
-    - Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
-    - Koordinaten aus dem Array raussuchen und Mittelwert berechnen.
-    */
+    double height = 0.0; // Defaultwert für Höhe ist NN
+    qint16 *buffer; // buffer für Zip-Daten
+    QString filename; // hier soll die Zipdatei liegen nach dem Download, also Name incl. Pfad
+    int resolution;
     
-    return 0.0;//TODO
+    // per loadFilelist():
+    // fileListe vorhanden?
+    //      falls nein, laden!
+    loadFileList();
+    //Koordinaten in ganue Werte umrechnen und zu int casten // TODO
+    int intlat = int(floor(lat));
+    int intlon = int(floor(lon));
+    // Falls Koordinate vorhanden...
+    if (fileList.contains(latLonToIndex(intlat, intlon))){
+        if(/*Zipdatei NICHT da*/){
+            QString altZipDir =  fileList[latLonToIndex(intlat, intlon)]; // Url ab Kontinentverzeichnis bis .hgt.zip
+            //Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind. //TODO
+            //Zip-Datei unter filename ablegen (Pfad in filename)
+        }
+        //- Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
+        //- Zip-Datei entzippen.
+        resolution = SrtmZipFile::getData(filename, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
+        //
+        //
+        //
+        ///** Get the value of a pixel from the data using a coordinate system
+  //* starting in the upper left (NW) edge growing to the lower right
+  //* egde (SE) instead of the SRTM coordinate system.
+  //*/
+//int SrtmTile::getPixelValue(int x, int y)
+//{
+    //Q_ASSERT(x >= 0 && x < size && y >= 0 && y < size);
+    //int offset = x + size * (size - y - 1);
+    //qint16 value;
+    //value = qFromBigEndian(buffer[offset]);
+    //return value;
+//}
+
+///** Gets the altitude in meters for a given coordinate. */
+//float SrtmTile::getAltitudeFromLatLon(float lat, float lon)
+//{
+    //if (!valid) return SRTM_DATA_VOID;
+    //lat -= this->lat;
+    //lon -= this->lon;
+    //Q_ASSERT(lat >= 0.0 && lat < 1.0 && lon >= 0.0 && lon < 1.0);
+    //float x = lon * (size - 1);
+    //float y = lat * (size - 1);
+    ///* Variable names:
+        //valueXY with X,Y as offset from calculated value, _ for average
+    //*/
+    //float value00 = getPixelValue(x, y);
+    //float value10 = getPixelValue(x+1, y);
+    //float value01 = getPixelValue(x, y+1);
+    //float value11 = getPixelValue(x+1, y+1);
+    //float value_0 = avg(value00, value10, x-int(x));
+    //float value_1 = avg(value01, value11, x-int(x));
+    //float value__ = avg(value_0, value_1, y-int(y));
+    //return value__;
+//}
+        //- Koordinaten aus dem Array raussuchen und Mittelwert berechne
+    }
+    if (buffer) delete buffer;        
+    return height;//TODO
+}
+
+void SRTMProvider::loadFileList()
+{
+    QFile file(_cachedir+"srtmfilelist");
+    if (!file.open(QIODevice::ReadOnly)) {
+        createFileList();
+        return;
+    }
+    QDataStream stream(&file);
+    stream >> fileList;
+    file.close();
+    return;
 }
 
 void SRTMProvider::createFileList()
@@ -33,7 +96,7 @@ void SRTMProvider::createFileList()
     
     QStringList continents;
     continents << "Africa" << "Australia" << "Eurasia" << "Islands" << "North_America" << "South_America";
-    QString url = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/";
+    QString url = QString(_url);
     
     foreach (QString continent, continents) { // für jeden Kontinent, die vorhandenen Ziparchive in die Liste eintragen
         std::cout << "Downloading data from " << url+continent+"/" << std::endl;
@@ -93,14 +156,21 @@ void SRTMProvider::createFileList()
     
 }
 
-void SRTMProvider::downloadUrl(const QUrl &url, QString &data)
+QByteArray SRTMProvider::blubb(const QUrl &dUrl)
+{
+    FileDownloader loader;
+    return loader.downloadURL(dUrl);
+}
+
+void SRTMProvider::downloadUrl(const QUrl &dUrl, QString &data)
 {
     //Instanz von FileDownloader erstellen
-    FileDownloader loader; // oder nur FileDownloader loader?
+    //FileDownloader loader; // oder nur FileDownloader loader?
     //ihr wollt "simulieren":
     //return loader.downloadURL(url);
-    extern QByteArray downloadURL(QUrl &url); // Warum will er nicht loader.download...usw.?!?
-    QFuture<QByteArray> future = QtConcurrent::run(ownloadURL, url);
+    
+    extern QByteArray blubb(const QUrl &dUrl); // Warum will er nicht loader.download...usw.?!?
+    QFuture<QByteArray> future = QtConcurrent::run(blubb, dUrl);
     // future.waitForFinished(); // result() müsste auch blocken
     data = QString(future.result());
     return;
@@ -110,6 +180,13 @@ SRTMProvider::~SRTMProvider()
 {
 	
 }
+
+
+
+FileDownloader::FileDownloader():QThread()
+{
+}
+  
 
 
 void FileDownloader::run()
