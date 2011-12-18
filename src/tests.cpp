@@ -5,7 +5,7 @@
 
 #include "routingnode.hpp"
 #include "routingedge.hpp"
-#include "osmrelation.hpp"
+#include "osmturnrestriction.hpp"
 #include "osmnode.hpp"
 #include "osmway.hpp"
 #include "osmproperty.hpp"
@@ -183,8 +183,8 @@ namespace biker_tests
             return biker_tests::testOSMEdge();
         else if (testName == "osmproperty")
             return biker_tests::testOSMProperty();
-        else if (testName == "osmrelation")
-            return biker_tests::testOSMRelation();
+        else if (testName == "osmturnrestriction")
+            return biker_tests::testOSMTurnRestriction();
         else if (testName == "osmparser")
             return biker_tests::testOSMParser();
         else if (testName == "blockingqueue")

@@ -19,7 +19,7 @@
 #ifndef OSMPARSER_HPP
 #define OSMPARSER_HPP
 
-#include "osmrelation.hpp"
+#include "osmturnrestriction.hpp"
 #include "osmway.hpp"
 #include "osmedge.hpp"
 #include "osmnode.hpp"
@@ -53,7 +53,7 @@ private:
     OSMNode* node;
     OSMWay* way;
     OSMEdge* edge;
-    OSMRelation* relation;
+    OSMTurnRestriction* relation;
 
     int nodeCount;
     int wayCount;

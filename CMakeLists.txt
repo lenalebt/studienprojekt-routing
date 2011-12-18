@@ -78,7 +78,7 @@ SET(
     src/dataprimitives/osmnode.cpp
     src/dataprimitives/osmway.cpp
     src/dataprimitives/osmedge.cpp
-    src/dataprimitives/osmrelation.cpp
+    src/dataprimitives/osmturnrestriction.cpp
     src/dataprimitives/osmproperty.cpp
     
     #src/database/
@@ -108,7 +108,7 @@ SET(
     src/dataprimitives/gpsroute.hpp
     src/dataprimitives/osmproperty.hpp
     src/dataprimitives/osmnode.hpp
-    src/dataprimitives/osmrelation.hpp
+    src/dataprimitives/osmturnrestriction.hpp
     src/dataprimitives/osmway.hpp
     src/dataprimitives/osmedge.hpp
     src/dataprimitives/routingnode.hpp
@@ -244,7 +244,7 @@ ADD_TEST(osmnode                          "biker" "--test" "osmnode")
 ADD_TEST(osmway                           "biker" "--test" "osmway")
 ADD_TEST(osmedge                          "biker" "--test" "osmedge")
 ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
-ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
+ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")

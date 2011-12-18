@@ -2,7 +2,7 @@
 #define TEMPORARYDATABASE_HPP
 
 #include "osmnode.hpp"
-#include "osmrelation.hpp"
+#include "osmturnrestriction.hpp"
 #include "osmproperty.hpp"
 #include "osmedge.hpp"
 #include <QVector>
@@ -51,8 +51,8 @@ private:
     sqlite3_stmt* _saveOSMEdgePropertyStatement;
     sqlite3_stmt* _getOSMEdgePropertyStatement;
     
-    sqlite3_stmt* _saveOSMRelationStatement;
-    sqlite3_stmt* _getOSMRelationStatement;
+    sqlite3_stmt* _saveOSMTurnRestrictionStatement;
+    sqlite3_stmt* _getOSMTurnRestrictionStatement;
     
     /**
      * @brief Erstellt die Tabellen in der Datenbank
@@ -139,11 +139,11 @@ public:
      */
     bool saveOSMEdge(const OSMEdge& edge);
     /**
-     * @brief Legt eine OSMRelation in der temporären Datenbank ab.
+     * @brief Legt eine OSMTurnRestriction in der temporären Datenbank ab.
      * @return Ob das Ablegen in der Datenbank erfolgreich war, oder nicht
      * @todo implementieren
      */
-    bool saveOSMTurnRestriction(const OSMRelation& relation);
+    bool saveOSMTurnRestriction(const OSMTurnRestriction& turnRestriction);
     
     
     /**

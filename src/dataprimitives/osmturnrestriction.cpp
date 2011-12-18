@@ -1,8 +1,8 @@
-#include "osmrelation.hpp"
+#include "osmturnrestriction.hpp"
 
 namespace biker_tests
 {
-    int testOSMRelation()
+    int testOSMTurnRestriction()
     {
         return EXIT_SUCCESS;
     }

@@ -4,7 +4,7 @@
 #include <boost/cstdint.hpp>
 
 /**
- * @brief Eine OSMRelation stellt eine Relation im OSM-Datenmodell im Speicher dar.
+ * @brief Eine OSMTurnRestriction stellt eine Relation im OSM-Datenmodell im Speicher dar.
  * @ingroup dataprimitives
  * @todo die Routen-Relationen sind noch nicht implementiert
  * @remarks Bei der Implementierung darauf achten, dass, wo möglich, explizit festgelegt wird
@@ -14,7 +14,7 @@
  * @date 2011-11-01
  * @copyright GNU GPL v3
  */
-class OSMRelation
+class OSMTurnRestriction
 {
 private:
     // die vordefinierten Datentypen
@@ -39,7 +39,7 @@ public:
      * @param noStraight die Variable die anzeigt, ob man gerade aus weiter fahren darf (noStraight = 0) oder nicht (noStraight = 1)
      * @param noUTurn die Variable die anzeigt, ob man umkehren darf (noUTurn = 0) oder nicht (noUTurn = 1)
      */
-    OSMRelation( boost::uint64_t viaId,  boost::uint64_t fromId,  boost::uint64_t toId, bool  noLeft, bool  noStraight, bool  noRight, bool  noUTurn):
+    OSMTurnRestriction( boost::uint64_t viaId,  boost::uint64_t fromId,  boost::uint64_t toId, bool  noLeft, bool  noStraight, bool  noRight, bool  noUTurn):
     viaId(viaId), fromId(fromId), toId(toId) {
         this->thisRestriction.noLeft = noLeft;
         this->thisRestriction.noRight = noRight;
@@ -49,7 +49,7 @@ public:
     /**
      * @brief Erstellt eine leere Relation mit Standardwerten.
      */
-    OSMRelation() : viaId(0), fromId(0), toId(0)
+    OSMTurnRestriction() : viaId(0), fromId(0), toId(0)
     {
         this->thisRestriction.noLeft = false;
         this->thisRestriction.noRight = false;
@@ -134,7 +134,7 @@ public:
  */
 namespace biker_tests
 {
-    int testOSMRelation();
+    int testOSMTurnRestriction();
 } 
 
 #endif // OSMRELATION_HPP

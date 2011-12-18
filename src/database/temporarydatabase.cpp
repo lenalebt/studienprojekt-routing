@@ -10,7 +10,7 @@ TemporaryOSMDatabaseConnection::TemporaryOSMDatabaseConnection() :
     _saveOSMNodePropertyStatement(NULL), _getOSMNodePropertyStatement(NULL),
     _saveOSMEdgeStatement(NULL), _getOSMEdgeStatement(NULL),
     _saveOSMEdgePropertyStatement(NULL), _getOSMEdgePropertyStatement(NULL),
-    _saveOSMRelationStatement(NULL), _getOSMRelationStatement(NULL)
+    _saveOSMTurnRestrictionStatement(NULL), _getOSMTurnRestrictionStatement(NULL)
 {
     
 }
@@ -40,10 +40,10 @@ TemporaryOSMDatabaseConnection::~TemporaryOSMDatabaseConnection()
 		sqlite3_finalize(_saveOSMEdgePropertyStatement);
     if(_getOSMEdgePropertyStatement != NULL)
 		sqlite3_finalize(_getOSMEdgePropertyStatement);
-    if(_saveOSMRelationStatement != NULL)
-		sqlite3_finalize(_saveOSMRelationStatement);
-    if(_getOSMRelationStatement != NULL)
-		sqlite3_finalize(_getOSMRelationStatement);
+    if(_saveOSMTurnRestrictionStatement != NULL)
+		sqlite3_finalize(_saveOSMTurnRestrictionStatement);
+    if(_getOSMTurnRestrictionStatement != NULL)
+		sqlite3_finalize(_getOSMTurnRestrictionStatement);
     
     if (_dbOpen)
         this->close();
@@ -610,41 +610,41 @@ bool TemporaryOSMDatabaseConnection::saveOSMEdge(const OSMEdge& edge)
 }
 
 
-bool TemporaryOSMDatabaseConnection::saveOSMTurnRestriction(const OSMRelation& relation)
+bool TemporaryOSMDatabaseConnection::saveOSMTurnRestriction(const OSMTurnRestriction& turnRestriction)
 {
     int rc;
-    if(_saveOSMRelationStatement == NULL)
+    if(_saveOSMTurnRestrictionStatement == NULL)
     {
-        rc = sqlite3_prepare_v2(_db, "INSERT INTO TURNRESTRICTIONS VALUES (@FROMID, @VIAID, @TOID, @NOLEFT, @NORIGHT, @NOSTRAIGHT, @NOUTURN);", -1, &_saveOSMRelationStatement, NULL);
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO TURNRESTRICTIONS VALUES (@FROMID, @VIAID, @TOID, @NOLEFT, @NORIGHT, @NOSTRAIGHT, @NOUTURN);", -1, &_saveOSMTurnRestrictionStatement, NULL);
         if (rc != SQLITE_OK)
         {	
-            std::cerr << "Failed to create saveOSMRelationStatement." << " Resultcode: " << rc;
+            std::cerr << "Failed to create saveOSMTurnRestrictionStatement." << " Resultcode: " << rc;
             return false;
         }
     }
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
-    sqlite3_bind_int64(_saveOSMRelationStatement, 1, relation.getFromId());
-    sqlite3_bind_int64(_saveOSMRelationStatement, 2, relation.getViaId());
-    sqlite3_bind_int64(_saveOSMRelationStatement, 3, relation.getToId());
-    sqlite3_bind_int64(_saveOSMRelationStatement, 4, relation.getLeft());
-    sqlite3_bind_int64(_saveOSMRelationStatement, 5, relation.getRight());
-    sqlite3_bind_int64(_saveOSMRelationStatement, 6, relation.getStraight());
-    sqlite3_bind_int64(_saveOSMRelationStatement, 7, relation.getUTurn());
+    sqlite3_bind_int64(_saveOSMTurnRestrictionStatement, 1, turnRestriction.getFromId());
+    sqlite3_bind_int64(_saveOSMTurnRestrictionStatement, 2, turnRestriction.getViaId());
+    sqlite3_bind_int64(_saveOSMTurnRestrictionStatement, 3, turnRestriction.getToId());
+    sqlite3_bind_int64(_saveOSMTurnRestrictionStatement, 4, turnRestriction.getLeft());
+    sqlite3_bind_int64(_saveOSMTurnRestrictionStatement, 5, turnRestriction.getRight());
+    sqlite3_bind_int64(_saveOSMTurnRestrictionStatement, 6, turnRestriction.getStraight());
+    sqlite3_bind_int64(_saveOSMTurnRestrictionStatement, 7, turnRestriction.getUTurn());
     
     // Statement ausfuehren
-    rc = sqlite3_step(_saveOSMRelationStatement);
+    rc = sqlite3_step(_saveOSMTurnRestrictionStatement);
     if (rc != SQLITE_DONE)
     {	
-        std::cerr << "Failed to execute saveOSMRelationStatement." << " Resultcode: " << rc;
+        std::cerr << "Failed to execute saveOSMTurnRestrictionStatement." << " Resultcode: " << rc;
         return false;
     }
 
 
-    rc = sqlite3_reset(_saveOSMRelationStatement);
+    rc = sqlite3_reset(_saveOSMTurnRestrictionStatement);
     if(rc != SQLITE_OK)
     {
-        std::cerr << "Failed to reset saveOSMRelationStatement." << " Resultcode: " << rc;
+        std::cerr << "Failed to reset saveOSMTurnRestrictionStatement." << " Resultcode: " << rc;
     }
     
     return true;
@@ -729,9 +729,9 @@ namespace biker_tests
         std::cout << "Checking OSMEdge..." << std::endl;
         //TODO
         
-        std::cout << "Checking OSMRelation..." << std::endl;
-        OSMRelation relation( 0,  1,  2, true, false, true, false );
-        CHECK(connection.saveOSMTurnRestriction(relation));
+        std::cout << "Checking OSMTurnRestriction..." << std::endl;
+        OSMTurnRestriction turnRestriction( 0,  1,  2, true, false, true, false );
+        CHECK(connection.saveOSMTurnRestriction(turnRestriction));
         //TODO: Laden und mehrere Sachen ablegen
         
         std::cout << "Closing database..." << std::endl;
