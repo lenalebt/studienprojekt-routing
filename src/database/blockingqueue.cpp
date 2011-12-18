@@ -25,3 +25,10 @@ void BlockingQueue<T>::destroyQueue()
 }
 
 
+namespace biker_tests
+{
+    int testBlockingQueue()
+    {
+        return EXIT_FAILURE;
+    }
+}

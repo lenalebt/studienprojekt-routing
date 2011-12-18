@@ -2,10 +2,7 @@
 #define TESTS_HPP
 
 #include <boost/cstdint.hpp>
-#include <boost/algorithm/string.hpp> 
 #include <string>
-#include <iostream>
-#include <iomanip>
 #include <QString>
 
 

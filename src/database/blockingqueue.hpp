@@ -3,6 +3,7 @@
 
 #include <QMutex>
 #include <QQueue>
+#include "tests.hpp"
 
 
 /**
@@ -116,5 +117,13 @@ public:
     void destroyQueue();
 };
 
+
+namespace biker_tests
+{
+    /**
+     * @todo Implementieren
+     */
+    int testBlockingQueue();
+}
 
 #endif //BLOCKINGQUEUE_HPP

@@ -66,11 +66,11 @@ public:
     void setID(const boost::uint64_t id) {this->id = id;}
 };
 
-/**
- * @todo: Implementieren, dieser Test ist noch leer.
- */
 namespace biker_tests
 {
+    /**
+     * @todo Implementieren, dieser Test ist noch leer.
+     */
     int testOSMNode();
 }
 

@@ -12,7 +12,9 @@ private:
     sqlite3_stmt* _saveNodeStatement;
     sqlite3_stmt* _getNodeStatement;
     sqlite3_stmt* _saveEdgeStatement;
-    sqlite3_stmt* _getEdgeStatement;
+    sqlite3_stmt* _getEdgeStatementID;
+    sqlite3_stmt* _getEdgeStatementStartNode;
+    sqlite3_stmt* _getEdgeStatementEndNode;
     
     bool createTables();
     bool execCreateTableStatement(std::string);
