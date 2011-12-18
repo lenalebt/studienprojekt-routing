@@ -76,8 +76,14 @@
  * Leider ist uns dies bisher nicht gelungen - Erfahrungen werden sonst hier
  * dokumentiert.
  * 
- * @section benutzung Benutzung
- * Hier wird eine kleine EInführung in die Benutzung des programms gegeben.
+ * @section usage Benutzung
+ * Hier wird eine kleine Einführung in die Benutzung des Programms gegeben.
+ * 
+ * @subsection usage_structure Grobstruktur des Programms
+ * Das Programm ist in in 2 Teile aufgeteilt: Server und GUI. Bevor das
+ * Programm verwendet werden kann, muss eine Datenaufbereitung
+ * durchgeführt werden.
+ * 
  * @subsection tests Tests
  * Um alle Tests auszuführen, tippt man im build-Verzeichnis des Programms:
  * @code
