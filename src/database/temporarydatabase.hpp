@@ -42,7 +42,7 @@ private:
     sqlite3_stmt* _getOSMPropertyStatement;
     
     sqlite3_stmt* _saveOSMNodeStatement;
-    sqlite3_stmt* _getOSMNodeStatement;
+    sqlite3_stmt* _getOSMNodeByIDStatement;
     sqlite3_stmt* _saveOSMNodePropertyStatement;
     sqlite3_stmt* _getOSMNodePropertyStatement;
     
@@ -52,7 +52,7 @@ private:
     sqlite3_stmt* _getOSMEdgePropertyStatement;
     
     sqlite3_stmt* _saveOSMTurnRestrictionStatement;
-    sqlite3_stmt* _getOSMTurnRestrictionStatement;
+    sqlite3_stmt* _getOSMTurnRestrictionByViaIDStatement;
     
     /**
      * @brief Erstellt die Tabellen in der Datenbank
@@ -165,6 +165,11 @@ public:
      * @brief Lädt eine Liste von Kanten nach Angabe des Endknotens
      */
     QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByEndNodeID(boost::uint64_t endNodeID);
+    
+    /**
+     * @brief Lädt eine OSMTurnRestriction aus der DB über die Angabe der via-ID (Knoten).
+     */
+    QVector<boost::shared_ptr<OSMTurnRestriction> > getOSMTurnRestrictionByViaID(boost::uint64_t viaID);
     
     friend int biker_tests::testTemporaryOSMDatabaseConnection();
     ~TemporaryOSMDatabaseConnection();
