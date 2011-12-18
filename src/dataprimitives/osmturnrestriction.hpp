@@ -4,13 +4,13 @@
 #include <boost/cstdint.hpp>
 
 /**
- * @brief Eine OSMTurnRestriction stellt eine Relation im OSM-Datenmodell im Speicher dar.
+ * @brief Eine OSMTurnRestriction stellt eine Relation mit Abbiegebeschränkungen im OSM-Datenmodell im Speicher dar.
  * @ingroup dataprimitives
  * @todo die Routen-Relationen sind noch nicht implementiert
- * @remarks Bei der Implementierung darauf achten, dass, wo möglich, explizit festgelegt wird
- *      wie viel Platz Variablen benutzen. Beispiel: uint64_t ist ein unsigned int mit 64 bit Breite.
- *      Man sollte daruf achten, dass alle Zugriffe auf eine restriction nur die Werte 0 und 1 wählen.
+ * @remarks Man sollte daruf achten, dass alle Zugriffe auf eine restriction nur die Werte 0 und 1 wählen.
+ * @remarks ViaID ist die ID eines Knotens, FromID und ToID sind IDs von Ways!
  * @author Thorsten Scheller
+ * @author Lena Brüder (Umbenennung und kleine Doxygenanpassungen)
  * @date 2011-11-01
  * @copyright GNU GPL v3
  */
