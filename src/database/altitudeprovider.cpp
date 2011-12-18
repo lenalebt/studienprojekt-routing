@@ -25,8 +25,13 @@ double SRTMProvider::getAltitude(double lat, double lon)
     int intlat = int(floor(lat));
     int intlon = int(floor(lon));
     // Falls Koordinate vorhanden...
+    
+    //mit lat und lon dateiname zusammen bauen
+    //rückwärts wie indexerstellung. wenn lat positiv "N" sonst "S" äquivalent lon
+    //ergebnis sollte sein: "N/S<lat>W/E<lon>.blubb.zip"
+    //QFile zipfile(_cachedir+"Dateiname.endung.zip")
     if (fileList.contains(latLonToIndex(intlat, intlon))){
-        if(/*Zipdatei NICHT da*/){
+        if(!zipfile.open(QIODevice::ReadOnly)){
             QString altZipDir =  fileList[latLonToIndex(intlat, intlon)]; // Url ab Kontinentverzeichnis bis .hgt.zip
             //Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind. //TODO
             //Zip-Datei unter filename ablegen (Pfad in filename)
