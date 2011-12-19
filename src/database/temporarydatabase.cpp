@@ -138,22 +138,28 @@ bool TemporaryOSMDatabaseConnection::createTables()
     //Liste von auszuführenden Statements erstellen
 	QStringList statements;
 	statements << "CREATE TABLE IF NOT EXISTS PROPERTIES(PROPERTYID INTEGER PRIMARY KEY, KEY VARCHAR, VALUE VARCHAR);";
+    statements << "CREATE INDEX IF NOT EXISTS PROPERTIES_INDEX ON PROPERTIES(PROPERTYID);";
     
     statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER PRIMARY KEY, LAT DOUBLE NOT NULL, LON DOUBLE NOT NULL);";
     statements << "CREATE TABLE IF NOT EXISTS NODEPROPERTYID(NODEID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(NODEID, PROPERTYID));";
+    statements << "CREATE INDEX IF NOT EXISTS NODES_PROPERTIES_INDEX ON NODEPROPERTYID(NODEID);";
     
     statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, WAYID INTEGER NOT NULL);";
     statements << "CREATE TABLE IF NOT EXISTS WAYPROPERTYID(WAYID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(WAYID, PROPERTYID));";
+    statements << "CREATE INDEX IF NOT EXISTS WAYS_PROPERTIES_INDEX ON WAYPROPERTYID(WAYID);";
     
     statements << "CREATE TABLE IF NOT EXISTS TURNRESTRICTIONS(FROMID INTEGER NOT NULL, VIAID INTEGER NOT NULL, TOID INTEGER NOT NULL, LEFT BOOLEAN, RIGHT BOOLEAN, STRAIGHT BOOLEAN, UTURN BOOLEAN, PRIMARY KEY(FROMID, VIAID, TOID));";
+    statements << "CREATE INDEX IF NOT EXISTS TURNRESTRICTIONS_VIAID_INDEX ON TURNRESTRICTIONS(VIAID);";
     
-    //Alle Statements der Liste ausführen
+    //Alle Statements der Liste ausführen in einer Transaktion
+    retVal = this->beginTransaction();
 	QStringList::const_iterator it;
 	for (it = statements.constBegin(); it != statements.constEnd(); it++)
 	{
 		retVal &= execCreateTableStatement(it->toStdString());
 	}
-	
+	retVal &= this->endTransaction();
+    
 	return retVal;
 }
 
@@ -765,7 +771,7 @@ namespace biker_tests
         connection.close();
         CHECK(!connection.isDBOpen());
         
-        std::cout << "Reopening \"test.db\"..." << std::endl;
+        std::cout << "Reopening \"testosm.db\"..." << std::endl;
         connection.open("testosm.db");
         CHECK(connection.isDBOpen());
         
@@ -797,7 +803,10 @@ namespace biker_tests
         node.addProperty(property1);
         node.addProperty(property2);
         node.addProperty(property3);
+        
+        CHECK(connection.beginTransaction());
         CHECK(connection.saveOSMNode(node));
+        CHECK(connection.endTransaction());
         
         CHECK_EQ(*connection.getOSMNodeByID(10), node);
         

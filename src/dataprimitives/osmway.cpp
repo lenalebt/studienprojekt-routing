@@ -60,7 +60,7 @@ QVector<OSMProperty> OSMWay::bikeOnewayProperties()
     }
     return retVec;
 }
-static QVector<OSMProperty> bikeReverseOnewayProperties()
+QVector<OSMProperty> OSMWay::bikeReverseOnewayProperties()
 {
     static QVector<OSMProperty> retVec;
     if (retVec.isEmpty())

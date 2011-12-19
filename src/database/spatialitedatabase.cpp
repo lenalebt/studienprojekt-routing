@@ -125,12 +125,14 @@ bool SpatialiteDatabaseConnection::createTables()
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     statements << "CREATE TABLE EDGES_STREETNAME(ID INTEGER PRIMARY KEY, STREETNAME VARCHAR);";
     
-    //Alle Statements der Liste ausführen
+    //Alle Statements der Liste ausführen in einer Transaktion
+    retVal = this->beginTransaction();
 	QStringList::const_iterator it;
 	for (it = statements.constBegin(); it != statements.constEnd(); it++)
 	{
 		retVal &= execCreateTableStatement(it->toStdString());
 	}
+    retVal &= this->endTransaction();
 	
 	return retVal;
 }
