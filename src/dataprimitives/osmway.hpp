@@ -78,11 +78,11 @@ public:
     QVector<OSMProperty> getProperties() const {return properties;}
 };
 
-/**
- * @todo: Implementieren, dieser Test ist noch leer.
- */
 namespace biker_tests
 {
+    /**
+     * @todo Implementieren, dieser Test ist noch leer.
+     */
     int testOSMWay();
 } 
 

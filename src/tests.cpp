@@ -1,8 +1,11 @@
 #include "tests.hpp"
+#include <iostream>
+#include <iomanip>
+#include <boost/algorithm/string.hpp> 
 
 #include "routingnode.hpp"
 #include "routingedge.hpp"
-#include "osmrelation.hpp"
+#include "osmturnrestriction.hpp"
 #include "osmnode.hpp"
 #include "osmway.hpp"
 #include "osmproperty.hpp"
@@ -10,9 +13,13 @@
 #include "gpsposition.hpp"
 #include "gpsroute.hpp"
 #include "spatialitedatabase.hpp"
+#include "temporarydatabase.hpp"
 #include "osmparser.hpp"
 #include "altitudeprovider.hpp"
 #include <QString>
+#include "blockingqueue.hpp"
+#include "closedlist.hpp"
+#include "heap.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -136,6 +143,8 @@ namespace biker_tests
     template bool check_equality(std::string message, boost::uint32_t a, boost::uint64_t b);
     template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
     template bool check_equality(std::string message, OSMProperty a,     OSMProperty b);
+    template bool check_equality(std::string message, OSMNode a,         OSMNode b);
+    template bool check_equality(std::string message, OSMTurnRestriction a, OSMTurnRestriction b);
     
     std::string uint64_t2string(boost::uint64_t integer)
     {
@@ -165,6 +174,8 @@ namespace biker_tests
             return biker_tests::testBasename();
         else if (testName == "spatialitedatabaseconnection")
             return biker_tests::testSpatialiteDatabaseConnection();
+        else if (testName == "temporaryosmdatabaseconnection")
+            return biker_tests::testTemporaryOSMDatabaseConnection();
         else if (testName == "gpsposition")
             return biker_tests::testGPSPosition();
         else if (testName == "osmnode")
@@ -175,10 +186,16 @@ namespace biker_tests
             return biker_tests::testOSMEdge();
         else if (testName == "osmproperty")
             return biker_tests::testOSMProperty();
-        else if (testName == "osmrelation")
-            return biker_tests::testOSMRelation();
+        else if (testName == "osmturnrestriction")
+            return biker_tests::testOSMTurnRestriction();
         else if (testName == "osmparser")
             return biker_tests::testOSMParser();
+        else if (testName == "blockingqueue")
+            return biker_tests::testBlockingQueue();
+        else if (testName == "binaryheap")
+            return biker_tests::testBinaryHeap();
+        else if (testName == "hashclosedlist")
+            return biker_tests::testHashClosedList();
         else if (testName == "gpsroute")
             return biker_tests::testGPSRoute();
         else if (testName == "srtmprovider")

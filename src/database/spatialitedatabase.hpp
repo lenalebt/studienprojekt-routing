@@ -12,9 +12,19 @@ private:
     sqlite3_stmt* _saveNodeStatement;
     sqlite3_stmt* _getNodeStatement;
     sqlite3_stmt* _saveEdgeStatement;
-    sqlite3_stmt* _getEdgeStatement;
+    sqlite3_stmt* _getEdgeStatementID;
+    sqlite3_stmt* _getEdgeStatementStartNode;
+    sqlite3_stmt* _getEdgeStatementEndNode;
     
+    /**
+     * @brief Erstellt die Tabellen in der Datenbank
+     * @return Ob die Tabellen erstellt werden konnten
+     */
     bool createTables();
+    /**
+     * @brief Führt die Statements aus, die die Tabellen erstellen sollen
+     * @return Ob die Ausführung erfolgreich war, oder nicht
+     */
     bool execCreateTableStatement(std::string);
 public:
     SpatialiteDatabaseConnection();
@@ -24,11 +34,8 @@ public:
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& searchMidpoint, double radius);
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& ulCorner, const GPSPosition& brCorner);
     bool saveNode(const RoutingNode& node);
-    /** @todo implementieren */
     QVector<boost::shared_ptr<RoutingEdge> > getEdgesByStartNodeID(boost::uint64_t startNodeID);
-    /** @todo implementieren */
     QVector<boost::shared_ptr<RoutingEdge> > getEdgesByEndNodeID(boost::uint64_t endNodeID);
-    /** @todo implementieren */
     boost::shared_ptr<RoutingEdge> getEdgeByEdgeID(boost::uint64_t edgeID);
     bool saveEdge(const RoutingEdge& edge);
     /** @todo Speichern von Straßen implementieren */

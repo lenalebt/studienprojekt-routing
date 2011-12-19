@@ -67,10 +67,20 @@ public:
 };
 
 /**
- * @todo: Implementieren, dieser Test ist noch leer.
+ * @brief Vergleicht 2 OSMNodes miteinander
+ * @return Ob die beiden OSMNodes gleich sind
  */
+bool operator==(const OSMNode& p1, const OSMNode& p2);
+/**
+ * @brief Gibt eine OSMNode auf einem Ausgabestrom aus.
+ */
+std::ostream& operator<<(std::ostream& os, const OSMNode& p);
+
 namespace biker_tests
 {
+    /**
+     * @todo Implementieren, dieser Test ist noch leer.
+     */
     int testOSMNode();
 }
 

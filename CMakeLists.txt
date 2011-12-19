@@ -78,13 +78,14 @@ SET(
     src/dataprimitives/osmnode.cpp
     src/dataprimitives/osmway.cpp
     src/dataprimitives/osmedge.cpp
-    src/dataprimitives/osmrelation.cpp
+    src/dataprimitives/osmturnrestriction.cpp
     src/dataprimitives/osmproperty.cpp
     
     #src/database/
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
+    src/database/temporarydatabase.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp
@@ -107,7 +108,7 @@ SET(
     src/dataprimitives/gpsroute.hpp
     src/dataprimitives/osmproperty.hpp
     src/dataprimitives/osmnode.hpp
-    src/dataprimitives/osmrelation.hpp
+    src/dataprimitives/osmturnrestriction.hpp
     src/dataprimitives/osmway.hpp
     src/dataprimitives/osmedge.hpp
     src/dataprimitives/routingnode.hpp
@@ -118,6 +119,7 @@ SET(
     src/database/database.hpp
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
+    src/database/temporarydatabase.hpp
     
     #src/database/parser
     src/database/parser/osmparser.hpp
@@ -242,11 +244,15 @@ ADD_TEST(osmnode                          "biker" "--test" "osmnode")
 ADD_TEST(osmway                           "biker" "--test" "osmway")
 ADD_TEST(osmedge                          "biker" "--test" "osmedge")
 ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
-ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
+ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
+ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
+ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
+ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
+ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 
 
 #Zum Erstellen von automatischen Installationspaketen
@@ -325,3 +331,4 @@ TARGET_LINK_LIBRARIES(biker
 INSTALL (TARGETS biker
     DESTINATION bin
     )
+

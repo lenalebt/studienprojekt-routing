@@ -2,21 +2,20 @@
 #define OSMRELATION_HPP
 
 #include <boost/cstdint.hpp>
+#include <iostream>
 
 /**
- * @brief Eine OSMRelation stellt eine Relation im OSM-Datenmodell im Speicher dar.
- *
- *
+ * @brief Eine OSMTurnRestriction stellt eine Relation mit Abbiegebeschränkungen im OSM-Datenmodell im Speicher dar.
  * @ingroup dataprimitives
  * @todo die Routen-Relationen sind noch nicht implementiert
- * @remarks Bei der Implementierung darauf achten, dass, wo möglich, explizit festgelegt wird
- *      wie viel Platz Variablen benutzen. Beispiel: uint64_t ist ein unsigned int mit 64 bit Breite.
- *      Man sollte daruf achten, dass alle Zugriffe auf eine restriction nur die Werte 0 und 1 wählen.
+ * @remarks Man sollte daruf achten, dass alle Zugriffe auf eine restriction nur die Werte 0 und 1 wählen.
+ * @remarks ViaID ist die ID eines Knotens, FromID und ToID sind IDs von Ways!
  * @author Thorsten Scheller
+ * @author Lena Brüder (Umbenennung und kleine Doxygenanpassungen)
  * @date 2011-11-01
  * @copyright GNU GPL v3
  */
-class OSMRelation
+class OSMTurnRestriction
 {
 private:
     // die vordefinierten Datentypen
@@ -25,13 +24,14 @@ private:
     boost::uint64_t toId;
     // eine Art Zusammenfassung von Boolischen Variablen
     struct restriction{
-        unsigned int noLeft:   1;
-        unsigned int noRight:   1;
-        unsigned int noStraight:   1;
-        unsigned int noUTurn:   1;
+        bool  noLeft:   1;
+        bool  noRight:   1;
+        bool  noStraight:   1;
+        bool  noUTurn:   1;
     }thisRestriction;
 public:
-    /* @brief erstellt eine Relation mit IDs und restriction
+    /**
+     * @brief erstellt eine Relation mit IDs und restriction
      * @param viaId die ID des Nodes, über die die Relation führt
      * @param fromId die ID des Ways, von dem aus die Relation beginnt
      * @param toId die ID des Ways, an dem die Relation endet
@@ -40,13 +40,24 @@ public:
      * @param noStraight die Variable die anzeigt, ob man gerade aus weiter fahren darf (noStraight = 0) oder nicht (noStraight = 1)
      * @param noUTurn die Variable die anzeigt, ob man umkehren darf (noUTurn = 0) oder nicht (noUTurn = 1)
      */
-    OSMRelation( boost::uint64_t viaId,  boost::uint64_t fromId,  boost::uint64_t toId, unsigned int noLeft, unsigned int noStraight, unsigned int noRight, unsigned int noUTurn):
+    OSMTurnRestriction( boost::uint64_t fromId,  boost::uint64_t viaId,  boost::uint64_t toId, bool  noLeft, bool  noStraight, bool  noRight, bool  noUTurn):
+    //OSMTurnRestriction( boost::uint64_t viaId,  boost::uint64_t fromId,  boost::uint64_t toId, bool  noLeft, bool  noStraight, bool  noRight, bool  noUTurn):
     viaId(viaId), fromId(fromId), toId(toId) {
         this->thisRestriction.noLeft = noLeft;
         this->thisRestriction.noRight = noRight;
         this->thisRestriction.noStraight = noStraight;
         this->thisRestriction.noUTurn = noUTurn;
     };
+    /**
+     * @brief Erstellt eine leere Relation mit Standardwerten.
+     */
+    OSMTurnRestriction() : viaId(0), fromId(0), toId(0)
+    {
+        this->thisRestriction.noLeft = false;
+        this->thisRestriction.noRight = false;
+        this->thisRestriction.noStraight = false;
+        this->thisRestriction.noUTurn = false;
+    }
     // ab hier: Get und Set -Funktionen
     /**
      * @brief Gibt die viaId der Relation zurück.
@@ -82,50 +93,53 @@ public:
      * @brief Gibt die restriction.noLeft der Relation zurück.
      * @return Die restriction.noLeft der Relation.
      */
-    unsigned int getLeft() const {return thisRestriction.noLeft ;}
+    bool  getLeft() const {return thisRestriction.noLeft ;}
     /**
      * @brief Setzt die restriction.noLeft der Relation.
      * @param noLeft der neue Wert der restriction.noLeft der Relation.
      */
-    void setLeft(unsigned int noLeft) {this->thisRestriction.noLeft = noLeft;}
+    void setLeft(bool  noLeft) {this->thisRestriction.noLeft = noLeft;}
     /**
      * @brief Gibt die restriction.noRight der Relation zurück.
      * @return Die restriction.noRight der Relation.
      */
-    unsigned int getRight() const {return thisRestriction.noRight ;}
+    bool  getRight() const {return thisRestriction.noRight ;}
     /**
      * @brief Setzt die restriction.noRight der Relation.
      * @param noRight der neue Wert der restriction.noRight der Relation.
      */
-    void setRight(unsigned int noRight) {this->thisRestriction.noRight = noRight;}
+    void setRight(bool  noRight) {this->thisRestriction.noRight = noRight;}
     /**
      * @brief Gibt die restriction.noStraight der Relation zurück.
      * @return Die restriction.noStraight der Relation.
      */
-    unsigned int getStraight() const {return thisRestriction.noStraight ;}
+    bool  getStraight() const {return thisRestriction.noStraight ;}
     /**
      * @brief Setzt die restriction.noStraight der Relation.
      * @param noStraight der neue Wert der restriction.noStraight der Relation.
      */
-    void setStraight(unsigned int noStraight) {this->thisRestriction.noStraight = noStraight;}
+    void setStraight(bool  noStraight) {this->thisRestriction.noStraight = noStraight;}
     /**
      * @brief Gibt die restriction.noUTurn der Relation zurück.
      * @return Die restriction.noUTurn der Relation.
      */
-    unsigned int getUTurn() const {return thisRestriction.noUTurn ;}
+    bool  getUTurn() const {return thisRestriction.noUTurn ;}
     /**
      * @brief Setzt die restriction.noStraight der Relation.
      * @param noUTurn der neue Wert der restriction.noUTurn der Relation.
      */
-    void setUTurn(unsigned int noUTurn) {this->thisRestriction.noUTurn = noUTurn;}
+    void setUTurn(bool  noUTurn) {this->thisRestriction.noUTurn = noUTurn;}
 };
+
+bool operator==(const OSMTurnRestriction& r1, const OSMTurnRestriction& r2);
+std::ostream& operator<<(std::ostream& os, const OSMTurnRestriction& r);
 
 /**
  * @todo: Implementieren, dieser Test ist noch leer.
  */
 namespace biker_tests
 {
-    int testOSMRelation();
+    int testOSMTurnRestriction();
 } 
 
 #endif // OSMRELATION_HPP
