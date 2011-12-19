@@ -61,16 +61,24 @@ private:
     bool createTables();
     /**
      * @brief Führt die Statements aus, die die Tabellen erstellen sollen
+     * @param paramCreateTableStatement Das CREATE TABLE-Statement, das ausgeführt
+     *      werden soll.
      * @return Ob die Ausführung erfolgreich war, oder nicht
      */
-    bool execCreateTableStatement(std::string);
+    bool execCreateTableStatement(std::string paramCreateTableStatement);
     
     /**
      * @brief Legt eine OSMProperty in der Datenbank ab
+     * @param property Die Eigenschaft, die in der Datenbank abgelegt werden soll
      * @return Die ID, unter der sie abgelegt wurde
      */
     boost::uint64_t saveOSMProperty(const OSMProperty& property);
     
+    /**
+     * @brief Lädt eine OSMProperty aus der Datenbank.
+     * @param propertyID Die ID, unter der die Eigenschaft in der Datenbank abgelegt wurde.
+     * @return Die entsprechende Eigenschaft als OSMProperty-Objekt
+     */
     boost::shared_ptr<OSMProperty> getOSMPropertyByID(boost::uint64_t propertyID);
     
     /**
@@ -90,6 +98,8 @@ public:
     
     /**
      * @brief Öffnet eine DB.
+     * @param dbConnectionString Gibt den Verbindungsstring für die Datenbank an,
+     *      normalerweise der Dateiname.
      */
     void open(QString dbConnectionString);
     
@@ -129,45 +139,63 @@ public:
     
     /**
      * @brief Legt eine OSMNode in der temporären Datenbank ab.
+     * @param node Die OSMNode, die abgelegt wird.
      * @return Ob das Ablegen in der Datenbank erfolgreich war, oder nicht
      */
     bool saveOSMNode(const OSMNode& node);
     /**
      * @brief Legt eine OSMEdge in der temporären Datenbank ab.
+     * @param edge Die OSMEdge, die abgelegt wird.
      * @return Ob das Ablegen in der Datenbank erfolgreich war, oder nicht
-     * @todo implementieren. Evtl. Sinnvoller, OSMWay abzulegen und OSMEdge zu laden?
      */
     bool saveOSMEdge(const OSMEdge& edge);
     /**
      * @brief Legt eine OSMTurnRestriction in der temporären Datenbank ab.
+     * @param turnResriction Die OSMTurnRestriction, die abgelegt wird.
      * @return Ob das Ablegen in der Datenbank erfolgreich war, oder nicht
-     * @todo implementieren
      */
     bool saveOSMTurnRestriction(const OSMTurnRestriction& turnRestriction);
     
     
     /**
      * @brief Lädt einen Knoten nach ID.
+     * @param nodeID Die ID des Knotens.
      * @return Den Knoten mit seinen Eigenschaften
      */
     boost::shared_ptr<OSMNode> getOSMNodeByID(boost::uint64_t nodeID);
     /**
      * @brief Lädt ein paar Knoten, deren IDs in einem Intervall liegen.
+     * 
+     * Die Knoten werden in aufsteigender Reihenfolge geladen. Wenn die
+     * Anzahl Knoten begrenzt wurde gibt der letzte Knoten in der Liste an,
+     * von wo aus im nächsten Schritt weitergeladen werden sollte.
+     * 
+     * @param fromNodeID Die ID des ersten Knotens, der geladen wird (einschließlich)
+     * @param toNodeID Die ID des letzten Knotens, der geladen wird (einschließlich)
+     * @param maxCount Die Anzahl der Knoten, die maximal gleichzeitig
+     *      geladen werden
      * @return Eine Liste der entsprechenden Knoten
      * @todo implementieren
      */
     QVector<boost::shared_ptr<OSMNode> > getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, boost::uint16_t maxCount=1000);
+    
     /**
      * @brief Lädt eine Liste von Kanten nach Angabe des Startknotens
+     * @param startNodeID Die ID des Startknotens.
+     * @return Eine Liste mit entsprechenden Kanten
      */
     QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByStartNodeID(boost::uint64_t startNodeID);
     /**
      * @brief Lädt eine Liste von Kanten nach Angabe des Endknotens
+     * @param endNodeID Die ID des Endknotens.
+     * @return Eine Liste mit entsprechenden Kanten
      */
     QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByEndNodeID(boost::uint64_t endNodeID);
     
     /**
      * @brief Lädt eine OSMTurnRestriction aus der DB über die Angabe der via-ID (Knoten).
+     * @param viaID Die ID des Via-Knotens (der in der Mitte).
+     * @return Eine Liste mit entsprechenden Abbiegebeschränkungen
      * @todo Sollte in der To- und from-ID Knoten zurueckgeben
      */
     QVector<boost::shared_ptr<OSMTurnRestriction> > getOSMTurnRestrictionByViaID(boost::uint64_t viaID);
