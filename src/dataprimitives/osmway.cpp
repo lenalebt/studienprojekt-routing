@@ -50,7 +50,8 @@ int OSMWay::isOneWayForBikes()
         return 0;
     else
     {
-        if ()
+        //TODO
+        //if ()
     }
 }
 
