@@ -4,6 +4,7 @@
 #include "osmproperty.hpp"
 #include <QVector>
 #include <boost/cstdint.hpp>
+#include "tests.hpp"
 
 /**
  * @brief Ein OSMWay stellt einen Way im OSM-Datenmodell im Speicher dar.
@@ -33,14 +34,14 @@ public:
      * @param id Die ID.
      * @param propList Die zugehörigen Eigenschaften des Ways.
      */
-    OSMWay(boost::uint64_t id, QList<OSMProperty> propList) : id(id), properties(propList) {};
+    OSMWay(boost::uint64_t id, QVector<OSMProperty> propList) : id(id), properties(propList) {};
     /**
      * @brief Erstellt einen Way mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID.
      * @param memberIDList Die Liste der zugehörigen Knoten.
      * @param propList Die zugehörigen Eigenschaften des Ways.
      */
-    OSMWay(boost::uint64_t id, QList<boost::uint64_t> memberIDList, QList<OSMProperty> propList) : id(id), memberIDList(memberIDList), properties(propList) {};
+    OSMWay(boost::uint64_t id, QVector<boost::uint64_t> memberIDList, QVector<OSMProperty> propList) : id(id), memberIDList(memberIDList), properties(propList) {};
     /**
      * @brief Gibt die ID des Ways zurück.
      * @return Die ID.
@@ -50,31 +51,39 @@ public:
      * @brief Setzt die ID des Ways.
      * @param id Die ID des Ways.
      */
-    void setID(boost::uint64_t id) {this->id = id;}
+    void setID(const boost::uint64_t id) {this->id = id;}
     /**
      * @brief Gibt die Liste der zugehörigen Knoten zurück.
      * @return Die Liste der zugehörigen Knoten.
      * @remarks Die Liste der Knoten ist geordnet und hat Einfluss auf die Interpretation der Eigenschaften (wie z.B. Einbahnstraßen).
      */
-    QList<boost::uint64_t> getMemberList() const {return memberIDList;}
+    QVector<boost::uint64_t> getMemberList() const {return memberIDList;}
     /**
      * @brief Fügt einen Knoten zur Liste der zugehörigen Knoten hinzu.
      * @param nodeID Die ID des Knotens.
      * @remarks Die Liste der Knoten ist geordnet und hat Einfluss auf die Interpretation der Eigenschaften (wie z.B. Einbahnstraßen).
      */
-    void addMember(boost::uint64_t nodeID) {memberIDList << nodeID;}
+    void addMember(const boost::uint64_t nodeID) {memberIDList << nodeID;}
     /**
      * @brief Fügt eine Eigenschaft zur Liste der Eigenschaften hinzu.
      * @param prop Die Eigenschaft, die hinzugefügt werden soll.
      * @remarks Die Liste der Eigenschaften ist nicht notwendigerweise geordnet.
      */
-    void addProperty(OSMProperty prop) {properties << prop;}
+    void addProperty(const OSMProperty prop) {properties << prop;}
     /**
      * @brief Gibt die Liste der zugehörigen Eigenschaften zurück.
      * @return Die Liste der zugehörigen Eigenschaften.
      * @remarks Die Liste der Eigenschaften ist nicht notwendigerweise geordnet.
      */
-    QList<OSMProperty> getProperties() const {return properties;}
+    QVector<OSMProperty> getProperties() const {return properties;}
 };
+
+namespace biker_tests
+{
+    /**
+     * @todo Implementieren, dieser Test ist noch leer.
+     */
+    int testOSMWay();
+} 
 
 #endif // OSMWAY_HPP

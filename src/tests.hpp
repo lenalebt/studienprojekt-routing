@@ -2,10 +2,7 @@
 #define TESTS_HPP
 
 #include <boost/cstdint.hpp>
-#include <boost/algorithm/string.hpp> 
 #include <string>
-#include <iostream>
-#include <iomanip>
 #include <QString>
 
 
@@ -27,6 +24,9 @@
 #define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
+
+#define DOUBLE_EQUALITY_BARRIER 10e-8
+#define FLOAT_EQUALITY_BARRIER  10e-5
 
 /**
  * @file
@@ -79,6 +79,6 @@ namespace biker_tests
     bool check_equality(std::string message, S a, T b);
 }
 
-std::ostream& operator<<(std::ostream& os, QString qs);
+std::ostream& operator<<(std::ostream& os, const QString& qs);
 
 #endif //TESTS_HPP 

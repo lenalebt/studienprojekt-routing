@@ -6,6 +6,7 @@
 #include <QVector>
 #include <iostream>
 #include <boost/cstdint.hpp>
+#include "tests.hpp"
 
 /**
  * @brief Eine OSMNode stellt einen Knoten nach dem OSM-Datenmodell im Speicher dar.
@@ -28,26 +29,26 @@ public:
     /**
      * @brief Erstellt eine OSMNode mit Standardwerten für die Position und <code>id==0</code>.
      */
-    OSMNode() : GPSPosition(), id(0), properties(QList<OSMProperty>()) {}
+    OSMNode() : GPSPosition(), id(0), properties(QVector<OSMProperty>()) {}
     /**
      * @brief Erstellt eine OSMNode mit den entsprechenden übergebenen Werten und leerer Eigenschaftenliste.
      * @param id Die ID des Knotens
      * @param pos Die GPSPosition des Knotens
      */
-    OSMNode(boost::uint64_t id, const GPSPosition& pos) : GPSPosition(pos), id(id), properties(props), properties() {}
+    OSMNode(boost::uint64_t id, const GPSPosition& pos) : GPSPosition(pos), id(id), properties(QVector<OSMProperty>()) {}
     /**
      * @brief Erstellt eine OSMNode mit den entsprechenden übergebenen Werten.
      * @param id Die ID des Knotens
      * @param pos Die GPSPosition des Knotens
      * @param props Die Eigenschaftenliste des Knotens
      */
-    OSMNode(boost::uint64_t id, const GPSPosition& pos, QList<OSMProperty> props) : GPSPosition(pos), id(id), properties(props) {}
+    OSMNode(boost::uint64_t id, const GPSPosition& pos, QVector<OSMProperty> props) : GPSPosition(pos), id(id), properties(props) {}
     ~OSMNode() {}
     /**
      * @brief Gibt die Eigenschaftenliste des Knotens zurück.
      * @return die Eigenschaftenliste
      */
-    QList<OSMProperty> getProperties() const {return properties;}
+    QVector<OSMProperty> getProperties() const {return properties;}
     /**
      * @brief Fügt eine OSMProperty der Eigenschaftenliste hinzu.
      * @param prop Die Eigenschaft
@@ -62,7 +63,25 @@ public:
      * @brief Setzt die ID des Knotens.
      * @param id Die ID des Knotens.
      */
-    void setID(boost::uint64_t id) {this->id = id;}
+    void setID(const boost::uint64_t id) {this->id = id;}
 };
+
+/**
+ * @brief Vergleicht 2 OSMNodes miteinander
+ * @return Ob die beiden OSMNodes gleich sind
+ */
+bool operator==(const OSMNode& p1, const OSMNode& p2);
+/**
+ * @brief Gibt eine OSMNode auf einem Ausgabestrom aus.
+ */
+std::ostream& operator<<(std::ostream& os, const OSMNode& p);
+
+namespace biker_tests
+{
+    /**
+     * @todo Implementieren, dieser Test ist noch leer.
+     */
+    int testOSMNode();
+}
 
 #endif // OSMNODE_HPP

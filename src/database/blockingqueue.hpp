@@ -3,6 +3,7 @@
 
 #include <QMutex>
 #include <QQueue>
+#include "tests.hpp"
 
 
 /**
@@ -59,7 +60,6 @@ public:
  * @author Lena Brüder
  * @date 2011-11-07
  * @copyright GNU GPL v3
- * @todo Implementierung fehlt
  * @todo Bei Doxygen-see-Kommentaren: Wie macht man da Links?
  * @ingroup database
  */
@@ -85,6 +85,7 @@ public:
      * zurück, wenn die Queue zerstört wurde (-> destroyQueue()).
      * 
      * @return Das Element am Anfang der Queue
+     * @todo Implementierung fehlt
      */
     BlockingQueueElement<T> dequeue ();
     /**
@@ -97,6 +98,7 @@ public:
      * @param t Das Element, das zur Queue hinzugefügt werden soll
      * @return Ob das Hinzufügen erfolgreich war
      * @see destroyQueue()
+     * @todo Implementierung fehlt
      */
     bool enqueue ( const T & t );
     /**
@@ -104,14 +106,24 @@ public:
      * @remarks Diese Funktion ist bei Zugriffen auf Threads evtl. wertlos.
      * @return Ob die Queue aktuell leer ist.
      * @see destroyQueue()
+     * @todo Implementierung fehlt
      */
     bool isEmpty();
     /**
      * @brief Zerstört die Queue und sorgt dafür, dass alle
      *  blockierenden Zugriffe abgebrochen werden.
+     * @todo Implementierung fehlt
      */
     void destroyQueue();
 };
 
+
+namespace biker_tests
+{
+    /**
+     * @todo Implementieren
+     */
+    int testBlockingQueue();
+}
 
 #endif //BLOCKINGQUEUE_HPP

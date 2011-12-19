@@ -7,7 +7,7 @@ PROJECT(biker)
 
 #Hier Versionsnummer setzen
 SET (biker_VERSION_MAJOR 0)
-SET (biker_VERSION_MINOR 1)
+SET (biker_VERSION_MINOR 02)
 
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
 MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
@@ -38,12 +38,14 @@ SET(CMAKE_MODULE_PATH
 #Qt-Einstellungen hier vornehmen.
 SET(QT_USE_QTNETWORK TRUE)
 SET(QT_USE_QTXML TRUE)
-SET(QT_USE_QTSQL TRUE)
+SET(QT_USE_QTGUI FALSE)
+#SET(QT_USE_QTSQL TRUE)
 
 #Qt für ganz viel Krams
 FIND_PACKAGE(Qt4 4.7 REQUIRED)
 #Spatialite für die Datenbank
 FIND_PACKAGE(SPATIALITE REQUIRED)
+FIND_PACKAGE(SQLITE3 REQUIRED)
 #ZZipLib zum Entpacken von ZIP-Archiven
 FIND_PACKAGE(ZZIP REQUIRED)
 #Boost für Kommandozeilenoptionen und so
@@ -73,11 +75,20 @@ SET(
     src/dataprimitives/gpsroute.cpp
     src/dataprimitives/routingedge.cpp
     src/dataprimitives/routingnode.cpp
+    src/dataprimitives/osmnode.cpp
+    src/dataprimitives/osmway.cpp
+    src/dataprimitives/osmedge.cpp
+    src/dataprimitives/osmturnrestriction.cpp
+    src/dataprimitives/osmproperty.cpp
     
     #src/database/
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
+    src/database/temporarydatabase.cpp
+    
+    #src/database/parser
+    src/database/parser/osmparser.cpp
     
     #src/routing/
     src/routing/routingmetric.cpp
@@ -97,8 +108,9 @@ SET(
     src/dataprimitives/gpsroute.hpp
     src/dataprimitives/osmproperty.hpp
     src/dataprimitives/osmnode.hpp
-    src/dataprimitives/osmrelation.hpp
+    src/dataprimitives/osmturnrestriction.hpp
     src/dataprimitives/osmway.hpp
+    src/dataprimitives/osmedge.hpp
     src/dataprimitives/routingnode.hpp
     src/dataprimitives/routingedge.hpp
     
@@ -107,7 +119,10 @@ SET(
     src/database/database.hpp
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
+    src/database/temporarydatabase.hpp
     
+    #src/database/parser
+    src/database/parser/osmparser.hpp
     
     #src/routing/
     src/routing/routingmetric.hpp
@@ -150,6 +165,7 @@ INCLUDE_DIRECTORIES(
     ${Boost_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
+    ${SQLITE_INCLUDE_DIRS}
     src/
     src/routing/
     src/dataprimitives/
@@ -184,6 +200,9 @@ IF(DOXYGEN_FOUND)
     ENDIF()
     ADD_DEPENDENCIES(doc doxygen)
 ENDIF()
+
+#Dem Quelltext sagen, wo die spatialite-library ist
+ADD_DEFINITIONS(-DSPATIALITE_LIB=${SPATIALITE_LIBRARY})
 
 #Hier die Dateien eintragen, die durch den moc müssen
 #Das sind vor allem jene, in denen Q_OBJECT steht.
@@ -221,7 +240,18 @@ ADD_TEST(basename                         "biker" "--test" "basename")
 ADD_TEST(routingedge                      "biker" "--test" "routingedge")
 ADD_TEST(gpsposition                      "biker" "--test" "gpsposition")
 ADD_TEST(routingnode                      "biker" "--test" "routingnode")
+ADD_TEST(osmnode                          "biker" "--test" "osmnode")
+ADD_TEST(osmway                           "biker" "--test" "osmway")
+ADD_TEST(osmedge                          "biker" "--test" "osmedge")
+ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
+ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
+ADD_TEST(osmparser                        "biker" "--test" "osmparser")
+ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
+ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
+ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
+ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
+ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 
 
 #Zum Erstellen von automatischen Installationspaketen
@@ -294,8 +324,10 @@ TARGET_LINK_LIBRARIES(biker
     ${Boost_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
+    ${SQLITE3_LIBRARIES}
     )
 
 INSTALL (TARGETS biker
     DESTINATION bin
     )
+

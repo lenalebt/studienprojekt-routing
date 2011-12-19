@@ -76,8 +76,9 @@ public:
     /**
      * @brief Legt einen Knoten in der Datenbank ab.
      * @param node Ein Knoten, der in der Datenbank abgelegt wird
+     * @return Ob Speichern erfolgreich war
      */
-    virtual void saveNode(const RoutingNode& node)=0;
+    virtual bool saveNode(const RoutingNode& node)=0;
     
     /**
      * @brief Gibt alle Kanten zurück, die von dem Knoten mit angegebener ID
@@ -107,20 +108,22 @@ public:
      * @return Die Kante, die herausgesucht werden sollte. Wenn die Kante nicht gefunden werden konnte
      *      enthält der shared_ptr einen Nullzeiger.
      */
-    virtual boost::shared_ptr<RoutingEdge> getEdgesByEdgeID(boost::uint64_t edgeID)=0;
+    virtual boost::shared_ptr<RoutingEdge> getEdgeByEdgeID(boost::uint64_t edgeID)=0;
     
     /**
      * @brief Speichert die übergebene Kante in der Datenbank.
      * @param edge Die Kante, die in der Datenbank abgelegt werden soll.
+     * @return Ob Speichern erfolgreich war.
      */
-    virtual void saveEdge(const RoutingEdge& edge)=0;
+    virtual bool saveEdge(const RoutingEdge& edge)=0;
     
     /**
      * @brief Speichert die übergebene Kante in der Datenbank und legt auch den Straßennamen ab.
      * @param edge Die Kante, die in der Datenbank abgelegt werden soll.
      * @param name Der Name der Straße, zu der diese Kante gehört.
+     * @return Ob Speichern erfolgreich war.
      */
-    virtual void saveEdge(const RoutingEdge& edge, QString name)=0;
+    virtual bool saveEdge(const RoutingEdge& edge, QString name)=0;
     
     /**
      * @brief Gibt zu einer angegebenen Kante den Namen der Straße zurück, sofern es einen gibt.

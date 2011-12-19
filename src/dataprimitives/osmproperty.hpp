@@ -74,4 +74,16 @@ public:
     bool operator==(const OSMProperty& prop) const;
 };
 
+std::ostream& operator<<(std::ostream& os, const OSMProperty& prop);
+
+
+namespace biker_tests
+{
+    /**
+     * @todo Implementieren, dieser Test ist noch leer.
+     */
+    int testOSMProperty();
+} 
+
+
 #endif // OSMPROPERTY_HPP
