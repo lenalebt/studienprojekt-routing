@@ -131,6 +131,11 @@ public:
      */
     virtual QString getStreetName(const RoutingEdge& edge)=0;
     
+	/**
+	 * @brief Entfernt eine bestimmte Kante aus der Datenbank.
+	 * @return Ob das Loeschen erfolgreich war, oder nicht.
+	 */
+    virtual bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)=0;
 };
 
 #endif //DATABASE_HPP 

@@ -15,6 +15,7 @@ private:
     sqlite3_stmt* _getEdgeStatementID;
     sqlite3_stmt* _getEdgeStatementStartNode;
     sqlite3_stmt* _getEdgeStatementEndNode;
+    sqlite3_stmt* _delteEdgeStatement;
     
     /**
      * @brief Erstellt die Tabellen in der Datenbank
@@ -40,6 +41,7 @@ public:
     bool saveEdge(const RoutingEdge& edge);
     /** @todo Speichern von Straßen implementieren */
     bool saveEdge(const RoutingEdge& edge, QString name);
+    bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
     /** @todo implementieren */
     QString getStreetName(const RoutingEdge& edge);
 	~SpatialiteDatabaseConnection();

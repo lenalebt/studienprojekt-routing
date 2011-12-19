@@ -156,7 +156,7 @@ public:
      * @return Eine Liste der entsprechenden Knoten
      * @todo implementieren
      */
-    QVector<boost::shared_ptr<OSMNode> > getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID);
+    QVector<boost::shared_ptr<OSMNode> > getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, boost::uint16_t maxCount=1000);
     /**
      * @brief Lädt eine Liste von Kanten nach Angabe des Startknotens
      */
@@ -168,6 +168,7 @@ public:
     
     /**
      * @brief Lädt eine OSMTurnRestriction aus der DB über die Angabe der via-ID (Knoten).
+     * @todo Sollte in der To- und from-ID Knoten zurueckgeben
      */
     QVector<boost::shared_ptr<OSMTurnRestriction> > getOSMTurnRestrictionByViaID(boost::uint64_t viaID);
     

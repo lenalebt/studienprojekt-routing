@@ -11,7 +11,7 @@
 SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
     _saveEdgeStatement(NULL), _getEdgeStatementID(NULL), _getEdgeStatementStartNode(NULL),
-    _getEdgeStatementEndNode(NULL)
+    _getEdgeStatementEndNode(NULL), _deleteEdgeStatement(NULL)
 {
     
 }
@@ -547,7 +547,6 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
         return false;
     }
 
-
     rc = sqlite3_reset(_saveEdgeStatement);
     if(rc != SQLITE_OK)
     {
@@ -563,6 +562,11 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString nam
     //TODO: Straßenname auch speichern.
 }
 
+bool SpatialiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
+{
+	return false;
+	//TODO
+}
 
 QString SpatialiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
 {
