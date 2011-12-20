@@ -1,4 +1,5 @@
 #include "temporarydatabase.hpp"
+#include "sqlite_functions.hpp"
 
 #include <QFile>
 #include <QStringList>
@@ -277,32 +278,9 @@ boost::shared_ptr<OSMProperty> TemporaryOSMDatabaseConnection::getOSMPropertyByI
     // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
     while ((rc = sqlite3_step(_getOSMPropertyStatement)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
-        
         
         //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
         OSMProperty* newproperty = new OSMProperty(
@@ -348,30 +326,8 @@ boost::uint64_t TemporaryOSMDatabaseConnection::getLastInsertRowID()
     // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
     while ((rc = sqlite3_step(_getLastInsertRowIDStatement)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
         
         
@@ -489,30 +445,8 @@ boost::shared_ptr<OSMNode> TemporaryOSMDatabaseConnection::getOSMNodeByID(boost:
     // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
     while ((rc = sqlite3_step(_getOSMNodeByIDStatement)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
         
         
@@ -558,30 +492,8 @@ boost::shared_ptr<OSMNode> TemporaryOSMDatabaseConnection::getOSMNodeByID(boost:
     // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
     while ((rc = sqlite3_step(_getOSMNodePropertyStatement)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
         
         
@@ -640,30 +552,8 @@ QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodes
     // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
     while ((rc = sqlite3_step(_getManyOSMNodesByIDStatement)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
         
         //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
@@ -713,32 +603,9 @@ QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodes
         // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
         while ((rc = sqlite3_step(_getOSMNodePropertyStatement)) != SQLITE_DONE)
         {
-            bool breakLoop = false;
             //Es können verschiedene Fehler aufgetreten sein.
-            switch (rc)
-            {
-                case SQLITE_ROW:
-                    //noch eine Zeile verfügbar: Gut. Weitermachen.
-                    break;
-                case SQLITE_ERROR:
-                    breakLoop=true;
-                    std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                    break;
-                case SQLITE_BUSY:
-                    breakLoop=true;
-                    std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                    break;
-                case SQLITE_LOCKED:
-                    breakLoop=true;
-                    std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                    break;
-                default:
-                    breakLoop = true;
-                    std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-            }
-            if (breakLoop)
-                break;
-            
+            if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
             
             //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
             boost::uint64_t propertyID = sqlite3_column_int64(_getOSMNodePropertyStatement, 0);
@@ -837,30 +704,8 @@ QVector<boost::shared_ptr<OSMTurnRestriction> > TemporaryOSMDatabaseConnection::
     // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
     while ((rc = sqlite3_step(_getOSMTurnRestrictionByViaIDStatement)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
         
         
