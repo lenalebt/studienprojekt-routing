@@ -3,6 +3,7 @@
 
 #include <boost/cstdint.hpp>
 #include <iostream>
+#include "tests.hpp"
 
 /**
  * @brief Eine OSMTurnRestriction stellt eine Relation mit Abbiegebeschränkungen im OSM-Datenmodell im Speicher dar.
