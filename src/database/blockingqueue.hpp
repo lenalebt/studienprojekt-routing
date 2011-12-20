@@ -64,7 +64,7 @@ public:
      * @brief Gibt an, ob die Queue aktuell leer ist.
      * 
      * Wenn die Queue zerstört wurde, gibt die Funktion
-     * <code>false</code> zurück.
+     * <code>true</code> zurück.
      * 
      * @remarks Diese Funktion ist bei Zugriffen auf Threads evtl. wertlos.
      * @return Ob die Queue aktuell leer ist.

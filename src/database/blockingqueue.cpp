@@ -1,9 +1,9 @@
 #include "blockingqueue.hpp"
 
 template <typename T> 
-BlockingQueueElement<T> BlockingQueue<T>::dequeue()
+bool BlockingQueue<T>::dequeue(T& t)
 {
-    return BlockingQueueElement<T>();
+    return false;
 }
 
 template <typename T> 
