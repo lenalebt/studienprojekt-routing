@@ -179,7 +179,7 @@ public:
      * @return Eine Liste der entsprechenden Knoten
      * @todo testen
      */
-    QVector<boost::shared_ptr<OSMNode> > getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, boost::uint16_t maxCount=1000);
+    QVector<boost::shared_ptr<OSMNode> > getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, int maxCount=1000);
     
     /**
      * @brief Lädt eine Liste von Kanten nach Angabe des Startknotens

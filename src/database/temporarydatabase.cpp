@@ -612,14 +612,14 @@ boost::shared_ptr<OSMNode> TemporaryOSMDatabaseConnection::getOSMNodeByID(boost:
     return node;
 }
 
-QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, boost::uint16_t maxCount)
+QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, int maxCount)
 {
     QVector<boost::shared_ptr<OSMNode> > nodeList;
       
     int rc;
     if(_getManyOSMNodesByIDStatement == NULL)
     {		
-        rc = sqlite3_prepare_v2(_db, "SELECT ID, LAT, LON FROM NODES WHERE ID>=@MINID AND ID<=@MAXID ORDER BY ID LIMIT @LIMIT;",
+        rc = sqlite3_prepare_v2(_db, "SELECT ID, LAT, LON FROM NODES WHERE ID>=@MINID AND ID<=@MAXID ORDER BY ID LIMIT @MAXCOUNT;",
             -1, &_getManyOSMNodesByIDStatement, NULL);
         if (rc != SQLITE_OK)
         {	
@@ -629,13 +629,13 @@ QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodes
     }
 
     // Parameter an das Statement binden
-    sqlite3_bind_int64(_getOSMNodeByIDStatement, 1, fromNodeID);
-    sqlite3_bind_int64(_getOSMNodeByIDStatement, 2, toNodeID);
+    sqlite3_bind_int64(_getManyOSMNodesByIDStatement, 1, fromNodeID);
+    sqlite3_bind_int64(_getManyOSMNodesByIDStatement, 2, toNodeID);
     //Maximale Anzahl an Ergebnissen. Bei maxCount=0 wird unendlich angenommen.
-    if (maxCount != 0)
-        sqlite3_bind_int64(_getOSMNodeByIDStatement, 3, maxCount);
+    if (maxCount >= 0)
+        sqlite3_bind_int(_getManyOSMNodesByIDStatement, 3, maxCount);
     else
-        sqlite3_bind_int64(_getOSMNodeByIDStatement, 3, -1);
+        sqlite3_bind_int(_getManyOSMNodesByIDStatement, 3, -1);
 
     // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
     while ((rc = sqlite3_step(_getManyOSMNodesByIDStatement)) != SQLITE_DONE)
@@ -666,7 +666,6 @@ QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodes
         if (breakLoop)
             break;
         
-        
         //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
         OSMNode* newNode = new OSMNode(
                         sqlite3_column_int64(_getManyOSMNodesByIDStatement, 0),
@@ -676,7 +675,7 @@ QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodes
                         );
         nodeList << boost::shared_ptr<OSMNode>(newNode);
     }
-
+    
     if (rc != SQLITE_DONE)
     {
         std::cerr << "Failed to execute getManyOSMNodesByIDStatement." << " Resultcode: " << rc << std::endl;
@@ -688,8 +687,6 @@ QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodes
     {
         std::cerr << "Failed to reset getManyOSMNodesByIDStatement." << " Resultcode: " << rc << std::endl;
     }
-    
-    //*****************************************************^^drüber müsste alles passen^^*****
     
     //Bis hier sind die Grundeigenschaften des Knotens geladen. Es fehlen die Attribute.
     //Properties laden
@@ -965,16 +962,41 @@ namespace biker_tests
         node.addProperty(property1);
         node.addProperty(property2);
         node.addProperty(property3);
+        OSMNode node2(11, GPSPosition(52.0, 7.0));
+        node2.addProperty(property1);
+        node2.addProperty(property3);
+        OSMNode node3(12, GPSPosition(52.0, 8.0));
+        node3.addProperty(property3);
         
         CHECK(connection.beginTransaction());
         CHECK(connection.saveOSMNode(node));
+        CHECK(connection.saveOSMNode(node2));
+        CHECK(connection.saveOSMNode(node3));
         CHECK(connection.endTransaction());
         
         CHECK_EQ(*connection.getOSMNodeByID(10), node);
+        CHECK_EQ(*connection.getOSMNodeByID(11), node2);
+        CHECK_EQ(*connection.getOSMNodeByID(12), node3);
         
+        QVector<boost::shared_ptr<OSMNode> > nodeList = connection.getOSMNodesByID(0, 100, 1000);
+        CHECK_EQ(nodeList.size(), 3);
+        CHECK_EQ(*nodeList[0], node);
+        CHECK_EQ(*nodeList[1], node2);
+        CHECK_EQ(*nodeList[2], node3);
         
+        QVector<boost::shared_ptr<OSMNode> > nodeList2 = connection.getOSMNodesByID(11, 100, 1000);
+        CHECK_EQ(nodeList2.size(), 2);
+        CHECK_EQ(*nodeList2[0], node2);
+        CHECK_EQ(*nodeList2[1], node3);
+        
+        QVector<boost::shared_ptr<OSMNode> > nodeList3 = connection.getOSMNodesByID(10, 11, 1000);
+        CHECK_EQ(nodeList3.size(), 2);
+        CHECK_EQ(*nodeList3[0], node);
+        CHECK_EQ(*nodeList3[1], node2);
         
         std::cout << "Checking OSMEdge..." << std::endl;
+        OSMEdge edge(10);
+        CHECK(connection.saveOSMEdge(edge));
         //TODO
         
         std::cout << "Checking OSMTurnRestriction..." << std::endl;
@@ -992,6 +1014,8 @@ namespace biker_tests
         OSMTurnRestriction r5( 3,  2,  3, true, false, false, false );
         CHECK(connection.saveOSMTurnRestriction(r5));
         OSMTurnRestriction r6( 3,  2,  3, true, false, false, false );
+        std::cout << "Hier erwartet: Resultcode 19 (-> Restriction failed)" << std::endl;
+        //Speichern wird fehlschlagen, weil so ein Ding schon in der DB liegt.
         CHECK(!connection.saveOSMTurnRestriction(r6));
         CHECK(connection.endTransaction());
         CHECK_EQ(turnRestriction, *(connection.getOSMTurnRestrictionByViaID(1)[0]));
