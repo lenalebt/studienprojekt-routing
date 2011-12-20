@@ -40,6 +40,7 @@ private:
     
     sqlite3_stmt* _saveOSMPropertyStatement;
     sqlite3_stmt* _getOSMPropertyStatement;
+    sqlite3_stmt* _getOSMPropertyIDStatement;
     
     sqlite3_stmt* _saveOSMNodeStatement;
     sqlite3_stmt* _getOSMNodeByIDStatement;
@@ -81,6 +82,13 @@ private:
      * @return Die entsprechende Eigenschaft als OSMProperty-Objekt
      */
     boost::shared_ptr<OSMProperty> getOSMPropertyByID(boost::uint64_t propertyID);
+    
+    /**
+     * @brief Schaut in der DB nach, welche ID eine Eigenschaft hat
+     * @param property Die Eigenschaft, dessen ID herausgesucht werden soll
+     * @return Die ID, wenn sie gefunden wurde - 0, sonst.
+     */
+    boost::uint64_t getOSMPropertyID(const OSMProperty& property);
     
     /**
      * @brief Gibt die ID der letzten Insert-Operation zurück.

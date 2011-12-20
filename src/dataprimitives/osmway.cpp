@@ -43,9 +43,11 @@ QVector<OSMProperty> OSMWay::noBikeOnewayProperties()
 {
     static QVector<OSMProperty> retVec;
     if (retVec.isEmpty())
-    {
+    {   //fehlt: bicycle:forward=yes/no und bicycle:backward=yes/no
         retVec << OSMProperty("oneway:bicycle", "no");
         retVec << OSMProperty("cycleway", "opposite");
+        retVec << OSMProperty("cycleway", "opposite_lane");
+        retVec << OSMProperty("cycleway", "opposite_track");
     }
     return retVec;
 }
