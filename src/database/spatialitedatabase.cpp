@@ -1,6 +1,7 @@
 #include "spatialitedatabase.hpp"
 #include <QStringList>
 #include <QFile>
+#include <sqlite_functions.hpp>
 
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_int.hpp>
@@ -194,32 +195,9 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getNodeStatement)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
-        
         
         //Erstelle einen neuen Knoten auf dem Heap.
         //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
@@ -310,32 +288,9 @@ SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getEdgeStatementStartNode)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
-        
         
         //Erstelle einen neuen Knoten auf dem Heap.
         //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
@@ -369,7 +324,7 @@ SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 QVector<boost::shared_ptr<RoutingEdge> >
 SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 {
-        QVector<boost::shared_ptr<RoutingEdge> > edgeList;
+    QVector<boost::shared_ptr<RoutingEdge> > edgeList;
       
 	int rc;
 	if(_getEdgeStatementEndNode == NULL)
@@ -389,30 +344,8 @@ SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getEdgeStatementEndNode)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
         
         
@@ -468,30 +401,8 @@ SpatialiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getEdgeStatementID)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
         
         
