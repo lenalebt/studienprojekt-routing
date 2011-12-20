@@ -43,6 +43,7 @@ private:
     
     sqlite3_stmt* _saveOSMNodeStatement;
     sqlite3_stmt* _getOSMNodeByIDStatement;
+    sqlite3_stmt* _getManyOSMNodesByIDStatement;
     sqlite3_stmt* _saveOSMNodePropertyStatement;
     sqlite3_stmt* _getOSMNodePropertyStatement;
     
@@ -173,7 +174,7 @@ public:
      * @param fromNodeID Die ID des ersten Knotens, der geladen wird (einschließlich)
      * @param toNodeID Die ID des letzten Knotens, der geladen wird (einschließlich)
      * @param maxCount Die Anzahl der Knoten, die maximal gleichzeitig
-     *      geladen werden
+     *      geladen werden. Bei 0 existiert kein Limit.
      * @return Eine Liste der entsprechenden Knoten
      * @todo implementieren
      */

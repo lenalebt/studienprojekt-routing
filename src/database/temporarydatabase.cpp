@@ -7,6 +7,7 @@ TemporaryOSMDatabaseConnection::TemporaryOSMDatabaseConnection() :
     _dbOpen(false), _db(NULL), _getLastInsertRowIDStatement(NULL),
     _saveOSMPropertyStatement(NULL), _getOSMPropertyStatement(NULL),
     _saveOSMNodeStatement(NULL), _getOSMNodeByIDStatement(NULL),
+    _getManyOSMNodesByIDStatement(NULL),
     _saveOSMNodePropertyStatement(NULL), _getOSMNodePropertyStatement(NULL),
     _saveOSMEdgeStatement(NULL), _getOSMEdgeStatement(NULL),
     _saveOSMEdgePropertyStatement(NULL), _getOSMEdgePropertyStatement(NULL),
@@ -28,6 +29,8 @@ TemporaryOSMDatabaseConnection::~TemporaryOSMDatabaseConnection()
 		sqlite3_finalize(_saveOSMNodeStatement);
     if(_getOSMNodeByIDStatement != NULL)
 		sqlite3_finalize(_getOSMNodeByIDStatement);
+    if(_getManyOSMNodesByIDStatement != NULL)
+		sqlite3_finalize(_getManyOSMNodesByIDStatement);
     if(_saveOSMNodePropertyStatement != NULL)
 		sqlite3_finalize(_saveOSMNodePropertyStatement);
     if(_getOSMNodePropertyStatement != NULL)
@@ -607,6 +610,165 @@ boost::shared_ptr<OSMNode> TemporaryOSMDatabaseConnection::getOSMNodeByID(boost:
     }
     
     return node;
+}
+
+QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, boost::uint16_t maxCount)
+{
+    QVector<boost::shared_ptr<OSMNode> > nodeList;
+      
+    int rc;
+    if(_getManyOSMNodesByIDStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT ID, LAT, LON FROM NODES WHERE ID>=@MINID AND ID<=@MAXID ORDER BY ID LIMIT @LIMIT;",
+            -1, &_getManyOSMNodesByIDStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getManyOSMNodesByIDStatement." << " Resultcode: " << rc << std::endl;
+            return QVector<boost::shared_ptr<OSMNode> >();
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_getOSMNodeByIDStatement, 1, fromNodeID);
+    sqlite3_bind_int64(_getOSMNodeByIDStatement, 2, toNodeID);
+    //Maximale Anzahl an Ergebnissen. Bei maxCount=0 wird unendlich angenommen.
+    if (maxCount != 0)
+        sqlite3_bind_int64(_getOSMNodeByIDStatement, 3, maxCount);
+    else
+        sqlite3_bind_int64(_getOSMNodeByIDStatement, 3, -1);
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getManyOSMNodesByIDStatement)) != SQLITE_DONE)
+    {
+        bool breakLoop = false;
+        //Es können verschiedene Fehler aufgetreten sein.
+        switch (rc)
+        {
+            case SQLITE_ROW:
+                //noch eine Zeile verfügbar: Gut. Weitermachen.
+                break;
+            case SQLITE_ERROR:
+                breakLoop=true;
+                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
+                break;
+            case SQLITE_BUSY:
+                breakLoop=true;
+                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
+                break;
+            case SQLITE_LOCKED:
+                breakLoop=true;
+                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
+                break;
+            default:
+                breakLoop = true;
+                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
+        }
+        if (breakLoop)
+            break;
+        
+        
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        OSMNode* newNode = new OSMNode(
+                        sqlite3_column_int64(_getManyOSMNodesByIDStatement, 0),
+                        GPSPosition(
+                        sqlite3_column_double(_getManyOSMNodesByIDStatement, 1),
+                        sqlite3_column_double(_getManyOSMNodesByIDStatement, 2))
+                        );
+        nodeList << boost::shared_ptr<OSMNode>(newNode);
+    }
+
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Failed to execute getManyOSMNodesByIDStatement." << " Resultcode: " << rc << std::endl;
+        return QVector<boost::shared_ptr<OSMNode> >();
+    }
+
+    rc = sqlite3_reset(_getManyOSMNodesByIDStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset getManyOSMNodesByIDStatement." << " Resultcode: " << rc << std::endl;
+    }
+    
+    //*****************************************************^^drüber müsste alles passen^^*****
+    
+    //Bis hier sind die Grundeigenschaften des Knotens geladen. Es fehlen die Attribute.
+    //Properties laden
+    if(_getOSMNodePropertyStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT PROPERTYID FROM NODEPROPERTYID WHERE NODEID=?;",
+            -1, &_getOSMNodePropertyStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getOSMNodePropertyStatement." << " Resultcode: " << rc << std::endl;
+            return QVector<boost::shared_ptr<OSMNode> >();
+        }
+    }
+    
+    //Eigenschaften von allen Nodes laden. Das sind viele!
+    for (QVector<boost::shared_ptr<OSMNode> >::iterator itNode = nodeList.begin();
+        itNode != nodeList.end(); itNode++)
+    {
+        // Parameter an das Statement binden
+        sqlite3_bind_int64(_getOSMNodePropertyStatement, 1, (*itNode)->getID());
+        
+        QVector<boost::uint64_t> propertyIDs;
+
+        // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+        while ((rc = sqlite3_step(_getOSMNodePropertyStatement)) != SQLITE_DONE)
+        {
+            bool breakLoop = false;
+            //Es können verschiedene Fehler aufgetreten sein.
+            switch (rc)
+            {
+                case SQLITE_ROW:
+                    //noch eine Zeile verfügbar: Gut. Weitermachen.
+                    break;
+                case SQLITE_ERROR:
+                    breakLoop=true;
+                    std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
+                    break;
+                case SQLITE_BUSY:
+                    breakLoop=true;
+                    std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
+                    break;
+                case SQLITE_LOCKED:
+                    breakLoop=true;
+                    std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
+                    break;
+                default:
+                    breakLoop = true;
+                    std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
+            }
+            if (breakLoop)
+                break;
+            
+            
+            //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+            boost::uint64_t propertyID = sqlite3_column_int64(_getOSMNodePropertyStatement, 0);
+            propertyIDs << propertyID;
+        }
+
+        if (rc != SQLITE_DONE)
+        {
+            std::cerr << "Failed to execute getOSMNodePropertyStatement." << " Resultcode: " << rc << std::endl;
+            return QVector<boost::shared_ptr<OSMNode> >();
+        }
+
+        rc = sqlite3_reset(_getOSMNodePropertyStatement);
+        if(rc != SQLITE_OK)
+        {
+            std::cerr << "Failed to reset getOSMNodePropertyStatement." << " Resultcode: " << rc << std::endl;
+        }
+        //Bis hier: Liste mit Eigenschaften-IDs laden.
+        
+        //Eigenschaften selbst laden
+        for (QVector<boost::uint64_t>::const_iterator itProperty = propertyIDs.constBegin(); itProperty != propertyIDs.constEnd(); itProperty++)
+        {
+            (*itNode)->addProperty(*getOSMPropertyByID(*itProperty));
+        }
+    }
+    
+    return nodeList;
 }
 
 
