@@ -148,6 +148,7 @@ public:
      * @brief Legt eine OSMEdge in der temporären Datenbank ab.
      * @param edge Die OSMEdge, die abgelegt wird.
      * @return Ob das Ablegen in der Datenbank erfolgreich war, oder nicht
+     * @todo testen
      */
     bool saveOSMEdge(const OSMEdge& edge);
     /**
@@ -176,7 +177,7 @@ public:
      * @param maxCount Die Anzahl der Knoten, die maximal gleichzeitig
      *      geladen werden. Bei 0 existiert kein Limit.
      * @return Eine Liste der entsprechenden Knoten
-     * @todo implementieren
+     * @todo testen
      */
     QVector<boost::shared_ptr<OSMNode> > getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, boost::uint16_t maxCount=1000);
     
