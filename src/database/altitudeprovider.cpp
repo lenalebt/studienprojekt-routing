@@ -28,7 +28,7 @@ double SRTMProvider::getAltitude(double lat, double lon)
     
 
     if (fileList.contains(latLonToIndex(intlat, intlon))){
-		QFile zipfile(_cachedir+fileList[latLonToIndex(intlat, intlon])
+		QFile zipfile(_cachedir+fileList[latLonToIndex(intlat, intlon)]);
         if(!zipfile.open(QIODevice::ReadOnly)){
             QString altZipDir =  fileList[latLonToIndex(intlat, intlon)]; // Url ab Kontinentverzeichnis bis .hgt.zip
             //Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind. //TODO
