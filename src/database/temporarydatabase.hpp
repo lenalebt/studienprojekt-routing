@@ -49,7 +49,8 @@ private:
     sqlite3_stmt* _getOSMNodePropertyStatement;
     
     sqlite3_stmt* _saveOSMEdgeStatement;
-    sqlite3_stmt* _getOSMEdgeStatement;
+    sqlite3_stmt* _getOSMEdgeByStartNodeIDStatement;
+    sqlite3_stmt* _getOSMEdgeByEndNodeIDStatement;
     sqlite3_stmt* _saveOSMEdgePropertyStatement;
     sqlite3_stmt* _getOSMEdgePropertyStatement;
     

@@ -11,7 +11,9 @@ TemporaryOSMDatabaseConnection::TemporaryOSMDatabaseConnection() :
     _saveOSMNodeStatement(NULL), _getOSMNodeByIDStatement(NULL),
     _getManyOSMNodesByIDStatement(NULL),
     _saveOSMNodePropertyStatement(NULL), _getOSMNodePropertyStatement(NULL),
-    _saveOSMEdgeStatement(NULL), _getOSMEdgeStatement(NULL),
+    _saveOSMEdgeStatement(NULL),
+    _getOSMEdgeByStartNodeIDStatement(NULL),
+    _getOSMEdgeByEndNodeIDStatement(NULL),
     _saveOSMEdgePropertyStatement(NULL), _getOSMEdgePropertyStatement(NULL),
     _saveOSMTurnRestrictionStatement(NULL), _getOSMTurnRestrictionByViaIDStatement(NULL)
 {
@@ -23,12 +25,14 @@ TemporaryOSMDatabaseConnection::~TemporaryOSMDatabaseConnection()
     //Prepared Statements löschen
     if(_getLastInsertRowIDStatement != NULL)
 		sqlite3_finalize(_getLastInsertRowIDStatement);
+    
     if(_saveOSMPropertyStatement != NULL)
 		sqlite3_finalize(_saveOSMPropertyStatement);
     if(_getOSMPropertyStatement != NULL)
 		sqlite3_finalize(_getOSMPropertyStatement);
     if(_getOSMPropertyIDStatement != NULL)
 		sqlite3_finalize(_getOSMPropertyIDStatement);
+    
     if(_saveOSMNodeStatement != NULL)
 		sqlite3_finalize(_saveOSMNodeStatement);
     if(_getOSMNodeByIDStatement != NULL)
@@ -39,14 +43,18 @@ TemporaryOSMDatabaseConnection::~TemporaryOSMDatabaseConnection()
 		sqlite3_finalize(_saveOSMNodePropertyStatement);
     if(_getOSMNodePropertyStatement != NULL)
 		sqlite3_finalize(_getOSMNodePropertyStatement);
+    
     if(_saveOSMEdgeStatement != NULL)
 		sqlite3_finalize(_saveOSMEdgeStatement);
-    if(_getOSMEdgeStatement != NULL)
-		sqlite3_finalize(_getOSMEdgeStatement);
+    if(_getOSMEdgeByStartNodeIDStatement != NULL)
+		sqlite3_finalize(_getOSMEdgeByStartNodeIDStatement);
+    if(_getOSMEdgeByEndNodeIDStatement != NULL)
+		sqlite3_finalize(_getOSMEdgeByEndNodeIDStatement);
     if(_saveOSMEdgePropertyStatement != NULL)
 		sqlite3_finalize(_saveOSMEdgePropertyStatement);
     if(_getOSMEdgePropertyStatement != NULL)
 		sqlite3_finalize(_getOSMEdgePropertyStatement);
+    
     if(_saveOSMTurnRestrictionStatement != NULL)
 		sqlite3_finalize(_saveOSMTurnRestrictionStatement);
     if(_getOSMTurnRestrictionByViaIDStatement != NULL)
@@ -151,7 +159,9 @@ bool TemporaryOSMDatabaseConnection::createTables()
     statements << "CREATE TABLE IF NOT EXISTS NODEPROPERTYID(NODEID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(NODEID, PROPERTYID));";
     statements << "CREATE INDEX IF NOT EXISTS NODES_PROPERTIES_INDEX ON NODEPROPERTYID(NODEID);";
     
-    statements << "CREATE TABLE IF NOT EXISTS EDGES(WAYID INTEGER NOT NULL, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PRIMARY KEY(WAYID, STARTNODE, ENDNODE));";
+    statements << "CREATE TABLE IF NOT EXISTS EDGES(WAYID INTEGER NOT NULL, STARTNODEID INTEGER NOT NULL, ENDNODEID INTEGER NOT NULL, PRIMARY KEY(WAYID, STARTNODEID, ENDNODEID));";
+    statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODEID_INDEX ON EDGES(STARTNODEID);";
+    statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODEID_INDEX ON EDGES(ENDNODEID);";
     statements << "CREATE TABLE IF NOT EXISTS WAYPROPERTYID(WAYID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(WAYID, PROPERTYID));";
     statements << "CREATE INDEX IF NOT EXISTS WAYS_PROPERTIES_INDEX ON WAYPROPERTYID(WAYID);";
     
@@ -653,7 +663,7 @@ QVector<boost::shared_ptr<OSMNode> > TemporaryOSMDatabaseConnection::getOSMNodes
         std::cerr << "Failed to reset getManyOSMNodesByIDStatement." << " Resultcode: " << rc << std::endl;
     }
     
-    //Bis hier sind die Grundeigenschaften des Knotens geladen. Es fehlen die Attribute.
+    //Bis hier sind die Grundeigenschaften der Knoten geladen. Es fehlen die Attribute.
     //Properties laden
     if(_getOSMNodePropertyStatement == NULL)
     {		
@@ -881,6 +891,110 @@ bool TemporaryOSMDatabaseConnection::saveOSMEdge(const OSMEdge& edge)
     return true;
 }
 
+QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByStartNodeID(boost::uint64_t startNodeID)
+{
+    QVector<boost::shared_ptr<OSMEdge> > edgeList;
+      
+    int rc;
+    if(_getOSMEdgeByStartNodeIDStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT WAYID, STARTNODEID, ENDNODEID FROM EDGES WHERE STARTNODEID=@STARTNODEID;",
+            -1, &_getOSMEdgeByStartNodeIDStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getOSMEdgeByStartNodeIDStatement." << " Resultcode: " << rc << std::endl;
+            return QVector<boost::shared_ptr<OSMEdge> >();
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_getOSMEdgeByStartNodeIDStatement, 1, startNodeID);
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getOSMEdgeByStartNodeIDStatement)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+        
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        OSMEdge* newEdge = new OSMEdge(
+                        sqlite3_column_int64(_getOSMEdgeByStartNodeIDStatement, 0),
+                        sqlite3_column_int64(_getOSMEdgeByStartNodeIDStatement, 1),
+                        sqlite3_column_int64(_getOSMEdgeByStartNodeIDStatement, 2),
+                        QVector<OSMProperty>()
+                        );
+        edgeList << boost::shared_ptr<OSMEdge>(newEdge);
+    }
+    
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Failed to execute getOSMEdgeByStartNodeIDStatement." << " Resultcode: " << rc << std::endl;
+        return QVector<boost::shared_ptr<OSMEdge> >();
+    }
+
+    rc = sqlite3_reset(_getOSMEdgeByStartNodeIDStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset getOSMEdgeByStartNodeIDStatement." << " Resultcode: " << rc << std::endl;
+    }
+    
+    //Bis hier sind die Grundeigenschaften der Kanten geladen. Es fehlen die Attribute.
+    //Properties laden
+    if(_getOSMEdgePropertyStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT PROPERTYID FROM WAYPROPERTYID WHERE WAYID=?;",
+            -1, &_getOSMEdgePropertyStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getOSMEdgePropertyStatement." << " Resultcode: " << rc << std::endl;
+            return QVector<boost::shared_ptr<OSMEdge> >();
+        }
+    }
+    
+    //Eigenschaften von allen Nodes laden. Das sind viele!
+    for (QVector<boost::shared_ptr<OSMEdge> >::iterator itEdge = edgeList.begin();
+        itEdge != edgeList.end(); itEdge++)
+    {
+        // Parameter an das Statement binden
+        sqlite3_bind_int64(_getOSMEdgePropertyStatement, 1, (*itEdge)->getID());
+        
+        QVector<boost::uint64_t> propertyIDs;
+
+        // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+        while ((rc = sqlite3_step(_getOSMEdgePropertyStatement)) != SQLITE_DONE)
+        {
+            //Es können verschiedene Fehler aufgetreten sein.
+            if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+            
+            //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+            boost::uint64_t propertyID = sqlite3_column_int64(_getOSMEdgePropertyStatement, 0);
+            propertyIDs << propertyID;
+        }
+
+        if (rc != SQLITE_DONE)
+        {
+            std::cerr << "Failed to execute getOSMEdgePropertyStatement." << " Resultcode: " << rc << std::endl;
+            return QVector<boost::shared_ptr<OSMEdge> >();
+        }
+
+        rc = sqlite3_reset(_getOSMEdgePropertyStatement);
+        if(rc != SQLITE_OK)
+        {
+            std::cerr << "Failed to reset getOSMEdgePropertyStatement." << " Resultcode: " << rc << std::endl;
+        }
+        //Bis hier: Liste mit Eigenschaften-IDs laden.
+        
+        //Eigenschaften selbst laden
+        for (QVector<boost::uint64_t>::const_iterator itProperty = propertyIDs.constBegin(); itProperty != propertyIDs.constEnd(); itProperty++)
+        {
+            (*itEdge)->addProperty(*getOSMPropertyByID(*itProperty));
+        }
+    }
+    
+    return edgeList;
+}
 
 
 
@@ -986,9 +1100,21 @@ namespace biker_tests
         CHECK_EQ(*nodeList3[1], node2);
         
         std::cout << "Checking OSMEdge..." << std::endl;
-        OSMEdge edge(10);
+        CHECK(connection.beginTransaction());
+        OSMEdge edge(10, 13, 14, QVector<OSMProperty>());
         CHECK(connection.saveOSMEdge(edge));
-        //TODO
+        OSMEdge edge2(11, 12, 13, QVector<OSMProperty>());
+        edge2.addProperty(OSMProperty("highway", "primary"));
+        edge2.addProperty(OSMProperty("oneway", "yes"));
+        edge2.addProperty(OSMProperty("oneway:bicycle", "no"));
+        edge2.addProperty(OSMProperty("cycleway", "opposite"));
+        CHECK(connection.saveOSMEdge(edge2));
+        CHECK(connection.endTransaction());
+        
+        QVector<boost::shared_ptr<OSMEdge> > edgeList = connection.getOSMEdgesByStartNodeID(12);
+        CHECK_EQ(edgeList.size(), 1);
+        CHECK_EQ(*edgeList[0], edge2);
+        
         
         std::cout << "Checking OSMTurnRestriction..." << std::endl;
         CHECK(connection.beginTransaction());
@@ -1005,7 +1131,7 @@ namespace biker_tests
         OSMTurnRestriction r5( 3,  2,  3, true, false, false, false );
         CHECK(connection.saveOSMTurnRestriction(r5));
         OSMTurnRestriction r6( 3,  2,  3, true, false, false, false );
-        std::cout << "Hier erwartet: Resultcode 19 (-> Restriction failed)" << std::endl;
+        std::cout << "Hier erwartet: Resultcode 19 (-> Constraint failed)" << std::endl;
         //Speichern wird fehlschlagen, weil so ein Ding schon in der DB liegt.
         CHECK(!connection.saveOSMTurnRestriction(r6));
         CHECK(connection.endTransaction());
