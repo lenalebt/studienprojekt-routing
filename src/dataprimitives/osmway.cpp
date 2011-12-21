@@ -7,8 +7,8 @@ QVector<OSMEdge> OSMWay::getEdgeList(){
     
     if (!memberIDList.isEmpty()){
         QVectorIterator<boost::uint64_t> i(memberIDList);
-        i.toFront();
-        i.next();
+        i.toFront();  // Iterator springt vor den ersten Eintrag in memberIDList
+        i.next();     // Iterator geht einen Schirtt weiter (gibt auch Wert zurück, der hier nicht verwendet wird)
         while (i.hasNext()){
             newEdge.setNodes(i.peekPrevious(), i.next());
             edgeList << newEdge;
