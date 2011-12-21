@@ -162,12 +162,10 @@ namespace biker_tests
         
         
         CHECK_EQ(thread1Result.result(), EXIT_SUCCESS);
-        //CHECK_EQ(thread2Result.result(), EXIT_SUCCESS);
-        //CHECK_EQ(thread3Result.result(), EXIT_SUCCESS);
+        CHECK_EQ(thread2Result.result(), EXIT_SUCCESS);
+        CHECK_EQ(thread3Result.result(), EXIT_SUCCESS);
         //Funktionen unten ausführen mit mehreren Threads, die die Queue füllen und mehreren,
         //die sie leeren.
-        
-        CHECK(false);
         
         return EXIT_SUCCESS;
     }
@@ -190,14 +188,15 @@ namespace biker_tests
     template <typename T>
     int testBlockingQueueDrain(BlockingQueue<T>* queue)
     {
+        int i=0;
         T a;
         bool goOn = true;
         while (goOn)
         {
-            std::cout << "take element" << std::endl;
+            i++;
             goOn = queue->dequeue(a);
-            std::cout << "took element" << std::endl;
         }
+        std::cout << "took " << i << " elements." << std::endl;
         return EXIT_SUCCESS;
     }
 }
