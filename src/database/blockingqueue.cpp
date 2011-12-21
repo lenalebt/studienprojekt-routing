@@ -1,5 +1,6 @@
 #include "blockingqueue.hpp"
 #include <iostream>
+#include <QtConcurrentRun>
 
 template <typename T> 
 bool BlockingQueue<T>::dequeue(T& t)
@@ -9,7 +10,7 @@ bool BlockingQueue<T>::dequeue(T& t)
     bool waitForElement=true;
     while (waitForElement)
     {
-        if (isEmpty())
+        if (_elementCount <= 0)
         {
             if (!_queueDestroyed)
             {
@@ -43,7 +44,7 @@ bool BlockingQueue<T>::enqueue(const T &t)
     bool waitForSpace=true;
     while (waitForSpace)
     {
-        if (isFull())
+        if (_elementCount >= _size)
         {
             if (!_queueDestroyed)
             {
@@ -155,7 +156,14 @@ namespace biker_tests
         
         //TODO: Test mit mehreren Threads fehlt noch.
         BlockingQueue<int> threadQueue(10);
-        //QtConcurrent::run();
+        QFuture<int> thread1Result = QtConcurrent::run(biker_tests::testBlockingQueueSource<int>, &threadQueue);
+        QFuture<int> thread2Result = QtConcurrent::run(biker_tests::testBlockingQueueSource<int>, &threadQueue);
+        QFuture<int> thread3Result = QtConcurrent::run(biker_tests::testBlockingQueueDrain<int>, &threadQueue);
+        
+        
+        CHECK_EQ(thread1Result.result(), EXIT_SUCCESS);
+        //CHECK_EQ(thread2Result.result(), EXIT_SUCCESS);
+        //CHECK_EQ(thread3Result.result(), EXIT_SUCCESS);
         //Funktionen unten ausführen mit mehreren Threads, die die Queue füllen und mehreren,
         //die sie leeren.
         
@@ -165,24 +173,30 @@ namespace biker_tests
     }
     
     template <typename T>
-    int testBlockingQueueSource(BlockingQueue<T>& queue)
+    int testBlockingQueueSource(BlockingQueue<T>* queue)
     {
-        for (int i = 0; i < 50000; i++)
+        for (int i = 0; i < 500; i++)
         {
-            if (!queue.enqueue(T()))
+            std::cout << i << std::endl;
+            std::cout << "enqueue element" << std::endl;
+            if (!queue->enqueue(T()))
                 break;
+            std::cout << "enqueued." << std::endl;
         }
-        queue.destroyQueue();
+        queue->destroyQueue();
         
         return EXIT_SUCCESS;
     }
     template <typename T>
-    int testBlockingQueueDrain(BlockingQueue<T>& queue)
+    int testBlockingQueueDrain(BlockingQueue<T>* queue)
     {
         T a;
-        while (queue.dequeue(a))
+        bool goOn = true;
+        while (goOn)
         {
-            
+            std::cout << "take element" << std::endl;
+            goOn = queue->dequeue(a);
+            std::cout << "took element" << std::endl;
         }
         return EXIT_SUCCESS;
     }

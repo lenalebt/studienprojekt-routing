@@ -36,13 +36,22 @@ private:
     QWaitCondition _notFull;
     QWaitCondition _notEmpty;
     bool _queueDestroyed;
+    
+    BlockingQueue(const BlockingQueue<T>& queue) :
+        _size(queue._size), _elementCount(queue._elementCount),
+        _queue(queue._queue), _mutex(), _notFull(),
+         _notEmpty(), _queueDestroyed(queue._queueDestroyed)
+    {
+        
+    }
+    
 public:
     /**
      * @brief Initialisiert die Queue mit der Kapazität <code>size</code>
      * @param size Bestimmt die Kapazität der Queue, in Anzahl Elementen.
      */
     BlockingQueue(int size) : _size(size), _elementCount(0),
-        _queue(), _mutex(QMutex::Recursive), _notFull(),
+        _queue(), _mutex(), _notFull(),
          _notEmpty(), _queueDestroyed(false)
     {
         
@@ -108,14 +117,6 @@ public:
      */
     bool isDestroyed();
     
-    BlockingQueue(const BlockingQueue<T>& queue) :
-        _size(queue._size), _elementCount(queue._elementCount),
-        _queue(queue._queue), _mutex(QMutex::Recursive), _notFull(),
-         _notEmpty(), _queueDestroyed(queue._queueDestroyed)
-    {
-        
-    }
-    
     BlockingQueue<T>& operator<<(const T& element);
     T& operator>>(T& element);
 };
@@ -127,8 +128,8 @@ namespace biker_tests
      * @todo Implementieren
      */
     int testBlockingQueue();
-    template <typename T> int testBlockingQueueSource(BlockingQueue<T>& queue);
-    template <typename T> int testBlockingQueueDrain(BlockingQueue<T>& queue);
+    template <typename T> int testBlockingQueueSource(BlockingQueue<T>* queue);
+    template <typename T> int testBlockingQueueDrain(BlockingQueue<T>* queue);
 }
 
 #endif //BLOCKINGQUEUE_HPP
