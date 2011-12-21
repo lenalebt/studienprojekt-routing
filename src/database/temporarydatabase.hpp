@@ -99,6 +99,19 @@ private:
      * @return Die ID des zuletzt eingefügten INSERTs
      */
     boost::uint64_t getLastInsertRowID();
+    
+    /**
+     * @brief Lädt für die übergebenen Kanten alle Eigenschaften nach.
+     * 
+     * Wird in 2 Funktionen verwendet, daher habe ich den Code ausgelagert.
+     * Da die Funktion direkt auf den Objekten arbeitet, die sich hinter
+     * den Zeigern in der Liste verbergen, gibt es keinen Rückgabewert
+     * außer, ob die Funktion erfolgreich abgeschlossen wurde.
+     * 
+     * @return Ob die Funktion erfolgreich abgeschlossen wurde.
+     * 
+     */
+    bool getOSMEdgeListProperties(QVector<boost::shared_ptr<OSMEdge> > edgeList);
 public:
     TemporaryOSMDatabaseConnection();
     /**
