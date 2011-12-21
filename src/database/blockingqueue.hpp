@@ -21,7 +21,6 @@
  * @author Lena Brüder
  * @date 2011-11-07
  * @copyright GNU GPL v3
- * @todo Bei Doxygen-see-Kommentaren: Wie macht man da Links?
  * @ingroup database
  */
 
@@ -70,7 +69,6 @@ public:
      * @return <code>true</code>, wenn das Entfernen aus der Queue erfolgreich war,
      *      <code>false</code> sonst.
      * @see destroyQueue()
-     * @todo Implementierung fehlt
      */
     bool dequeue (T& t);
     /**
@@ -84,7 +82,6 @@ public:
      * @param t Das Element, das zur Queue hinzugefügt werden soll
      * @return Ob das Hinzufügen erfolgreich war
      * @see destroyQueue()
-     * @todo Implementierung fehlt
      */
     bool enqueue ( const T & t );
     /**
@@ -124,9 +121,6 @@ public:
 
 namespace biker_tests
 {
-    /**
-     * @todo Implementieren
-     */
     int testBlockingQueue();
     template <typename T> int testBlockingQueueSource(BlockingQueue<T>* queue);
     template <typename T> int testBlockingQueueDrain(BlockingQueue<T>* queue);
