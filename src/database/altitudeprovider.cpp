@@ -4,6 +4,7 @@
 #include <QtGlobal>
 #include <QMutexLocker>
 #include <math.h>
+#include <QtEndian>
 
 double SRTMProvider::getAltitude(const GPSPosition& pos)
 {
@@ -13,38 +14,43 @@ double SRTMProvider::getAltitude(const GPSPosition& pos)
 double SRTMProvider::getAltitude(double lat, double lon)
 {
     double height = 0.0; // Defaultwert für Höhe ist NN
-    qint16 *buffer; // buffer für Zip-Daten
-    QString filename; // hier soll die Zipdatei liegen nach dem Download, also Name incl. Pfad
-    int resolution;
-    
-    // per loadFilelist():
-    // fileListe vorhanden?
-    //      falls nein, laden!
-    loadFileList();
-    //Koordinaten in ganue Werte umrechnen und zu int casten // TODO
-    int intlat = int(floor(lat));
-    int intlon = int(floor(lon));
-    // Falls Koordinate vorhanden...
-    
+ 
+    QString fileName; // hier soll die Zipdatei liegen nach dem Download, also Name incl. Pfad
 
-    if (fileList.contains(latLonToIndex(intlat, intlon))){
-		QFile zipfile(_cachedir+fileList[latLonToIndex(intlat, intlon])
-        if(!zipfile.open(QIODevice::ReadOnly)){
+         
+    loadFileList(); // per loadFilelist(): fileListe vorhanden? falls nicht, laden!
+    //Nachkommastellen der Koordinaten entfernen und zu int casten
+    intlat = int(floor(lat));
+    intlon = int(floor(lon));
+    
+    if (fileList.contains(latLonToIndex(intlat, intlon))){// Falls Koordinate vorhanden..
+        fileName = _cachedir+fileList[latLonToIndex(intlat,intlon)];
+		QFile zipFile(fileName);
+        
+        if(!zipFile.open(QIODevice::ReadOnly)){
             QString altZipDir =  fileList[latLonToIndex(intlat, intlon)]; // Url ab Kontinentverzeichnis bis .hgt.zip
             //Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind. //TODO
             //Zip-Datei unter filename ablegen (Pfad in filename)
         }
         //- Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
         //- Zip-Datei entzippen:
-        resolution = SrtmZipFile::getData(zipfile, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
-        //
+        SrtmZipFile srtmZipFileObject;
+        resolution = srtmZipFileObject.getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
+        valid = true;
+        height = getAltitudeFromLatLon(lat, lon);
         //
         //
         ///** Get the value of a pixel from the data using a coordinate system
   //* starting in the upper left (NW) edge growing to the lower right
   //* egde (SE) instead of the SRTM coordinate system.
   //*/
-int SrtmProvider::getPixelValue(int x, int y)
+    }
+            //- Koordinaten aus dem Array raussuchen und Mittelwert berechne
+    
+    if (buffer) delete buffer;        
+    return height;//TODO
+}
+int SRTMProvider::getPixelValue(int x, int y)
 	{
     //Q_ASSERT(x >= 0 && x < resolution && y >= 0 && y < resolution);
     int offset = x + resolution * (resolution - y - 1);
@@ -54,31 +60,27 @@ int SrtmProvider::getPixelValue(int x, int y)
 }
 
 ///** Gets the altitude in meters for a given coordinate. */
-float SrtmProvider::getAltitudeFromLatLon(float lat, float lon)
+double SRTMProvider::getAltitudeFromLatLon(double lat, double lon)
 {
     if (!valid) return SRTM_DATA_VOID;
-    lat -= this->lat;
-    lon -= this->lon;
+    lat -= intlat;
+    lon -= intlon;
     //Q_ASSERT(lat >= 0.0 && lat < 1.0 && lon >= 0.0 && lon < 1.0);
-    float x = lon * (size - 1);
-    float y = lat * (size - 1);
+    double x = lon * (resolution - 1);
+    double y = lat * (resolution - 1);
     /* Variable names:
         valueXY with X,Y as offset from calculated value, _ for average
     */
-    float value00 = getPixelValue(x, y);
-    float value10 = getPixelValue(x+1, y);
-    float value01 = getPixelValue(x, y+1);
-    float value11 = getPixelValue(x+1, y+1);
-    float value_0 = avg(value00, value10, x-int(x));
-    float value_1 = avg(value01, value11, x-int(x));
-    float value__ = avg(value_0, value_1, y-int(y));
+    double value00 = getPixelValue(x, y);
+    double value10 = getPixelValue(x+1, y);
+    double value01 = getPixelValue(x, y+1);
+    double value11 = getPixelValue(x+1, y+1);
+    double value_0 = avg(value00, value10, x-int(x));
+    double value_1 = avg(value01, value11, x-int(x));
+    double value__ = avg(value_0, value_1, y-int(y));
     return value__;
 }
-        //- Koordinaten aus dem Array raussuchen und Mittelwert berechne
-    }
-    if (buffer) delete buffer;        
-    return height;//TODO
-}
+
 
 void SRTMProvider::loadFileList()
 {
@@ -99,7 +101,7 @@ void SRTMProvider::createFileList()
     
     QStringList continents;
     continents << "Africa" << "Australia" << "Eurasia" << "Islands" << "North_America" << "South_America";
-    QString url = QString(_url);
+    QString url = _url.toString();
     
     foreach (QString continent, continents) { // für jeden Kontinent, die vorhandenen Ziparchive in die Liste eintragen
         std::cout << "Downloading data from " << url+continent+"/" << std::endl;

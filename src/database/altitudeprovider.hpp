@@ -19,7 +19,7 @@
 #include <QFuture>
 #include <QtConcurrentRun>
 
-
+#define SRTM_DATA_VOID -32768
 /**
  * @brief Ein AltitudeProvider kann für jeden Punkt auf der Erde einen
  *      Höhenwert zurückgeben.
@@ -116,6 +116,7 @@ private:
      * @todo 
      */
     void downloadData();
+    
 public:
     double getAltitude(double lat, double lon);
     
@@ -165,6 +166,19 @@ private:
     QUrl _url;
     QByteArray blubb(const QUrl &dUrl);
     void loadFileList();
+    double getAltitudeFromLatLon(double lat, double lon);
+    int getPixelValue(int x, int y);
+    bool valid;
+    qint16 *buffer;
+    int resolution;
+    int intlat;
+    int intlon;
+    
+    float avg(float a, float b, float weight){
+        if (a == SRTM_DATA_VOID) return b;
+        if (b == SRTM_DATA_VOID) return a;
+        return b*weight + a*(1-weight);
+    }
     
 public:
     /**
