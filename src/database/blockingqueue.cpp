@@ -153,11 +153,37 @@ namespace biker_tests
         //Der Wert darf sich nicht geändert haben...
         CHECK_EQ(a, 7);
         
-        
-        
         //TODO: Test mit mehreren Threads fehlt noch.
+        BlockingQueue<int> threadQueue(10);
+        //QtConcurrent::run();
+        //Funktionen unten ausführen mit mehreren Threads, die die Queue füllen und mehreren,
+        //die sie leeren.
+        
         CHECK(false);
         
+        return EXIT_SUCCESS;
+    }
+    
+    template <typename T>
+    int testBlockingQueueSource(BlockingQueue<T>& queue)
+    {
+        for (int i = 0; i < 50000; i++)
+        {
+            if (!queue.enqueue(T()))
+                break;
+        }
+        queue.destroyQueue();
+        
+        return EXIT_SUCCESS;
+    }
+    template <typename T>
+    int testBlockingQueueDrain(BlockingQueue<T>& queue)
+    {
+        T a;
+        while (queue.dequeue(a))
+        {
+            
+        }
         return EXIT_SUCCESS;
     }
 }

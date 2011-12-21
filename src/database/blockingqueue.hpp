@@ -127,6 +127,8 @@ namespace biker_tests
      * @todo Implementieren
      */
     int testBlockingQueue();
+    template <typename T> int testBlockingQueueSource(BlockingQueue<T>& queue);
+    template <typename T> int testBlockingQueueDrain(BlockingQueue<T>& queue);
 }
 
 #endif //BLOCKINGQUEUE_HPP
