@@ -30,18 +30,20 @@ class BlockingQueue
 {
 private:
     int _size;
+    int _elementCount;
     QQueue<T> _queue;
     QMutex _mutex;
-    QWaitCondition notFull;
-    QWaitCondition notEmpty;
+    QWaitCondition _notFull;
+    QWaitCondition _notEmpty;
     bool _queueDestroyed;
 public:
     /**
      * @brief Initialisiert die Queue mit der Kapazität <code>size</code>
      * @param size Bestimmt die Kapazität der Queue, in Anzahl Elementen.
      */
-    BlockingQueue(int size) : _size(size), _queue(QQueue<T>()),
-        _mutex(), notFull(), notEmpty(), _queueDestroyed(false)
+    BlockingQueue(int size) : _size(size), _elementCount(0),
+        _queue(), _mutex(QMutex::Recursive), _notFull(),
+         _notEmpty(), _queueDestroyed(false)
     {
         
     }
@@ -79,6 +81,14 @@ public:
     /**
      * @brief Gibt an, ob die Queue aktuell leer ist.
      * 
+     * @remarks Diese Funktion ist bei Zugriffen auf Threads evtl. wertlos.
+     * @return Ob die Queue aktuell leer ist.
+     * @see destroyQueue()
+     */
+    bool isEmpty();
+    /**
+     * @brief Gibt an, ob die Queue aktuell voll ist.
+     * 
      * Wenn die Queue zerstört wurde, gibt die Funktion
      * <code>true</code> zurück.
      * 
@@ -86,12 +96,28 @@ public:
      * @return Ob die Queue aktuell leer ist.
      * @see destroyQueue()
      */
-    bool isEmpty();
+    bool isFull();
     /**
      * @brief Zerstört die Queue und sorgt dafür, dass alle
      *  blockierenden Zugriffe abgebrochen werden.
      */
     void destroyQueue();
+    /**
+     * @brief Gibt an, ob die Queue zerstört wurde, oder nicht.
+     * @return Ob die Queue zerstört wurde.
+     */
+    bool isDestroyed();
+    
+    BlockingQueue(const BlockingQueue<T>& queue) :
+        _size(queue._size), _elementCount(queue._elementCount),
+        _queue(queue._queue), _mutex(QMutex::Recursive), _notFull(),
+         _notEmpty(), _queueDestroyed(queue._queueDestroyed)
+    {
+        
+    }
+    
+    BlockingQueue<T>& operator<<(const T& element);
+    T& operator>>(T& element);
 };
 
 
