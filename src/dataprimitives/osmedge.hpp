@@ -19,13 +19,13 @@ public:
      * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörige Knoten.
      * @param id Die ID der Edge.
      */
-    OSMEdge(boost::uint64_t id) : id(id) {};
+    OSMEdge(boost::uint64_t id) : id(id), startNode(0), endNode(0) {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID und Eigenschaften, ohne zugehörige Knoten.
      * @param id Die ID.
      * @param propList Die zugehörigen Eigenschaften der Edge.
      */
-    OSMEdge(boost::uint64_t id, QVector<OSMProperty> propList) : id(id), properties(propList) {};
+    OSMEdge(boost::uint64_t id, QVector<OSMProperty> propList) : id(id), startNode(0), endNode(0), properties(propList) {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID.
