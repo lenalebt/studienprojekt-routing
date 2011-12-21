@@ -127,7 +127,7 @@
  */
 
 /**
- * @defgroup preprocessing
+ * @defgroup preprocessing Vorverarbeitung
  * @brief Hier werden alle Klassen abgelegt, die etwas mit der
  *      Vorverarbeitung der Daten für den Routinggraphen zu tun haben.
  */
