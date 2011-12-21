@@ -26,19 +26,17 @@ double SRTMProvider::getAltitude(double lat, double lon)
     int intlon = int(floor(lon));
     // Falls Koordinate vorhanden...
     
-    //mit lat und lon dateiname zusammen bauen
-    //rückwärts wie indexerstellung. wenn lat positiv "N" sonst "S" äquivalent lon
-    //ergebnis sollte sein: "N/S<lat>W/E<lon>.blubb.zip"
-    //QFile zipfile(_cachedir+"Dateiname.endung.zip")
+
     if (fileList.contains(latLonToIndex(intlat, intlon))){
+		QFile zipfile(_cachedir+fileList[latLonToIndex(intlat, intlon])
         if(!zipfile.open(QIODevice::ReadOnly)){
             QString altZipDir =  fileList[latLonToIndex(intlat, intlon)]; // Url ab Kontinentverzeichnis bis .hgt.zip
             //Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind. //TODO
             //Zip-Datei unter filename ablegen (Pfad in filename)
         }
         //- Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
-        //- Zip-Datei entzippen.
-        resolution = SrtmZipFile::getData(filename, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
+        //- Zip-Datei entzippen:
+        resolution = SrtmZipFile::getData(zipfile, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
         //
         //
         //
@@ -46,36 +44,36 @@ double SRTMProvider::getAltitude(double lat, double lon)
   //* starting in the upper left (NW) edge growing to the lower right
   //* egde (SE) instead of the SRTM coordinate system.
   //*/
-//int SrtmTile::getPixelValue(int x, int y)
-//{
-    //Q_ASSERT(x >= 0 && x < size && y >= 0 && y < size);
-    //int offset = x + size * (size - y - 1);
-    //qint16 value;
-    //value = qFromBigEndian(buffer[offset]);
-    //return value;
-//}
+int SrtmProvider::getPixelValue(int x, int y)
+	{
+    //Q_ASSERT(x >= 0 && x < resolution && y >= 0 && y < resolution);
+    int offset = x + resolution * (resolution - y - 1);
+    qint16 value;
+    value = qFromBigEndian(buffer[offset]);
+    return value;
+}
 
 ///** Gets the altitude in meters for a given coordinate. */
-//float SrtmTile::getAltitudeFromLatLon(float lat, float lon)
-//{
-    //if (!valid) return SRTM_DATA_VOID;
-    //lat -= this->lat;
-    //lon -= this->lon;
+float SrtmProvider::getAltitudeFromLatLon(float lat, float lon)
+{
+    if (!valid) return SRTM_DATA_VOID;
+    lat -= this->lat;
+    lon -= this->lon;
     //Q_ASSERT(lat >= 0.0 && lat < 1.0 && lon >= 0.0 && lon < 1.0);
-    //float x = lon * (size - 1);
-    //float y = lat * (size - 1);
-    ///* Variable names:
-        //valueXY with X,Y as offset from calculated value, _ for average
-    //*/
-    //float value00 = getPixelValue(x, y);
-    //float value10 = getPixelValue(x+1, y);
-    //float value01 = getPixelValue(x, y+1);
-    //float value11 = getPixelValue(x+1, y+1);
-    //float value_0 = avg(value00, value10, x-int(x));
-    //float value_1 = avg(value01, value11, x-int(x));
-    //float value__ = avg(value_0, value_1, y-int(y));
-    //return value__;
-//}
+    float x = lon * (size - 1);
+    float y = lat * (size - 1);
+    /* Variable names:
+        valueXY with X,Y as offset from calculated value, _ for average
+    */
+    float value00 = getPixelValue(x, y);
+    float value10 = getPixelValue(x+1, y);
+    float value01 = getPixelValue(x, y+1);
+    float value11 = getPixelValue(x+1, y+1);
+    float value_0 = avg(value00, value10, x-int(x));
+    float value_1 = avg(value01, value11, x-int(x));
+    float value__ = avg(value_0, value_1, y-int(y));
+    return value__;
+}
         //- Koordinaten aus dem Array raussuchen und Mittelwert berechne
     }
     if (buffer) delete buffer;        
