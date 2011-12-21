@@ -158,14 +158,16 @@ namespace biker_tests
         BlockingQueue<int> threadQueue(10);
         QFuture<int> thread1Result = QtConcurrent::run(biker_tests::testBlockingQueueSource<int>, &threadQueue);
         QFuture<int> thread2Result = QtConcurrent::run(biker_tests::testBlockingQueueSource<int>, &threadQueue);
-        QFuture<int> thread3Result = QtConcurrent::run(biker_tests::testBlockingQueueDrain<int>, &threadQueue);
+        QFuture<int> thread3Result = QtConcurrent::run(biker_tests::testBlockingQueueSource<int>, &threadQueue);
+        QFuture<int> thread4Result = QtConcurrent::run(biker_tests::testBlockingQueueDrain<int>, &threadQueue);
         
         
         CHECK_EQ(thread1Result.result(), EXIT_SUCCESS);
         CHECK_EQ(thread2Result.result(), EXIT_SUCCESS);
         CHECK_EQ(thread3Result.result(), EXIT_SUCCESS);
-        //Funktionen unten ausführen mit mehreren Threads, die die Queue füllen und mehreren,
-        //die sie leeren.
+        std::cout << "there were " << thread4Result.result() <<
+            " inserts." << std::endl;
+        CHECK(thread4Result.result() >= 100000);
         
         return EXIT_SUCCESS;
     }
@@ -173,13 +175,10 @@ namespace biker_tests
     template <typename T>
     int testBlockingQueueSource(BlockingQueue<T>* queue)
     {
-        for (int i = 0; i < 500; i++)
+        for (int i = 0; i < 100000; i++)
         {
-            std::cout << i << std::endl;
-            std::cout << "enqueue element" << std::endl;
             if (!queue->enqueue(T()))
                 break;
-            std::cout << "enqueued." << std::endl;
         }
         queue->destroyQueue();
         
@@ -196,7 +195,6 @@ namespace biker_tests
             i++;
             goOn = queue->dequeue(a);
         }
-        std::cout << "took " << i << " elements." << std::endl;
-        return EXIT_SUCCESS;
+        return i;
     }
 }
