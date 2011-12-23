@@ -14,6 +14,7 @@
 #include "gpsroute.hpp"
 #include "spatialitedatabase.hpp"
 #include "temporarydatabase.hpp"
+#include "databaseramcache.hpp"
 #include "osmparser.hpp"
 #include "blockingqueue.hpp"
 #include "closedlist.hpp"
@@ -175,6 +176,8 @@ namespace biker_tests
             return biker_tests::testSpatialiteDatabaseConnection();
         else if (testName == "temporaryosmdatabaseconnection")
             return biker_tests::testTemporaryOSMDatabaseConnection();
+        else if (testName == "databaseramcache")
+            return biker_tests::testDatabaseRAMCache();
         else if (testName == "gpsposition")
             return biker_tests::testGPSPosition();
         else if (testName == "osmnode")

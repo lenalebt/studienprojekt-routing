@@ -4,6 +4,17 @@
 #include "database.hpp"
 #include <sqlite3.h>
 
+/**
+ * @brief Implementierung einer DatabaseConnection mit einer
+ *  Spatialite-Datenbank (sqlite3-Abkömmling).
+ * 
+ * 
+ * 
+ * @author Lena Brüder
+ * @date 2011-12-23
+ * @copyright GNU GPL v3
+ * @ingroup database
+ */
 class SpatialiteDatabaseConnection : public DatabaseConnection
 {
 private:
