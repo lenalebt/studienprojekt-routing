@@ -125,10 +125,4 @@
  * @brief Hier werden alle Klassen und Funktionen und Dateien abgelegt,
  *      die für das Testen der Anwendung zuständig sind.
  */
-
-/**
- * @ defgroup preprocessing Vorverarbeitung
- * @ brief Hier werden alle Klassen abgelegt, die etwas mit der
- *      Vorverarbeitung der Daten für den Routinggraphen zu tun haben.
- */
 #endif //MAIN_HPP
