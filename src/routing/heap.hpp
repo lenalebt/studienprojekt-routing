@@ -28,7 +28,7 @@
  * @copyright GNU GPL v3
  * @todo Evtl. besser statt operator< einen less-Funktor verwenden?
  */
-template<typename T>
+template<typename T, typename nodeValueFunction>
 class Heap
 {
 public:
@@ -74,8 +74,8 @@ public:
  * @date 2011-11-08
  * @copyright GNU GPL v3
  */
-template<typename T>
-class BinaryHeap : public Heap<T>
+template<typename T, typename nodeValueFunction>
+class BinaryHeap : public Heap<T, nodeValueFunction>
 {
 private:
 	QVector<boost::shared_ptr<T> > heap;
@@ -87,7 +87,7 @@ private:
 		{
 			/* schau die Kinder von i an, welches ist kleiner?
 			 * j ist das linke Kind, j+1 ist das rechte Kind.*/
-			if ((j+1>=heap.size()) || (*(heap[j]) < *(heap[j+1])))
+			if ((j+1>=heap.size()) || (nodeValueFunction(*(heap[j])) < nodeValueFunction(*(heap[j+1]))))
 			{	//linkes Kind ist kleiner
 				boost::shared_ptr<T> tmpVal = heap[i];	//Tauschen
 				heap[i] = heap[j];
@@ -115,7 +115,7 @@ private:
 		{
 			/* Papa von i ansehen: Ist der kleiner? Wenn nein, tauschen.
 			 * Wenn ja, fertig.*/
-			if ((j>=heap.size()) || (*(heap[j]) < *(heap[i])))
+			if ((j>=heap.size()) || (nodeValueFunction(*(heap[j])) < nodeValueFunction(*(heap[i]))))
 			{	//Papa Kind ist kleiner: fertig.
 				break;
 			}

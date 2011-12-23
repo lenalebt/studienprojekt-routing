@@ -97,6 +97,7 @@ SET(
     src/routing/router.cpp
     src/routing/heap.cpp
     src/routing/closedlist.cpp
+    src/routing/dijkstra.cpp
     )
 
 #Hier Header eintragen
@@ -134,6 +135,7 @@ SET(
     src/routing/router.hpp
     src/routing/heap.hpp
     src/routing/closedlist.hpp
+    src/routing/dijkstra.hpp
     )
 
 #Alle Dateien - automatisch erzeugte und selbstgeschriebene
