@@ -5,6 +5,59 @@
 #include <iostream>
 #include "tests.hpp"
 
+#define STREETTYPE_HIGHWAY_PRIMARY      0
+#define STREETTYPE_HIGHWAY_SECONDARY    1
+#define STREETTYPE_HIGHWAY_TERTIARY     2
+#define STREETTYPE_HIGHWAY_TRACK	    3
+#define STREETTYPE_HIGHWAY_PATH 	    4
+#define STREETTYPE_HIGHWAY_CYCLEWAY		5
+#define STREETTYPE_HIGHWAY_FOOTWAY		6
+#define STREETTYPE_HIGHWAY_LIVINGSTREET 7
+#define STREETTYPE_HIGHWAY_RESIDENTIAL  8
+#define STREETTYPE_HIGHWAY_UNKNOWN      9
+#define STREETTYPE_HIGHWAY_PEDESTRIAN   10
+#define STREETTYPE_HIGHWAY_SERVICE      11
+
+
+#define STREETSURFACEQUALITY_EXCELLENT    	0
+#define STREETSURFACEQUALITY_GOOD  			1
+#define STREETSURFACEQUALITY_INTERMEDIATE	2
+#define STREETSURFACEQUALITY_BAD			3
+#define STREETSURFACEQUALITY_VERYBAD		4
+#define STREETSURFACEQUALITY_HORRIBLE		5
+#define STREETSURFACEQUALITY_VERYHORRIBLE	6
+#define STREETSURFACEQUALITY_IMPASSIBLE		7
+
+
+//CONCRETE wird zu PAVED oder was aehnliches
+//MUD wird UNPAVED
+//DIRT wird UNPAVED
+#define STREETSURFACETYPE_PAVED			0
+#define STREETSURFACETYPE_UNPAVED		1
+#define STREETSURFACETYPE_ASPHALT		2
+#define STREETSURFACETYPE_SETT			3
+#define STREETSURFACETYPE_COBBLESTONE	4
+#define STREETSURFACETYPE_COMPACTED		5
+#define STREETSURFACETYPE_GRASSPAVER	6
+#define STREETSURFACETYPE_GRAVEL		7
+#define STREETSURFACETYPE_FINEGRAVEL	8
+#define STREETSURFACETYPE_PEBBLESTONE	9
+#define STREETSURFACETYPE_SAND			10
+#define STREETSURFACETYPE_EARTH			11
+#define STREETSURFACETYPE_GRASS			12
+#define STREETSURFACETYPE_WOOD			13
+#define STREETSURFACETYPE_METAL			14
+
+//Umlaufgitter etc: nur wirkliche Hindernisse zaehlen als Hindernis.
+//Ein Poller, an dem man vorbeifahren kann z.B. nicht.
+
+#define TURNTYPE_LEFTCROSS		0
+#define TURNTYPE_RIGHTCROSS		1
+#define TURNTYPE_STRAIGHT		2
+#define TURNTYPE_STRAIGHTCROSS	3
+#define TURNTYPE_RIGHT			4
+
+
 #define BITLENGTH_STREETTYPE            4ull
 #define BITLENGTH_CYCLEWAYTYPE          4ull
 #define BITLENGTH_STREETSURFACETYPE     4ull
@@ -37,7 +90,8 @@
  * @author Lena Brüder
  * @date 2011-11-01
  * @copyright GNU GPL v3
- * @todo Header evtl erweitern
+ * @todo Evtl. Rampen an Treppen dazu. Stufenanzahl in Schritten (1, 5, 10, 20, ...)
+ * @todo verkehrsberuhigende sachen in mehr sachen aufteilen. 2 kategorien? umfahrbar/nicht
  * @todo Flag, ob Kante erlaubt für: Fahrrad, Fußgänger (gibt große Straßen wo Fußgänger nicht lang dürfen!)
  */
 class RoutingEdge
