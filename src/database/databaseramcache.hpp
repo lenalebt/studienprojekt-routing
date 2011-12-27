@@ -3,6 +3,7 @@
 
 #include "database.hpp"
 #include "tests.hpp"
+#include <boost/shared_ptr.hpp>
 
 /**
  * @brief Implementiert einen RAM-Cache für Datenbankelemente.
@@ -18,7 +19,24 @@
  */
 class DatabaseRAMCache : public DatabaseConnection
 {
-    
+private:
+    boost::shared_ptr<DatabaseConnection> _connection;
+public:
+    DatabaseRAMCache(boost::shared_ptr<DatabaseConnection> connection);
+    ~DatabaseRAMCache();
+    void close();
+    void open(QString dbConnectionString);
+    bool isDBOpen();
+    QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& searchMidpoint, double radius);
+    QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& ulCorner, const GPSPosition& brCorner);
+    bool saveNode(const RoutingNode& node);
+    QVector<boost::shared_ptr<RoutingEdge> > getEdgesByStartNodeID(boost::uint64_t startNodeID);
+    QVector<boost::shared_ptr<RoutingEdge> > getEdgesByEndNodeID(boost::uint64_t endNodeID);
+    boost::shared_ptr<RoutingEdge> getEdgeByEdgeID(boost::uint64_t edgeID);
+    bool saveEdge(const RoutingEdge& edge);
+    bool saveEdge(const RoutingEdge& edge, QString name);
+    QString getStreetName(const RoutingEdge& edge);
+    bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
 };
 
 namespace biker_tests
