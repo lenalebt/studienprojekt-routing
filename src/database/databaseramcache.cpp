@@ -32,61 +32,61 @@ bool DatabaseRAMCache::isDBOpen()
 
 QVector<boost::shared_ptr<RoutingNode> > DatabaseRAMCache::getNodes(const GPSPosition &searchMidpoint, double radius)
 {
-    return QVector<boost::shared_ptr<RoutingNode> >();
+    return _connection->getNodes(searchMidpoint, radius);
 }
 
 
 QVector<boost::shared_ptr<RoutingNode> > DatabaseRAMCache::getNodes(const GPSPosition &ulCorner, const GPSPosition &brCorner)
 {
-    return QVector<boost::shared_ptr<RoutingNode> >();
+    return _connection->getNodes(ulCorner, brCorner);
 }
 
 
 bool DatabaseRAMCache::saveNode(const RoutingNode &node)
 {
-    return false;
+    return _connection->saveNode(node);
 }
 
 
 QVector<boost::shared_ptr<RoutingEdge> > DatabaseRAMCache::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 {
-    return QVector<boost::shared_ptr<RoutingEdge> >();
+    return _connection->getEdgesByStartNodeID(startNodeID);
 }
 
 
 QVector<boost::shared_ptr<RoutingEdge> > DatabaseRAMCache::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 {
-    return QVector<boost::shared_ptr<RoutingEdge> >();
+    return _connection->getEdgesByEndNodeID(endNodeID);
 }
 
 
 boost::shared_ptr<RoutingEdge> DatabaseRAMCache::getEdgeByEdgeID(boost::uint64_t edgeID)
 {
-    return boost::shared_ptr<RoutingEdge>();
+    return _connection->getEdgeByEdgeID(edgeID);
 }
 
 
 bool DatabaseRAMCache::saveEdge(const RoutingEdge &edge)
 {
-    return false;
+    return _connection->saveEdge(edge);
 }
 
 
 bool DatabaseRAMCache::saveEdge(const RoutingEdge &edge, QString name)
 {
-    return false;
+    return _connection->saveEdge(edge, name);
 }
 
 
 QString DatabaseRAMCache::getStreetName(const RoutingEdge &edge)
 {
-    return "";
+    return _connection->getStreetName(edge);
 }
 
 
 bool DatabaseRAMCache::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
 {
-    return false;
+    return _connection->deleteEdge(startNodeID, endNodeID);
 }
 
 

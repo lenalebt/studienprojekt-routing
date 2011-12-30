@@ -16,6 +16,7 @@
  * @date 2011-12-23
  * @copyright GNU GPL v3
  * @ingroup database
+ * @todo Ist bisher nur eine "Umleitung", kein Cache.
  */
 class DatabaseRAMCache : public DatabaseConnection
 {
