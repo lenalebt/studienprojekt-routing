@@ -1,5 +1,11 @@
 #include "databaseramcache.hpp"
 #include "spatialitedatabase.hpp"
+#include <QFile>
+#include <boost/random/linear_congruential.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/uniform_real.hpp>
+#include <boost/random/variate_generator.hpp>
+#include <boost/generator_iterator.hpp>
 
 DatabaseRAMCache::DatabaseRAMCache(boost::shared_ptr<DatabaseConnection> connection) :
     _connection(connection)
@@ -98,6 +104,91 @@ namespace biker_tests
     {
         boost::shared_ptr<DatabaseConnection> connection(new SpatialiteDatabaseConnection());
         DatabaseRAMCache cache(connection);
-        return EXIT_FAILURE;
+        QFile file("cache.db");
+        
+        std::cout << "Removing database test file \"cache.db\"..." << std::endl;
+        if (file.exists())
+            file.remove();
+        
+        std::cout << "Opening \"cache.db\"..." << std::endl;
+        cache.open("cache.db");
+        CHECK(cache.isDBOpen());
+        
+        std::cout << "Closing database..." << std::endl;
+        cache.close();
+        CHECK(!cache.isDBOpen());
+        
+        std::cout << "Reopening \"cache.db\"..." << std::endl;
+        cache.open("cache.db");
+        CHECK(cache.isDBOpen());
+        
+        RoutingNode node(25, 51.0, 7.0);
+        std::cout << "Save Node..." << std::endl;
+        CHECK(cache.saveNode(node));
+        node = RoutingNode(26, 51.5, 7.5);
+        CHECK(cache.saveNode(node));
+        
+        RoutingEdge edge(45, 25, 26);
+        std::cout << "Save Edge..." << std::endl;
+        edge.setCycleBarrier(true);
+        edge.setCyclewayType(5);
+        CHECK(cache.saveEdge(edge));
+        edge = RoutingEdge(46, 26, 25);
+        CHECK(cache.saveEdge(edge));
+        
+        GPSPosition min(50.0, 6.0);
+        GPSPosition max(52.0, 8.0);
+        QVector<boost::shared_ptr<RoutingNode> > list = cache.getNodes(min, max);
+        CHECK(!list.isEmpty());
+        CHECK(list.size() == 2);
+        
+        std::cout << "Node 0 from DB: " << *(list[0]) << std::endl;
+        std::cout << "Node 1 from DB: " << *(list[1]) << std::endl;
+        CHECK((*list[0] == node) || (*list[1] == node));
+        
+        boost::minstd_rand generator(42u);
+        boost::uniform_real<> uni_dist(50, 52);
+        boost::variate_generator<boost::minstd_rand&, boost::uniform_real<> > uni(generator, uni_dist);
+        
+        std::cout << "Inserting 10 Nodes..." << std::endl;
+        bool successInsertManyNodes = true;
+        //CHECK(cache.beginTransaction());
+        for (int i=0; i<10; i++)
+        {
+            node = RoutingNode(i + 100, uni(), uni() - (51.0 - 7.0));
+            successInsertManyNodes = successInsertManyNodes && cache.saveNode(node);
+        }
+        CHECK(successInsertManyNodes);
+        //CHECK(cache.endTransaction());
+        CHECK(!cache.saveNode(node));
+        
+        boost::shared_ptr<RoutingEdge> dbEdge(cache.getEdgeByEdgeID(46));
+        CHECK_EQ(edge, *dbEdge);
+        
+        QVector<boost::shared_ptr<RoutingEdge> > edgeList;
+        edgeList = cache.getEdgesByStartNodeID(26);
+        CHECK_EQ(edge, *edgeList[0]);
+        edgeList = cache.getEdgesByStartNodeID(26);
+        CHECK_EQ(edge, *edgeList[0]);
+        
+        edgeList = cache.getEdgesByEndNodeID(25);
+        CHECK_EQ(edge, *edgeList[0]);
+        edgeList = cache.getEdgesByEndNodeID(25);
+        CHECK_EQ(edge, *edgeList[0]);
+        
+        
+        std::cout << "Inserting 10 Edges..." << std::endl;
+        bool successInsertManyEdges = true;
+        //CHECK(cache.beginTransaction());
+        for (int i=0; i<10; i++)
+        {
+            edge = RoutingEdge(i + 100, i+99, i+100);
+            successInsertManyEdges = successInsertManyEdges && cache.saveEdge(edge);
+        }
+        CHECK(successInsertManyEdges);
+        //CHECK(cache.endTransaction());
+        CHECK(!cache.saveEdge(edge));
+        
+        return EXIT_SUCCESS;
     }
 }
