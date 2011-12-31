@@ -184,6 +184,7 @@ INCLUDE_DIRECTORIES(
     src/database/
     src/database/parser/
     src/database/parser/pbf/
+    src/network/
     )
 
 IF(DOXYGEN_FOUND)
@@ -265,6 +266,7 @@ ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")
 ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
 ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
+ADD_TEST(webserver                        "biker" "--test" "webserver")
 
 
 #Zum Erstellen von automatischen Installationspaketen
