@@ -38,6 +38,8 @@ public:
     bool saveEdge(const RoutingEdge& edge, QString name);
     QString getStreetName(const RoutingEdge& edge);
     bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
+    bool beginTransaction();
+    bool endTransaction();
 };
 
 namespace biker_tests

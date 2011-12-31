@@ -95,8 +95,14 @@ bool DatabaseRAMCache::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t e
     return _connection->deleteEdge(startNodeID, endNodeID);
 }
 
-
-
+bool DatabaseRAMCache::beginTransaction()
+{
+    return _connection->beginTransaction();
+}
+bool DatabaseRAMCache::endTransaction()
+{
+    return _connection->endTransaction();
+}
 
 namespace biker_tests
 {
@@ -150,16 +156,16 @@ namespace biker_tests
         boost::uniform_real<> uni_dist(50, 52);
         boost::variate_generator<boost::minstd_rand&, boost::uniform_real<> > uni(generator, uni_dist);
         
-        std::cout << "Inserting 10 Nodes..." << std::endl;
+        std::cout << "Inserting 10000 Nodes..." << std::endl;
         bool successInsertManyNodes = true;
-        //CHECK(cache.beginTransaction());
-        for (int i=0; i<10; i++)
+        CHECK(cache.beginTransaction());
+        for (int i=0; i<10000; i++)
         {
             node = RoutingNode(i + 100, uni(), uni() - (51.0 - 7.0));
             successInsertManyNodes = successInsertManyNodes && cache.saveNode(node);
         }
         CHECK(successInsertManyNodes);
-        //CHECK(cache.endTransaction());
+        CHECK(cache.endTransaction());
         CHECK(!cache.saveNode(node));
         
         boost::shared_ptr<RoutingEdge> dbEdge(cache.getEdgeByEdgeID(46));
@@ -177,16 +183,16 @@ namespace biker_tests
         CHECK_EQ(edge, *edgeList[0]);
         
         
-        std::cout << "Inserting 10 Edges..." << std::endl;
+        std::cout << "Inserting 10000 Edges..." << std::endl;
         bool successInsertManyEdges = true;
-        //CHECK(cache.beginTransaction());
-        for (int i=0; i<10; i++)
+        CHECK(cache.beginTransaction());
+        for (int i=0; i<10000; i++)
         {
             edge = RoutingEdge(i + 100, i+99, i+100);
             successInsertManyEdges = successInsertManyEdges && cache.saveEdge(edge);
         }
         CHECK(successInsertManyEdges);
-        //CHECK(cache.endTransaction());
+        CHECK(cache.endTransaction());
         CHECK(!cache.saveEdge(edge));
         
         return EXIT_SUCCESS;

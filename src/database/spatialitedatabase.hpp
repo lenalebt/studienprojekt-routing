@@ -57,34 +57,7 @@ public:
     QString getStreetName(const RoutingEdge& edge);
 	~SpatialiteDatabaseConnection();
     
-    /**
-     * @brief Beginnt eine neue Transaktion auf der Datenbank.
-     * 
-     * Wenn große Datenmengen in der Datenbank abgelegt werden
-     * sollen ist sie wesentlich schneller, wenn man viele Daten
-     * in einer Transaktion ablegt. Daher sollten Transaktionen
-     * immer verwendet werden, wenn mehr als nur zwei oder drei
-     * Datensätze in der Datenbank abgelegt werden.
-     * 
-     * @return Ob das Starten einer Transaktion erfolgreich war,
-     *  oder nicht
-     * @todo Auch für eine normale DatabaseConnection ermöglichen?
-     */
     bool beginTransaction();
-    
-    /**
-     * @brief Beendet die letzte Transaktion auf der Datenbank.
-     * 
-     * Wenn große Datenmengen in der Datenbank abgelegt werden
-     * sollen ist sie wesentlich schneller, wenn man viele Daten
-     * in einer Transaktion ablegt. Daher sollten Transaktionen
-     * immer verwendet werden, wenn mehr als nur zwei oder drei
-     * Datensätze in der Datenbank abgelegt werden.
-     * 
-     * @return Ob das Starten einer Transaktion erfolgreich war,
-     *  oder nicht
-     * @todo Auch für eine normale DatabaseConnection ermöglichen?
-     */
     bool endTransaction();
 };
 
