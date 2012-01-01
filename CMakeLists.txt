@@ -144,6 +144,18 @@ SET(
     src/network/webserver.hpp
     )
 
+#Hier die Dateien eintragen, die durch den moc müssen
+#Das sind vor allem jene, in denen Q_OBJECT steht.
+QT4_WRAP_CPP(
+    biker_HEADERS_MOC
+    src/network/webserver.hpp
+    )
+
+QT4_WRAP_UI(
+    biker_UIS_H
+    ${biker_UIS}
+    )
+
 #Alle Dateien - automatisch erzeugte und selbstgeschriebene
 SET(
     biker_ALL_SOURCES
@@ -153,6 +165,9 @@ SET(
     #PROTO-SOURCES
     ${OSMFORMAT_PROTO_SOURCES}
     ${FILEFORMAT_PROTO_SOURCES}
+    
+    #MOC-Dateien
+    ${biker_HEADERS_MOC}
     )
 
 SET(
@@ -216,18 +231,6 @@ ENDIF()
 
 #Dem Quelltext sagen, wo die spatialite-library ist
 ADD_DEFINITIONS(-DSPATIALITE_LIB=${SPATIALITE_LIBRARY})
-
-#Hier die Dateien eintragen, die durch den moc müssen
-#Das sind vor allem jene, in denen Q_OBJECT steht.
-QT4_WRAP_CPP(
-    biker_HEADERS_MOC
-    ${biker_HEADERS}
-    )
-
-QT4_WRAP_UI(
-    biker_UIS_H
-    ${biker_UIS}
-    )
 
 INCLUDE(
     ${QT_USE_FILE}

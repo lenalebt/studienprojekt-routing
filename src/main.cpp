@@ -8,6 +8,7 @@
 #include <boost/program_options.hpp>
 #include "tests.hpp"
 #include <QThreadPool>
+#include <QCoreApplication>
 
 namespace po = boost::program_options;
 using namespace std;
@@ -70,6 +71,12 @@ int main ( int argc, char* argv[] )
 {
     cerr << "Biker Version " << QUOTEME(VERSION) << endl;
     int retVal=0;
+    
+    //wird benötigt für EventLoops etc. Diese werden nur in eigenen Threads
+    //verwendet (z.B. Webserver), und nicht in der Hauptanwendung!
+    //Daher ist ein AUfruf von exec() hier falsch. Er würde die gesamte
+    //Anwendung blockieren.
+    QCoreApplication app(argc, argv);
     
     //parse commandline options
     retVal = parseProgramOptions(argc, argv);
