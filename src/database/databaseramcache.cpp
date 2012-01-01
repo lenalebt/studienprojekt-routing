@@ -112,30 +112,30 @@ namespace biker_tests
         DatabaseRAMCache cache(connection);
         QFile file("cache.db");
         
-        std::cout << "Removing database test file \"cache.db\"..." << std::endl;
+        std::cerr << "Removing database test file \"cache.db\"..." << std::endl;
         if (file.exists())
             file.remove();
         
-        std::cout << "Opening \"cache.db\"..." << std::endl;
+        std::cerr << "Opening \"cache.db\"..." << std::endl;
         cache.open("cache.db");
         CHECK(cache.isDBOpen());
         
-        std::cout << "Closing database..." << std::endl;
+        std::cerr << "Closing database..." << std::endl;
         cache.close();
         CHECK(!cache.isDBOpen());
         
-        std::cout << "Reopening \"cache.db\"..." << std::endl;
+        std::cerr << "Reopening \"cache.db\"..." << std::endl;
         cache.open("cache.db");
         CHECK(cache.isDBOpen());
         
         RoutingNode node(25, 51.0, 7.0);
-        std::cout << "Save Node..." << std::endl;
+        std::cerr << "Save Node..." << std::endl;
         CHECK(cache.saveNode(node));
         node = RoutingNode(26, 51.5, 7.5);
         CHECK(cache.saveNode(node));
         
         RoutingEdge edge(45, 25, 26);
-        std::cout << "Save Edge..." << std::endl;
+        std::cerr << "Save Edge..." << std::endl;
         edge.setCycleBarrier(true);
         edge.setCyclewayType(5);
         CHECK(cache.saveEdge(edge));
@@ -148,15 +148,15 @@ namespace biker_tests
         CHECK(!list.isEmpty());
         CHECK(list.size() == 2);
         
-        std::cout << "Node 0 from DB: " << *(list[0]) << std::endl;
-        std::cout << "Node 1 from DB: " << *(list[1]) << std::endl;
+        std::cerr << "Node 0 from DB: " << *(list[0]) << std::endl;
+        std::cerr << "Node 1 from DB: " << *(list[1]) << std::endl;
         CHECK((*list[0] == node) || (*list[1] == node));
         
         boost::minstd_rand generator(42u);
         boost::uniform_real<> uni_dist(50, 52);
         boost::variate_generator<boost::minstd_rand&, boost::uniform_real<> > uni(generator, uni_dist);
         
-        std::cout << "Inserting 10000 Nodes..." << std::endl;
+        std::cerr << "Inserting 10000 Nodes..." << std::endl;
         bool successInsertManyNodes = true;
         CHECK(cache.beginTransaction());
         for (int i=0; i<10000; i++)
@@ -183,7 +183,7 @@ namespace biker_tests
         CHECK_EQ(edge, *edgeList[0]);
         
         
-        std::cout << "Inserting 10000 Edges..." << std::endl;
+        std::cerr << "Inserting 10000 Edges..." << std::endl;
         bool successInsertManyEdges = true;
         CHECK(cache.beginTransaction());
         for (int i=0; i<10000; i++)

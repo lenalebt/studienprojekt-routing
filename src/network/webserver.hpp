@@ -2,10 +2,23 @@
 #define WEBSERVER_HPP
 
 #include <QTcpServer>
+#include <QTcpSocket>
 #include <QThread>
 #include "tests.hpp"
 #include <boost/cstdint.hpp>
 
+/**
+ * @brief Diese Klasse stellt einen nebenläufig arbeitenden
+ *      Http-Server dar, der jeden Request als eigenen Thread
+ *      abarbeitet.
+ * 
+ * 
+ * 
+ * @author Lena Brüder
+ * @date 2012-01-01
+ * @copyright GNU GPL v3
+ * @ingroup network
+ */
 class HttpServer : public QTcpServer, public QThread
 {
 private:
@@ -16,20 +29,25 @@ public:
     void run();
 };
 
-class HttpRequestPreprocessor
+/**
+ * @brief Diese Klasse stellt einen Http-Request-Prozessor dar,
+ *      der als eigener Thread gestartet wird.
+ * 
+ * 
+ * 
+ * @author Lena Brüder
+ * @date 2012-01-01
+ * @copyright GNU GPL v3
+ * @ingroup network
+ */
+class HttpRequestProcessor : public QThread
 {
 private:
-    
+    int _socketDescriptor;
+    HttpRequestProcessor(int socketDescriptor);
 public:
-    
-};
-
-class HttpGetRequest
-{
-private:
-    
-public:
-    
+    void run();
+    friend class HttpServer;
 };
 
 namespace biker_tests

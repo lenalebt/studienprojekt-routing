@@ -38,17 +38,17 @@ int parseProgramOptions(int argc, char* argv[])
     
     //Es soll die Hilfe angezeigt werden: Tun wir das doch!
     if (vm.count("help")) {
-        cout << desc << "\n";
+        std::cerr << desc << "\n";
         return EXIT_FAILURE;
     }
     
     //Threadpool-Größe festlegen. Minimum nötig: 5.
     if (threadPoolSize < 5)
     {
-        std::cout << "We need a minimum threadpoolsize of 5. Setting to 5." << std::endl;
+        std::cerr << "We need a minimum threadpoolsize of 5. Setting to 5." << std::endl;
         threadPoolSize = 5;
     }
-    std::cout << "Using up to " << threadPoolSize << " threads." << std::endl;
+    std::cerr << "Using up to " << threadPoolSize << " threads." << std::endl;
     QThreadPool::globalInstance()->setMaxThreadCount(threadPoolSize);
     
     //Tests ausführen, wenn auf der Kommandozeile so gewollt
@@ -68,7 +68,7 @@ int parseProgramOptions(int argc, char* argv[])
  */
 int main ( int argc, char* argv[] )
 {
-    cout << "Biker Version " << QUOTEME(VERSION) << endl;
+    cerr << "Biker Version " << QUOTEME(VERSION) << endl;
     int retVal=0;
     
     //parse commandline options

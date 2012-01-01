@@ -1078,23 +1078,23 @@ namespace biker_tests
         
         QFile file("testosm.db");
         
-        std::cout << "Removing database test file \"testosm.db\"..." << std::endl;
+        std::cerr << "Removing database test file \"testosm.db\"..." << std::endl;
         if (file.exists())
             file.remove();
         
-        std::cout << "Opening \"testosm.db\"..." << std::endl;
+        std::cerr << "Opening \"testosm.db\"..." << std::endl;
         connection.open("testosm.db");
         CHECK(connection.isDBOpen());
         
-        std::cout << "Closing database..." << std::endl;
+        std::cerr << "Closing database..." << std::endl;
         connection.close();
         CHECK(!connection.isDBOpen());
         
-        std::cout << "Reopening \"testosm.db\"..." << std::endl;
+        std::cerr << "Reopening \"testosm.db\"..." << std::endl;
         connection.open("testosm.db");
         CHECK(connection.isDBOpen());
         
-        std::cout << "Checking OSMProperty..." << std::endl;
+        std::cerr << "Checking OSMProperty..." << std::endl;
         CHECK(connection.beginTransaction());
         OSMProperty property("key", "value");
         CHECK_EQ_TYPE(connection.saveOSMProperty(property), 1, boost::uint64_t);
@@ -1120,7 +1120,7 @@ namespace biker_tests
         property.setKey("key2");
         CHECK_EQ_TYPE(connection.getOSMPropertyID(property), 2, boost::uint64_t);
         
-        std::cout << "Checking OSMNode..." << std::endl;
+        std::cerr << "Checking OSMNode..." << std::endl;
         OSMProperty property1("key1", "value1");
         OSMProperty property2("key2", "value2");
         OSMProperty property3("key3", "value3");
@@ -1160,7 +1160,7 @@ namespace biker_tests
         CHECK_EQ(*nodeList3[0], node);
         CHECK_EQ(*nodeList3[1], node2);
         
-        std::cout << "Checking OSMEdge..." << std::endl;
+        std::cerr << "Checking OSMEdge..." << std::endl;
         CHECK(connection.beginTransaction());
         OSMEdge edge(10, 13, 14, QVector<OSMProperty>());
         CHECK(connection.saveOSMEdge(edge));
@@ -1181,7 +1181,7 @@ namespace biker_tests
         //TODO: Ausgabe- und Vergleichsoperator fehlen.
         //CHECK_EQ(*edgeList[0], edge);
         
-        std::cout << "Checking OSMTurnRestriction..." << std::endl;
+        std::cerr << "Checking OSMTurnRestriction..." << std::endl;
         CHECK(connection.beginTransaction());
         OSMTurnRestriction turnRestriction( 0,  1,  2, true, false, true, false );
         CHECK(connection.saveOSMTurnRestriction(turnRestriction));
@@ -1196,14 +1196,14 @@ namespace biker_tests
         OSMTurnRestriction r5( 3,  2,  3, true, false, false, false );
         CHECK(connection.saveOSMTurnRestriction(r5));
         OSMTurnRestriction r6( 3,  2,  3, true, false, false, false );
-        std::cout << "Hier erwartet: Resultcode 19 (-> Constraint failed)" << std::endl;
+        std::cerr << "Hier erwartet: Resultcode 19 (-> Constraint failed)" << std::endl;
         //Speichern wird fehlschlagen, weil so ein Ding schon in der DB liegt.
         CHECK(!connection.saveOSMTurnRestriction(r6));
         CHECK(connection.endTransaction());
         CHECK_EQ(turnRestriction, *(connection.getOSMTurnRestrictionByViaID(1)[0]));
         //TODO: Laden und mehrere Sachen ablegen
         
-        std::cout << "Closing database..." << std::endl;
+        std::cerr << "Closing database..." << std::endl;
         connection.close();
         CHECK(!connection.isDBOpen());
         

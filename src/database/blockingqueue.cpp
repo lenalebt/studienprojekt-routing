@@ -165,7 +165,7 @@ namespace biker_tests
         CHECK_EQ(thread1Result.result(), EXIT_SUCCESS);
         CHECK_EQ(thread2Result.result(), EXIT_SUCCESS);
         CHECK_EQ(thread3Result.result(), EXIT_SUCCESS);
-        std::cout << "there were " << thread4Result.result() <<
+        std::cerr << "there were " << thread4Result.result() <<
             " inserts." << std::endl;
         CHECK(thread4Result.result() >= 100000);
         
