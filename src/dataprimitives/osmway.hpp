@@ -23,9 +23,17 @@ private:
     boost::uint64_t id;
     QVector<boost::uint64_t> memberIDList;
     QVector<OSMProperty> properties;
-    QVector<OSMProperty> onewayProperties;  //sollte static-Eigenschaft werden!
-    QVector<OSMProperty> reverseOnewayProperties;  //sollte static-Eigenschaft werden!
-    QVector<OSMProperty> noOnewayProperties;  //sollte static-Eigenschaft werden!
+    /*
+    static QVector<OSMProperty> onewayProperties;
+    static QVector<OSMProperty> reverseOnewayProperties;
+    static QVector<OSMProperty> noOnewayProperties;
+    */
+    static QVector<OSMProperty> onewayProperties();
+    static QVector<OSMProperty> noOnewayProperties();
+    static QVector<OSMProperty> reverseOnewayProperties();
+    static QVector<OSMProperty> bikeOnewayProperties();
+    static QVector<OSMProperty> bikeReverseOnewayProperties();
+    static QVector<OSMProperty> noBikeOnewayProperties();
 public:
     /**
      * @brief Erstellt einen Way mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörige Knoten.

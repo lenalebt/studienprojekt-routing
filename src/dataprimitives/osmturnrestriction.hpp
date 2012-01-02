@@ -3,6 +3,7 @@
 
 #include <boost/cstdint.hpp>
 #include <iostream>
+#include "tests.hpp"
 
 /**
  * @brief Eine OSMTurnRestriction stellt eine Relation mit Abbiegebeschränkungen im OSM-Datenmodell im Speicher dar.
@@ -133,9 +134,6 @@ public:
 bool operator==(const OSMTurnRestriction& r1, const OSMTurnRestriction& r2);
 std::ostream& operator<<(std::ostream& os, const OSMTurnRestriction& r);
 
-/**
- * @todo: Implementieren, dieser Test ist noch leer.
- */
 namespace biker_tests
 {
     int testOSMTurnRestriction();

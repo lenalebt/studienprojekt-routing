@@ -15,7 +15,7 @@ private:
     sqlite3_stmt* _getEdgeStatementID;
     sqlite3_stmt* _getEdgeStatementStartNode;
     sqlite3_stmt* _getEdgeStatementEndNode;
-    sqlite3_stmt* _delteEdgeStatement;
+    sqlite3_stmt* _deleteEdgeStatement;
     
     /**
      * @brief Erstellt die Tabellen in der Datenbank
