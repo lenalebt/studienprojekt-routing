@@ -11,6 +11,7 @@
 #include "osmedge.hpp"
 #include "osmturnrestriction.hpp"
 #include "tests.hpp"
+#include <QtConcurrentRun>
 
 namespace biker_tests
 {
@@ -38,12 +39,16 @@ class DataPreprocessing
     DataPreprocessing();
     ~DataPreprocessing();
     
+    BlockingQueue<OSMNode> _nodeQueue;
+    BlockingQueue<OSMEdge> _edgeQueue;
+    BlockingQueue<OSMTurnRestriction> _turnRestrictionQueue;
+    
+    void Startparser(QString filename);
+    
     bool deQueue();
     bool enQueue();
     bool saveNodeToTmpDatabase(const OSMNode& node);
     bool saveEdgeToTmpDatabase(const OSMEdge& edge);
     bool saveTurnRestrictionToTmpDatabase(const OSMTurnRestriction& turnRestriction);
-	
-	bool feedParser();	
 };
 #endif //DATAPREPROCESSING_HPP

@@ -4,12 +4,15 @@
 //               Dann Queues auslesen und in tmp DB speichern
 //      2.Phase: Kategorisieren
 
+void DataPreprocessing::Startparser(QString filename)
+{
+    _osmParser.parse(filename);
+}
 
 bool DataPreprocessing::enQueue()
 {
     //TODO: Parser fuellt Queue
    
-
     _osmParser.startDocument();
     //OSMParser::operator <<
     return true;
