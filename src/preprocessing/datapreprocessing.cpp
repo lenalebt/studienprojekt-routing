@@ -30,16 +30,46 @@ bool DataPreprocessing::deQueue()
 
 bool DataPreprocessing::saveNodeToTmpDatabase(const OSMNode& node)
 {
+    if(_tmpDBConnection.isDBOpen())
+    {
+        _tmpDBConnection.saveOSMNode(node);
+    }
+    else
+    {
+        _tmpDBConnection.open("test");
+        _tmpDBConnection.saveOSMNode(node);
+    }
+
     return true;
 }
 
 bool DataPreprocessing::saveEdgeToTmpDatabase(const OSMEdge& edge)
 {
+    if(_tmpDBConnection.isDBOpen())
+    {
+        _tmpDBConnection.saveOSMEdge(edge);
+    }
+    else
+    {
+        _tmpDBConnection.open("test");
+        _tmpDBConnection.saveOSMEdge(edge);
+    }
+    
     return true;
 }
 
 bool DataPreprocessing::saveTurnRestrictionToTmpDatabase(const OSMTurnRestriction& turnRestriction)
 {
+    if(_tmpDBConnection.isDBOpen())
+    {
+        _tmpDBConnection.saveOSMTurnRestriction(turnRestriction);
+    }
+    else
+    {
+        _tmpDBConnection.open("test");
+        _tmpDBConnection.saveOSMTurnRestriction(turnRestriction);
+    }
+
     return true;
 }
 
