@@ -2,24 +2,15 @@
 #define GPSROUTE_HPP
 
 #include "gpsposition.hpp"
-#include <QVector>
+// QList wird verwendet, weil an verschiedenen Stellen in der Liste Objekte eingefügt werden können (und nicht nur einseitig).
+#include <QList>
 #include "tests.hpp"
 
 /**
  * @brief Diese Klasse stellt eine Route im Speicher dar.
  * @ingroup dataprimitives
- * @todo Implementierung fehlt genauso wie eine komplette Definition der
- *  nötigen Eigenschaften. Diese Klasse ist nicht komplett! Sie wurde definiert,
- *  um die Routing-Schnittstellen definieren zu können.
- * @todo Unterscheidung in Wegpunkte und Trackpunkte mit einbauen
- *      (Trackpunkte sind Punkte, die angefahren werden aber nicht unbedingt
- *      wichtig sind, wie z.B. wenn man durch eine S-Kurve fährt: Wichtig sind nur
- *      die Endpunkte, man kann die Straße ja nicht verlassen, aber man kann Trackpunkte
- *      in der Mitte setzen damit es schöner aussieht)
  * @todo Unterstützung für die Erzeugung einer Wegbeschreibung mit einbauen
  *      (muss noch nicht implementiert werden, es reichen Dummies)
- * @todo Export inx GPS-Format (XML) einbauen
- * @todo Export ins JSON-Format (wie bei Cloudmade) einbauen
  * @author Thorsten Scheller
  * @date 2011-12-18
  * @copyright GNU GPL v3
@@ -37,12 +28,12 @@ public:
      * 
      * @return Die Länge der Route in Metern.
      */
-    double calcLength() const
+    double calcLength()
     {
         double length = 0.0;
-        for (int index = 0; index < route.getSize(); index++)
+        for (int index = 1; index < route.size(); index++)
             {
-                length = length + route.at(index).calcDistance(route.at(index + 1));
+                length = length + route.at(index).calcDistance(route.at(index - 1));
             }
         return length;
     }
@@ -118,74 +109,94 @@ public:
     }
     /**
      * @brief Kehrt die Route um.
-     * @todo Implementierung fehlt.
      */
     void reverse()
     {
         int size = route.size();
-        for (int index; index <= int(size/2); index++)
+        QList<GPSPosition>  newRoute;
+        for (int index = 0; index < size; index++)
         {
-            route.swap(index, (size - index - 1));
+            newRoute.insert(index, route.at(size - 1 - index));
+        }
+        clear();
+        for (int index = 0; index < size; index++)
+        {
+            route.insert(index, newRoute.at(index));
         }
     }
     /**
      * @brief Diese Funktion exportiert die Route in das GPX-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
      * @param filename Name unter der die GPX-Datei gespeichert werden soll
-     * @param r Route, die gespeichert werden soll
-     * @todo funktionsfähig umschreiben (bisher wurde nur die alte Version kopiert)
      */
-    static void exportGPX(QString filename, GPSRoute r);
+    static void exportGPX(QString filename, GPSRoute& route);
     /**
      * @brief Diese Funktion exportiert die Route in das JSON-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
      * @param filename Name unter der die JSON-Datei gespeichert werden soll
-     * @param r Route, die gespeichert werden soll
-     * @todo implementieren
      */
-    static void exportJSON(QString filename, GPSRoute r);
-    /**
-     * @brief Erstellt eine leere Route.
-     * 
-     */
-    GPSRoute()
-    {
-        route = new QList<GPSPosition>;
-    }
-    /**
-     * @brief Erstellt eine Route mit einem Element.
-     * @param firstPosition das erste Element in der Liste.
-     */
-    GPSRoute(GPSPosition firstPosition)
-    {
-        route = new QList<GPSPosition>;
-        route << firstPosition;
-    }
+    static void exportJSON(QString filename, GPSRoute& route);
+
     /**
      * @brief Kopiert eine Route.
      * @param r die Route, dei Kopiert werden soll.
-     * @todo eventuell at() nochmals implementieren
      */
-    GPSRoute(const GPSRoute& r)
+    GPSRoute(GPSRoute& r)
     {
-        for (int index = 0; index < route.getSize(); index++)
+        for (int index = 0; index < route.size(); index++)
         {
-            route.insert(index, r.at(index));
+            route.insert(index, r[index]);
         }
     }
-    
+    /**
+    * @brief Erstellt eine leere Route.
+    *
+    */
+    GPSRoute()
+    {
+        route = QList<GPSPosition>();
+    }
+    /**
+    * @brief Erstellt eine Route mit einem Element.
+    * @param firstPosition das erste Element in der Liste.
+    */
+    GPSRoute(GPSPosition firstPosition)
+    {
+        route = QList<GPSPosition>();
+        route << firstPosition;
+    }
+
+    /**
+     * @brief gibt die GPSPosition an der Indexstelle i zurück.
+     * @param i Indexstelle, an der sich das gesuchte Objekt befinden soll.
+     * @return die GPSPosition an der Stelle i.
+     */
     GPSPosition operator[](int i)
     {
-        //return route[i];
         return route.at(i);
     }
+    /**
+     * @brief gibt an, ob zwei Listen gleich sind.
+     * @param r die Liste, die mit der aktuellen verglichen wird.
+     * @return ein Boolischer Wert, der angibt, ob zwei Listen gleich sind, oder nicht.
+     */
+    bool operator == (GPSRoute& r)
+    {
+        return route == r.get();
+    }
 private:
+    /**
+     * @brief gibt die Liste zurück.
+     * @return die Liste.
+     */
+    QList<GPSPosition> get()
+    {
+       return route;
+    }
     QList<GPSPosition> route;
 };
 
-/**
- * @todo alle Funktionen testen
- */
+
 namespace biker_tests
 {
     int testGPSRoute();
