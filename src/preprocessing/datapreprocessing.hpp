@@ -5,6 +5,7 @@
 #include "temporarydatabase.hpp"
 #include "blockingqueue.hpp"
 #include "routingedge.hpp"
+#include "osmparser.hpp"
 
 /**
  * @brief Diese Klasse kuemmert sich um jegliche Form der Datenvorverarbeitung
@@ -21,6 +22,9 @@ class DataPreprocessing
 	private:
 
 	public:
+    DataPreprocessing();
+    ~DataPreprocessing();
+    //
 	//TODO: sinnvolle Kategorien definieren
 	enum Category
 	{
