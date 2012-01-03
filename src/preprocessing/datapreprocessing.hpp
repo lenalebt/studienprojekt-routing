@@ -6,6 +6,13 @@
 #include "blockingqueue.hpp"
 #include "routingedge.hpp"
 #include "osmparser.hpp"
+#include "tests.hpp"
+
+namespace biker_tests
+{
+    int testDataPreprocessing();
+}
+
 
 /**
  * @brief Diese Klasse kuemmert sich um jegliche Form der Datenvorverarbeitung
@@ -14,33 +21,25 @@
  * @author Sebastian Koehlert
  * @date 2011-12-21
  * @copyright GNU GPL v3
- * @todo erstmal noch ein todo schreiben ;)
+ * @todo
  */
- 
+
 class DataPreprocessing
 {
 	private:
 
 	public:
+    OSMParser _osmParser;
+    
     DataPreprocessing();
     ~DataPreprocessing();
-    //
-	//TODO: sinnvolle Kategorien definieren
-	enum Category
-	{
-	  cat1= 0,
-	  cat2,
-	  cat3,
-	  catn
-	};
+    
+    bool deQueue();
+    bool enQueue();
+    bool saveNodeToTmpDatabase(const OSMNode& node);
+    bool saveEdgeToTmpDatabase(const OSMEdge& edge);
+    bool saveTurnRestrictionToTmpDatabase(const OSMTurnRestriction& turnRestriction);
 	
-	bool feedParser();
-	
-	/**
-	* @brief Gibt die Kategorie der als Parameter übergebenen Kante aus
-	* @param edgeID Die Kante, dessen Kategorie ausgegeben werden soll.
-	* @return Kategorie der Kante.
-	*/
-	Category getCategoryEdgeID(boost::uint64_t edgeID);
+	bool feedParser();	
 };
 #endif //DATAPREPROCESSING_HPP

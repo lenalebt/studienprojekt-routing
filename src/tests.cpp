@@ -18,6 +18,8 @@
 #include "blockingqueue.hpp"
 #include "closedlist.hpp"
 #include "heap.hpp"
+#include "datapreprocessing.hpp"
+
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -197,6 +199,8 @@ namespace biker_tests
             return biker_tests::testHashClosedList();
         else if (testName == "gpsroute")
             return biker_tests::testGPSRoute();
+        else if(testName == "datapreprocessing")
+            return biker_tests::testDataPreprocessing();
         
         //Anpassen, falls Fehler auftraten!
         std::cout << "error: did not find test \"" << testName << "\"." << std::endl;
