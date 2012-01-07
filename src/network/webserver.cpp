@@ -1,5 +1,6 @@
 #include "webserver.hpp"
 #include <iostream>
+#include <QRegExp>
 
 template <typename HttpRequestProcessorType>
 void HttpServerThread<HttpRequestProcessorType>::run()
@@ -7,7 +8,7 @@ void HttpServerThread<HttpRequestProcessorType>::run()
     bool timedOut = false;
     bool newConnectionAvailable = false;
     
-    _server = new HttpServer<HttpRequestProcessorType>();
+    _server = new HttpServer<HttpRequestProcessorType>(_port, _threadPoolSize);
     
     if (_server->listen(QHostAddress::Any, _port))
     {
@@ -29,8 +30,13 @@ void HttpServerThread<HttpRequestProcessorType>::run()
             std::cerr << "new connection available." << std::endl;
         }
     }
+    
     _server->close();
-    delete _server;
+    if (_server != 0)
+    {
+        delete _server;
+        _server = 0;
+    }
 }
 
 template <typename HttpRequestProcessorType>
@@ -89,45 +95,149 @@ HttpRequestProcessor::HttpRequestProcessor(int socketDescriptor) :
     
 }
 
+bool HttpRequestProcessor::readLine(QTcpSocket* socket, char* c, size_t csize)
+{
+    bool didReadLine = false;
+    int tries=0;
+    int bytesRead=0;
+    while (!didReadLine)
+    {
+        tries++;
+        if (socket->canReadLine())
+        {
+            if ((bytesRead = socket->readLine(c, csize-1)))
+            {
+                c[bytesRead] = '\0';
+            }
+            didReadLine = true;
+        }
+        else
+        {
+            if (tries > 20)
+                return false;
+            socket->waitForReadyRead(100);
+        }
+    }
+    return true;
+}
+
+void HttpRequestProcessor::writeString(QTcpSocket* socket, QString str)
+{
+    socket->write(str.toLatin1());
+}
+
+void HttpRequestProcessor::send404()
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, httpVersion);
+    writeString(_socket, " 404 Not found\n\n");
+    writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Not found</title></head><body><p>404 Not found</p></body></html>");
+    _socket->flush();
+}
+void HttpRequestProcessor::send405()
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, httpVersion);
+    writeString(_socket, " 405 Method not allowed\n\n");
+    writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Method not allowed</title></head><body><p>405 Method not allowed</p></body></html>");
+    _socket->flush();
+}
+
+bool HttpRequestProcessor::preprocessRequest()
+{
+    /* TODO:
+     * Aufbereitung der Parameter, Pfade, etc.
+     */
+    //Testmodus, der nur einfach alles ausgibt was reinkommt.
+    _socket->setTextModeEnabled(true);
+    char c[1024];
+    QString line;
+    
+    
+    if (readLine(_socket, c, 1024))
+    {
+        std::cerr << c;
+        line = c;
+    }
+    else
+        return false;
+    
+    //Erst beliebige Leerzeichen, dann GET oder PUT oder POST, dann Pfad, Evtl. Parameter, dann welche HTTP-Version.
+    QRegExp httpHelloRegExp("(GET|PUT|POST)\\s\\s*([^\\?][^\\?]*)(\\?\\S*)?\\s\\s*HTTP/1.(\\d)");
+    //TODO: Vielleicht besser die RegExp einmal statisch erstellen statt immer wieder?
+    
+    if (httpHelloRegExp.indexIn(line) == -1)
+    {
+        return false;
+    }
+    
+    //GET-Request
+    QString requestType = httpHelloRegExp.cap(1);
+    requestPath = httpHelloRegExp.cap(2);
+    httpVersion = httpHelloRegExp.cap(4);
+    QString parameters = httpHelloRegExp.cap(3);
+    
+    std::cerr << "requestType: " << requestType << std::endl
+        << "requestPath: " << requestPath << std::endl
+        << "httpVersion: 1." << httpVersion << std::endl
+        << "parameters: " << parameters << std::endl;
+    
+    if (requestType != "GET")
+    {
+        std::cerr << "Only GET requests are supported." << std::endl
+            << "request type was: " << httpHelloRegExp.cap(1) << std::endl;
+        send405();
+        return false;
+    }
+    
+    QRegExp httpHeader("(\\S\\S*):\\s\\s*([^\\n]*)");
+    while (readLine(_socket, c, 1024))
+    {
+        line = c;
+        if (httpHeader.indexIn(line) != -1)
+        {
+            headerMap[httpHeader.cap(1)] = httpHeader.cap(2);
+            std::cerr << httpHeader.cap(1) << ": " << httpHeader.cap(2) << std::endl;
+        }
+        else
+            break;
+    }
+    
+    
+    return true;
+}
+
 void HttpRequestProcessor::run()
 {
     _socket = new QTcpSocket();
     if (_socket->setSocketDescriptor(_socketDescriptor))
     {
-        /* TODO:
-         * Aufbereitung der Parameter, Pfade, etc.
-         * GET/POST/PUT?
-         */
-        //Testmodus, der nur einfach alles ausgibt was reinkommt.
-        _socket->setTextModeEnabled(true);
-        char c[100];
-        int bytesRead=0;
         
-        _socket->waitForReadyRead(10000);
-        while (_socket->bytesAvailable()>0)
-        {
-            if ((bytesRead = _socket->read(c, 99)))
-            {
-                c[bytesRead] = '\0';
-                std::cerr << c;
-            }
-            //_socket->waitForReadyRead(10000);
-        }
-        
-        this->processRequest();
+        if (this->preprocessRequest())
+            this->processRequest();
+        else
+            std::cerr << "Did not get a well-formed request." << std::endl;
     }
     else
     {
         std::cerr << "Error while trying to initialize connection." << std::endl;
     }
+    _socket->close();
+    
     if (_socket != 0)
+    {
         delete _socket;
+        _socket = 0;
+    }
 }
 
 void BikerHttpRequestProcessor::processRequest()
 {
     //TODO: Request bearbeiten
     std::cerr << "Request needs to be processed." << std::endl;
+    
+    std::cerr << "processing..." << std::endl;
+    send404();
 }
 
 namespace biker_tests

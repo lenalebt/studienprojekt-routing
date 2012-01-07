@@ -82,9 +82,22 @@ class HttpRequestProcessor : public QRunnable
 protected:
     int _socketDescriptor;
     QTcpSocket* _socket;
+    
+    QString requestPath;
+    QString httpVersion;
+    QMap<QString, QString> parameterMap;
+    QMap<QString, QString> headerMap;
+    
+    bool readLine(QTcpSocket* socket, char* c, size_t csize=1024);
+    void writeString(QTcpSocket* socket, QString str);
+    
+    void send404();
+    void send405();
 public:
     HttpRequestProcessor(int socketDescriptor);
     void run();
+    
+    bool preprocessRequest();
     
     /**
      * @brief Diese Funktion wird aufgerufen, um einen neuen Request zu

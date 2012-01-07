@@ -9,6 +9,9 @@ PROJECT(biker)
 SET (biker_VERSION_MAJOR 0)
 SET (biker_VERSION_MINOR 03)
 
+#Programmversion dem Quelltext bekannt machen
+ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
+
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
 MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
 IF (CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -16,9 +19,6 @@ IF (CMAKE_BUILD_TYPE STREQUAL Debug)
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
     MESSAGE("CMAKE_BUILD_TYPE set to Release.")
 ENDIF ()
-
-#Programmversion dem Quelltext bekannt machen
-ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
 
 #Evtl muss man mal für die Compiler verschiedene Einstellungen machen: Wenn, dann hier.
 IF ( CMAKE_COMPILER_IS_GNUCXX )
@@ -148,7 +148,7 @@ SET(
 #Das sind vor allem jene, in denen Q_OBJECT steht.
 QT4_WRAP_CPP(
     biker_HEADERS_MOC
-    src/network/webserver.hpp
+    #src/network/webserver.hpp
     )
 
 QT4_WRAP_UI(
