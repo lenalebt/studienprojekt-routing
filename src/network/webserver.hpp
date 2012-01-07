@@ -154,6 +154,7 @@ public:
      *  - Alle Parameter wurden geparst. Sie können in
      *      <code>_parameterMap</code> abgerufen werden.
      *  - Der Pfad wurde in <code>_requestPath</code> abgelegt.
+     *  - Der Typ des Requests wurde in <code>_requestType</code> abgelegt.
      * 
      * @todo Implementieren!
      */
