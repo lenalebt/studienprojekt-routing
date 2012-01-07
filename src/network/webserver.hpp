@@ -15,6 +15,8 @@
  *      abarbeitet.
  * 
  * 
+ * @remarks Diese Klasse sollte nicht direkt angesprochehn werden, sondern
+ *      nur über HttpServerThread aufgerufen werden!
  * @tparam HttpRequestProcessorType Gibt die Klasse an, die
  *      aufgerufen wird wenn ein Request hereinkommt.
  * @author Lena Brüder
@@ -51,6 +53,16 @@ public:
     ~HttpServer();
 };
 
+/**
+ * @brief Diese Klasse stellt einen ServerThread dar und sollte aufgerufen werden,
+ *      um einen neuen Server zu starten.
+ * 
+ * @ingroup name
+ * @author Lena Brueder
+ * @date 2012-01-08
+ * @copyright GNU GPL v3
+ * @ingroup network
+ */
 template <typename HttpRequestProcessorType>
 class HttpServerThread : public QThread
 {
