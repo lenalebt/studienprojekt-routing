@@ -113,7 +113,6 @@ protected:
      * @brief Schreibt einen String auf das Socket.
      * @param socket Das Socket, das verwendet werden soll
      * @param str Der String, der geschrieben werden soll
-     * @todo 
      */
     void writeString(QTcpSocket* socket, QString str);
     
