@@ -61,6 +61,7 @@ private:
     HttpServer<HttpRequestProcessorType>* _server;
 public:
     void run();
+    void startServer();
     void stopServer();
     HttpServerThread(boost::uint16_t port=8080, boost::uint16_t threadPoolSize = 5);
     ~HttpServerThread();
@@ -83,20 +84,51 @@ protected:
     int _socketDescriptor;
     QTcpSocket* _socket;
     
-    QString requestPath;
-    QString httpVersion;
-    QMap<QString, QString> parameterMap;
-    QMap<QString, QString> headerMap;
+    QString _requestType;
+    QString _requestPath;
+    QString _httpVersion;
+    QMap<QString, QString> _parameterMap;
+    QMap<QString, QString> _headerMap;
     
-    bool readLine(QTcpSocket* socket, char* c, size_t csize=1024);
+    /**
+     * @brief Liest eine Zeile aus dem socket, so verfügbar.
+     * @param socket Das Socket, das verwendet werden soll
+     * @param line[out] Hier wird die Zeile reingeschrieben, die gelesen wurde
+     * @return Ob eine Zeile gelesen werden konnte
+     */
+    bool readLine(QTcpSocket* socket, QString& line);
+    /**
+     * @brief Schreibt einen String auf das Socket.
+     * @param socket Das Socket, das verwendet werden soll
+     * @param str Der String, der geschrieben werden soll
+     * @todo 
+     */
     void writeString(QTcpSocket* socket, QString str);
     
+    /**
+     * @brief Schickt eine 404-Nachricht mit kleiner Webseite an den Peer.
+     * 
+     * Die Verbindung sollte nach dem Versenden geschlossen werden.
+     */
     void send404();
+    
+    /**
+     * @brief Schickt eine 405-Nachricht mit kleiner Webseite an den Peer.
+     * 
+     * Die Verbindung sollte nach dem Versenden geschlossen werden.
+     */
     void send405();
 public:
     HttpRequestProcessor(int socketDescriptor);
     void run();
     
+    /**
+     * @brief Diese Funktion wird aufgerufen, um ein wenig Vorverarbeitung zu machen.
+     * 
+     * Hier wird sowas gemacht wie parsen von Headern und Parametern,
+     * sowie heraussuchen des Pfades der geöffnet werden soll und sowas.
+     * 
+     */
     bool preprocessRequest();
     
     /**
@@ -104,13 +136,16 @@ public:
      *      bearbeiten.
      * 
      * Dabei sind ein paar Vorverarbeitungsschritte schon gemacht worden:
-     *  - Alle Header wurden bearbeitet.
+     *  - Alle Header wurden bearbeitet. Sie können in
+     *      <code>_headerMap</code> abgerufen werden.
      *  - Weiteres Lesen vom Socket liefert die Daten, die nach dem Header kommen
+     *  - Alle Parameter wurden geparst. Sie können in
+     *      <code>_parameterMap</code> abgerufen werden.
+     *  - Der Pfad wurde in <code>_requestPath</code> abgelegt.
      * 
      * @todo Implementieren!
      */
     virtual void processRequest()=0;
-//    template <typename T> friend class HttpServer<T>;
 };
 
 class BikerHttpRequestProcessor : public HttpRequestProcessor
