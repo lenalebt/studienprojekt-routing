@@ -160,6 +160,17 @@ public:
     virtual void processRequest()=0;
 };
 
+/**
+ * @brief Diese Klasse stellt einen Request an Biker dar.
+ * 
+ * 
+ * 
+ * @ingroup network
+ * @author Lena Brueder
+ * @date 2012-01-08
+ * @copyright GNU GPL v3
+ * @todo Implementierung!
+ */
 class BikerHttpRequestProcessor : public HttpRequestProcessor
 {
 public:
