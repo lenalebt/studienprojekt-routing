@@ -86,6 +86,7 @@ SET(
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
     src/database/temporarydatabase.cpp
+    src/database/zip.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp
@@ -120,6 +121,7 @@ SET(
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
     src/database/temporarydatabase.hpp
+    src/database/zip.hpp
     
     #src/database/parser
     src/database/parser/osmparser.hpp

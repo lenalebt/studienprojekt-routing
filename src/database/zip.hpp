@@ -31,7 +31,8 @@
 class SrtmZipFile
 {
     public:
-        static int getData(QString filename, qint16 **buffer);
+        SrtmZipFile() {};
+        int getData(QString filename, qint16 **buffer);
 };
 
 #endif

@@ -6,6 +6,11 @@
 #include <math.h>
 #include <QtEndian>
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Klasse SRTMProvider //////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
 double SRTMProvider::getAltitude(const GPSPosition& pos)
 {
     return this->getAltitude(pos.getLat(), pos.getLon());
@@ -13,14 +18,13 @@ double SRTMProvider::getAltitude(const GPSPosition& pos)
 
 double SRTMProvider::getAltitude(double lat, double lon)
 {
-    double height = 0.0; // Defaultwert für Höhe ist NN
+    double altitude = 0.0; // Defaultwert für Höhe ist NN
  
     QString fileName; // hier soll die Zipdatei liegen nach dem Download, also Name incl. Pfad
 
          
     loadFileList(); // per loadFilelist(): fileListe vorhanden? falls nicht, laden!
-    //Nachkommastellen der Koordinaten entfernen und zu int casten
-    intlat = int(floor(lat));
+    intlat = int(floor(lat)); //Nachkommastellen der Koordinaten entfernen und zu int casten
     intlon = int(floor(lon));
     
     if (fileList.contains(latLonToIndex(intlat, intlon))){// Falls Koordinate vorhanden..
@@ -29,15 +33,15 @@ double SRTMProvider::getAltitude(double lat, double lon)
         
         if(!zipFile.open(QIODevice::ReadOnly)){
             QString altZipDir =  fileList[latLonToIndex(intlat, intlon)]; // Url ab Kontinentverzeichnis bis .hgt.zip
-            //Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind. //TODO
-            //Zip-Datei unter filename ablegen (Pfad in filename)
+            // [TODO] Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind. //TODO
+            // [TODO] Zip-Datei unter filename ablegen (Pfad in filename)
         }
-        //- Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
-        //- Zip-Datei entzippen:
-        SrtmZipFile srtmZipFileObject;
+        // [TODO] Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
+        
+        SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
         resolution = srtmZipFileObject.getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
         valid = true;
-        height = getAltitudeFromLatLon(lat, lon);
+        altitude = getAltitudeFromLatLon(lat, lon);
         //
         //
         ///** Get the value of a pixel from the data using a coordinate system
@@ -48,7 +52,7 @@ double SRTMProvider::getAltitude(double lat, double lon)
             //- Koordinaten aus dem Array raussuchen und Mittelwert berechne
     
     if (buffer) delete buffer;        
-    return height;//TODO
+    return altitude;//TODO
 }
 int SRTMProvider::getPixelValue(int x, int y)
 	{
@@ -161,24 +165,18 @@ void SRTMProvider::createFileList()
     
 }
 
-QByteArray SRTMProvider::blubb(const QUrl &dUrl)
-{
-    FileDownloader loader;
-    return loader.downloadURL(dUrl);
-}
-
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Klasse SRTMProvider //////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
 void SRTMProvider::downloadUrl(const QUrl &dUrl, QString &data)
 {
-    //Instanz von FileDownloader erstellen
-    //FileDownloader loader; // oder nur FileDownloader loader?
-    //ihr wollt "simulieren":
-    //return loader.downloadURL(url);
-    
-    extern QByteArray blubb(const QUrl &dUrl); // Warum will er nicht loader.download...usw.?!?
-    QFuture<QByteArray> future = QtConcurrent::run(blubb, dUrl);
-    // future.waitForFinished(); // result() müsste auch blocken
+    FileDownloader loader;
+    QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
     data = QString(future.result());
     return;
+    
 }
 
 SRTMProvider::~SRTMProvider()
@@ -199,18 +197,13 @@ void FileDownloader::run()
     //Wird aufgerufen, wenn start() gestartet wird
 }
 
-QByteArray FileDownloader::downloadURL(QUrl url)
+QByteArray FileDownloader::downloadURL(QUrl &url)
 {
     //hier der Kram aus der alten downloadurl-funktion
     QNetworkAccessManager manager;
     QNetworkRequest request(url);
     QNetworkReply *reply = manager.get(request);
     QByteArray data;
-
-
-    //QEventLoop loop;
-    //QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-    //loop.exec();
 
     while (reply->isRunning())
     {

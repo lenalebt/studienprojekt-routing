@@ -19,7 +19,7 @@ public:
     /**
      * @brief Erstellt eine Edge mit angegebenen Standardeigenschaften (keine) und ohne zugehörigen Knoten.
      */
-    OSMEdge();
+    OSMEdge(){};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.

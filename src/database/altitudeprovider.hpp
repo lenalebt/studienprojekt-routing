@@ -69,7 +69,7 @@ private:
 public:
     FileDownloader();
     void run();
-    QByteArray downloadURL(QUrl url);
+    QByteArray downloadURL(QUrl &url);
     //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error);
 };
 

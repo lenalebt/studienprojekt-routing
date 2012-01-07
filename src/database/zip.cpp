@@ -22,7 +22,7 @@
 
 /** \file
     Read SRTM zip files. */
-#include "zip.h"
+#include "zip.hpp"
 //#include "settings.h"
 
 #include <QFileInfo>
