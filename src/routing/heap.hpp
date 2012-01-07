@@ -233,9 +233,6 @@ namespace biker_tests
             return hashMap[key];
         }
     };
-    /**
-     * @todo Implementieren
-     */
     int testBinaryHeap();
 }
 #endif //HEAP_HPP
