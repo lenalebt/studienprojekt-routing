@@ -9,6 +9,8 @@ void DataPreprocessing::Startparser(QString filename)
     _osmParser.parse(filename);
 }
 
+QFuture<void> parseThread = QtConcurrent::run(&Startparser, QString);
+
 bool DataPreprocessing::enQueue()
 {
     //TODO: Parser fuellt Queue

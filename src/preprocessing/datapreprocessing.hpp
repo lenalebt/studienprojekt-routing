@@ -13,6 +13,12 @@
 #include "tests.hpp"
 #include <QtConcurrentRun>
 
+#include <QDebug>
+#include <QThread>
+#include <QString>
+#include <qtconcurrentrun.h>
+#include <QApplication>
+
 namespace biker_tests
 {
     int testDataPreprocessing();
