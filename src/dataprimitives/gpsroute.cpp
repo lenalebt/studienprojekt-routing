@@ -129,6 +129,12 @@ void GPSRoute::exportJSON(QString filename, GPSRoute& route)
 }
 namespace biker_tests
 {
+    /**
+     * @todo Umstellen auf das Test-Framework! Tests sind aktuell unvollständig
+     * und sehr kurz, und nicht im Log nachvollziehbar. Mit dem Test-Framework
+     * (->tests.{c,h}pp) gibt es Zusatzausgaben auf der Konsole. Beispiele,
+     * wie das zu verwenden ist, finden sich in den anderen Modulen.
+     */
     int testGPSRoute()
     {
         //drei Test-Positionen initalisieren
