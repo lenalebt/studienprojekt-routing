@@ -7,7 +7,7 @@ PROJECT(biker)
 
 #Hier Versionsnummer setzen
 SET (biker_VERSION_MAJOR 0)
-SET (biker_VERSION_MINOR 02)
+SET (biker_VERSION_MINOR 03)
 
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
 MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
@@ -86,6 +86,7 @@ SET(
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
     src/database/temporarydatabase.cpp
+    src/database/sqlite_functions.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp
@@ -120,6 +121,7 @@ SET(
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
     src/database/temporarydatabase.hpp
+    src/database/sqlite_functions.hpp
     
     #src/database/parser
     src/database/parser/osmparser.hpp

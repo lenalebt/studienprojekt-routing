@@ -125,5 +125,4 @@
  * @brief Hier werden alle Klassen und Funktionen und Dateien abgelegt,
  *      die für das Testen der Anwendung zuständig sind.
  */
-
 #endif //MAIN_HPP

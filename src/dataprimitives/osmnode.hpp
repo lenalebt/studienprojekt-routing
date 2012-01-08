@@ -78,9 +78,6 @@ std::ostream& operator<<(std::ostream& os, const OSMNode& p);
 
 namespace biker_tests
 {
-    /**
-     * @todo Implementieren, dieser Test ist noch leer.
-     */
     int testOSMNode();
 }
 
