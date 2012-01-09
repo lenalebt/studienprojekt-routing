@@ -28,6 +28,7 @@
 #include "database.hpp"
 #include <boost/cstdint.hpp>
 #include "tests.hpp"
+#include "blockingqueue.hpp"
 
 enum NodeType {NODE, WAY, RELATION, NONE};
 
@@ -59,8 +60,13 @@ private:
     int wayCount;
     int relationCount;
 
+    BlockingQueue<OSMNode>* _nodeQueue;
+    BlockingQueue<OSMEdge>* _edgeQueue;
+    BlockingQueue<OSMTurnRestriction>* _turnRestrictionQueue;
+
 public:
-    OSMParser();//TODO: OSMDatabaseWriter& dbWriter);
+    OSMParser(BlockingQueue<OSMNode>* nodeQueue, BlockingQueue<OSMEdge>* edgeQueue, BlockingQueue<OSMTurnRestriction>* turnRestrictionQueue);
+    //TODO: OSMDatabaseWriter& dbWriter);
     ~OSMParser();
     bool startDocument();
     bool endElement ( const QString & namespaceURI, const QString & localName, const QString & qName );

@@ -134,8 +134,15 @@ public:
      * @brief Diese Funktion exportiert die Route in das JSON-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
      * @param filename Name unter der die JSON-Datei gespeichert werden soll
+     * @param route die Route, die ausgegeben werden soll
      */
     static void exportJSON(QString filename, GPSRoute& route);
+    /**
+     * @brief Diese Funktion exportiert die Route in einen QString mit  JSON-Format, sodass sie
+     * von anderen Applikationen benutzt werden kann.
+     * @param route die Route, die ausgegeben werden soll
+     */
+    QString exportJSONString(GPSRoute& route);
 
     /**
      * @brief Kopiert eine Route.
