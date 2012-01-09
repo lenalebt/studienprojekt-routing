@@ -5,6 +5,7 @@
 #include "tests.hpp"
 #include <QVector>
 #include <boost/cstdint.hpp>
+#include <iostream>
 
 class OSMEdge
 {
@@ -18,7 +19,7 @@ public:
     /**
      * @brief Erstellt eine Edge mit angegebenen Standardeigenschaften (keine) und ohne zugehörigen Knoten.
      */
-    OSMEdge();
+    OSMEdge(){};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
@@ -83,6 +84,16 @@ public:
     QVector<OSMProperty> getProperties() const {return properties;}
     
 };
+
+/**
+ * @brief Vergleicht 2 OSMEdges miteinander
+ * @return Gibt an, ob die beiden OSMEdges gleich sind
+ */
+bool operator==(const OSMEdge& e1, const OSMEdge& e2);
+/**
+ * @brief Gibt eine OSMEdge auf einem Ausgabestrom aus.
+ */
+std::ostream& operator<<(std::ostream& os, const OSMEdge& e);
 
 namespace biker_tests
 {
