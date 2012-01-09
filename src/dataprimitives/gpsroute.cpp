@@ -127,6 +127,40 @@ void GPSRoute::exportJSON(QString filename, GPSRoute& route)
     stream << all;//doc.toString();
     file.close();
 }
+QString GPSRoute::exportJSONString( GPSRoute& route)
+{
+    QLocale locale(QLocale::C);//sonst schreibt er in eine GPX-Datei Kommas statt Punkte
+    QString all;
+    //Version
+    all.append("{\"version\":1.0,");
+    //Status
+    all.append("\"status\":0,");
+    //Routen-Zusammenfassung (eventuell verfeinern)
+    all.append("\"route_summary\":{},");
+    //Routen-Geometrie
+    all.append("\"route_geometry\":[");
+    //Wegpunkte
+    int i=0;
+    for(; i<route.getSize()-1; i++)
+    {
+        all.append("[");
+        all.append(locale.toString(route[i].getLat()));
+        all.append(",");
+        all.append(locale.toString(route[i].getLon()));
+        all.append( "],");
+    }
+    all.append("[");
+    all.append(locale.toString(route[i].getLat()));
+    all.append(",");
+    all.append(locale.toString(route[i].getLon()));
+    all.append("]");
+    //Instruktionen (eventuell verfeinern)
+    all.append("],\"route_instructions\":[]");
+    //Ende
+    all.append("}");
+    //QString zurückgeben
+    return all;
+}
 namespace biker_tests
 {
     /**
@@ -138,13 +172,13 @@ namespace biker_tests
     int testGPSRoute()
     {
         //drei Test-Positionen initalisieren
-        GPSPosition pos_one(48.0, 2.0);
-        GPSPosition pos_two(52.0, 13.0);
-        GPSPosition pos_three(51.0, 0.0);
+        GPSPosition pos_one(48.333333333, 2.123456789);
+        GPSPosition pos_two(52.6, 13.00091);
+        GPSPosition pos_three(51.0, 0.73098);
         // neue Route mit zweitem Wert zuerst eingefügt
         GPSRoute test(pos_two);
         // nun sollte zumindest ein Element in der Liste drin sein
-        if(test.isEmpty() == true) return EXIT_FAILURE;
+        CHECK_EQ(test.isEmpty(), false);
         // nun die anderen beiden Positionen einfügen 
         test.insertBackward(pos_one);
         test.insertForward(pos_three);
@@ -154,13 +188,13 @@ namespace biker_tests
         test.exportGPX("test.gpx", test);
         test.exportJSON("test.js", test);
         // nun sollte pos_one am anfang stehen
-        if(test.getStartingPoint()!=pos_one) return EXIT_FAILURE;
+        CHECK_EQ(test.getStartingPoint(), pos_one);
         // nun sollte pos_three am ende stehen
-        if(test.getDestination()!=pos_three) return EXIT_FAILURE;
+        CHECK_EQ(test.getDestination(), pos_three);
         // nun wird alles entfernt
         test.clear();
         // und dann sollte alles leer sein . . . 
-        if(test.isEmpty() == false) return EXIT_FAILURE;
+        CHECK(test.isEmpty());
         // und das wäre dann der Test
         return EXIT_SUCCESS;
     }

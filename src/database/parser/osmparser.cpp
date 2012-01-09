@@ -1,9 +1,9 @@
 #include "osmparser.hpp"
 #include <iostream>
 
-OSMParser::OSMParser()//TODO: OSMDatabaseWriter& dbWriter)
-    : //TODO: dbWriter(dbWriter), 
-    nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0)
+OSMParser::OSMParser(BlockingQueue<OSMNode*>* nodeQueue, BlockingQueue<OSMWay*>* wayQueue, BlockingQueue<OSMTurnRestriction*>* turnRestrictionQueue)
+    : nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0),
+      _nodeQueue(nodeQueue), _wayQueue(wayQueue), _turnRestrictionQueue(turnRestrictionQueue)
 {
 
 }
@@ -65,6 +65,10 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
         {
             wayCount++;
             nodeType = WAY;
+            
+            //Zerstört die Queue, damit keine Blockierung auftreten kann
+            if (wayCount == 1)
+                _nodeQueue->destroyQueue();
 
             boost::uint64_t id=0;
 
@@ -79,6 +83,10 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
         {
             relationCount++;
             nodeType = RELATION;
+            
+            //Zerstört die Queue, damit keine Blockierung auftreten kann
+            if (relationCount == 1)
+                _wayQueue->destroyQueue();
         }
     }
     else if (nodeType == NODE)
@@ -139,6 +147,7 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
         if (qName == "node")
         {
             nodeType = NONE;
+            _nodeQueue->enqueue(node);
             //TODO: dbWriter.addNode(node);
         }
     }
@@ -147,6 +156,7 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
         if (qName == "way")
         {
             nodeType = NONE;
+            _wayQueue->enqueue(way);
             //TODO: dbWriter.addWay(way);
         }
     }
@@ -155,6 +165,7 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
         if (qName == "relation")
         {
             nodeType = NONE;
+            _turnRestrictionQueue ->enqueue(relation);
             //TODO: dbWriter.addRelation(relation);
 
             delete relation;

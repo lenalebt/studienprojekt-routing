@@ -2,6 +2,10 @@
 #include <iostream>
 #include <QtConcurrentRun>
 
+#include "osmway.hpp"
+#include "osmturnrestriction.hpp"
+#include "osmnode.hpp"
+
 template <typename T> 
 bool BlockingQueue<T>::dequeue(T& t)
 {
@@ -198,3 +202,8 @@ namespace biker_tests
         return i;
     }
 }
+
+
+template class BlockingQueue<OSMWay*>;
+template class BlockingQueue<OSMNode*>;
+template class BlockingQueue<OSMTurnRestriction*>;
