@@ -3,6 +3,12 @@
 
 #include <sqlite3.h>
 
+/**
+ * @brief Hier werden Funktionen gesammelt, die irgendwas mit der
+ * SQLite-Datenbank zu tun haben und überall gebraucht werden.
+ * 
+ * @ingroup database
+ */
 namespace sqlite_functions
 {
     bool handleSQLiteResultcode(int rc);

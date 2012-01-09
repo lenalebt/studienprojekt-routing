@@ -29,6 +29,7 @@ namespace biker_tests
  * @date 2011-12-14
  * @copyright GNU GPL v3
  * @todo implementieren, Schnittstellen definieren
+ * @ingroup database
  */
 class TemporaryOSMDatabaseConnection
 {

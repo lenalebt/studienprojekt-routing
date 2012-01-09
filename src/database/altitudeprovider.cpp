@@ -30,7 +30,7 @@ void SRTMProvider::createFileList()
     QStringList continents;
     continents << "Africa" << "Australia" << "Eurasia" << "Islands" << "North_America" << "South_America";
     foreach (QString continent, continents) {
-        std::cout << "Downloading data from" << url+continent+"/";
+        std::cerr << "Downloading data from" << url+continent+"/";
         //curlData.clear();
         //curl_easy_setopt(curl, CURLOPT_URL, QString(url+continent+"/").toAscii().constData());
         //CURLcode error = curl_easy_perform(curl);

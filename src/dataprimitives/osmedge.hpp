@@ -6,6 +6,15 @@
 #include <QVector>
 #include <boost/cstdint.hpp>
 
+/**
+ * @brief Eine Kante nach OSM-Datenmodell.
+ * 
+ * 
+ * 
+ * @date 2011-12-23
+ * @copyright GNU GPL v3
+ * @ingroup dataprimitives
+ */
 class OSMEdge
 {
 private:
