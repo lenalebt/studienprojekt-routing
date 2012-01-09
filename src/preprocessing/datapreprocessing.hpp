@@ -7,6 +7,7 @@
 #include "routingedge.hpp"
 #include "routingnode.hpp"
 #include "osmparser.hpp"
+#include "osmway.hpp"
 #include "osmnode.hpp"
 #include "osmedge.hpp"
 #include "osmturnrestriction.hpp"
@@ -38,19 +39,20 @@ class DataPreprocessing
 {
 	private:
 
-	public:
-    OSMParser _osmParser;
-    TemporaryOSMDatabaseConnection _tmpDBConnection;
-    
+	public:    
     DataPreprocessing();
     ~DataPreprocessing();
+    
+    TemporaryOSMDatabaseConnection _tmpDBConnection;
     
     BlockingQueue<OSMNode> _nodeQueue;
     BlockingQueue<OSMEdge> _edgeQueue;
     BlockingQueue<OSMTurnRestriction> _turnRestrictionQueue;
+    BlockingQueue<OSMWay> _wayQueue;
     
-    void Startparser(QString filename);
+    OSMParser parser(*_wayQueue);
     
+    void Startparser(QString filename);    
     bool deQueue();
     bool enQueue();
     bool saveNodeToTmpDatabase(const OSMNode& node);
