@@ -24,6 +24,17 @@ private:
     boost::uint64_t id;
     QVector<boost::uint64_t> memberIDList;
     QVector<OSMProperty> properties;
+    /*
+    static QVector<OSMProperty> onewayProperties;
+    static QVector<OSMProperty> reverseOnewayProperties;
+    static QVector<OSMProperty> noOnewayProperties;
+    */
+    static QVector<OSMProperty> onewayProperties();
+    static QVector<OSMProperty> noOnewayProperties();
+    static QVector<OSMProperty> reverseOnewayProperties();
+    static QVector<OSMProperty> bikeOnewayProperties();
+    static QVector<OSMProperty> bikeReverseOnewayProperties();
+    static QVector<OSMProperty> noBikeOnewayProperties();
 public:
     /**
      * @brief Erstellt einen Way mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörige Knoten.
@@ -82,6 +93,36 @@ public:
      * @return Die Liste aller Kanten des Weges.
      */
     QVector<OSMEdge> getEdgeList(); //TODO implementierung
+    
+    /**
+     * @brief Gibt zurück, ob es sich um einen Weg mit Einbahneigenschaften handelt.
+     * 
+     * Überprüft beispielsweise, ob der Weg Eigenschaften hat wie "oneway=yes"
+     * oder "highway=motorway", die beinhalten dass es sich um eine Einbahnstraße
+     * handelt.
+     * 
+     * @remarks Dazu zählen auch Autobahnen!
+     * @return <code>1</code>, wenn es sich um eine Einbahnstraße handelt, <code>0</code>
+     *      wenn nicht. <code>-1</code>, wenn die Einbahnstraße in umgekehrter Richtung
+     *      gültig ist.
+     * @todo Evtl. weitere Wegtypen hinzufügen.
+     */
+    int isOneway();
+    
+    /**
+     * @brief Gibt an, ob die Straße für Fahrräder eine Einbahnstraße ist,
+     *      oder nicht.
+     * 
+     * Einige Straßen sind zwar Einbahnstraßen, jedoch für Fahrräder in der
+     * entgegengesetzten Richtung freigegeben.
+     * 
+     * @return <code>1</code>, wenn es sich um eine Einbahnstraße für Fahrräder
+     *      handelt, <code>0</code>
+     *      wenn nicht. <code>-1</code>, wenn die Einbahnstraße in umgekehrter Richtung
+     *      gültig ist.
+     * @todo 
+     */
+    int isOneWayForBikes();
 };
 
 namespace biker_tests

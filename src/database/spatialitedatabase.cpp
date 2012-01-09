@@ -1,6 +1,7 @@
 #include "spatialitedatabase.hpp"
 #include <QStringList>
 #include <QFile>
+#include <sqlite_functions.hpp>
 
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_int.hpp>
@@ -11,7 +12,7 @@
 SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
     _saveEdgeStatement(NULL), _getEdgeStatementID(NULL), _getEdgeStatementStartNode(NULL),
-    _getEdgeStatementEndNode(NULL)
+    _getEdgeStatementEndNode(NULL), _deleteEdgeStatement(NULL)
 {
     
 }
@@ -125,12 +126,14 @@ bool SpatialiteDatabaseConnection::createTables()
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     statements << "CREATE TABLE EDGES_STREETNAME(ID INTEGER PRIMARY KEY, STREETNAME VARCHAR);";
     
-    //Alle Statements der Liste ausführen
+    //Alle Statements der Liste ausführen in einer Transaktion
+    retVal = this->beginTransaction();
 	QStringList::const_iterator it;
 	for (it = statements.constBegin(); it != statements.constEnd(); it++)
 	{
 		retVal &= execCreateTableStatement(it->toStdString());
 	}
+    retVal &= this->endTransaction();
 	
 	return retVal;
 }
@@ -192,32 +195,9 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getNodeStatement)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
-        
         
         //Erstelle einen neuen Knoten auf dem Heap.
         //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
@@ -308,32 +288,9 @@ SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getEdgeStatementStartNode)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
-        
         
         //Erstelle einen neuen Knoten auf dem Heap.
         //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
@@ -367,7 +324,7 @@ SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 QVector<boost::shared_ptr<RoutingEdge> >
 SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 {
-        QVector<boost::shared_ptr<RoutingEdge> > edgeList;
+    QVector<boost::shared_ptr<RoutingEdge> > edgeList;
       
 	int rc;
 	if(_getEdgeStatementEndNode == NULL)
@@ -387,30 +344,8 @@ SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getEdgeStatementEndNode)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
         
         
@@ -466,30 +401,8 @@ SpatialiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getEdgeStatementID)) != SQLITE_DONE)
     {
-        bool breakLoop = false;
         //Es können verschiedene Fehler aufgetreten sein.
-        switch (rc)
-        {
-            case SQLITE_ROW:
-                //noch eine Zeile verfügbar: Gut. Weitermachen.
-                break;
-            case SQLITE_ERROR:
-                breakLoop=true;
-                std::cerr << "SQL error or missing database." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_BUSY:
-                breakLoop=true;
-                std::cerr << "The database file is locked." << " Resultcode: " << rc << std::endl;
-                break;
-            case SQLITE_LOCKED:
-                breakLoop=true;
-                std::cerr << "A table in the database is locked" << " Resultcode: " << rc << std::endl;
-                break;
-            default:
-                breakLoop = true;
-                std::cerr << "Unknown error. Resultcode:" << rc << std::endl;
-        }
-        if (breakLoop)
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
             break;
         
         
@@ -547,7 +460,6 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
         return false;
     }
 
-
     rc = sqlite3_reset(_saveEdgeStatement);
     if(rc != SQLITE_OK)
     {
@@ -563,6 +475,11 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString nam
     //TODO: Straßenname auch speichern.
 }
 
+bool SpatialiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
+{
+	return false;
+	//TODO
+}
 
 QString SpatialiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
 {
@@ -611,30 +528,30 @@ namespace biker_tests
         SpatialiteDatabaseConnection connection;
         QFile file("test.db");
         
-        std::cout << "Removing database test file \"test.db\"..." << std::endl;
+        std::cerr << "Removing database test file \"test.db\"..." << std::endl;
         if (file.exists())
             file.remove();
         
-        std::cout << "Opening \"test.db\"..." << std::endl;
+        std::cerr << "Opening \"test.db\"..." << std::endl;
         connection.open("test.db");
         CHECK(connection.isDBOpen());
         
-        std::cout << "Closing database..." << std::endl;
+        std::cerr << "Closing database..." << std::endl;
         connection.close();
         CHECK(!connection.isDBOpen());
         
-        std::cout << "Reopening \"test.db\"..." << std::endl;
+        std::cerr << "Reopening \"test.db\"..." << std::endl;
         connection.open("test.db");
         CHECK(connection.isDBOpen());
         
         RoutingNode node(25, 51.0, 7.0);
-        std::cout << "Save Node..." << std::endl;
+        std::cerr << "Save Node..." << std::endl;
         CHECK(connection.saveNode(node));
         node = RoutingNode(26, 51.5, 7.5);
         CHECK(connection.saveNode(node));
         
         RoutingEdge edge(45, 25, 26);
-        std::cout << "Save Edge..." << std::endl;
+        std::cerr << "Save Edge..." << std::endl;
         edge.setCycleBarrier(true);
         edge.setCyclewayType(5);
         CHECK(connection.saveEdge(edge));
@@ -647,15 +564,15 @@ namespace biker_tests
         CHECK(!list.isEmpty());
         CHECK(list.size() == 2);
         
-        std::cout << "Node 0 from DB: " << *(list[0]) << std::endl;
-        std::cout << "Node 1 from DB: " << *(list[1]) << std::endl;
+        std::cerr << "Node 0 from DB: " << *(list[0]) << std::endl;
+        std::cerr << "Node 1 from DB: " << *(list[1]) << std::endl;
         CHECK((*list[0] == node) || (*list[1] == node));
         
         boost::minstd_rand generator(42u);
         boost::uniform_real<> uni_dist(50, 52);
         boost::variate_generator<boost::minstd_rand&, boost::uniform_real<> > uni(generator, uni_dist);
         
-        std::cout << "Inserting 10000 Nodes within one transaction..." << std::endl;
+        std::cerr << "Inserting 10000 Nodes within one transaction..." << std::endl;
         bool successInsertManyNodes = true;
         CHECK(connection.beginTransaction());
         for (int i=0; i<10000; i++)
@@ -682,7 +599,7 @@ namespace biker_tests
         CHECK_EQ(edge, *edgeList[0]);
         
         
-        std::cout << "Inserting 10000 Edges within one transaction..." << std::endl;
+        std::cerr << "Inserting 10000 Edges within one transaction..." << std::endl;
         bool successInsertManyEdges = true;
         CHECK(connection.beginTransaction());
         for (int i=0; i<10000; i++)

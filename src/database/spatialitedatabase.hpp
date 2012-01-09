@@ -4,6 +4,17 @@
 #include "database.hpp"
 #include <sqlite3.h>
 
+/**
+ * @brief Implementierung einer DatabaseConnection mit einer
+ *  Spatialite-Datenbank (sqlite3-Abkömmling).
+ * 
+ * 
+ * 
+ * @author Lena Brüder
+ * @date 2011-12-23
+ * @copyright GNU GPL v3
+ * @ingroup database
+ */
 class SpatialiteDatabaseConnection : public DatabaseConnection
 {
 private:
@@ -15,6 +26,7 @@ private:
     sqlite3_stmt* _getEdgeStatementID;
     sqlite3_stmt* _getEdgeStatementStartNode;
     sqlite3_stmt* _getEdgeStatementEndNode;
+    sqlite3_stmt* _deleteEdgeStatement;
     
     /**
      * @brief Erstellt die Tabellen in der Datenbank
@@ -40,38 +52,12 @@ public:
     bool saveEdge(const RoutingEdge& edge);
     /** @todo Speichern von Straßen implementieren */
     bool saveEdge(const RoutingEdge& edge, QString name);
+    bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
     /** @todo implementieren */
     QString getStreetName(const RoutingEdge& edge);
 	~SpatialiteDatabaseConnection();
     
-    /**
-     * @brief Beginnt eine neue Transaktion auf der Datenbank.
-     * 
-     * Wenn große Datenmengen in der Datenbank abgelegt werden
-     * sollen ist sie wesentlich schneller, wenn man viele Daten
-     * in einer Transaktion ablegt. Daher sollten Transaktionen
-     * immer verwendet werden, wenn mehr als nur zwei oder drei
-     * Datensätze in der Datenbank abgelegt werden.
-     * 
-     * @return Ob das Starten einer Transaktion erfolgreich war,
-     *  oder nicht
-     * @todo Auch für eine normale DatabaseConnection ermöglichen?
-     */
     bool beginTransaction();
-    
-    /**
-     * @brief Beendet die letzte Transaktion auf der Datenbank.
-     * 
-     * Wenn große Datenmengen in der Datenbank abgelegt werden
-     * sollen ist sie wesentlich schneller, wenn man viele Daten
-     * in einer Transaktion ablegt. Daher sollten Transaktionen
-     * immer verwendet werden, wenn mehr als nur zwei oder drei
-     * Datensätze in der Datenbank abgelegt werden.
-     * 
-     * @return Ob das Starten einer Transaktion erfolgreich war,
-     *  oder nicht
-     * @todo Auch für eine normale DatabaseConnection ermöglichen?
-     */
     bool endTransaction();
 };
 

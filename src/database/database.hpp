@@ -131,6 +131,39 @@ public:
      */
     virtual QString getStreetName(const RoutingEdge& edge)=0;
     
+	/**
+	 * @brief Entfernt eine bestimmte Kante aus der Datenbank.
+	 * @return Ob das Loeschen erfolgreich war, oder nicht.
+	 */
+    virtual bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)=0;
+    
+    /**
+     * @brief Beginnt eine neue Transaktion auf der Datenbank.
+     * 
+     * Wenn große Datenmengen in der Datenbank abgelegt werden
+     * sollen ist sie wesentlich schneller, wenn man viele Daten
+     * in einer Transaktion ablegt. Daher sollten Transaktionen
+     * immer verwendet werden, wenn mehr als nur zwei oder drei
+     * Datensätze in der Datenbank abgelegt werden.
+     * 
+     * @return Ob das Starten einer Transaktion erfolgreich war,
+     *  oder nicht
+     */
+    virtual bool beginTransaction()=0;
+    
+    /**
+     * @brief Beendet die letzte Transaktion auf der Datenbank.
+     * 
+     * Wenn große Datenmengen in der Datenbank abgelegt werden
+     * sollen ist sie wesentlich schneller, wenn man viele Daten
+     * in einer Transaktion ablegt. Daher sollten Transaktionen
+     * immer verwendet werden, wenn mehr als nur zwei oder drei
+     * Datensätze in der Datenbank abgelegt werden.
+     * 
+     * @return Ob das Starten einer Transaktion erfolgreich war,
+     *  oder nicht
+     */
+    virtual bool endTransaction()=0;
 };
 
 #endif //DATABASE_HPP 

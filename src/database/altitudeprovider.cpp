@@ -120,6 +120,7 @@ void SRTMProvider::createFileList()
     
     QStringList continents;
     continents << "Africa" << "Australia" << "Eurasia" << "Islands" << "North_America" << "South_America";
+
     QString url = _url.toString();
     
     foreach (QString continent, continents) { // für jeden Kontinent, die vorhandenen Ziparchive in die Liste eintragen
@@ -128,6 +129,7 @@ void SRTMProvider::createFileList()
         QString urlTemp = QString(url+continent+"/").toAscii().constData(); // Kontinent zur url hinzufügen
         QUrl srtmUrl(urlTemp); 				 // urlTemp zu QUrl casten, für spätere Verwendung.
         QString replyString; 					// Hierein wird später die NetworkReply aus downloadUrl gespeichert.
+
         
         downloadUrl(srtmUrl, replyString);
 

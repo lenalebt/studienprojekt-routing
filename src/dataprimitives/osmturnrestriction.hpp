@@ -3,6 +3,7 @@
 
 #include <boost/cstdint.hpp>
 #include <iostream>
+#include "tests.hpp"
 
 /**
  * @brief Eine OSMTurnRestriction stellt eine Relation mit Abbiegebeschränkungen im OSM-Datenmodell im Speicher dar.
@@ -14,6 +15,7 @@
  * @author Lena Brüder (Umbenennung und kleine Doxygenanpassungen)
  * @date 2011-11-01
  * @copyright GNU GPL v3
+ * @ingroup dataprimitives
  */
 class OSMTurnRestriction
 {
@@ -32,8 +34,8 @@ private:
 public:
     /**
      * @brief erstellt eine Relation mit IDs und restriction
-     * @param viaId die ID des Nodes, über die die Relation führt
      * @param fromId die ID des Ways, von dem aus die Relation beginnt
+     * @param viaId die ID des Nodes, über die die Relation führt
      * @param toId die ID des Ways, an dem die Relation endet
      * @param noLeft die Variable die anzeigt, ob man nach links abbiegen darf (noLeft = 0) oder nicht (noLeft = 1)
      * @param noRight die Variable die anzeigt, ob man nach rechts abbiegen darf (noRight = 0) oder nicht (noRight = 1)
@@ -41,7 +43,6 @@ public:
      * @param noUTurn die Variable die anzeigt, ob man umkehren darf (noUTurn = 0) oder nicht (noUTurn = 1)
      */
     OSMTurnRestriction( boost::uint64_t fromId,  boost::uint64_t viaId,  boost::uint64_t toId, bool  noLeft, bool  noStraight, bool  noRight, bool  noUTurn):
-    //OSMTurnRestriction( boost::uint64_t viaId,  boost::uint64_t fromId,  boost::uint64_t toId, bool  noLeft, bool  noStraight, bool  noRight, bool  noUTurn):
     viaId(viaId), fromId(fromId), toId(toId) {
         this->thisRestriction.noLeft = noLeft;
         this->thisRestriction.noRight = noRight;
@@ -134,9 +135,6 @@ public:
 bool operator==(const OSMTurnRestriction& r1, const OSMTurnRestriction& r2);
 std::ostream& operator<<(std::ostream& os, const OSMTurnRestriction& r);
 
-/**
- * @todo: Implementieren, dieser Test ist noch leer.
- */
 namespace biker_tests
 {
     int testOSMTurnRestriction();
