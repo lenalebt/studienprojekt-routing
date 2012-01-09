@@ -94,6 +94,7 @@ SET(
     
     #src/routing/
     src/routing/routingmetric.cpp
+    src/routing/potentialfunction.cpp
     src/routing/router.cpp
     src/routing/heap.cpp
     src/routing/closedlist.cpp
@@ -263,6 +264,7 @@ ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
 ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
+ADD_TEST(potentialfunction                "biker" "--test" "potentialfunction")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
 ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")

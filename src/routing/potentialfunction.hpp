@@ -1,6 +1,9 @@
 #ifndef POTENTIALFUNCTION_HPP
 #define POTENTIALFUNCTION_HPP
 
+#include "gpsposition.hpp"
+#include "tests.hpp"
+
 /**
  * @brief Eine PotentialFunction stellt eine Potentialfunktion dar.
  * 
@@ -45,6 +48,21 @@ public:
      * @return Die Bewertung des Punktes.
      */
     virtual double ratePosition(const GPSPosition& pos)=0;
-}; 
+};
+
+class StandardValuePotentialFunction : public PotentialFunction
+{
+private:
+    double _value;
+public:
+    StandardValuePotentialFunction(double value) : _value(value) {}
+    double ratePosition(const double lon, const double lat);
+    double ratePosition(const GPSPosition& pos);
+};
+
+namespace biker_tests
+{
+    int testPotentialFunction();
+}
 
 #endif //POTENTIALFUNCTION_HPP

@@ -20,6 +20,7 @@
 #include "closedlist.hpp"
 #include "heap.hpp"
 #include "webserver.hpp"
+#include "potentialfunction.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -204,6 +205,8 @@ namespace biker_tests
             return biker_tests::testGPSRoute();
         else if (testName == "webserver")
             return biker_tests::testWebServer();
+        else if (testName == "potentialfunction")
+            return biker_tests::testPotentialFunction();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;
