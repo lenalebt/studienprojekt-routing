@@ -37,9 +37,41 @@ namespace biker_tests
 {
     int testOSMEdge()
     {
-        OSMEdge edge(0);
+        OSMEdge edge1(0);
+        CHECK_EQ_TYPE(edge1.getID(), 0, boost::uint64_t);
         
-        CHECK_EQ_TYPE(edge.getID(), 0, boost::uint64_t);
+        OSMProperty prop1("key1", "val1");
+        OSMProperty prop2("key2", "val2");
+        QVector<OSMProperty> propList;
+        propList << prop1 << prop2;
+		OSMEdge edge2(0, 1, 7,propList);		
+		
+        CHECK_EQ_TYPE(edge2.getID(), 0, boost::uint64_t);
+        CHECK_EQ_TYPE(edge2.getStartNode(), 1, boost::uint64_t);
+        CHECK_EQ_TYPE(edge2.getEndNode(), 7, boost::uint64_t);
+        CHECK_EQ(edge2.getProperties()[0], prop1);
+        CHECK_EQ(edge2.getProperties()[1], prop2);
+        
+        
+        CHECK_EQ_TYPE(edge2.getNodes()[0], 1, boost::uint64_t);
+        CHECK_EQ_TYPE(edge2.getNodes()[1], 7, boost::uint64_t);
+ 
+		edge2.setID(4);
+		edge2.setNodes(3,4);
+		
+        OSMProperty prop3("key3", "val3");
+		edge2.addProperty(prop3);
+		
+		propList << prop3;
+		
+		
+		CHECK_EQ_TYPE(edge2.getID(), 4, boost::uint64_t);
+        CHECK_EQ_TYPE(edge2.getStartNode(), 3, boost::uint64_t);
+        CHECK_EQ_TYPE(edge2.getEndNode(), 4, boost::uint64_t);
+        CHECK_EQ(edge2.getProperties()[2], prop3);
+		
+
+        
         
         return EXIT_SUCCESS;
     }
