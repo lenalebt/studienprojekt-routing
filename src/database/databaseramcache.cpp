@@ -166,6 +166,7 @@ namespace biker_tests
         }
         CHECK(successInsertManyNodes);
         CHECK(cache.endTransaction());
+        std::cerr << "Hier erwartet: Resultcode 19 (-> Constraint failed)" << std::endl;
         CHECK(!cache.saveNode(node));
         
         boost::shared_ptr<RoutingEdge> dbEdge(cache.getEdgeByEdgeID(46));
@@ -193,7 +194,24 @@ namespace biker_tests
         }
         CHECK(successInsertManyEdges);
         CHECK(cache.endTransaction());
+        std::cerr << "Hier erwartet: Resultcode 19 (-> Constraint failed)" << std::endl;
         CHECK(!cache.saveEdge(edge));
+        
+        
+        edgeList = cache.getEdgesByStartNodeID(99);
+        CHECK(!edgeList.isEmpty());
+        edgeList = cache.getEdgesByStartNodeID(100);
+        CHECK(!edgeList.isEmpty());
+        
+        CHECK(cache.beginTransaction());
+        CHECK(cache.deleteEdge(99, 100));
+        CHECK(cache.deleteEdge(100, 101));
+        CHECK(cache.endTransaction());
+        
+        edgeList = cache.getEdgesByStartNodeID(99);
+        CHECK(edgeList.isEmpty());
+        edgeList = cache.getEdgesByStartNodeID(100);
+        CHECK(edgeList.isEmpty());
         
         return EXIT_SUCCESS;
     }
