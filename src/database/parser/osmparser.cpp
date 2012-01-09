@@ -68,7 +68,7 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
             
             //Zerstört die Queue, damit keine Blockierung auftreten kann
             if (wayCount == 1)
-                _nodeQueue.destroyQueue();
+                _nodeQueue->destroyQueue();
 
             boost::uint64_t id=0;
 
@@ -86,7 +86,7 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
             
             //Zerstört die Queue, damit keine Blockierung auftreten kann
             if (relationCount == 1)
-                _wayQueue.destroyQueue();
+                _wayQueue->destroyQueue();
         }
     }
     else if (nodeType == NODE)
