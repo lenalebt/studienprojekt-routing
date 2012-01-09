@@ -60,12 +60,12 @@ private:
     int wayCount;
     int relationCount;
 
-    BlockingQueue<OSMNode>* _nodeQueue;
-    BlockingQueue<OSMEdge>* _edgeQueue;
-    BlockingQueue<OSMTurnRestriction>* _turnRestrictionQueue;
+    BlockingQueue<OSMNode*>* _nodeQueue;
+    BlockingQueue<OSMWay*>* _wayQueue;
+    BlockingQueue<OSMTurnRestriction*>* _turnRestrictionQueue;
 
 public:
-    OSMParser(BlockingQueue<OSMNode>* nodeQueue, BlockingQueue<OSMEdge>* edgeQueue, BlockingQueue<OSMTurnRestriction>* turnRestrictionQueue);
+    OSMParser(BlockingQueue<OSMNode*>* nodeQueue, BlockingQueue<OSMWay*>* wayQueue, BlockingQueue<OSMTurnRestriction*>* turnRestrictionQueue);
     //TODO: OSMDatabaseWriter& dbWriter);
     ~OSMParser();
     bool startDocument();

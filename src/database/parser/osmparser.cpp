@@ -1,9 +1,9 @@
 #include "osmparser.hpp"
 #include <iostream>
 
-OSMParser::OSMParser(BlockingQueue<OSMNode>* nodeQueue, BlockingQueue<OSMEdge>* edgeQueue, BlockingQueue<OSMTurnRestriction>* turnRestrictionQueue)
+OSMParser::OSMParser(BlockingQueue<OSMNode*>* nodeQueue, BlockingQueue<OSMWay*>* wayQueue, BlockingQueue<OSMTurnRestriction*>* turnRestrictionQueue)
     : nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0),
-      _nodeQueue(nodeQueue), _edgeQueue(edgeQueue), _turnRestrictionQueue(turnRestrictionQueue)
+      _nodeQueue(nodeQueue), _wayQueue(wayQueue), _turnRestrictionQueue(turnRestrictionQueue)
 {
 
 }
@@ -139,6 +139,7 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
         if (qName == "node")
         {
             nodeType = NONE;
+            _nodeQueue->enqueue(node);
             //TODO: dbWriter.addNode(node);
         }
     }
@@ -147,6 +148,7 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
         if (qName == "way")
         {
             nodeType = NONE;
+            _wayQueue->enqueue(way);
             //TODO: dbWriter.addWay(way);
         }
     }
@@ -155,6 +157,7 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
         if (qName == "relation")
         {
             nodeType = NONE;
+            _turnRestrictionQueue ->enqueue(relation);
             //TODO: dbWriter.addRelation(relation);
 
             delete relation;
