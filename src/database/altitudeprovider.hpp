@@ -3,6 +3,7 @@
 
 #include "gpsposition.hpp"
 #include "zip.hpp"
+#include "tests.hpp"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -18,6 +19,7 @@
 #include <QThread>
 #include <QFuture>
 #include <QtConcurrentRun>
+#include <QDataStream>
 
 #define SRTM_DATA_VOID -32768
 /**
@@ -62,82 +64,6 @@ public:
     virtual ~AltitudeProvider() {}
 };
 
-class FileDownloader : public QThread
-{
-private:
-    
-public:
-    FileDownloader();
-    void run();
-    QByteArray downloadURL(QUrl &url);
-    //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error);
-};
-
-
-/*TODO:
-- Soll sich selber runterladen
-- Soll selber die URL rausfinden zum runterladen
-*/
-/**
- * @brief 
- * 
- * 
- * 
- * @author Lena Brüder
- * @date 2011-11-28
- * @copyright GNU GPL v3
- * @todo Doxygen, Implementieren, Definieren, blablabla
- */
-class SRTMTile
-{
-private:
-    int _lat;
-    int _lon;
-    int _size;
-    
-    boost::uint16_t* _data;
-    
-    bool _valid;
-    QFile _file;
-    QDir _cacheDirectory;
-    
-    /**
-     * @brief Lädt Daten aus der zip-Datei, die mit <code>file</code> bezeichnet ist
-            und speichert sie in <code>data</code>.
-     * 
-     * @todo implementieren
-     */
-    void getData();
-    
-    /**
-     * @brief 
-     * 
-     * @return 
-     * @todo 
-     */
-    void downloadData();
-    
-public:
-    double getAltitude(double lat, double lon);
-    
-    SRTMTile(double lat, double lon, QDir cacheDirectory) : _lat(lat), _lon(lon), _cacheDirectory(cacheDirectory)
-    {
-        //TODO: Daten runterladen und entpacken
-        /*
-        regex.setPattern("<a href=\"([NS])(\\d{2})([EW])(\\d{3})\\.hgt\\.zip");
-        QDir dir;
-        if (!dir.exists(cachedir)) {
-        
-        
-        if (_lat => 0 && _lon => 0){
-            _file = cacheDirectory + "/" + "N" + _lat + "E" + _lon + ".hgt.zip
-        }
-        getData()
-        */
-    }
-};
-
-
 /**
  * @brief SRTM-Implementierung vom AltitudeProvider.
  * 
@@ -157,22 +83,45 @@ public:
 class SRTMProvider : public AltitudeProvider
 {
 private:
-    void createFileList();
     
     QMap<int, QString> fileList;
-    QCache<int, SRTMTile> tileCache;
-    int latLonToIndex(int lat, int lon) { return lat * 1000 + lon; }
-    QString _cachedir;
-    QUrl _url;
-    QByteArray blubb(const QUrl &dUrl);
-    void loadFileList();
-    double getAltitudeFromLatLon(double lat, double lon);
-    int getPixelValue(int x, int y);
     bool valid;
     qint16 *buffer;
     int resolution;
     int intlat;
     int intlon;
+    QString _cachedir;
+    QUrl _url;
+    // QCache<int, SRTMTile> tileCache;
+    
+    void loadFileList();
+    void createFileList();
+    /**
+     * @brief Holt die Höhe in Metern, für eine übergebene Koordinate.
+     * 
+     * 
+     * @param lat Der Breitengrad
+     * @param lon Der Längengrad
+     * @return Den Höhenwert an dieser Stelle
+     */
+    double getAltitudeFromLatLon(double lat, double lon);
+    
+    /**
+     * @brief Holt aus den unter buffer abgelegten Daten den Höhenwert des übergebenen Pixels.
+     * 
+     * Dabei wird der Pixel über seine beiden Koordinaten angegeben. Das 
+     * verwendete Koordinatensystems startet in der oberen linken Ecke 
+     * und wächst zur rechten unteren Ecke.
+     * 
+     * @param x X-Wert (aus Nachkommastelle des Längengrads).
+     * @param y Y-Wert (aus Nachkommastelle das Breitengrads).
+     * @return Den Höhenwert an dieser Stelle
+     */
+    int getPixelValue(int x, int y);
+    
+    int latLonToIndex(int lat, int lon){ 
+        return lat * 1000 + lon; 
+    }
     
     float avg(float a, float b, float weight){
         if (a == SRTM_DATA_VOID) return b;
@@ -209,6 +158,7 @@ public:
      * @return enum QNetworkReply::NetworkError (Ist NoError wenn kein Fehler aufgetreten ist.)
      */
     void downloadUrl(const QUrl &url, QString &data);
+    void downloadUrl(const QUrl &dUrl, QByteArray &data);
     
     SRTMProvider() : _cachedir("~/.biker/srtm/"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/") {}
     
@@ -220,6 +170,77 @@ public:
     
     ~SRTMProvider();
 };
+
+class FileDownloader : public QThread
+{
+private:
+    QNetworkAccessManager* manager;
+    QNetworkReply* reply;
+    bool finished;
+public:
+    FileDownloader();
+    ~FileDownloader();
+    void run();
+    QByteArray downloadURL(QUrl &url);
+public slots:
+    void replyFinished(QNetworkReply*);
+    //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error); // vll TODO
+};
+
+
+//Klasse SRTMTile wird nun doch nicht verwendet
+/**
+ * @brief 
+ * 
+ * 
+ * 
+ * @author Lena Brüder
+ * @date 2011-11-28
+ * @copyright GNU GPL v3
+ * @todo Doxygen, Implementieren, Definieren, blablabla
+ */
+ /*
+class SRTMTile
+{
+private:
+    int _lat;
+    int _lon;
+    int _size;
+    
+    boost::uint16_t* _data;
+    
+    bool _valid;
+    QFile _file;
+    QDir _cacheDirectory;
+    */
+    /**
+     * @brief Lädt Daten aus der zip-Datei, die mit <code>file</code> bezeichnet ist
+            und speichert sie in <code>data</code>.
+     * 
+     * @todo implementieren
+     */
+    //void getData();
+    
+    /**
+     * @brief 
+     * 
+     * @return 
+     * @todo 
+     */
+    //void downloadData();
+    /*
+public:
+    double getAltitude(double lat, double lon);
+    
+    SRTMTile(double lat, double lon, QDir cacheDirectory) : _lat(lat), _lon(lon), _cacheDirectory(cacheDirectory)
+    {
+        
+    }
+};
+*/
+
+
+
 
 namespace biker_tests
 {

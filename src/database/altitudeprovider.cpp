@@ -1,5 +1,4 @@
 #include "altitudeprovider.hpp"
-#include "tests.hpp"
 
 #include <QtGlobal>
 #include <QMutexLocker>
@@ -20,7 +19,7 @@ double SRTMProvider::getAltitude(double lat, double lon)
 {
     double altitude = 0.0; // Defaultwert für Höhe ist NN
  
-    QString fileName; // hier soll die Zipdatei liegen nach dem Download, also Name incl. Pfad
+    QString fileName; // hier soll die Zipdatei liegen nach dem Download, also Name incl. Pfad (wird aus _cachedir und Index erstellt)
 
          
     loadFileList(); // per loadFilelist(): fileListe vorhanden? falls nicht, laden!
@@ -29,62 +28,78 @@ double SRTMProvider::getAltitude(double lat, double lon)
     
     if (fileList.contains(latLonToIndex(intlat, intlon))){// Falls Koordinate vorhanden..
         fileName = _cachedir+fileList[latLonToIndex(intlat,intlon)];
+        
 		QFile zipFile(fileName);
         
         if(!zipFile.open(QIODevice::ReadOnly)){
-            QString altZipDir =  fileList[latLonToIndex(intlat, intlon)]; // Url ab Kontinentverzeichnis bis .hgt.zip
-            // [TODO] Zip-Dateien runterladen, wenn sie noch nicht vorhanden sind. //TODO
-            // [TODO] Zip-Datei unter filename ablegen (Pfad in filename)
+            QString altZipUrl =  _url.toString() + fileList[latLonToIndex(intlat, intlon)]; //Url bis .zip.htm
+            altZipUrl.toAscii().constData();
+            QUrl srtmUrl(altZipUrl);
+            QByteArray data;
+            downloadUrl(srtmUrl, data);
+            
+            if(data.isEmpty()){ // Download nicht geglückt
+                std::cout << "Fehler beim downloaden der Daten für " << fileList[latLonToIndex(intlat, intlon)] << "." << std::endl;
+                return altitude;
+            }
+            
+            zipFile.open(QIODevice::WriteOnly);
+            QDataStream zipFileOutStream(&zipFile);
+            zipFileOutStream << data;
+            
+            zipFile.close();            
+            if(!zipFile.open(QIODevice::ReadOnly)){
+                std::cout << "Fehler beim öffnen des Downloads der Daten für " << fileList[latLonToIndex(intlat, intlon)] << "." << std::endl;
+                return altitude;
+            }
         }
         // [TODO] Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
         
         SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
         resolution = srtmZipFileObject.getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
-        valid = true;
-        altitude = getAltitudeFromLatLon(lat, lon);
-        //
-        //
-        ///** Get the value of a pixel from the data using a coordinate system
-  //* starting in the upper left (NW) edge growing to the lower right
-  //* egde (SE) instead of the SRTM coordinate system.
-  //*/
+        if(resolution > 0){ // srtmZipFileObject.getData hat nicht den Defaultwert zurückgegeben
+            valid = true;
+            altitude = getAltitudeFromLatLon(lat, lon);
+        }
+        
     }
-            //- Koordinaten aus dem Array raussuchen und Mittelwert berechne
     
     if (buffer) delete buffer;        
-    return altitude;//TODO
+    return altitude;
 }
+
 int SRTMProvider::getPixelValue(int x, int y)
 	{
-    //Q_ASSERT(x >= 0 && x < resolution && y >= 0 && y < resolution);
-    int offset = x + resolution * (resolution - y - 1);
-    qint16 value;
-    value = qFromBigEndian(buffer[offset]);
+    qint16 value = 0;
+    if(x >= 0 && x < resolution && y >= 0 && y < resolution){
+        int offset = x + resolution * (resolution - y - 1);
+        value = qFromBigEndian(buffer[offset]);
+    }
     return value;
 }
 
-///** Gets the altitude in meters for a given coordinate. */
 double SRTMProvider::getAltitudeFromLatLon(double lat, double lon)
 {
     if (!valid) return SRTM_DATA_VOID;
     lat -= intlat;
     lon -= intlon;
-    //Q_ASSERT(lat >= 0.0 && lat < 1.0 && lon >= 0.0 && lon < 1.0);
-    double x = lon * (resolution - 1);
-    double y = lat * (resolution - 1);
-    /* Variable names:
-        valueXY with X,Y as offset from calculated value, _ for average
-    */
-    double value00 = getPixelValue(x, y);
-    double value10 = getPixelValue(x+1, y);
-    double value01 = getPixelValue(x, y+1);
-    double value11 = getPixelValue(x+1, y+1);
-    double value_0 = avg(value00, value10, x-int(x));
-    double value_1 = avg(value01, value11, x-int(x));
-    double value__ = avg(value_0, value_1, y-int(y));
+    double value__ = 0.0; // Defaultwert für Höhe ist NN
+    if(lat >= 0.0 && lat < 1.0 && lon >= 0.0 && lon < 1.0){
+        double x = lon * (resolution - 1);
+        double y = lat * (resolution - 1);
+        /* Variable names:
+            valueXY with X,Y as offset from calculated value, _ for average
+        */
+        double value00 = getPixelValue(x, y);
+        double value10 = getPixelValue(x+1, y);
+        double value01 = getPixelValue(x, y+1);
+        double value11 = getPixelValue(x+1, y+1);
+        double value_0 = avg(value00, value10, x-int(x));
+        double value_1 = avg(value01, value11, x-int(x));
+        value__ = avg(value_0, value_1, y-int(y));
+    }
     return value__;
 }
-
 
 void SRTMProvider::loadFileList()
 {
@@ -163,6 +178,26 @@ void SRTMProvider::createFileList()
     stream << fileList;
     file.close();
     
+} 
+
+void SRTMProvider::downloadUrl(const QUrl &dUrl, QString &data)
+{
+    FileDownloader loader;
+    QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
+    data = QString(future.result());
+    return;    
+}
+
+void SRTMProvider::downloadUrl(const QUrl &dUrl, QByteArray &data)
+{
+    FileDownloader loader;
+    QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
+    data = future.result();
+    return;    
+}
+
+SRTMProvider::~SRTMProvider()
+{	
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,56 +205,52 @@ void SRTMProvider::createFileList()
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Klasse SRTMProvider //////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
-void SRTMProvider::downloadUrl(const QUrl &dUrl, QString &data)
-{
-    FileDownloader loader;
-    QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
-    data = QString(future.result());
-    return;
-    
-}
-
-SRTMProvider::~SRTMProvider()
-{
-	
-}
-
-
-
 FileDownloader::FileDownloader():QThread()
 {
+    manager = new QNetworkAccessManager(this);
+    connect(manager, SIGNAL(finished(QNetworkReply*)),
+         this, SLOT(replyFinished(QNetworkReply*)));
+} 
+FileDownloader::~FileDownloader()
+{
 }
-  
-
 
 void FileDownloader::run()
 {
     //Wird aufgerufen, wenn start() gestartet wird
 }
 
+void FileDownloader::replyFinished(QNetworkReply* r){
+    finished = true;
+}
+
 QByteArray FileDownloader::downloadURL(QUrl &url)
 {
-    //hier der Kram aus der alten downloadurl-funktion
-    QNetworkAccessManager manager;
+    //QNetworkAccessManager manager;
     QNetworkRequest request(url);
-    QNetworkReply *reply = manager.get(request);
-    QByteArray data;
+    reply = manager->get(request);
 
-    while (reply->isRunning())
+    while (!finished)
     {
 		wait(5);
 		
 	}
     
-    data = reply->readAll();
-    return data;
+    return reply->readAll();
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Tests ////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
 namespace biker_tests
 {
 	int testSRTMProvider()
 	{
 		SRTMProvider s;
+        s.getAltitude(51.457, 7.014);
 		
 		return EXIT_SUCCESS;
 	}
