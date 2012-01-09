@@ -1,9 +1,9 @@
 #include "osmparser.hpp"
 #include <iostream>
 
-OSMParser::OSMParser()//TODO: OSMDatabaseWriter& dbWriter)
-    : //TODO: dbWriter(dbWriter), 
-    nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0)
+OSMParser::OSMParser(BlockingQueue<OSMNode>* nodeQueue, BlockingQueue<OSMEdge>* edgeQueue, BlockingQueue<OSMTurnRestriction>* turnRestrictionQueue)
+    : nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0),
+      _nodeQueue(nodeQueue), _edgeQueue(edgeQueue), _turnRestrictionQueue(turnRestrictionQueue)
 {
 
 }
