@@ -46,6 +46,7 @@ protected:
     QVector<boost::shared_ptr<PotentialFunction> > potFuncList;
     AltitudeProvider* altitudeProvider;
 public:
+    RoutingMetric() : potFuncList(), altitudeProvider(0) {}
     /**
      * @brief Bewertet eine Kante nach bestimmten Kriterien.
      * 
@@ -106,4 +107,13 @@ public:
     virtual ~RoutingMetric();
 }; 
 
+class EuclidianRoutingMetric : public RoutingMetric
+{
+private:
+    
+public:
+    EuclidianRoutingMetric() {}
+    double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+    double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+};
 #endif //ROUTINGMETRIC_HPP
