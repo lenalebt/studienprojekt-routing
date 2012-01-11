@@ -47,7 +47,7 @@ public:
         this->thisRestriction.noRight = noRight;
         this->thisRestriction.noStraight = noStraight;
         this->thisRestriction.noUTurn = noUTurn;
-    };
+    }
     /**
      * @brief Erstellt eine leere Relation mit Standardwerten.
      */
