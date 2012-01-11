@@ -2,6 +2,8 @@
 #include <iostream>
 #include <QRegExp>
 
+QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
+
 template <typename HttpRequestProcessorType>
 void HttpServerThread<HttpRequestProcessorType>::run()
 {
@@ -279,6 +281,7 @@ namespace biker_tests
     int testWebServer()
     {
         std::cerr << "Testing Webserver..." << std::endl;
+        
         
         HttpServerThread<BikerHttpRequestProcessor> server(8081);
         server.startServer();

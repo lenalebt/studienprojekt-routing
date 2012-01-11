@@ -174,6 +174,7 @@ public:
 class BikerHttpRequestProcessor : public HttpRequestProcessor
 {
 public:
+    static QString publicHtmlDirectory;
     BikerHttpRequestProcessor(int socketDescriptor) :
         HttpRequestProcessor(socketDescriptor) {}
     void processRequest();

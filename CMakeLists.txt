@@ -94,7 +94,7 @@ SET(
     
     #src/routing/
     src/routing/routingmetric.cpp
-#    src/routing/potentialfunction.cpp
+    src/routing/potentialfunction.cpp
     src/routing/router.cpp
     src/routing/heap.cpp
     src/routing/closedlist.cpp

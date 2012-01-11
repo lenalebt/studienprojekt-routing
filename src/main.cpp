@@ -9,6 +9,7 @@
 #include "tests.hpp"
 #include <QThreadPool>
 #include <QCoreApplication>
+#include "webserver.hpp"
 
 namespace po = boost::program_options;
 using namespace std;
@@ -25,12 +26,18 @@ using namespace std;
 int parseProgramOptions(int argc, char* argv[])
 {
     std::string testName("");
+    std::string webserver_public_html_folder("");
+    unsigned int webserver_port=8080;
     unsigned int threadPoolSize=10;
+    
     po::options_description desc("Allowed options");
     desc.add_options()
         ("help", "produce help message")
         ("test", po::value<std::string>(&testName)->implicit_value("all"), "run program tests")
         ("threadpoolsize", po::value<unsigned int>(&threadPoolSize)->default_value(10u), "set maximum thread pool size")
+        ("start-webserver", "start webserver with given or standard settings")
+        ("webserver_public_html", po::value<std::string>(&webserver_public_html_folder)->default_value(""), "set public html folder of webserver")
+        ("webserver_port", po::value<unsigned int>(&webserver_port)->default_value(8080), "set port of webserver")
         ;
     
     po::variables_map vm;
@@ -51,6 +58,23 @@ int parseProgramOptions(int argc, char* argv[])
     }
     std::cerr << "Using up to " << threadPoolSize << " threads." << std::endl;
     QThreadPool::globalInstance()->setMaxThreadCount(threadPoolSize);
+    
+    if (vm.count("start-webserver"))
+    {
+        if (webserver_public_html_folder != "")
+        {
+            std::cerr << "Starting Webserver:" << std::endl;
+            std::cerr << "Webserver port is " << webserver_port << std::endl;
+            std::cerr << "Webserver public_html folder is \"" << webserver_public_html_folder << "\"" << std::endl;
+            BikerHttpRequestProcessor::publicHtmlDirectory = webserver_public_html_folder.c_str();
+            std::cerr << "TODO: Webserver wirklich starten..." << std::endl;
+        }
+        else
+        {
+            std::cerr << "Webserver public_html folder may not be empty!" << std::endl;
+            std::cerr << "Webserver not starting..." << std::endl;
+        }
+    }
     
     //Tests ausführen, wenn auf der Kommandozeile so gewollt
     if (vm.count("test")) {
