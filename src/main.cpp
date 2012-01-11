@@ -114,6 +114,8 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
  * @param argv Werte der Aufrufparameter
  * @return ob das Programm erfolgreich beendet wurde
  * @todo Noch kein effektiver Inhalt.
+ * @bug Wenn der Webserver nicht gestartet wird, gibt es einen Fehler
+ *      mit dem boost::shared_ptr (Zusicherung »px != 0« nicht erfüllt.).
  */
 int main ( int argc, char* argv[] )
 {
