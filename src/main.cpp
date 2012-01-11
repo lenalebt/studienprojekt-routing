@@ -24,7 +24,7 @@ public:
     bool webserver_startWebserver;
     
     //Threads
-    unsigned int threads_threadpoolsize;
+    unsigned int threads_threadpool_size;
     
     //Tests
     std::string tests_testName;
@@ -36,7 +36,7 @@ public:
         webserver_threadpool_size(5),
         webserver_startWebserver(false),
         
-        threads_threadpoolsize(5),
+        threads_threadpool_size(5),
         
         tests_testName("all"),
         tests_starttest(false)
@@ -60,10 +60,11 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
     desc.add_options()
         ("help", "produce help message")
         ("test", po::value<std::string>(&(programOptions->tests_testName))->implicit_value("all"), "run program tests")
-        ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpoolsize))->default_value(10u), "set maximum thread pool size")
+        ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpool_size))->default_value(10u), "set maximum thread pool size")
         ("start-webserver", "start webserver with given or standard settings")
-        ("webserver_public_html", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value(""), "set public html folder of webserver")
-        ("webserver_port", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
+        ("webserver-public-html-folder", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value(""), "set public html folder of webserver")
+        ("webserver-port", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
+        ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(5), "set maximum thread pool size of webserver")
         ;
     
     po::variables_map vm;
@@ -77,18 +78,25 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
     }
     
     //Threadpool-Größe festlegen. Minimum nötig: 5.
-    if (programOptions->threads_threadpoolsize < 5)
+    if (programOptions->threads_threadpool_size < 5)
     {
         std::cerr << "We need a minimum threadpoolsize of 5. Setting to 5." << std::endl;
-        programOptions->threads_threadpoolsize = 5;
+        programOptions->threads_threadpool_size = 5;
     }
-    std::cerr << "Using up to " << programOptions->threads_threadpoolsize << " threads." << std::endl;
-    QThreadPool::globalInstance()->setMaxThreadCount(programOptions->threads_threadpoolsize);
+    std::cerr << "Using up to " << programOptions->threads_threadpool_size << " threads." << std::endl;
+    QThreadPool::globalInstance()->setMaxThreadCount(programOptions->threads_threadpool_size);
+    
     
     if (vm.count("start-webserver"))
     {
-        BikerHttpRequestProcessor::publicHtmlDirectory = programOptions->webserver_public_html_folder.c_str();
         programOptions->webserver_startWebserver = true;
+        //Threadpool-Größe festlegen. Minimum nötig: 5.
+        if (programOptions->webserver_threadpool_size < 5)
+        {
+            std::cerr << "We need a minimum threadpoolsize of 5 for webserver. Setting to 5." << std::endl;
+            programOptions->webserver_threadpool_size = 5;
+        }
+        std::cerr << "Using up to " << programOptions->webserver_threadpool_size << " threads for webserver." << std::endl;
     }
     
     //Tests ausführen, wenn auf der Kommandozeile so gewollt
@@ -125,10 +133,17 @@ int main ( int argc, char* argv[] )
     if (programOptions.tests_starttest)
         return biker_tests::testProgram(programOptions.tests_testName);
     
+    //TODO: Pointer darf nicht null sein... Warum?
+    boost::shared_ptr<HttpServerThread<BikerHttpRequestProcessor> > server;
     if (programOptions.webserver_startWebserver)
     {
-        std::cerr << "TODO: Webserver starten" << std::endl;
+        BikerHttpRequestProcessor::publicHtmlDirectory = programOptions.webserver_public_html_folder.c_str();
+        server.reset(new HttpServerThread<BikerHttpRequestProcessor>(programOptions.webserver_port, programOptions.webserver_threadpool_size));
+        server->startServer();
     }
+    
+    //Warte, bis der Server beendet wird...
+    server->wait();
     
     return retVal;
 }
