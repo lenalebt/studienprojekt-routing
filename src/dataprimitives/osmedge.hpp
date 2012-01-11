@@ -87,7 +87,7 @@ public:
 namespace biker_tests
 {
     /**
-     * @todo Implementieren!
+     * @ingroup tests
      */
     int testOSMEdge();
 }

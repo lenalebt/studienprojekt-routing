@@ -206,6 +206,9 @@ private:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testGPSRoute();
 }
 

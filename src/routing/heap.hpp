@@ -199,6 +199,9 @@ public:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     template<typename T>
     class BinaryHeapTestLessFunctor
     {
@@ -210,6 +213,10 @@ namespace biker_tests
             return (a<b);
         }
     };
+    
+    /**
+     * @ingroup tests
+     */
     template<typename K, typename V>
     class BinaryHeapTestLessAndQHashFunctor
     {
@@ -233,6 +240,10 @@ namespace biker_tests
             return hashMap[key];
         }
     };
+    
+    /**
+     * @ingroup tests
+     */
     int testBinaryHeap();
 }
 #endif //HEAP_HPP

@@ -121,8 +121,17 @@ public:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testBlockingQueue();
+    /**
+     * @ingroup tests
+     */
     template <typename T> int testBlockingQueueSource(BlockingQueue<T>* queue);
+    /**
+     * @ingroup tests
+     */
     template <typename T> int testBlockingQueueDrain(BlockingQueue<T>* queue);
 }
 

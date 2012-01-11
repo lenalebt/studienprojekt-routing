@@ -137,6 +137,9 @@ std::ostream& operator<<(std::ostream& os, const OSMTurnRestriction& r);
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testOSMTurnRestriction();
 } 
 

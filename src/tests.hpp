@@ -5,6 +5,11 @@
 #include <string>
 #include <QString>
 
+/**
+ * @defgroup tests Tests
+ * @brief Hier werden alle Klassen und Funktionen und Dateien abgelegt,
+ *      die für das Testen der Anwendung zuständig sind.
+ */
 
 /**
  * @brief Zur Erzeugung eines Strings aus eines Defines.
@@ -32,7 +37,8 @@
  * @file
  * @ingroup tests
  * @attention Diese Testfunktionen können das Programm komplett in einen anderen
- *      Zustand überführen als es vor dem Aufruf der Funktion hatte
+ *      Zustand überführen als es vor dem Aufruf der Funktion hatte, daher sollten
+ *      die Tests in einem extra dafür vorgesehenen Programmstart ausgeführt werden.
  */
 
 /**
