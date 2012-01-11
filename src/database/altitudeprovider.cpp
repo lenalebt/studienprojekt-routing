@@ -27,12 +27,16 @@ double SRTMProvider::getAltitude(double lat, double lon)
     intlon = int(floor(lon));
     
     if (fileList.contains(latLonToIndex(intlat, intlon))){// Falls Koordinate vorhanden..
+        
+        std::cerr << "Gesuchte Koordinate ist in filelist." << std::endl;
         fileName = _cachedir+fileList[latLonToIndex(intlat,intlon)];
         
 		QFile zipFile(fileName);
         
         if(!zipFile.open(QIODevice::ReadOnly)){
-            QString altZipUrl =  _url.toString() + fileList[latLonToIndex(intlat, intlon)]; //Url bis .zip.htm
+            
+            std::cerr << "entsprechendes Zipfile konnte nicht geöffnet werden, soll nun runtetgeladen werden." << std::endl;
+            QString altZipUrl =  _url.toString() + fileList[latLonToIndex(intlat, intlon)]; //Url bis .hgt.zip
             altZipUrl.toAscii().constData();
             QUrl srtmUrl(altZipUrl);
             QByteArray data;
@@ -42,9 +46,10 @@ double SRTMProvider::getAltitude(double lat, double lon)
                 std::cout << "Fehler beim downloaden der Daten für " << fileList[latLonToIndex(intlat, intlon)] << "." << std::endl;
                 return altitude;
             }
+            std::cerr << "Irgendwas wurde auch runtergeladen." << std::endl;
             
-            QDir makedir;
-            makedir.mkpath(_cachedir);
+            //QDir makedir;
+            //makedir.mkpath(_cachedir);
             zipFile.open(QIODevice::WriteOnly);
             QDataStream zipFileOutStream(&zipFile);
             zipFileOutStream << data;
@@ -58,7 +63,9 @@ double SRTMProvider::getAltitude(double lat, double lon)
         // [TODO] Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
         
         SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
+        std::cerr << "Soll jetzt entzippt werden." << std::endl;
         resolution = srtmZipFileObject.getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
+        std::cerr << "Bei entzippen ermittelte Auflösung der entsippten Kachel: " << QString::number(resolution, 10) << std::endl;
         if(resolution > 0){ // srtmZipFileObject.getData hat nicht den Defaultwert zurückgegeben
             valid = true;
             altitude = getAltitudeFromLatLon(lat, lon);
@@ -66,6 +73,7 @@ double SRTMProvider::getAltitude(double lat, double lon)
         
     }
     
+    std::cerr << "Altitide wurde zu " << QString::number(altitude, 'g', 3) << " berechnet." << std::endl;
     if (buffer) delete buffer;        
     return altitude;
 }
@@ -82,6 +90,7 @@ int SRTMProvider::getPixelValue(int x, int y)
 
 double SRTMProvider::getAltitudeFromLatLon(double lat, double lon)
 {
+    std::cerr << "Sind nun in getAltitideFromLatLon angekommen." << std::endl;
     if (!valid) return SRTM_DATA_VOID;
     lat -= intlat;
     lon -= intlon;
@@ -99,31 +108,43 @@ double SRTMProvider::getAltitudeFromLatLon(double lat, double lon)
         double value_0 = avg(value00, value10, x-int(x));
         double value_1 = avg(value01, value11, x-int(x));
         value__ = avg(value_0, value_1, y-int(y));
+        std::cerr << "Haben jetzt statt Defaulthöhe: "<< QString::number(value__, 'g', 3) << std::endl;
     }
     return value__;
 }
 
 void SRTMProvider::loadFileList()
 {
-    QFile file(_cachedir+"srtmfilelist");
-    if (!file.open(QIODevice::ReadOnly)) {
+    QFile file(_cachedir + _srtmFileList);    
+    std::cerr << "In loadFileList." << std::endl;
+    if (!file.open(QIODevice::ReadOnly)) {   
+        std::cerr << "Filelist konnte nicht geöffnet werden, soll nun erstellt werden." << std::endl;
         createFileList();
         return;
-    }
+    }   
+    std::cerr << "Filelist konnte geöffnet werden." << std::endl;
     QDataStream stream(&file);
     stream >> fileList;
-    file.close();
+    file.close();   
+    std::cerr << "In Filelist sollte jetzt aus Datei geladen sein." << std::endl;
     return;
 }
 
 void SRTMProvider::createFileList()
 {
     
+    std::cerr << "In createFileList angekommen." << std::endl;
     
     QStringList continents;
     continents << "Africa" << "Australia" << "Eurasia" << "Islands" << "North_America" << "South_America";
 
     QString url = _url.toString();
+    
+    QStringList dateiListe;	
+    int capCount = 0;
+    int lat;
+    int lon;
+    int pos = 0;
     
     foreach (QString continent, continents) { // für jeden Kontinent, die vorhandenen Ziparchive in die Liste eintragen
         std::cout << "Downloading data from " << url+continent+"/" << std::endl;
@@ -138,16 +159,31 @@ void SRTMProvider::createFileList()
         if(!replyString.isEmpty()) 		 // Bearbeiten der Liste, falls Herunterladen erfolgreich.
         {
             // Download nach Listenelementen durchsuchen und diese in fileList eintragen.
+            std::cerr << "Irgendwas haben wir runtergeladen." << std::endl;
             
-            QRegExp regex("(<li>\\s*<a\\s+href=\"([^\"]+)\\)");
+            std::cerr << replyString << std::endl;
+            QRegExp regex("<li>\\s*<a\\s+href=\"([^\"]+)");
             regex.indexIn(replyString);
-            QStringList dateiListe = regex.capturedTexts();			
-            int capCount = 	regex.captureCount();
-                        
+            //QStringList dateiListe;	
+            //int capCount = 0;
+            //int lat;
+            //int lon;
+            //int pos = 0;
+            //capCount = 0;
+            pos = 0;
+            dateiListe.clear();	
+
+            while ((pos = regex.indexIn(replyString, pos)) != -1) {
+                dateiListe << regex.cap(1);
+                pos += regex.matchedLength();
+                capCount++;
+            }
+            std::cerr << "capCount: " << QString::number(capCount, 10) << std::endl;
+                      
             QRegExp innerRx("([NS])(\\d{2})([EW])(\\d{3})");
             for (int i=1;i<=capCount;i++){
-                int lat = innerRx.cap(2).toInt();
-                int lon = innerRx.cap(4).toInt();
+                lat = innerRx.cap(2).toInt();
+                lon = innerRx.cap(4).toInt();
                 if (innerRx.cap(1) == "S") {
                     lat = -lat;
                 }
@@ -158,6 +194,7 @@ void SRTMProvider::createFileList()
                 //123456789012345 => 15 bytes long
                 fileList[latLonToIndex(lat, lon)] = continent+"/"+dateiListe[i].right(15);
             }
+        std::cerr << "Letzter Eintrag in fileList: Index: " << QString::number(latLonToIndex(lat, lon), 10) << " Datei: " << continent << "/" << dateiListe[capCount].right(15) << std::endl;
             
         }
         else
@@ -172,11 +209,11 @@ void SRTMProvider::createFileList()
         ////exit(1); //ERROR: SRTM-Filecount was wrong. Should not matter to comment this out.
     //}
     
-    QDir makedir;
-    makedir.mkpath(_cachedir);
-    QFile file(_cachedir + "srtmfilelist");
+    //QDir makedir;
+    //makedir.mkpath(_cachedir);
+    QFile file(_cachedir + _srtmFileList);
     if (!file.open(QIODevice::WriteOnly)) { 
-        std::cerr << "Could not open file " << _cachedir << "srtmfilelist" << std::endl;
+        std::cerr << "Could not open file " << _cachedir << _srtmFileList << std::endl;
         //Not a fatal error. We just can't cache the list.
         return;
     }

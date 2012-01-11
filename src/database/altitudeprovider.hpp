@@ -92,6 +92,7 @@ private:
     int intlat;
     int intlon;
     QString _cachedir;
+    QString _srtmFileList;
     QUrl _url;
     // QCache<int, SRTMTile> tileCache;
     
@@ -161,13 +162,19 @@ public:
     void downloadUrl(QUrl &url, QString &data);
     void downloadUrl(QUrl &dUrl, QByteArray &data);
     
-    SRTMProvider() : _cachedir("~/.biker/srtm/"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/") {}
+    SRTMProvider() : _cachedir(""), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/")
+    {
+        _cachedir = QDir::homePath() + "/.biker/srtm/";
+    }
     
-    SRTMProvider(QString cachedir) : _cachedir(cachedir), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/")  {}
+    SRTMProvider(QString cachedir) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/")  {}
     
-    SRTMProvider(QUrl url) : _cachedir("~/.biker/srtm/"), _url(url)  {}
+    SRTMProvider(QUrl url) : _cachedir(""), _srtmFileList("srtmfile"), _url(url)  
+    {
+        _cachedir = QDir::homePath() + "/.biker/srtm/";
+    }
     
-    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _url(url)  {}
+    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url(url)  {}
     
     ~SRTMProvider();
 };
