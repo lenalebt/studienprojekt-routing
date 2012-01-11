@@ -20,6 +20,7 @@
 #include <QFuture>
 #include <QtConcurrentRun>
 #include <QDataStream>
+#include <QDir>
 
 #define SRTM_DATA_VOID -32768
 /**
@@ -157,8 +158,8 @@ public:
      * @param data QString in den der Inhalt der der NetworkReply gespeichert weden soll
      * @return enum QNetworkReply::NetworkError (Ist NoError wenn kein Fehler aufgetreten ist.)
      */
-    void downloadUrl(const QUrl &url, QString &data);
-    void downloadUrl(const QUrl &dUrl, QByteArray &data);
+    void downloadUrl(QUrl &url, QString &data);
+    void downloadUrl(QUrl &dUrl, QByteArray &data);
     
     SRTMProvider() : _cachedir("~/.biker/srtm/"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/") {}
     
@@ -171,19 +172,14 @@ public:
     ~SRTMProvider();
 };
 
-class FileDownloader : public QThread
+class FileDownloader: public QObject
 {
 private:
-    QNetworkAccessManager* manager;
-    QNetworkReply* reply;
-    bool finished;
 public:
     FileDownloader();
     ~FileDownloader();
-    void run();
+    //void run();
     QByteArray downloadURL(QUrl &url);
-public slots:
-    void replyFinished(QNetworkReply*);
     //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error); // vll TODO
 };
 

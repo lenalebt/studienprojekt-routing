@@ -43,6 +43,8 @@ double SRTMProvider::getAltitude(double lat, double lon)
                 return altitude;
             }
             
+            QDir makedir;
+            makedir.mkpath(_cachedir);
             zipFile.open(QIODevice::WriteOnly);
             QDataStream zipFileOutStream(&zipFile);
             zipFileOutStream << data;
@@ -170,6 +172,8 @@ void SRTMProvider::createFileList()
         ////exit(1); //ERROR: SRTM-Filecount was wrong. Should not matter to comment this out.
     //}
     
+    QDir makedir;
+    makedir.mkpath(_cachedir);
     QFile file(_cachedir + "srtmfilelist");
     if (!file.open(QIODevice::WriteOnly)) { 
         std::cerr << "Could not open file " << _cachedir << "srtmfilelist" << std::endl;
@@ -182,19 +186,21 @@ void SRTMProvider::createFileList()
     
 } 
 
-void SRTMProvider::downloadUrl(const QUrl &dUrl, QString &data)
+void SRTMProvider::downloadUrl(QUrl &dUrl, QString &data)
 {
     FileDownloader loader;
-    QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
-    data = QString(future.result());
+    //QUrl url = QUrl(dUrl);
+    // QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
+    data = QString(loader.downloadURL(dUrl)); //future.result());
     return;    
 }
 
-void SRTMProvider::downloadUrl(const QUrl &dUrl, QByteArray &data)
+void SRTMProvider::downloadUrl(QUrl &dUrl, QByteArray &data)
 {
     FileDownloader loader;
-    QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
-    data = future.result();
+    //QUrl url = QUrl(dUrl);
+    //QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
+    data = loader.downloadURL(dUrl);//future.result();
     return;    
 }
 
@@ -207,38 +213,43 @@ SRTMProvider::~SRTMProvider()
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Klasse SRTMProvider //////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
-FileDownloader::FileDownloader():QThread()
+FileDownloader::FileDownloader():QObject()
 {
-    manager = new QNetworkAccessManager(this);
-    connect(manager, SIGNAL(finished(QNetworkReply*)),
-         this, SLOT(replyFinished(QNetworkReply* reply)));
+    //manager = new QNetworkAccessManager(this);//this);
+    //connect(manager, SIGNAL(finished(QNetworkReply*)),
+         //this, SLOT(replyFinished(QNetworkReply* r)));
 } 
 FileDownloader::~FileDownloader()
 {
 }
 
-void FileDownloader::run()
-{
-    //Wird aufgerufen, wenn start() gestartet wird
-}
+//void FileDownloader::run()
+//{
+    ////Wird aufgerufen, wenn start() gestartet wird
+//}
 
-void FileDownloader::replyFinished(QNetworkReply* r){
-    finished = true;
-}
+//void FileDownloader::replyFinished(QNetworkReply* r){
+    //finished = true;
+//}
 
 QByteArray FileDownloader::downloadURL(QUrl &url)
 {
-    //QNetworkAccessManager manager;
-    QNetworkRequest request(url);
-    reply = manager->get(request);
-
-    while (!finished)
-    {
-		wait(5);
-		
-	}
     
-    return reply->readAll();
+    QNetworkAccessManager manager;
+    QNetworkRequest request(url);    
+    QNetworkReply *reply = manager.get(request);
+    QByteArray data;
+
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    loop.exec();
+    
+    if(reply->error() == QNetworkReply::NoError){
+        data = reply->readAll();
+    }
+    
+    delete reply;
+    return data;
 }
 
 
