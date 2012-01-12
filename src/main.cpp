@@ -58,12 +58,12 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
 {
     po::options_description desc("Allowed options");
     desc.add_options()
-        ("help", "produce help message")
-        ("test", po::value<std::string>(&(programOptions->tests_testName))->implicit_value("all"), "run program tests")
+        ("help,h", "produce help message")
+        ("test,t", po::value<std::string>(&(programOptions->tests_testName))->implicit_value("all"), "run program tests")
         ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpool_size))->default_value(10u), "set maximum thread pool size")
         ("start-webserver", "start webserver with given or standard settings")
-        ("webserver-public-html-folder", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value(""), "set public html folder of webserver")
-        ("webserver-port", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
+        ("webserver-public-html-folder,d", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value(""), "set public html folder of webserver")
+        ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(5), "set maximum thread pool size of webserver")
         ;
     
@@ -114,8 +114,6 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
  * @param argv Werte der Aufrufparameter
  * @return ob das Programm erfolgreich beendet wurde
  * @todo Noch kein effektiver Inhalt.
- * @bug Wenn der Webserver nicht gestartet wird, gibt es einen Fehler
- *      mit dem boost::shared_ptr (Zusicherung »px != 0« nicht erfüllt.).
  */
 int main ( int argc, char* argv[] )
 {
@@ -144,8 +142,9 @@ int main ( int argc, char* argv[] )
         server->startServer();
     }
     
-    //Warte, bis der Server beendet wird...
-    server->wait();
+    //Warte, bis der Server beendet wird, so einer gestartet/initialisiert wurde...
+    if (server)
+        server->wait();
     
     return retVal;
 }
