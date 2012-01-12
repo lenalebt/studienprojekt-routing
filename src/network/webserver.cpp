@@ -2,6 +2,7 @@
 #include <iostream>
 #include <QRegExp>
 #include <QUrl>
+#include <QDir>
 
 QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
 
@@ -322,25 +323,37 @@ void BikerHttpRequestProcessor::processRequest()
     
     std::cerr << "request file: " << _requestPath << std::endl;
     
-    //TODO: Unterscheiden, ob eine Datei ausgeliefert werden soll, oder etwas anderes...
     if (_requestPath.startsWith("/files/"))
     {
         //"/files/" entfernen!
         QString _myRequestPath = _requestPath.remove(0, 7);
         QFile file(publicHtmlDirectory + "/" + _myRequestPath);
-        
-        std::cerr << "file in system: " << file.fileName();
+        QDir dir(publicHtmlDirectory + "/" + _myRequestPath);
         
         //Wenn die Datei existiert, und alle sie lesen dürfen (nicht nur
         //    Benutzer oder Gruppe): Datei senden. Sonst: 404 Not found.
-        if (file.exists() && (file.permissions() & QFile::ReadOther))
+        if ((!dir.exists()) && file.exists() && (file.permissions() & QFile::ReadOther))
+        {
+            std::cerr << "serving file: \"" << file.fileName() << "\"" << std::endl;
             this->sendFile(file);
+        }
         else
+        {
+            if (dir.exists())
+                std::cerr << "file is a directory: \"" << file.fileName() << "\". Not serving." << std::endl;
+            else if (!file.exists())
+                std::cerr << "file not found: \"" << file.fileName() << "\". Not serving." << std::endl;
+            else if (file.permissions() & QFile::ReadOther)
+                std::cerr << "file does not have read permissions for everybody: \"" << file.fileName() << "\". Not serving." << std::endl;
+            
+            //In jedem Fall: 404 senden.
             this->send404();
+        }
         return;
     }
     else
     {
+        std::cerr << "dynamic request. TODO." << std::endl;
         this->send404();
     }
 }

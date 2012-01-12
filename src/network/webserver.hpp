@@ -174,8 +174,6 @@ public:
      *      <code>_parameterMap</code> abgerufen werden.
      *  - Der Pfad wurde in <code>_requestPath</code> abgelegt.
      *  - Der Typ des Requests wurde in <code>_requestType</code> abgelegt.
-     * 
-     * @todo Implementieren!
      */
     virtual void processRequest()=0;
 };
@@ -183,20 +181,51 @@ public:
 /**
  * @brief Diese Klasse stellt einen Request an Biker dar.
  * 
+ * Diese Klasse arbeitet folgendermaßen: Sie beantwortet nur HTTP GET-Anfragen,
+ * und kann dabei:
+ *   - Dateien vom Dateisystem ausliefern
+ *   - dynamische Anfragen beantworten
  * 
+ * Beim Ausliefern von Dateien müssen diese in einem
+ * speziellen Verzeichnis liegen, das über den Aufrufparameter
+ * <code>--webserver-public-html-folder</code> beim Starten der
+ * Software festgelegt wird (dieser Aufruf legt
+ * BikerHttpRequestProcessor::publicHtmlDirectory auf
+ * einen Wert fest).
+ * Nur Dateien in diesem Verzeichnis können
+ * über eine HTTP-GET-Anfrage ausgeliefert werden. Wenn eine Anfrage
+ * an den Webserver im <code>_requestPath</code> mit "/files/" beginnt,
+ * werden Dateien aus dem freigegebenen Verzeichnis versendet.
+ * Wird eine Datei nicht gefunden, oder ist sie nicht mit Leserechten für
+ * jeden Benutzer (nicht-Besitzer und nicht-Gruppenmitglied) ausgestattet,
+ * so wird sie nicht ausgeliefert. Eine solche Anfrage wird mit HTTP 404
+ * beantwortet. Ebenso werden Anfragen beantwortet, die auf ein Verzeichnis
+ * treffen. Directory-Listings werden nicht unterstützt.
+ * 
+ * Alle Anfragen, die nicht in das obige Schema passen, werden als dynamische
+ * Anfragen behandelt und werden gesondert behandelt.
  * 
  * @ingroup network
  * @author Lena Brueder
  * @date 2012-01-08
  * @copyright GNU GPL v3
- * @todo Implementierung!
  */
 class BikerHttpRequestProcessor : public HttpRequestProcessor
 {
 public:
+    /**
+     * @brief Diese Eigenschaft legt das öffentliche Verzeichnis des Webservers fest.
+     * 
+     * @attention Diese Eigenschaft vorsichtig behandeln. Um nicht versehentlich
+     *      wichtige Daten auszuliefern werden nur solche Dateien ausgeliefert,
+     *      die für alle Benutzer des Systems lesbar sind.
+     */
     static QString publicHtmlDirectory;
     BikerHttpRequestProcessor(int socketDescriptor) :
         HttpRequestProcessor(socketDescriptor) {}
+    /**
+     * @todo Dynamische Requests bearbeiten, diese werden atm noch mit HTTP 404 beantwortet.
+     */
     void processRequest();
 };
 
