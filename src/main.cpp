@@ -133,7 +133,6 @@ int main ( int argc, char* argv[] )
     if (programOptions.tests_starttest)
         return biker_tests::testProgram(programOptions.tests_testName);
     
-    //TODO: Pointer darf nicht null sein... Warum?
     boost::shared_ptr<HttpServerThread<BikerHttpRequestProcessor> > server;
     if (programOptions.webserver_startWebserver)
     {

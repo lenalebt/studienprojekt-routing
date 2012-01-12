@@ -154,7 +154,7 @@ bool HttpRequestProcessor::sendFile(QFile& file)
     {
         writeString(_socket, " 200 OK\n");
         writeString(_socket, "Content-Length: ");
-        writeString(_socket, QString("") + file.size() + "\n");
+        writeString(_socket, QString::number(file.size()) + "\n");
         writeString(_socket, "\n");
         QByteArray data;
         while (!file.atEnd())
@@ -331,8 +331,9 @@ void BikerHttpRequestProcessor::processRequest()
         
         std::cerr << "file in system: " << file.fileName();
         
-        //Wenn die Datei existiert: Datei senden. Sonst: 404 Not found.
-        if (file.exists())
+        //Wenn die Datei existiert, und alle sie lesen dürfen (nicht nur
+        //    Benutzer oder Gruppe): Datei senden. Sonst: 404 Not found.
+        if (file.exists() && (file.permissions() & QFile::ReadOther))
             this->sendFile(file);
         else
             this->send404();
