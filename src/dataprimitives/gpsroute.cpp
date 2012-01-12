@@ -82,6 +82,73 @@ void GPSRoute::exportGPX(QString filename, GPSRoute& route)
     file.close();
 }
 
+QString GPSRoute::exportGPXString(GPSRoute& route)
+{
+    QDomDocument doc;
+    //zuerst das Grundelement erstellen, dann runter bis die Wegpunkte eingefügt werden.
+    QDomElement root = doc.createElement("gpx");
+    QLocale locale(QLocale::C);//sonst schreibt er in eine GPX-Datei Kommas statt Punkte
+    root.setAttribute("version", "1.0");
+    root.setAttribute("xmlns", "http://www.topografix.com/GPX/1/0");			//TODO: Werte dazu!
+    root.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+    root.setAttribute("xsi:schemaLocation", "http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd");
+    root.setAttribute("creator", "Biker https://github.com/lenalebt/Biker"); //TODO: hier etwas aktuelles einfügen!
+    doc.appendChild(root);
+    QDomNode node( doc.createProcessingInstruction( "xml", "version=\"1.0\" standalone=\"no\"" ) );
+    doc.insertBefore(node, doc.firstChild());
+    //zusätzliche Daten, wie Zeit & Entfernung
+    QDomElement rootExtensions = doc.createElement("extensions");
+    QDomElement  rootDistance = doc.createElement("distance");
+    QDomText distanceText = doc.createTextNode(locale.toString(route.calcLength()));
+    rootDistance.appendChild(distanceText);
+    rootExtensions.appendChild(rootDistance);
+    /*
+     * für eventuelle spätere Verwendung auskommentiert
+     * QDomElement rootTime = doc.createElement("time");
+     * rootTime.setNodeValue(locale.toString(//Funktions Aufruf für die gesammt Zeit);
+     * rootExtensions.appendChild(rootTime);
+     */
+    root.appendChild(rootExtensions);
+    //Wegpunkte einfügen
+    QDomElement wptPoint;
+    //Wegpunkt zur Liste hinzutun
+    for (int i=0; i<route.getSize(); i++)
+    {
+        wptPoint = doc.createElement("wpt");
+        wptPoint.setAttribute("lat", locale.toString(route[i].getLat()));
+        wptPoint.setAttribute("lon", locale.toString(route[i].getLon()));
+        root.appendChild(wptPoint);
+    }
+    //Routepunkte einfügen
+    //Route-Tag
+    QDomElement rteNode = doc.createElement("rte");
+    root.appendChild(rteNode);
+    //Routepunkte mit Attributen einfügen
+    QDomElement rtePoint;
+    GPSPosition help = route[0];
+    for(int i=0; i<route.getSize(); i++)
+    {
+        rtePoint = doc.createElement("rtept");
+        rtePoint.setAttribute("lat", locale.toString(route[i].getLat()));
+        rtePoint.setAttribute("lon", locale.toString(route[i].getLon()));
+        QDomElement extensions = doc.createElement("extensions");
+        QDomElement distance = doc.createElement("distance");
+        QDomText distanceElementText = doc.createTextNode(locale.toString(route[i].calcDistance(help)));
+        distance.appendChild(distanceElementText);
+        extensions.appendChild(distance);
+        // AUSKOMMENTIERT: eventuel zur späteren Verwendung 
+        //QDomElement time = doc.createElement("time");
+        //extensions.appendChild(time);
+        rtePoint.appendChild(extensions);
+        rteNode.appendChild(rtePoint);
+        help = route[i];
+    }
+    QString text;
+    // String ausgeben
+    text = doc.toString();
+    return text;
+}
+
 // ja, ide Art und Weise der Implementierung ist etwas unschön, aber sie sollte laufen :)
 void GPSRoute::exportJSON(QString filename, GPSRoute& route)
 {
