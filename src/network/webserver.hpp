@@ -6,6 +6,7 @@
 #include <QThread>
 #include <QRunnable>
 #include <QThreadPool>
+#include <QFile>
 #include "tests.hpp"
 #include <boost/cstdint.hpp>
 
@@ -115,6 +116,25 @@ protected:
      * @param str Der String, der geschrieben werden soll
      */
     void writeString(QTcpSocket* socket, QString str);
+    
+    
+    /**
+     * @brief Sendet eine Datei über die Verbindung, inklusive der richtigen
+     *      Header usw.
+     * 
+     * @param file Die Datei, die gesendet werden soll.
+     * @return Ob das Senden erfolgreich war, oder nicht.
+     * @todo Implementieren!
+     */
+    bool sendFile(QFile& file);
+    
+    /**
+     * @brief Schickt eine 400 (Bad Request)-Nachricht mit kleiner
+     *      Webseite an den Peer.
+     * 
+     * Die Verbindung sollte nach dem Versenden geschlossen werden.
+     */
+    void send400();
     
     /**
      * @brief Schickt eine 404-Nachricht mit kleiner Webseite an den Peer.

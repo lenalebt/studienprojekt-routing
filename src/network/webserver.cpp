@@ -1,6 +1,7 @@
 #include "webserver.hpp"
 #include <iostream>
 #include <QRegExp>
+#include <QUrl>
 
 QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
 
@@ -145,6 +146,46 @@ void HttpRequestProcessor::writeString(QTcpSocket* socket, QString str)
     socket->write(str.toLatin1());
 }
 
+bool HttpRequestProcessor::sendFile(QFile& file)
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, _httpVersion);
+    if (file.open(QIODevice::ReadOnly))
+    {
+        writeString(_socket, " 200 OK\n");
+        writeString(_socket, "Content-Length: ");
+        writeString(_socket, QString("") + file.size() + "\n");
+        writeString(_socket, "\n");
+        QByteArray data;
+        while (!file.atEnd())
+        {
+            //64KB-Häppchen der Datei lesen und versenden
+            data = file.read(65536);
+            _socket->write(data);
+        }
+    }
+    else
+    {
+        //TODO: Fehler sagen. 403 oder so.
+        _socket->flush();
+        return false;
+    }
+    //TODO: Header, die zum Dateiinhalt passen
+    //TODO: Dateiinhalt senden
+    //TODO: Bei Fehler false zurückgeben
+    //writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Bad request</title></head><body><p>400 Bad Request</p></body></html>");
+    _socket->flush();
+    
+    return true;
+}
+void HttpRequestProcessor::send400()
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, _httpVersion);
+    writeString(_socket, " 400 Bad Request\n\n");
+    writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Bad request</title></head><body><p>400 Bad Request</p></body></html>");
+    _socket->flush();
+}
 void HttpRequestProcessor::send404()
 {
     writeString(_socket, "HTTP/1.");
@@ -187,7 +228,7 @@ bool HttpRequestProcessor::preprocessRequest()
     
     //Es kam ein gültiger Request.
     _requestType = httpHelloRegExp.cap(1);
-    _requestPath = httpHelloRegExp.cap(2);
+    _requestPath = QUrl::fromPercentEncoding(httpHelloRegExp.cap(2).toUtf8());
     _httpVersion = httpHelloRegExp.cap(4);
     QString parameters = httpHelloRegExp.cap(3);
     
@@ -203,7 +244,8 @@ bool HttpRequestProcessor::preprocessRequest()
     while ((pos = httpParameter.indexIn(parameters, pos)) != -1)
     {
         pos += httpParameter.matchedLength();
-        _parameterMap[httpParameter.cap(1)] = httpParameter.cap(2);
+        _parameterMap[QUrl::fromPercentEncoding(httpParameter.cap(1).toUtf8())] = 
+            QUrl::fromPercentEncoding(httpParameter.cap(2).toUtf8());
         //std::cerr << httpParameter.cap(1) << " = " << httpParameter.cap(2) << std::endl;
     }
     
@@ -269,11 +311,37 @@ void BikerHttpRequestProcessor::processRequest()
     //Es wird nur GET unterstützt, der Rest nicht. Bei was anderem: Grantig sein und 405 antworten.
     if (_requestType != "GET")
     {
-        send405();
+        this->send405();
         return;
     }
+    if (_requestPath.contains(".."))
+    {
+        //".." im Pfad ist ein falscher Request. Damit könnte man ins Dateisystem gelangen.
+        this->send400();
+    }
     
-    send404();
+    std::cerr << "request file: " << _requestPath << std::endl;
+    
+    //TODO: Unterscheiden, ob eine Datei ausgeliefert werden soll, oder etwas anderes...
+    if (_requestPath.startsWith("/files/"))
+    {
+        //"/files/" entfernen!
+        QString _myRequestPath = _requestPath.remove(0, 7);
+        QFile file(publicHtmlDirectory + "/" + _myRequestPath);
+        
+        std::cerr << "file in system: " << file.fileName();
+        
+        //Wenn die Datei existiert: Datei senden. Sonst: 404 Not found.
+        if (file.exists())
+            this->sendFile(file);
+        else
+            this->send404();
+        return;
+    }
+    else
+    {
+        this->send404();
+    }
 }
 
 namespace biker_tests

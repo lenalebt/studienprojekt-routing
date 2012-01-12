@@ -124,7 +124,7 @@ int main ( int argc, char* argv[] )
     
     //wird benötigt für EventLoops etc. Diese werden nur in eigenen Threads
     //verwendet (z.B. Webserver), und nicht in der Hauptanwendung!
-    //Daher ist ein AUfruf von exec() hier falsch. Er würde die gesamte
+    //Daher ist ein Aufruf von exec() hier falsch. Er würde die gesamte
     //Anwendung blockieren.
     QCoreApplication app(argc, argv);
     
