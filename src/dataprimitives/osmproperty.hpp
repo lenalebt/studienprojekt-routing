@@ -79,6 +79,9 @@ std::ostream& operator<<(std::ostream& os, const OSMProperty& prop);
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testOSMProperty();
 } 
 

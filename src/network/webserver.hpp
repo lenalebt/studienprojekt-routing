@@ -174,6 +174,7 @@ public:
 class BikerHttpRequestProcessor : public HttpRequestProcessor
 {
 public:
+    static QString publicHtmlDirectory;
     BikerHttpRequestProcessor(int socketDescriptor) :
         HttpRequestProcessor(socketDescriptor) {}
     void processRequest();
@@ -181,6 +182,9 @@ public:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testWebServer();
 }
 

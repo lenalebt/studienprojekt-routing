@@ -107,6 +107,7 @@ namespace biker_tests
     /**
      * @todo Test erweitern auf 2 Threads: momentan wird reine
      *      Funktion getestet, nichts mit mehreren Threads.
+     * @ingroup tests
      */
     int testHashClosedList();
 }
