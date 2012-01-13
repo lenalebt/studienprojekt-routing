@@ -32,6 +32,8 @@ SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
 		sqlite3_finalize(_getEdgeStatementStartNode);
     if(_getEdgeStatementEndNode != NULL)
 		sqlite3_finalize(_getEdgeStatementEndNode);
+    if(_deleteEdgeStatement != NULL)
+		sqlite3_finalize(_deleteEdgeStatement);
     
     if (_dbOpen)
         this->close();
@@ -477,8 +479,35 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString nam
 
 bool SpatialiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
 {
-	return false;
-	//TODO
+    int rc;
+    if(_deleteEdgeStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "DELETE FROM EDGES WHERE STARTNODE=@STARTNODE AND ENDNODE=@ENDNODE;", -1, &_deleteEdgeStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create deleteEdgeStatement." << " Resultcode: " << rc << std::endl;
+            return false;
+        }
+    }
+    
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_deleteEdgeStatement, 1, startNodeID);
+    sqlite3_bind_int64(_deleteEdgeStatement, 2, endNodeID);
+    
+    // Statement ausfuehren
+    rc = sqlite3_step(_deleteEdgeStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute deleteEdgeStatement." << " Resultcode: " << rc << std::endl;
+        return false;
+    }
+
+    rc = sqlite3_reset(_deleteEdgeStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset deleteEdgeStatement." << " Resultcode: " << rc << std::endl;
+    }
+    return true;
 }
 
 QString SpatialiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
@@ -582,6 +611,7 @@ namespace biker_tests
         }
         CHECK(successInsertManyNodes);
         CHECK(connection.endTransaction());
+        std::cerr << "Hier erwartet: Resultcode 19 (-> Constraint failed)" << std::endl;
         CHECK(!connection.saveNode(node));
         
         boost::shared_ptr<RoutingEdge> dbEdge(connection.getEdgeByEdgeID(46));
@@ -609,7 +639,24 @@ namespace biker_tests
         }
         CHECK(successInsertManyEdges);
         CHECK(connection.endTransaction());
+        std::cerr << "Hier erwartet: Resultcode 19 (-> Constraint failed)" << std::endl;
         CHECK(!connection.saveEdge(edge));
+        
+        
+        edgeList = connection.getEdgesByStartNodeID(99);
+        CHECK(!edgeList.isEmpty());
+        edgeList = connection.getEdgesByStartNodeID(100);
+        CHECK(!edgeList.isEmpty());
+        
+        CHECK(connection.beginTransaction());
+        CHECK(connection.deleteEdge(99, 100));
+        CHECK(connection.deleteEdge(100, 101));
+        CHECK(connection.endTransaction());
+        
+        edgeList = connection.getEdgesByStartNodeID(99);
+        CHECK(edgeList.isEmpty());
+        edgeList = connection.getEdgesByStartNodeID(100);
+        CHECK(edgeList.isEmpty());
         
         return EXIT_SUCCESS;
     }

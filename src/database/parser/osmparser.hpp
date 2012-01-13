@@ -60,6 +60,9 @@ private:
     int wayCount;
     int relationCount;
 
+    bool ready;
+    bool invalidRestriction;
+
     BlockingQueue<OSMNode*>* _nodeQueue;
     BlockingQueue<OSMWay*>* _wayQueue;
     BlockingQueue<OSMTurnRestriction*>* _turnRestrictionQueue;
@@ -80,6 +83,9 @@ public:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testOSMParser();
 }
 

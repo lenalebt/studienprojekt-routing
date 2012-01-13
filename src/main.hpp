@@ -121,12 +121,6 @@
  */
  
  /**
- * @defgroup tests Tests
- * @brief Hier werden alle Klassen und Funktionen und Dateien abgelegt,
- *      die für das Testen der Anwendung zuständig sind.
- */
- 
- /**
  * @defgroup network Netzwerk
  * @brief Hier werden alle Klassen und Funktionen abgelegt,
  *      die für Netzwerksachen zuständig sind.

@@ -338,6 +338,9 @@ bool operator==(const RoutingEdge::PropertyType& a, const RoutingEdge::PropertyT
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testRoutingEdge();
 }
 

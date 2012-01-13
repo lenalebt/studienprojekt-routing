@@ -63,6 +63,9 @@ public:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testSpatialiteDatabaseConnection();
 }
 

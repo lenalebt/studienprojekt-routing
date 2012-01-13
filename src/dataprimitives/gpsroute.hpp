@@ -131,6 +131,13 @@ public:
      */
     static void exportGPX(QString filename, GPSRoute& route);
     /**
+     * @brief Diese Funktion exportiert die Route in einen QString mit  GPX-Format, sodass sie
+     * von anderen Applikationen benutzt werden kann.
+     * @param route die Route, die ausgegeben werden soll
+     */
+    QString exportGPXString(GPSRoute& route);
+
+    /**
      * @brief Diese Funktion exportiert die Route in das JSON-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
      * @param filename Name unter der die JSON-Datei gespeichert werden soll
@@ -206,6 +213,9 @@ private:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testGPSRoute();
 }
 

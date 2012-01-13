@@ -44,6 +44,9 @@ public:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testDatabaseRAMCache();
 }
 #endif //DATABASERAMCACHE_HPP
