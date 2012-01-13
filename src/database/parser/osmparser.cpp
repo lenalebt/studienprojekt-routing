@@ -1,7 +1,9 @@
 #include "osmparser.hpp"
 #include <iostream>
 
-OSMParser::OSMParser(BlockingQueue<OSMNode*>* nodeQueue, BlockingQueue<OSMWay*>* wayQueue, BlockingQueue<OSMTurnRestriction*>* turnRestrictionQueue)
+OSMParser::OSMParser(BlockingQueue<boost::shared_ptr<OSMNode> >* nodeQueue,
+    BlockingQueue<boost::shared_ptr<OSMWay> >* wayQueue,
+    BlockingQueue<boost::shared_ptr<OSMTurnRestriction> >* turnRestrictionQueue)
     : nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0),
       _nodeQueue(nodeQueue), _wayQueue(wayQueue), _turnRestrictionQueue(turnRestrictionQueue)
 {
@@ -58,7 +60,7 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
                 else if (atts.qName(i) == "lat")
                     lat = atts.value(i).toDouble();
             }
-            node = new OSMNode(id, GPSPosition(lon, lat), QVector<OSMProperty>());
+            node = boost::shared_ptr<OSMNode>(new OSMNode(id, GPSPosition(lon, lat), QVector<OSMProperty>()));
 
         }
         else if (qName == "way")
@@ -77,7 +79,7 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
                 if (atts.qName(i) == "id")
                     id = atts.value(i).toLong();
             }
-            way = new OSMWay(id, QVector<OSMProperty>());
+            way = boost::shared_ptr<OSMWay>(new OSMWay(id, QVector<OSMProperty>()));
         }
         else if (qName == "relation")
         {
@@ -88,7 +90,7 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
             if (relationCount == 1)
                 _wayQueue->destroyQueue();
 
-            relation = new OSMTurnRestriction();
+            relation = boost::shared_ptr<OSMTurnRestriction>(new OSMTurnRestriction());
         }
     }
     else if (nodeType == NODE)
@@ -268,9 +270,8 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
             nodeType = NONE;
             if (ready == true)
                 _turnRestrictionQueue ->enqueue(relation);
-            //TODO: dbWriter.addRelation(relation);
-            else
-                delete relation;
+            //else
+            //    delete relation;
             ready = false;
             invalidRestriction = false;
         }
