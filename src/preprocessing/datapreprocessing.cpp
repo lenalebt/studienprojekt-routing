@@ -1,13 +1,22 @@
 #include "datapreprocessing.hpp" 
 
+
+DataPreprocessing::DataPreprocessing()
+    : _nodeQueue(1000), _wayQueue(1000), _turnRestrictionQueue(1000),
+    parser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue)
+{
+    
+}
+
+
 //TODO: 1.Phase: OSMParser-Objekt fuellt Queues
 //               Dann Queues auslesen und in tmp DB speichern
 //      2.Phase: Kategorisieren
-
-//~ void DataPreprocessing::Startparser(QString filename)
-//~ {
-    //~ _osmParser.parse(filename);
-//~ }
+//~ 
+void DataPreprocessing::startparser(QString filename)
+{
+_osmParser.parse(filename);
+}
 //~ 
 //~ QFuture<void> parseThread = QtConcurrent::run(&Startparser, QString);
 //~ 

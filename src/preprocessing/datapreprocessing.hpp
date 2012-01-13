@@ -45,14 +45,13 @@ class DataPreprocessing
     
     TemporaryOSMDatabaseConnection _tmpDBConnection;
     
-    BlockingQueue<OSMNode> _nodeQueue;
-    BlockingQueue<OSMEdge> _edgeQueue;
-    BlockingQueue<OSMTurnRestriction> _turnRestrictionQueue;
-    BlockingQueue<OSMWay> _wayQueue;
+    BlockingQueue<OSMNode*> _nodeQueue;
+    BlockingQueue<OSMWay*> _wayQueue;
+    BlockingQueue<OSMTurnRestriction*> _turnRestrictionQueue;
     
-    OSMParser parser(*_wayQueue);
+    OSMParser parser;
     
-    void Startparser(QString filename);    
+    void startparser(QString filename);    
     bool deQueue();
     bool enQueue();
     bool saveNodeToTmpDatabase(const OSMNode& node);
