@@ -1,7 +1,7 @@
 #include "blockingqueue.hpp"
 #include <iostream>
 #include <QtConcurrentRun>
-
+#include <boost/shared_ptr.hpp>
 #include "osmway.hpp"
 #include "osmturnrestriction.hpp"
 #include "osmnode.hpp"
@@ -207,3 +207,6 @@ namespace biker_tests
 template class BlockingQueue<OSMWay*>;
 template class BlockingQueue<OSMNode*>;
 template class BlockingQueue<OSMTurnRestriction*>;
+template class BlockingQueue<boost::shared_ptr<OSMWay> >;
+template class BlockingQueue<boost::shared_ptr<OSMNode> >;
+template class BlockingQueue<boost::shared_ptr<OSMTurnRestriction> >;

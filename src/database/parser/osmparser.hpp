@@ -27,6 +27,7 @@
 #include <QtXml>
 #include "database.hpp"
 #include <boost/cstdint.hpp>
+#include <boost/shared_ptr.hpp>
 #include "tests.hpp"
 #include "blockingqueue.hpp"
 
@@ -51,10 +52,10 @@ private:
 
     NodeType nodeType;
 
-    OSMNode* node;
-    OSMWay* way;
-    OSMEdge* edge;
-    OSMTurnRestriction* relation;
+    boost::shared_ptr<OSMNode> node;
+    boost::shared_ptr<OSMWay> way;
+    boost::shared_ptr<OSMEdge> edge;
+    boost::shared_ptr<OSMTurnRestriction> relation;
 
     int nodeCount;
     int wayCount;
@@ -63,12 +64,12 @@ private:
     bool ready;
     bool invalidRestriction;
 
-    BlockingQueue<OSMNode*>* _nodeQueue;
-    BlockingQueue<OSMWay*>* _wayQueue;
-    BlockingQueue<OSMTurnRestriction*>* _turnRestrictionQueue;
+    BlockingQueue<boost::shared_ptr<OSMNode> >* _nodeQueue;
+    BlockingQueue<boost::shared_ptr<OSMWay> >* _wayQueue;
+    BlockingQueue<boost::shared_ptr<OSMTurnRestriction> >* _turnRestrictionQueue;
 
 public:
-    OSMParser(BlockingQueue<OSMNode*>* nodeQueue, BlockingQueue<OSMWay*>* wayQueue, BlockingQueue<OSMTurnRestriction*>* turnRestrictionQueue);
+    OSMParser(BlockingQueue<boost::shared_ptr<OSMNode> >* nodeQueue, BlockingQueue<boost::shared_ptr<OSMWay> >* wayQueue, BlockingQueue<boost::shared_ptr<OSMTurnRestriction> >* turnRestrictionQueue);
     //TODO: OSMDatabaseWriter& dbWriter);
     ~OSMParser();
     bool startDocument();

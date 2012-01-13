@@ -147,6 +147,9 @@ void HttpRequestProcessor::writeString(QTcpSocket* socket, QString str)
     socket->write(str.toLatin1());
 }
 
+/**
+ * @bug liefert nur Dateien > 64kb richtig aus
+ */
 bool HttpRequestProcessor::sendFile(QFile& file)
 {
     writeString(_socket, "HTTP/1.");
@@ -327,6 +330,12 @@ void BikerHttpRequestProcessor::processRequest()
     {
         //"/files/" entfernen!
         QString _myRequestPath = _requestPath.remove(0, 7);
+        QDir mainDir(publicHtmlDirectory);
+        if ((publicHtmlDirectory == "") || !mainDir.exists())
+        {
+            this->send404();
+            return;
+        }
         QFile file(publicHtmlDirectory + "/" + _myRequestPath);
         QDir dir(publicHtmlDirectory + "/" + _myRequestPath);
         
