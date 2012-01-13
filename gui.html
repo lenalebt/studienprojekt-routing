@@ -15,6 +15,7 @@
         function init() {
             map = new OpenLayers.Map('map');
             map.addControl(new OpenLayers.Control.LayerSwitcher());
+            map.addControl(new OpenLayers.Control.PanZoomBar());
             
             var gphy = new OpenLayers.Layer.Google(
                 "Google Physical",
@@ -49,6 +50,17 @@
               
 			map.addLayers([gphy, gmap, ghyb, gsat, osm, OepnvLayer]);
             map.setCenter(new OpenLayers.LonLat(10.2, 48.9), 5);
+    <!--        
+    var markers = new OpenLayers.Layer.Markers( "Markers" );
+    map.addLayer(markers);
+
+    var size = new OpenLayers.Size(21,25);
+    var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
+    var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
+    markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(map.OpenLayers.Events.getMousePosition()),icon));   
+    -->
+            
+            
         }
     </script>
 
