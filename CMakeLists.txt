@@ -89,6 +89,7 @@ SET(
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
     src/database/temporarydatabase.cpp
+    src/database/zip.cpp
     src/database/sqlite_functions.cpp
     src/database/databaseramcache.cpp
     
@@ -133,6 +134,7 @@ SET(
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
     src/database/temporarydatabase.hpp
+    src/database/zip.hpp
     src/database/sqlite_functions.hpp
     src/database/databaseramcache.hpp
     
@@ -272,6 +274,7 @@ ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(potentialfunction                "biker" "--test" "potentialfunction")
+ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
 ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")

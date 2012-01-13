@@ -16,6 +16,9 @@
 #include "temporarydatabase.hpp"
 #include "databaseramcache.hpp"
 #include "osmparser.hpp"
+#include "altitudeprovider.hpp"
+#include <QString>
+#include <QVector>
 #include "blockingqueue.hpp"
 #include "closedlist.hpp"
 #include "heap.hpp"
@@ -149,7 +152,7 @@ namespace biker_tests
     template bool check_equality(std::string message, OSMNode a,         OSMNode b);
     template bool check_equality(std::string message, GPSPosition a,     GPSPosition b);
     template bool check_equality(std::string message, OSMTurnRestriction a, OSMTurnRestriction b);
-    
+  
     std::string uint64_t2string(boost::uint64_t integer)
     {
         std::string retVal("");
@@ -206,6 +209,8 @@ namespace biker_tests
             return biker_tests::testGPSRoute();
         else if(testName == "datapreprocessing")
             return biker_tests::testDataPreprocessing();
+        else if (testName == "srtmprovider")
+            return biker_tests::testSRTMProvider();
         else if (testName == "webserver")
             return biker_tests::testWebServer();
         else if (testName == "potentialfunction")

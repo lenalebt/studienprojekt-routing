@@ -2,6 +2,7 @@
 #define OSMWAY_HPP
 
 #include "osmproperty.hpp"
+#include "osmedge.hpp"
 #include <QVector>
 #include <boost/cstdint.hpp>
 #include "tests.hpp"
@@ -87,6 +88,11 @@ public:
      * @remarks Die Liste der Eigenschaften ist nicht notwendigerweise geordnet.
      */
     QVector<OSMProperty> getProperties() const {return properties;}
+    /**
+     * @brief Erstellt aus dem Weg die zugekörigen Kanten als OSMEdge.
+     * @return Die Liste aller Kanten des Weges.
+     */
+    QVector<OSMEdge> getEdgeList(); //TODO implementierung
     
     /**
      * @brief Gibt zurück, ob es sich um einen Weg mit Einbahneigenschaften handelt.
