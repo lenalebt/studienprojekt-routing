@@ -8,84 +8,60 @@ DataPreprocessing::DataPreprocessing()
     
 }
 
-
 //TODO: 1.Phase: OSMParser-Objekt fuellt Queues
 //               Dann Queues auslesen und in tmp DB speichern
 //      2.Phase: Kategorisieren
-//~ 
+//
 void DataPreprocessing::startparser(QString filename)
 {
-_osmParser.parse(filename);
+    parser.parse(filename);
 }
-//~ 
-//~ QFuture<void> parseThread = QtConcurrent::run(&Startparser, QString);
-//~ 
-//~ bool DataPreprocessing::enQueue()
-//~ {
-    //~ //TODO: Parser fuellt Queue
-   //~ 
-    //~ _osmParser.startDocument();
-    //~ //OSMParser::operator <<
-    //~ return true;
-//~ }
-//~ 
-//~ bool DataPreprocessing::deQueue()
-//~ {
-    //~ //TODO: Elemente aus Queue entfernen und entsprechend dem Element in temp DB speichern
-    //~ /*     
-        //~ while(!queue.IsEmpty)
-        //~ {
-            //~ * queue.Dequeue()
+
+void DataPreprocessing::saveNodeToTmpDatabase()
+{
+    while(_nodeQueue.dequeue(_osmNode))
+    {
+        _tmpDBConnection.saveOSMNode(*_osmNode);
+        
+        routingNnode = boost::shared_ptr<RoutingNode>(new RoutingNode(*_osmNode.GetID(), _osmNode.GetLat(), _osmNode.GetLon()))
+        
+        //~ node = boost::shared_ptr<OSMNode>(new OSMNode(id, GPSPosition(lon, lat), QVector<OSMProperty>()));
+        
+        //~ _finalDBConnection.saveNode(*_osmNode);
+}
+
+void DataPreprocessing::saveEdgeToTmpDatabase()
+{
+    //edges sollten aus der way geliefert werden
+    
+    QVector<OSMEdge> edgeList;
+
+        //~ QVector<OSMEdge> edgeList;
+    //~ OSMEdge newEdge(id, properties);    
+    //~ 
+    //~ if (!memberIDList.isEmpty()){
+        //~ QVectorIterator<boost::uint64_t> i(memberIDList);
+        //~ i.toFront();  // Iterator springt vor den ersten Eintrag in memberIDList
+        //~ i.next();     // Iterator geht einen Schirtt weiter (gibt auch Wert zurück, der hier nicht verwendet wird)
+        //~ while (i.hasNext()){
+            //~ newEdge.setNodes(i.peekPrevious(), i.next());
+            //~ edgeList << newEdge;
         //~ } 
-     //~ */ 
-    //~ 
-    //~ return true;
-//~ }
-//~ 
-//~ bool DataPreprocessing::saveNodeToTmpDatabase(const OSMNode& node)
-//~ {
-    //~ if(_tmpDBConnection.isDBOpen())
-    //~ {
-        //~ _tmpDBConnection.saveOSMNode(node);
-    //~ }
-    //~ else
-    //~ {
-        //~ _tmpDBConnection.open("test");
-        //~ _tmpDBConnection.saveOSMNode(node);
-    //~ }
-//~ 
-    //~ return true;
-//~ }
-//~ 
-//~ bool DataPreprocessing::saveEdgeToTmpDatabase(const OSMEdge& edge)
-//~ {
-    //~ if(_tmpDBConnection.isDBOpen())
-    //~ {
-        //~ _tmpDBConnection.saveOSMEdge(edge);
-    //~ }
-    //~ else
-    //~ {
-        //~ _tmpDBConnection.open("test");
-        //~ _tmpDBConnection.saveOSMEdge(edge);
     //~ }
     //~ 
-    //~ return true;
-//~ }
-//~ 
-//~ bool DataPreprocessing::saveTurnRestrictionToTmpDatabase(const OSMTurnRestriction& turnRestriction)
-//~ {
-    //~ if(_tmpDBConnection.isDBOpen())
-    //~ {
-        //~ _tmpDBConnection.saveOSMTurnRestriction(turnRestriction);
-    //~ }
-    //~ else
-    //~ {
-        //~ _tmpDBConnection.open("test");
-        //~ _tmpDBConnection.saveOSMTurnRestriction(turnRestriction);
-    //~ }
-//~ 
-    //~ return true;
-//~ }
+    //~ return edgeList; 
+    
+}
+
+void DataPreprocessing::saveTurnRestrictionToTmpDatabase()
+{
+    while(_turnRestrictionQueue.dequeue(_osmTurnRestriction))
+    {
+        //~ _tmpDBConnection.saveTurnRestrictionToTmpDatabase(*_turnRestrictionQueue);
+    }
+}
+
+
 
 namespace biker_tests
 {

@@ -1,8 +1,11 @@
 #ifndef DATAPREPROCESSING_HPP
 #define DATAPREPROCESSING_HPP
 
+#include <boost/cstdint.hpp>
+#include "gpsposition.hpp"
 #include "database.hpp"
 #include "temporarydatabase.hpp"
+#include "spatialitedatabase.hpp"
 #include "blockingqueue.hpp"
 #include "routingedge.hpp"
 #include "routingnode.hpp"
@@ -11,9 +14,10 @@
 #include "osmnode.hpp"
 #include "osmedge.hpp"
 #include "osmturnrestriction.hpp"
+#include "routingnode.hpp"
+#include "routingedge.hpp"
 #include "tests.hpp"
 #include <QtConcurrentRun>
-
 #include <QDebug>
 #include <QThread>
 #include <QString>
@@ -37,25 +41,32 @@ namespace biker_tests
 
 class DataPreprocessing
 {
-	private:
+private:
+    boost::shared_ptr<OSMNode> _osmNode;
+    boost::shared_ptr<OSMWay> _osmWay;
+    boost::shared_ptr<OSMTurnRestriction> _osmTurnRestriction;
+    
+    boost::shared_ptr<RoutingNode> routingNnode;
 
-	public:    
+    TemporaryOSMDatabaseConnection _tmpDBConnection;
+    SpatialiteDatabaseConnection _finalDBConnection;
+    
+    BlockingQueue<boost::shared_ptr<OSMNode> > _nodeQueue;
+    BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
+    BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
+
+public:    
     DataPreprocessing();
     ~DataPreprocessing();
-    
-    TemporaryOSMDatabaseConnection _tmpDBConnection;
-    
-    BlockingQueue<OSMNode*> _nodeQueue;
-    BlockingQueue<OSMWay*> _wayQueue;
-    BlockingQueue<OSMTurnRestriction*> _turnRestrictionQueue;
     
     OSMParser parser;
     
     void startparser(QString filename);    
     bool deQueue();
     bool enQueue();
-    bool saveNodeToTmpDatabase(const OSMNode& node);
-    bool saveEdgeToTmpDatabase(const OSMEdge& edge);
-    bool saveTurnRestrictionToTmpDatabase(const OSMTurnRestriction& turnRestriction);
+    void saveNodeToTmpDatabase();
+    void saveEdgeToTmpDatabase();
+    void saveTurnRestrictionToTmpDatabase();
+    
 };
 #endif //DATAPREPROCESSING_HPP
