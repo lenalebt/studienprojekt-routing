@@ -46,7 +46,8 @@ private:
     boost::shared_ptr<OSMWay> _osmWay;
     boost::shared_ptr<OSMTurnRestriction> _osmTurnRestriction;
     
-    boost::shared_ptr<RoutingNode> routingNnode;
+    boost::shared_ptr<RoutingNode> routingNode;
+    boost::shared_ptr<RoutingEdge> routingEdge;
 
     TemporaryOSMDatabaseConnection _tmpDBConnection;
     SpatialiteDatabaseConnection _finalDBConnection;
@@ -67,6 +68,8 @@ public:
     void saveNodeToTmpDatabase();
     void saveEdgeToTmpDatabase();
     void saveTurnRestrictionToTmpDatabase();
-    
+    void saveNodeToDatabase(const RoutingNode& node);
+    void saveEdgeToDatabase();
+    void saveTurnRestrictionToDatabase();
 };
 #endif //DATAPREPROCESSING_HPP

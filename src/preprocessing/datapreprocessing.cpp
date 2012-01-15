@@ -21,22 +21,32 @@ void DataPreprocessing::saveNodeToTmpDatabase()
 {
     while(_nodeQueue.dequeue(_osmNode))
     {
-        _tmpDBConnection.saveOSMNode(*_osmNode);
-        
-        routingNnode = boost::shared_ptr<RoutingNode>(new RoutingNode(*_osmNode.GetID(), _osmNode.GetLat(), _osmNode.GetLon()))
-        
-        //~ node = boost::shared_ptr<OSMNode>(new OSMNode(id, GPSPosition(lon, lat), QVector<OSMProperty>()));
-        
-        //~ _finalDBConnection.saveNode(*_osmNode);
+        _tmpDBConnection.saveOSMNode(*_osmNode);        
+        routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));        
+        //~ _finalDBConnection.saveNode(*routingNnode);
+        saveNodeToDatabase(*routingNode);
+    }
+}
+
+void DataPreprocessing::saveNodeToDatabase(const RoutingNode &node)
+{
+    _finalDBConnection.saveNode(node);
 }
 
 void DataPreprocessing::saveEdgeToTmpDatabase()
 {
-    //edges sollten aus der way geliefert werden
+    while(_wayQueue.dequeue(_osmWay))
+    {
+        //edges aus way extrahieren
+        QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
+        for(int i = 0; i < edgeList.size(); i++)
+        {
+            _tmpDBConnection.saveOSMEdge(edgeList[i]);
+            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
+            _finalDBConnection.saveEdge(*routingEdge);
+        }
+    }
     
-    QVector<OSMEdge> edgeList;
-
-        //~ QVector<OSMEdge> edgeList;
     //~ OSMEdge newEdge(id, properties);    
     //~ 
     //~ if (!memberIDList.isEmpty()){
@@ -67,7 +77,7 @@ namespace biker_tests
 {
     int testDataPreprocessing()
     {
-        //return EXIT_SUCCESS;
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
+        //return EXIT_FAILURE;
     }
 }
