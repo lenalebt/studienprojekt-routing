@@ -5,6 +5,17 @@
 #include <math.h>
 #include <QtEndian>
 
+// TODO
+//  Downloaden läuft jetzt.
+// - Was man noch machen könnte: Eine ausgeklügeltere Fehlerbehandlung, falls Download schief läuft.
+//  Momentan führt jeder Fehler in der Verarbeitung dazu, dass als ermittelter Höhenwer NN zurückgegeben wird.
+// - Was auch noch nicht fertig ist, ist die Behandlung von falschen SRTM-Werten. Da muss noch eine schöne Lösung für her: Gewichtete Höhe aus umliegenden Werten.
+// - Das öffnen der Zipdateien läuft auch noch nicht. Oder es liegt am Speichern der selbigen.
+// - Schön gemacht werden muss auch noch, dass falls Datei, bzw Ordner nicht vorhanden sind, der Ordner noch erstellt wird.
+// - Speichern der fileList in eine Datei mit Endung? Um dem Betriebssystem den Umgang zu erleichtern?
+//
+// ghc wegschmeißen!!!!!!!
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -35,11 +46,13 @@ double SRTMProvider::getAltitude(double lat, double lon)
         
         if(!zipFile.open(QIODevice::ReadOnly)){
             
-            std::cerr << "entsprechendes Zipfile konnte nicht geöffnet werden, soll nun runtetgeladen werden." << std::endl;
+            std::cerr << "Entsprechendes Zipfile konnte nicht geöffnet werden, soll nun runtetgeladen werden." << std::endl;
             QString altZipUrl =  _url.toString() + fileList[latLonToIndex(intlat, intlon)]; //Url bis .hgt.zip
             altZipUrl.toAscii().constData();
             QUrl srtmUrl(altZipUrl);
             QByteArray data;
+            
+            std::cerr << "Zipfile soll nun runtergeladen werden." << std::endl;
             downloadUrl(srtmUrl, data);
             
             if(data.isEmpty()){ // Download nicht geglückt
@@ -52,9 +65,9 @@ double SRTMProvider::getAltitude(double lat, double lon)
             //makedir.mkpath(_cachedir);
             zipFile.open(QIODevice::WriteOnly);
             QDataStream zipFileOutStream(&zipFile);
-            zipFileOutStream << data;
-            
-            zipFile.close();            
+            zipFileOutStream << data;            
+            zipFile.close(); 
+                       
             if(!zipFile.open(QIODevice::ReadOnly)){
                 std::cout << "Fehler beim öffnen des Downloads der Daten für " << fileList[latLonToIndex(intlat, intlon)] << "." << std::endl;
                 return altitude;
@@ -164,13 +177,8 @@ void SRTMProvider::createFileList()
             std::cerr << replyString << std::endl;
             QRegExp regex("<li>\\s*<a\\s+href=\"([^\"]+)");
             regex.indexIn(replyString);
-            //QStringList dateiListe;	
-            //int capCount = 0;
-            //int lat;
-            //int lon;
-            //int pos = 0;
-            //capCount = 0;
             pos = 0;
+            capCount = 0;
             dateiListe.clear();	
 
             while ((pos = regex.indexIn(replyString, pos)) != -1) {
@@ -179,22 +187,28 @@ void SRTMProvider::createFileList()
                 capCount++;
             }
             std::cerr << "capCount: " << QString::number(capCount, 10) << std::endl;
+            std::cerr << "Länge von dateiListe: " << QString::number(dateiListe.length(), 10) << std::endl;
                       
             QRegExp innerRx("([NS])(\\d{2})([EW])(\\d{3})");
-            for (int i=1;i<=capCount;i++){
-                lat = innerRx.cap(2).toInt();
-                lon = innerRx.cap(4).toInt();
-                if (innerRx.cap(1) == "S") {
-                    lat = -lat;
+            for (int i = 0; i < capCount; i++){
+                int po = innerRx.indexIn(dateiListe[i]);
+                if (po > -1){
+                    lat = innerRx.cap(2).toInt();
+                    lon = innerRx.cap(4).toInt();
+                    if (innerRx.cap(1) == "S") {
+                        lat = -lat;
+                    }
+                    if (innerRx.cap(3) == "W") {
+                        lon = - lon;
+                    }
+                    //S00E000.hgt.zip
+                    //123456789012345 => 15 bytes long
+                    fileList[latLonToIndex(lat, lon)] = continent+"/"+dateiListe[i].right(15);
                 }
-                if (innerRx.cap(3) == "W") {
-                    lon = - lon;
-                }
-                //S00E000.hgt.zip
-                //123456789012345 => 15 bytes long
-                fileList[latLonToIndex(lat, lon)] = continent+"/"+dateiListe[i].right(15);
+        
             }
-        std::cerr << "Letzter Eintrag in fileList: Index: " << QString::number(latLonToIndex(lat, lon), 10) << " Datei: " << continent << "/" << dateiListe[capCount].right(15) << std::endl;
+             
+        std::cerr << "Letzter Eintrag in fileList: Index: " << QString::number(latLonToIndex(lat, lon), 10) << " Datei: " << continent << "/" << dateiListe[capCount-1].right(15) << std::endl;
             
         }
         else
