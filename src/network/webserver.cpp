@@ -147,9 +147,6 @@ void HttpRequestProcessor::writeString(QTcpSocket* socket, QString str)
     socket->write(str.toLatin1());
 }
 
-/**
- * @bug liefert nur Dateien > 64kb richtig aus
- */
 bool HttpRequestProcessor::sendFile(QFile& file)
 {
     writeString(_socket, "HTTP/1.");
@@ -160,12 +157,19 @@ bool HttpRequestProcessor::sendFile(QFile& file)
         writeString(_socket, "Content-Length: ");
         writeString(_socket, QString::number(file.size()) + "\n");
         writeString(_socket, "\n");
-        QByteArray data;
-        while (!file.atEnd())
+        char data[66000];
+        int bytesRead=0;
+        int bytesWritten=0;
+        while ((file.bytesAvailable() > 0) && (bytesWriiten != -1))
         {
+            std::cerr << "lese häppchen." << file.bytesAvailable() << std::endl;
             //64KB-Häppchen der Datei lesen und versenden
-            data = file.read(65536);
-            _socket->write(data);
+            bytesRead = file.read(data, 65536);
+            if (bytesRead != -1)
+                bytesWritten = _socket->write(data, bytesRead);
+            _socket->flush();
+            
+            std::cerr << file.bytesAvailable() << "written:" << bytesWritten << std::endl;
         }
     }
     else

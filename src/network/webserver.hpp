@@ -124,7 +124,6 @@ protected:
      * 
      * @param file Die Datei, die gesendet werden soll.
      * @return Ob das Senden erfolgreich war, oder nicht.
-     * @todo Implementieren!
      */
     bool sendFile(QFile& file);
     
