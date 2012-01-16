@@ -116,6 +116,12 @@ bool operator!=(const GPSPosition& p1, const GPSPosition& p2)
     return !(p1 == p2);
 }
 
+std::ostream& operator<<(std::ostream& os, const GPSPosition& p)
+{
+    os << "lat: " << p.getLat() << " lon: " << p.getLon();
+    return os;
+}
+
 
 bool GPSPosition::isInitialized() const
 {
@@ -142,6 +148,7 @@ GPSPosition::GPSPosition(gps_float lat, gps_float lon)
     this->setLat(lat);
     this->setLon(lon);
 }
+
 
 namespace biker_tests
 {

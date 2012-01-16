@@ -3,13 +3,18 @@
 
 #include "math.h"
 #include "tests.hpp"
+#include <iostream>
 
 #define EARTH_RADIUS 6371000
 
 typedef double gps_float;
 
+//Muss oben stehen, da man den Test sonst nicht als friend deklarieren kann
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testGPSPosition();
 }
 
@@ -170,5 +175,6 @@ private:
 
 bool operator==(const GPSPosition& p1, const GPSPosition& p2);
 bool operator!=(const GPSPosition& p1, const GPSPosition& p2);
+std::ostream& operator<<(std::ostream& os, const GPSPosition& p);
 
 #endif // GPSPOSITION_HPP

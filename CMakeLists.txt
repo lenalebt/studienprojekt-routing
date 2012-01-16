@@ -7,7 +7,10 @@ PROJECT(biker)
 
 #Hier Versionsnummer setzen
 SET (biker_VERSION_MAJOR 0)
-SET (biker_VERSION_MINOR 02)
+SET (biker_VERSION_MINOR 03)
+
+#Programmversion dem Quelltext bekannt machen
+ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
 
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
 MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
@@ -16,9 +19,6 @@ IF (CMAKE_BUILD_TYPE STREQUAL Debug)
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
     MESSAGE("CMAKE_BUILD_TYPE set to Release.")
 ENDIF ()
-
-#Programmversion dem Quelltext bekannt machen
-ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
 
 #Evtl muss man mal für die Compiler verschiedene Einstellungen machen: Wenn, dann hier.
 IF ( CMAKE_COMPILER_IS_GNUCXX )
@@ -38,7 +38,8 @@ SET(CMAKE_MODULE_PATH
 #Qt-Einstellungen hier vornehmen.
 SET(QT_USE_QTNETWORK TRUE)
 SET(QT_USE_QTXML TRUE)
-SET(QT_USE_QTSQL TRUE)
+SET(QT_USE_QTGUI FALSE)
+#SET(QT_USE_QTSQL TRUE)
 
 #Qt für ganz viel Krams
 FIND_PACKAGE(Qt4 4.7 REQUIRED)
@@ -77,22 +78,32 @@ SET(
     src/dataprimitives/osmnode.cpp
     src/dataprimitives/osmway.cpp
     src/dataprimitives/osmedge.cpp
-    src/dataprimitives/osmrelation.cpp
+    src/dataprimitives/osmturnrestriction.cpp
     src/dataprimitives/osmproperty.cpp
     
     #src/database/
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
+    src/database/temporarydatabase.cpp
+    src/database/zip.cpp
+    src/database/sqlite_functions.cpp
+    src/database/databaseramcache.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp
+    src/database/parser/pbfparser.cpp
     
     #src/routing/
     src/routing/routingmetric.cpp
+    src/routing/potentialfunction.cpp
     src/routing/router.cpp
     src/routing/heap.cpp
     src/routing/closedlist.cpp
+    src/routing/dijkstra.cpp
+    
+    #src/network/
+    src/network/webserver.cpp
     )
 
 #Hier Header eintragen
@@ -106,7 +117,7 @@ SET(
     src/dataprimitives/gpsroute.hpp
     src/dataprimitives/osmproperty.hpp
     src/dataprimitives/osmnode.hpp
-    src/dataprimitives/osmrelation.hpp
+    src/dataprimitives/osmturnrestriction.hpp
     src/dataprimitives/osmway.hpp
     src/dataprimitives/osmedge.hpp
     src/dataprimitives/routingnode.hpp
@@ -117,9 +128,14 @@ SET(
     src/database/database.hpp
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
+    src/database/temporarydatabase.hpp
+    src/database/zip.hpp
+    src/database/sqlite_functions.hpp
+    src/database/databaseramcache.hpp
     
     #src/database/parser
     src/database/parser/osmparser.hpp
+    src/database/parser/pbfparser.hpp
     
     #src/routing/
     src/routing/routingmetric.hpp
@@ -127,6 +143,22 @@ SET(
     src/routing/router.hpp
     src/routing/heap.hpp
     src/routing/closedlist.hpp
+    src/routing/dijkstra.hpp
+    
+    #src/network/
+    src/network/webserver.hpp
+    )
+
+#Hier die Dateien eintragen, die durch den moc müssen
+#Das sind vor allem jene, in denen Q_OBJECT steht.
+QT4_WRAP_CPP(
+    biker_HEADERS_MOC
+    #src/network/webserver.hpp
+    )
+
+QT4_WRAP_UI(
+    biker_UIS_H
+    ${biker_UIS}
     )
 
 #Alle Dateien - automatisch erzeugte und selbstgeschriebene
@@ -138,6 +170,9 @@ SET(
     #PROTO-SOURCES
     ${OSMFORMAT_PROTO_SOURCES}
     ${FILEFORMAT_PROTO_SOURCES}
+    
+    #MOC-Dateien
+    ${biker_HEADERS_MOC}
     )
 
 SET(
@@ -169,6 +204,8 @@ INCLUDE_DIRECTORIES(
     src/database/
     src/database/parser/
     src/database/parser/pbf/
+    src/network/
+    ${CMAKE_CURRENT_BINARY_DIR}/src/database/parser/pbf/
     )
 
 IF(DOXYGEN_FOUND)
@@ -201,18 +238,6 @@ ENDIF()
 #Dem Quelltext sagen, wo die spatialite-library ist
 ADD_DEFINITIONS(-DSPATIALITE_LIB=${SPATIALITE_LIBRARY})
 
-#Hier die Dateien eintragen, die durch den moc müssen
-#Das sind vor allem jene, in denen Q_OBJECT steht.
-QT4_WRAP_CPP(
-    biker_HEADERS_MOC
-    ${biker_HEADERS}
-    )
-
-QT4_WRAP_UI(
-    biker_UIS_H
-    ${biker_UIS}
-    )
-
 INCLUDE(
     ${QT_USE_FILE}
     )
@@ -241,10 +266,18 @@ ADD_TEST(osmnode                          "biker" "--test" "osmnode")
 ADD_TEST(osmway                           "biker" "--test" "osmway")
 ADD_TEST(osmedge                          "biker" "--test" "osmedge")
 ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
-ADD_TEST(osmrelation                      "biker" "--test" "osmrelation")
+ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
+ADD_TEST(potentialfunction                "biker" "--test" "potentialfunction")
+ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
+ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
+ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")
+ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
+ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
+ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
+ADD_TEST(webserver                        "biker" "--test" "webserver")
 
 
 #Zum Erstellen von automatischen Installationspaketen
@@ -323,3 +356,4 @@ TARGET_LINK_LIBRARIES(biker
 INSTALL (TARGETS biker
     DESTINATION bin
     )
+

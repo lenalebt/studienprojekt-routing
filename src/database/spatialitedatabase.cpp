@@ -1,12 +1,42 @@
 #include "spatialitedatabase.hpp"
 #include <QStringList>
 #include <QFile>
+#include <sqlite_functions.hpp>
+
+#include <boost/random/linear_congruential.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/uniform_real.hpp>
+#include <boost/random/variate_generator.hpp>
+#include <boost/generator_iterator.hpp>
 
 SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
-    _saveEdgeStatement(NULL), _getEdgeStatement(NULL)
+    _saveEdgeStatement(NULL), _getEdgeStatementID(NULL), _getEdgeStatementStartNode(NULL),
+    _getEdgeStatementEndNode(NULL), _deleteEdgeStatement(NULL)
 {
     
+}
+
+SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
+{
+    //Prepared Statements löschen
+	if(_saveNodeStatement != NULL)
+		sqlite3_finalize(_saveNodeStatement);
+    if(_getNodeStatement != NULL)
+		sqlite3_finalize(_getNodeStatement);
+    if(_saveEdgeStatement != NULL)
+		sqlite3_finalize(_saveEdgeStatement);
+    if(_getEdgeStatementID != NULL)
+		sqlite3_finalize(_getEdgeStatementID);
+    if(_getEdgeStatementStartNode != NULL)
+		sqlite3_finalize(_getEdgeStatementStartNode);
+    if(_getEdgeStatementEndNode != NULL)
+		sqlite3_finalize(_getEdgeStatementEndNode);
+    if(_deleteEdgeStatement != NULL)
+		sqlite3_finalize(_deleteEdgeStatement);
+    
+    if (_dbOpen)
+        this->close();
 }
 
 void SpatialiteDatabaseConnection::close()
@@ -98,12 +128,14 @@ bool SpatialiteDatabaseConnection::createTables()
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     statements << "CREATE TABLE EDGES_STREETNAME(ID INTEGER PRIMARY KEY, STREETNAME VARCHAR);";
     
-    //Alle Statements der Liste ausführen
+    //Alle Statements der Liste ausführen in einer Transaktion
+    retVal = this->beginTransaction();
 	QStringList::const_iterator it;
 	for (it = statements.constBegin(); it != statements.constEnd(); it++)
 	{
 		retVal &= execCreateTableStatement(it->toStdString());
 	}
+    retVal &= this->endTransaction();
 	
 	return retVal;
 }
@@ -142,6 +174,8 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double
 QVector<boost::shared_ptr<RoutingNode> >
 SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPosition &maxCorner)
 {
+    QVector<boost::shared_ptr<RoutingNode> > retList;
+    
 	int rc;
 	if(_getNodeStatement == NULL)
 	{		
@@ -149,7 +183,7 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 			-1, &_getNodeStatement, NULL);
 		if (rc != SQLITE_OK)
 		{	
-			std::cerr << "Failed to create getNodeStatement." << " Resultcode: " << rc;
+			std::cerr << "Failed to create getNodeStatement." << " Resultcode: " << rc << std::endl;
 			return QVector<boost::shared_ptr<RoutingNode> >();
 		}
 	}
@@ -160,11 +194,27 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 	sqlite3_bind_double(_getNodeStatement, 3, minCorner.getLon());
 	sqlite3_bind_double(_getNodeStatement, 4, maxCorner.getLon());
 	
-	// Statement ausfuehren
-	rc = sqlite3_step(_getNodeStatement);
-	if (rc != SQLITE_DONE)
+	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+	while ((rc = sqlite3_step(_getNodeStatement)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+        
+        //Erstelle einen neuen Knoten auf dem Heap.
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        RoutingNode* newNode = new RoutingNode(sqlite3_column_int64(_getNodeStatement, 0),
+                        sqlite3_column_double(_getNodeStatement, 1),
+                        sqlite3_column_double(_getNodeStatement, 2));
+        //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
+        boost::shared_ptr<RoutingNode> ptr(newNode);
+        //den boost::shared_ptr zur Liste hinzufügen
+        retList << ptr;
+    }
+	
+    if (rc != SQLITE_DONE)
 	{	
-		std::cerr << "Failed to execute getNodeStatement." << " Resultcode: " << rc;
+		std::cerr << "Failed to execute getNodeStatement." << " Resultcode: " << rc << std::endl;
 		return QVector<boost::shared_ptr<RoutingNode> >();
 	}
 	
@@ -172,10 +222,10 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 	rc = sqlite3_reset(_getNodeStatement);
 	if(rc != SQLITE_OK)
 	{
-		std::cerr << "Failed to reset getNodeStatement." << " Resultcode: " << rc;
+		std::cerr << "Failed to reset getNodeStatement." << " Resultcode: " << rc << std::endl;
 	}
 	
-    return QVector<boost::shared_ptr<RoutingNode> >();
+    return retList;
 }
 
 
@@ -187,7 +237,7 @@ bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
         rc = sqlite3_prepare_v2(_db, "INSERT INTO NODES VALUES (@ID, @MIN_LAT, @MAX_LAT, @MIN_LON, @MAX_LON);", -1, &_saveNodeStatement, NULL);
         if (rc != SQLITE_OK)
         {	
-            std::cerr << "Failed to create saveNodeStatement." << " Resultcode: " << rc;
+            std::cerr << "Failed to create saveNodeStatement." << " Resultcode: " << rc << std::endl;
             return false;
         }
     }
@@ -203,7 +253,7 @@ bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
     rc = sqlite3_step(_saveNodeStatement);
     if (rc != SQLITE_DONE)
     {	
-        std::cerr << "Failed to execute saveNodeStatement." << " Resultcode: " << rc;
+        std::cerr << "Failed to execute saveNodeStatement." << " Resultcode: " << rc << std::endl;
         return false;
     }
 
@@ -211,7 +261,7 @@ bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
     rc = sqlite3_reset(_saveNodeStatement);
     if(rc != SQLITE_OK)
     {
-        std::cerr << "Failed to reset saveNodeStatement." << " Resultcode: " << rc;
+        std::cerr << "Failed to reset saveNodeStatement." << " Resultcode: " << rc << std::endl;
     }
     return true;
 }
@@ -220,21 +270,168 @@ bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
 QVector<boost::shared_ptr<RoutingEdge> >
 SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 {
-    return QVector<boost::shared_ptr<RoutingEdge> >();
+    QVector<boost::shared_ptr<RoutingEdge> > edgeList;
+      
+	int rc;
+	if(_getEdgeStatementStartNode == NULL)
+	{		
+		rc = sqlite3_prepare_v2(_db, "SELECT ID, STARTNODE, ENDNODE, PROPERTIES FROM EDGES WHERE STARTNODE=?;",
+			-1, &_getEdgeStatementStartNode, NULL);
+		if (rc != SQLITE_OK)
+		{	
+			std::cerr << "Failed to create getEdgeStatement." << " Resultcode: " << rc << std::endl;
+			return QVector<boost::shared_ptr<RoutingEdge> >();
+		}
+	}
+	
+	// Parameter an das Statement binden
+	sqlite3_bind_int64(_getEdgeStatementStartNode, 1, startNodeID);
+	
+	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+	while ((rc = sqlite3_step(_getEdgeStatementStartNode)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+        
+        //Erstelle einen neuen Knoten auf dem Heap.
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        RoutingEdge* newEdge = new RoutingEdge(sqlite3_column_int64(_getEdgeStatementStartNode, 0),
+                        sqlite3_column_int64(_getEdgeStatementStartNode, 1),
+                        sqlite3_column_int64(_getEdgeStatementStartNode, 2),
+                        sqlite3_column_int64(_getEdgeStatementStartNode, 3)
+                        );
+        //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
+        boost::shared_ptr<RoutingEdge> ptr(newEdge);
+        //den boost::shared_ptr zur Liste hinzufügen
+		edgeList << ptr;
+    }
+	
+    if (rc != SQLITE_DONE)
+	{	
+		std::cerr << "Failed to execute getEdgeStatement." << " Resultcode: " << rc << std::endl;
+		return QVector<boost::shared_ptr<RoutingEdge> >();
+	}
+	
+	rc = sqlite3_reset(_getEdgeStatementStartNode);
+	if(rc != SQLITE_OK)
+	{
+		std::cerr << "Failed to reset getEdgeStatement." << " Resultcode: " << rc << std::endl;
+	}
+	
+	return edgeList;
 }
 
 
 QVector<boost::shared_ptr<RoutingEdge> >
 SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 {
-    return QVector<boost::shared_ptr<RoutingEdge> >();
+    QVector<boost::shared_ptr<RoutingEdge> > edgeList;
+      
+	int rc;
+	if(_getEdgeStatementEndNode == NULL)
+	{		
+		rc = sqlite3_prepare_v2(_db, "SELECT ID, STARTNODE, ENDNODE, PROPERTIES FROM EDGES WHERE ENDNODE=?;",
+			-1, &_getEdgeStatementEndNode, NULL);
+		if (rc != SQLITE_OK)
+		{	
+			std::cerr << "Failed to create getEdgeStatement." << " Resultcode: " << rc << std::endl;
+			return QVector<boost::shared_ptr<RoutingEdge> >();
+		}
+	}
+	
+	// Parameter an das Statement binden
+	sqlite3_bind_int64(_getEdgeStatementEndNode, 1, endNodeID);
+	
+	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+	while ((rc = sqlite3_step(_getEdgeStatementEndNode)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+        
+        
+        //Erstelle einen neuen Knoten auf dem Heap.
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        RoutingEdge* newEdge = new RoutingEdge(sqlite3_column_int64(_getEdgeStatementEndNode, 0),
+                        sqlite3_column_int64(_getEdgeStatementEndNode, 1),
+                        sqlite3_column_int64(_getEdgeStatementEndNode, 2),
+                        sqlite3_column_int64(_getEdgeStatementEndNode, 3)
+                        );
+        //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
+        boost::shared_ptr<RoutingEdge> ptr(newEdge);
+        //den boost::shared_ptr zur Liste hinzufügen
+        edgeList << ptr;
+    }
+	
+    if (rc != SQLITE_DONE)
+	{	
+		std::cerr << "Failed to execute getEdgeStatement." << " Resultcode: " << rc << std::endl;
+		return QVector<boost::shared_ptr<RoutingEdge> >();
+	}
+	
+	rc = sqlite3_reset(_getEdgeStatementEndNode);
+	if(rc != SQLITE_OK)
+	{
+		std::cerr << "Failed to reset getEdgeStatement." << " Resultcode: " << rc << std::endl;
+	}
+	
+	return edgeList;
 }
 
 
 boost::shared_ptr<RoutingEdge>
-SpatialiteDatabaseConnection::getEdgesByEdgeID(boost::uint64_t edgeID)
+SpatialiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
 {
-    return boost::shared_ptr<RoutingEdge>(new RoutingEdge());
+	boost::shared_ptr<RoutingEdge> edge;
+      
+	int rc;
+	if(_getEdgeStatementID == NULL)
+	{		
+		rc = sqlite3_prepare_v2(_db, "SELECT ID, STARTNODE, ENDNODE, PROPERTIES FROM EDGES WHERE ID=?;",
+			-1, &_getEdgeStatementID, NULL);
+		if (rc != SQLITE_OK)
+		{	
+			std::cerr << "Failed to create getEdgeStatement." << " Resultcode: " << rc << std::endl;
+			return boost::shared_ptr<RoutingEdge>();
+		}
+	}
+	
+	// Parameter an das Statement binden
+	sqlite3_bind_int64(_getEdgeStatementID, 1, edgeID);
+	
+	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+	while ((rc = sqlite3_step(_getEdgeStatementID)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+        
+        
+        //Erstelle einen neuen Knoten auf dem Heap.
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        RoutingEdge* newEdge = new RoutingEdge(sqlite3_column_int64(_getEdgeStatementID, 0),
+                        sqlite3_column_int64(_getEdgeStatementID, 1),
+                        sqlite3_column_int64(_getEdgeStatementID, 2),
+                        sqlite3_column_int64(_getEdgeStatementID, 3)
+                        );
+        //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
+        edge.reset(newEdge);
+    }
+	
+    if (rc != SQLITE_DONE)
+	{	
+		std::cerr << "Failed to execute getEdgeStatement." << " Resultcode: " << rc << std::endl;
+		return boost::shared_ptr<RoutingEdge>();
+	}
+	
+	rc = sqlite3_reset(_getEdgeStatementID);
+	if(rc != SQLITE_OK)
+	{
+		std::cerr << "Failed to reset getEdgeStatement." << " Resultcode: " << rc << std::endl;
+	}
+	
+	return edge;
 }
 
 
@@ -246,7 +443,7 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
         rc = sqlite3_prepare_v2(_db, "INSERT INTO EDGES VALUES (@ID, @STARTNODE, @ENDNODE, @PROPERTIES);", -1, &_saveEdgeStatement, NULL);
         if (rc != SQLITE_OK)
         {	
-            std::cerr << "Failed to create saveEdgeStatement." << " Resultcode: " << rc;
+            std::cerr << "Failed to create saveEdgeStatement." << " Resultcode: " << rc << std::endl;
             return false;
         }
     }
@@ -261,15 +458,14 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
     rc = sqlite3_step(_saveEdgeStatement);
     if (rc != SQLITE_DONE)
     {	
-        std::cerr << "Failed to execute saveEdgeStatement." << " Resultcode: " << rc;
+        std::cerr << "Failed to execute saveEdgeStatement." << " Resultcode: " << rc << std::endl;
         return false;
     }
-
 
     rc = sqlite3_reset(_saveEdgeStatement);
     if(rc != SQLITE_OK)
     {
-        std::cerr << "Failed to reset saveEdgeStatement." << " Resultcode: " << rc;
+        std::cerr << "Failed to reset saveEdgeStatement." << " Resultcode: " << rc << std::endl;
     }
     return true;
 }
@@ -281,16 +477,77 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString nam
     //TODO: Straßenname auch speichern.
 }
 
+bool SpatialiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
+{
+    int rc;
+    if(_deleteEdgeStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "DELETE FROM EDGES WHERE STARTNODE=@STARTNODE AND ENDNODE=@ENDNODE;", -1, &_deleteEdgeStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create deleteEdgeStatement." << " Resultcode: " << rc << std::endl;
+            return false;
+        }
+    }
+    
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_deleteEdgeStatement, 1, startNodeID);
+    sqlite3_bind_int64(_deleteEdgeStatement, 2, endNodeID);
+    
+    // Statement ausfuehren
+    rc = sqlite3_step(_deleteEdgeStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute deleteEdgeStatement." << " Resultcode: " << rc << std::endl;
+        return false;
+    }
+
+    rc = sqlite3_reset(_deleteEdgeStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset deleteEdgeStatement." << " Resultcode: " << rc << std::endl;
+    }
+    return true;
+}
 
 QString SpatialiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
 {
     return "";
 }
 
-SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
+bool SpatialiteDatabaseConnection::beginTransaction()
 {
-	if(_saveNodeStatement != NULL)
-		sqlite3_finalize(_saveNodeStatement);
+    char* errorMessage;
+    //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
+	int rc = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, 0, &errorMessage);
+	
+	if (rc != SQLITE_OK)
+    {
+        sqlite3_close(_db);
+        std::cerr << "Failed to begin transaction."
+            << " Error message: \"" << errorMessage << "\"" << std::endl;
+        sqlite3_free(errorMessage);
+        return false;
+    }
+    else
+		return true;
+}
+bool SpatialiteDatabaseConnection::endTransaction()
+{
+    char* errorMessage;
+    //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
+	int rc = sqlite3_exec(_db, "END TRANSACTION;", NULL, 0, &errorMessage);
+	
+	if (rc != SQLITE_OK)
+    {
+        sqlite3_close(_db);
+        std::cerr << "Failed to begin transaction."
+            << " Error message: \"" << errorMessage << "\"" << std::endl;
+        sqlite3_free(errorMessage);
+        return false;
+    }
+    else
+		return true;
 }
 
 namespace biker_tests
@@ -300,35 +557,106 @@ namespace biker_tests
         SpatialiteDatabaseConnection connection;
         QFile file("test.db");
         
-        std::cout << "Removing database test file \"test.db\"..." << std::endl;
+        std::cerr << "Removing database test file \"test.db\"..." << std::endl;
         if (file.exists())
             file.remove();
         
-        std::cout << "Opening \"test.db\"..." << std::endl;
+        std::cerr << "Opening \"test.db\"..." << std::endl;
         connection.open("test.db");
         CHECK(connection.isDBOpen());
         
-        std::cout << "Closing database..." << std::endl;
+        std::cerr << "Closing database..." << std::endl;
         connection.close();
         CHECK(!connection.isDBOpen());
         
-        std::cout << "Reopening \"test.db\"..." << std::endl;
+        std::cerr << "Reopening \"test.db\"..." << std::endl;
         connection.open("test.db");
         CHECK(connection.isDBOpen());
         
         RoutingNode node(25, 51.0, 7.0);
-        std::cout << "Save Node..." << std::endl;
+        std::cerr << "Save Node..." << std::endl;
         CHECK(connection.saveNode(node));
         node = RoutingNode(26, 51.5, 7.5);
         CHECK(connection.saveNode(node));
         
         RoutingEdge edge(45, 25, 26);
-        std::cout << "Save Edge..." << std::endl;
+        std::cerr << "Save Edge..." << std::endl;
         edge.setCycleBarrier(true);
         edge.setCyclewayType(5);
         CHECK(connection.saveEdge(edge));
         edge = RoutingEdge(46, 26, 25);
         CHECK(connection.saveEdge(edge));
+        
+        GPSPosition min(50.0, 6.0);
+        GPSPosition max(52.0, 8.0);
+        QVector<boost::shared_ptr<RoutingNode> > list = connection.getNodes(min, max);
+        CHECK(!list.isEmpty());
+        CHECK(list.size() == 2);
+        
+        std::cerr << "Node 0 from DB: " << *(list[0]) << std::endl;
+        std::cerr << "Node 1 from DB: " << *(list[1]) << std::endl;
+        CHECK((*list[0] == node) || (*list[1] == node));
+        
+        boost::minstd_rand generator(42u);
+        boost::uniform_real<> uni_dist(50, 52);
+        boost::variate_generator<boost::minstd_rand&, boost::uniform_real<> > uni(generator, uni_dist);
+        
+        std::cerr << "Inserting 10000 Nodes within one transaction..." << std::endl;
+        bool successInsertManyNodes = true;
+        CHECK(connection.beginTransaction());
+        for (int i=0; i<10000; i++)
+        {
+            node = RoutingNode(i + 100, uni(), uni() - (51.0 - 7.0));
+            successInsertManyNodes = successInsertManyNodes && connection.saveNode(node);
+        }
+        CHECK(successInsertManyNodes);
+        CHECK(connection.endTransaction());
+        std::cerr << "Hier erwartet: Resultcode 19 (-> Constraint failed)" << std::endl;
+        CHECK(!connection.saveNode(node));
+        
+        boost::shared_ptr<RoutingEdge> dbEdge(connection.getEdgeByEdgeID(46));
+        CHECK_EQ(edge, *dbEdge);
+        
+        QVector<boost::shared_ptr<RoutingEdge> > edgeList;
+        edgeList = connection.getEdgesByStartNodeID(26);
+        CHECK_EQ(edge, *edgeList[0]);
+        edgeList = connection.getEdgesByStartNodeID(26);
+        CHECK_EQ(edge, *edgeList[0]);
+        
+        edgeList = connection.getEdgesByEndNodeID(25);
+        CHECK_EQ(edge, *edgeList[0]);
+        edgeList = connection.getEdgesByEndNodeID(25);
+        CHECK_EQ(edge, *edgeList[0]);
+        
+        
+        std::cerr << "Inserting 10000 Edges within one transaction..." << std::endl;
+        bool successInsertManyEdges = true;
+        CHECK(connection.beginTransaction());
+        for (int i=0; i<10000; i++)
+        {
+            edge = RoutingEdge(i + 100, i+99, i+100);
+            successInsertManyEdges = successInsertManyEdges && connection.saveEdge(edge);
+        }
+        CHECK(successInsertManyEdges);
+        CHECK(connection.endTransaction());
+        std::cerr << "Hier erwartet: Resultcode 19 (-> Constraint failed)" << std::endl;
+        CHECK(!connection.saveEdge(edge));
+        
+        
+        edgeList = connection.getEdgesByStartNodeID(99);
+        CHECK(!edgeList.isEmpty());
+        edgeList = connection.getEdgesByStartNodeID(100);
+        CHECK(!edgeList.isEmpty());
+        
+        CHECK(connection.beginTransaction());
+        CHECK(connection.deleteEdge(99, 100));
+        CHECK(connection.deleteEdge(100, 101));
+        CHECK(connection.endTransaction());
+        
+        edgeList = connection.getEdgesByStartNodeID(99);
+        CHECK(edgeList.isEmpty());
+        edgeList = connection.getEdgesByStartNodeID(100);
+        CHECK(edgeList.isEmpty());
         
         return EXIT_SUCCESS;
     }

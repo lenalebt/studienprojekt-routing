@@ -76,11 +76,12 @@ public:
 
 std::ostream& operator<<(std::ostream& os, const OSMProperty& prop);
 
-/**
- * @todo: Implementieren, dieser Test ist noch leer.
- */
+
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testOSMProperty();
 } 
 

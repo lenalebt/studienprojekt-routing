@@ -3,6 +3,7 @@
 
 #include <boost/cstdint.hpp>
 #include "gpsposition.hpp"
+#include <iostream>
 
 /**
  * @brief Beschreibt einen Knoten, der in der Datenbank abgelegt werden kann
@@ -49,17 +50,41 @@ public:
      */
     virtual void setAndConvertID(const boost::uint64_t id)
     {
-        boost::uint64_t mask = 0xFFFFFFFFFFFFFFllu;
-        this->id = ((id & mask) << 8);
+        this->id = convertIDToLongFormat(id);
     }
+    
+    /**
+     * @brief Wandelt eine ID in das Format um, in dem Kanten KnotenID
+     *  (für Start- und Endknoten) speichern.
+     * 
+     * @param id Die zu konvertierende ID
+     * @return Die konvertierte ID
+     */
+    boost::uint64_t convertIDToLongFormat(const boost::uint64_t id);
+    
+    /**
+     * @brief Wandelt eine ID in das Format um, in dem Knoten ihre ID
+     *  speichern.
+     * 
+     * @param id Die zu konvertierende ID
+     * @return Die konvertierte ID
+     */
+    boost::uint64_t convertIDToShortFormat(const boost::uint64_t id);
     
     RoutingNode(int id) : id(id) {}
     RoutingNode(int id, gps_float lat, gps_float lon) : GPSPosition(lat, lon), id(id) {}
     RoutingNode() : id(0) {}
+    
+    bool operator==(const RoutingNode& other);
 };
+
+std::ostream& operator<<(std::ostream& os, const RoutingNode& node);
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testRoutingNode();
 }
 

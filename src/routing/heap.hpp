@@ -5,28 +5,26 @@
 #include <boost/cstdint.hpp>
 #include <QVector>
 #include <QHash>
+#include <QHash>
+#include "tests.hpp"
+#include <iostream>
 
 /**
  * @brief Dies ist ein Interface für einen Heap.
  * 
- * Damit es funktioniert, muss der Datentyp T einen operator< unterstützen,
- * sowie eine Funktion boost::uint64_t getID() const.
+ * Man muss, damit es funktioniert, einen Funktor implementieren, der
+ * zwei Elemente vergleicht. Dieser wird in der Klasse verwendet für Vergleiche.
+ * Der Funktor muss einen operator() implementieren mit 2 Argumenten,
+ * der bool zurückgibt. Die Argumente müssen den Typ T des Heaps haben:
  * 
- * Die Idee ist folgende: Man implementiert eine neue Klasse, die die
- * zu speichernden Eigenschaften enthält. Dazu gehört z.B. der Knoten selbst
- * (wahrscheinlich als Integerwert),
- * die bisherigen
- * Kosten, der Vorgängerzeiger (wahrscheinlich als Integer),
- * und im Falle von A* die heuristischen Kosten.
- * Man implementiert operator<, sodass der gewünschte Wert verglichen wird: Im
- * Falle von Dijkstra sind es die Kosten, im Falle von A* die heuristischen Kosten.
+ * bool operator()(T a, T b);
  * 
  * @ingroup routing
  * @author Lena Brueder
  * @date 2011-11-08
  * @copyright GNU GPL v3
  */
-template<typename T>
+template<typename T, typename Less>
 class Heap
 {
 public:
@@ -34,21 +32,21 @@ public:
      * @brief Entfernt das kleinste Element aus dem Heap.
      * @return das kleinste Element aus dem Heap.
      */
-    virtual boost::shared_ptr<T> removeMinimumCostNode()=0;
+    virtual T removeMinimumCostElement()=0;
     /**
      * @brief Fügt ein Element zum Heap hinzu.
      */
-    virtual void addNode(boost::shared_ptr<T> node)=0;
+    virtual void add(T element)=0;
     /**
      * @brief Verringert den Key eines Elements im Heap.
-     * @param nodeID die ID des Knotens, für den der Key angepasst werden soll
+     * @param element Das Element, für den der Key angepasst werden soll
      */
-    virtual void decreaseKey(boost::shared_ptr<T> node)=0;
+    virtual void decreaseKey(T element)=0;
     /**
      * @brief Gibt zurück, ob im Heap ein Element mit der angegebenen ID existiert.
-     * @return ob im Heap ein Element mit der angegebenen ID existiert
+     * @return ob im Heap dieses Element existiert
      */
-    virtual bool contains(boost::uint64_t nodeID) const=0;
+    virtual bool contains(T element) const=0;
     /**
      * @brief Gibt an, ob der Heap leer ist
      * @return ob der Heap leer ist
@@ -72,12 +70,14 @@ public:
  * @date 2011-11-08
  * @copyright GNU GPL v3
  */
-template<typename T>
-class BinaryHeap : public Heap<T>
+template<typename T, typename Less>
+class BinaryHeap : public Heap<T, Less>
 {
 private:
-	QVector<boost::shared_ptr<T> > heap;
+	QVector<T> heap;
 	QHash<boost::uint64_t, int> positionInHeap;	//nötig für decreaseKey
+    Less *less;
+    
 	void letSink(int i)
 	{
 		int j=2*i+1;
@@ -85,23 +85,33 @@ private:
 		{
 			/* schau die Kinder von i an, welches ist kleiner?
 			 * j ist das linke Kind, j+1 ist das rechte Kind.*/
-			if ((j+1>=heap.size()) || (*(heap[j]) < *(heap[j+1])))
+			if ((j+1>=heap.size()) || (*less)(heap[j], heap[j+1]))
 			{	//linkes Kind ist kleiner
-				boost::shared_ptr<T> tmpVal = heap[i];	//Tauschen
-				heap[i] = heap[j];
-				heap[j] = tmpVal;
-				positionInHeap[heap[i]->getID()] = i;
-				positionInHeap[heap[j]->getID()] = j;
-				i=j;	//und weiter, zum linken Kind
+                if ((*less)(heap[j], heap[i]))
+                {
+                    T tmpVal = heap[i];	//Tauschen
+                    heap[i] = heap[j];
+                    heap[j] = tmpVal;
+                    positionInHeap[heap[i]] = i;
+                    positionInHeap[heap[j]] = j;
+                    i=j;	//und weiter, zum linken Kind
+                }
+                else
+                    break;
 			}
 			else	//rechtes Kind ist kleiner
 			{
-				boost::shared_ptr<T> tmpVal = heap[i];	//Tauschen
-				heap[i] = heap[j+1];
-				heap[j+1] = tmpVal;
-				positionInHeap[heap[i]->getID()] = i;
-				positionInHeap[heap[j+1]->getID()] = j+1;
-				i=j+1;	//weiter, zum rechten Kind
+                if ((*less)(heap[j+1], heap[i]))
+                {
+                    T tmpVal = heap[i];	//Tauschen
+                    heap[i] = heap[j+1];
+                    heap[j+1] = tmpVal;
+                    positionInHeap[heap[i]] = i;
+                    positionInHeap[heap[j+1]] = j+1;
+                    i=j+1;	//weiter, zum rechten Kind
+                }
+                else
+                    break;
 			}
 			j=2*i+1;
 		}
@@ -113,64 +123,69 @@ private:
 		{
 			/* Papa von i ansehen: Ist der kleiner? Wenn nein, tauschen.
 			 * Wenn ja, fertig.*/
-			if ((j>=heap.size()) || (*(heap[j]) < *(heap[i])))
-			{	//Papa Kind ist kleiner: fertig.
-				break;
+			if ((*less)(heap[j], heap[i]))
+			{	//Papa ist kleiner: fertig.
+				return;
 			}
 			else	//Kind ist kleiner, tauschen!
 			{
-				boost::shared_ptr<T> tmpVal = heap[i];	//Tauschen
+				T tmpVal = heap[i];	//Tauschen
 				heap[i] = heap[j];
 				heap[j] = tmpVal;
-				positionInHeap[heap[i]->getID()] = i;
-				positionInHeap[heap[j]->getID()] = j;
+				positionInHeap[heap[i]] = i;
+				positionInHeap[heap[j]] = j;
 				i=j;	//weiter, zum Papa
 			}
 			j=(i-1)/2;
 		}
 	}
 public:
-	boost::shared_ptr<T> removeMinimumCostNode()
+	T removeMinimumCostElement()
 	{
 		//Rückgabewert herausnehmen
-		boost::shared_ptr<T> retVal = heap[0];
+		T retVal = heap[0];
 		heap[0] = heap.last();	//Wurzel durch letztes Element ersetzen
-		heap.removeLast();		//und dieses am Ende wegnehmen
-		positionInHeap.remove(retVal->getID());
-		
+		heap.remove(heap.size()-1);		//und dieses am Ende wegnehmen
+		positionInHeap.remove(retVal);
+        
 		if (!this->isEmpty())
 		{
-			positionInHeap[heap[0]->getID()] = 0;
+			positionInHeap[heap[0]] = 0;
 			letSink(0);		//erstes Element sinken lassen
 		}
 		
 		return retVal;
 	}
-	void addNode(boost::shared_ptr<T> node)
+	void add(T element)
 	{
-		heap << node;
-		positionInHeap[node->getID()] = heap.size()-1;
+		heap << element;
+		positionInHeap[element] = heap.size()-1;
 		letAscend(heap.size()-1);	//letztes Element aufsteigen lassen
 	}
     /**
      * @todo Verlässt sich darauf, dass der Key nur kleiner wurde, und sich nicht vergrößert hat.
      *      Das sollte verbessert werden!
      */
-	void decreaseKey(boost::shared_ptr<T> node)
+	void decreaseKey(T element)
 	{
-		if (positionInHeap.contains(node->getID()))
+		if (positionInHeap.contains(element))
 		{
-//			int i = positionInHeap[node->getID()];
-			letAscend(positionInHeap[node->getID()]);
+//			int i = positionInHeap[element];
+			letAscend(positionInHeap[element]);
 		}
 		else
 		{
-			addNode(node);
+			add(element);
 		}
 	}
 	bool isEmpty() const {return heap.isEmpty();}
-	bool contains(boost::uint64_t nodeID) const {return positionInHeap.contains(nodeID);}
+	bool contains(T element) const {return positionInHeap.contains(element);}
 	int size() const {return positionInHeap.size();}
+    
+    BinaryHeap(Less& lessFunctor) : less(&lessFunctor)
+    {
+        
+    }
     
     ~BinaryHeap()
     {
@@ -182,4 +197,53 @@ public:
     }
 };
 
+namespace biker_tests
+{
+    /**
+     * @ingroup tests
+     */
+    template<typename T>
+    class BinaryHeapTestLessFunctor
+    {
+    private:
+        //LALA
+    public:
+        bool operator()(T a, T b)
+        {
+            return (a<b);
+        }
+    };
+    
+    /**
+     * @ingroup tests
+     */
+    template<typename K, typename V>
+    class BinaryHeapTestLessAndQHashFunctor
+    {
+    private:
+        QHash<K, V> hashMap;
+    public:
+        BinaryHeapTestLessAndQHashFunctor()
+        {
+            
+        }
+        bool operator()(K a, K b)
+        {
+            return (hashMap[a] < hashMap[b]);
+        }
+        void setValue(K key, V value)
+        {
+            hashMap.insert(key, value);
+        }
+        V getValue(K key)
+        {
+            return hashMap[key];
+        }
+    };
+    
+    /**
+     * @ingroup tests
+     */
+    int testBinaryHeap();
+}
 #endif //HEAP_HPP

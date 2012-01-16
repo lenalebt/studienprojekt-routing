@@ -1,9 +1,11 @@
 #include "osmparser.hpp"
 #include <iostream>
 
-OSMParser::OSMParser()//TODO: OSMDatabaseWriter& dbWriter)
-    : //TODO: dbWriter(dbWriter), 
-    nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0)
+OSMParser::OSMParser(BlockingQueue<boost::shared_ptr<OSMNode> >* nodeQueue,
+    BlockingQueue<boost::shared_ptr<OSMWay> >* wayQueue,
+    BlockingQueue<boost::shared_ptr<OSMTurnRestriction> >* turnRestrictionQueue)
+    : nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0),
+      _nodeQueue(nodeQueue), _wayQueue(wayQueue), _turnRestrictionQueue(turnRestrictionQueue)
 {
 
 }
@@ -58,13 +60,17 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
                 else if (atts.qName(i) == "lat")
                     lat = atts.value(i).toDouble();
             }
-            node = new OSMNode(id, GPSPosition(lon, lat), QVector<OSMProperty>());
+            node = boost::shared_ptr<OSMNode>(new OSMNode(id, GPSPosition(lon, lat), QVector<OSMProperty>()));
 
         }
         else if (qName == "way")
         {
             wayCount++;
             nodeType = WAY;
+            
+            //Zerstört die Queue, damit keine Blockierung auftreten kann
+            if (wayCount == 1)
+                _nodeQueue->destroyQueue();
 
             boost::uint64_t id=0;
 
@@ -73,12 +79,18 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
                 if (atts.qName(i) == "id")
                     id = atts.value(i).toLong();
             }
-            way = new OSMWay(id, QVector<OSMProperty>());
+            way = boost::shared_ptr<OSMWay>(new OSMWay(id, QVector<OSMProperty>()));
         }
         else if (qName == "relation")
         {
             relationCount++;
             nodeType = RELATION;
+            
+            //Zerstört die Queue, damit keine Blockierung auftreten kann
+            if (relationCount == 1)
+                _wayQueue->destroyQueue();
+
+            relation = boost::shared_ptr<OSMTurnRestriction>(new OSMTurnRestriction());
         }
     }
     else if (nodeType == NODE)
@@ -119,9 +131,108 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
     }
     else if (nodeType == RELATION)
     {
+        invalidRestriction = false;
+        ready = false;
         if (qName == "tag") //Eigenschaft
         {
-            //TODO
+            QString key, value;
+            for (int i=0; i<atts.length(); i++)
+            {
+                if (atts.qName(i) == "k")
+                    key = atts.value(i);
+                else if (atts.qName(i) == "v")
+                    value = atts.value(i);
+            }
+            if(key == "restriction")
+            {
+                if(value == "no_left_turn")
+                {
+                    relation->setLeft(true);
+                }
+                else if(value == "no_right_turn ")
+                {
+                    relation->setRight(true);
+                }
+                else if(value == "no_straight_on")
+                {
+                    relation->setStraight(true);
+                }
+                else if(value == "no_u_turn")
+                {
+                    relation->setUTurn(true);
+                }
+                else if(value == "only_right_turn ")
+                {
+                    relation->setLeft(true);
+                    relation->setStraight(true);
+                    relation->setUTurn(true);
+                }
+                else if(value == "only_left_turn ")
+                {
+                    relation->setRight(true);
+                    relation->setStraight(true);
+                }
+                else if(value == "only_straight_on")
+                {
+                    relation->setLeft(true);
+                    relation->setRight(true);
+                    relation->setUTurn(true);
+                }
+                // die Fälle von no_exit & no_entry + deren Unterscheidung verstehen wir nicht so ganz und daher
+                // werden diese beiden fälle nicht behandelt & für die weitere bearbeitung ignoriert.
+                else if(value == "no_entry")
+                {
+                    ready = false;
+                    invalidRestriction = true;
+                }
+                else if(value == "no_exit")
+                {
+                    ready = false;
+                    invalidRestriction = true;
+                }
+
+            }
+            else if (key == "type")
+            {
+                if(value == "restriction")
+                {
+                    if(!invalidRestriction)
+                    {
+                        ready = true;
+                    }
+                }
+            }
+        }
+        else  if (qName == "member") //Knoten & Kanten IDs
+        {
+            QString type, ref, role;
+            for (int i=0; i<atts.length(); i++)
+            {
+                if (atts.qName(i) == "type")
+                    type = atts.value(i);
+                else if (atts.qName(i) == "ref")
+                    ref = atts.value(i);
+                else if (atts.qName(i) == "role")
+                    role = atts.value(i);
+            }
+            if(type == "way")
+            {
+                if(role == "from")
+                {
+                    relation->setFromId(ref.toLong());
+                }
+                else if(role == "to")
+                {
+                    relation->setToId(ref.toLong());
+                }
+            }
+            else if (type == "node")
+             {
+                if(role == "via")
+                {
+                    relation->setViaId(ref.toLong());
+                }
+            }
         }
     }
 
@@ -139,6 +250,7 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
         if (qName == "node")
         {
             nodeType = NONE;
+            _nodeQueue->enqueue(node);
             //TODO: dbWriter.addNode(node);
         }
     }
@@ -147,6 +259,7 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
         if (qName == "way")
         {
             nodeType = NONE;
+            _wayQueue->enqueue(way);
             //TODO: dbWriter.addWay(way);
         }
     }
@@ -155,9 +268,12 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
         if (qName == "relation")
         {
             nodeType = NONE;
-            //TODO: dbWriter.addRelation(relation);
-
-            delete relation;
+            if (ready == true)
+                _turnRestrictionQueue ->enqueue(relation);
+            //else
+            //    delete relation;
+            ready = false;
+            invalidRestriction = false;
         }
     }
 
@@ -166,6 +282,7 @@ bool OSMParser::endElement ( const QString & /*namespaceURI*/, const QString & /
 
 bool OSMParser::endDocument ()
 {
+    _turnRestrictionQueue->destroyQueue();
     //TODO: dbWriter.finished();
     std::cerr << "EndDocument. NodeCount: " << nodeCount << " WayCount: " << wayCount
         << " RelationCount: " << relationCount << std::endl;

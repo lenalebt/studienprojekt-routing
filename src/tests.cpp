@@ -1,8 +1,11 @@
 #include "tests.hpp"
+#include <iostream>
+#include <iomanip>
+#include <boost/algorithm/string.hpp> 
 
 #include "routingnode.hpp"
 #include "routingedge.hpp"
-#include "osmrelation.hpp"
+#include "osmturnrestriction.hpp"
 #include "osmnode.hpp"
 #include "osmway.hpp"
 #include "osmproperty.hpp"
@@ -10,8 +13,17 @@
 #include "gpsposition.hpp"
 #include "gpsroute.hpp"
 #include "spatialitedatabase.hpp"
+#include "temporarydatabase.hpp"
+#include "databaseramcache.hpp"
 #include "osmparser.hpp"
+#include "altitudeprovider.hpp"
 #include <QString>
+#include <QVector>
+#include "blockingqueue.hpp"
+#include "closedlist.hpp"
+#include "heap.hpp"
+#include "webserver.hpp"
+#include "potentialfunction.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -24,6 +36,8 @@
  * @attention Diese Testfunktionen können das Programm komplett in einen anderen
  *      Zustand überführen als es vor dem Aufruf der Funktion hatte
  */
+
+#define TEST_PASSED_MSG_WIDTH 80
 
 using namespace std;
 
@@ -42,17 +56,17 @@ namespace biker_tests
     template<typename S, typename T>
     bool check_equality(std::string message, S a, T b)
     {
-        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
         if (a==b)
         {
-            std::cout << "passed!" << std::endl;
+            std::cerr << "passed!" << std::endl;
             return true;
         }
         else
         {
-            std::cout << "failed!" << std::endl;
-            std::cout << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
-            std::cout << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
+            std::cerr << "failed!" << std::endl;
+            std::cerr << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
+            std::cerr << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
             return false;
         }
     }
@@ -71,33 +85,33 @@ namespace biker_tests
     }
     template<> bool check_equality(std::string message, double a, double b)
     {
-        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
         if (fabs(a - b) < DOUBLE_EQUALITY_BARRIER)
         {
-            std::cout << "passed!" << std::endl;
+            std::cerr << "passed!" << std::endl;
             return true;
         }
         else
         {
-            std::cout << "failed!" << std::endl;
-            std::cout << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
-            std::cout << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
+            std::cerr << "failed!" << std::endl;
+            std::cerr << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
+            std::cerr << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
             return false;
         }
     }
     template<> bool check_equality(std::string message, float a, float b)
     {
-        std::cout << std::left << std::setw(60) << message << " - " << std::flush;
+        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
         if (fabs(a - b) < FLOAT_EQUALITY_BARRIER)
         {
-            std::cout << "passed!" << std::endl;
+            std::cerr << "passed!" << std::endl;
             return true;
         }
         else
         {
-            std::cout << "failed!" << std::endl;
-            std::cout << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
-            std::cout << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
+            std::cerr << "failed!" << std::endl;
+            std::cerr << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
+            std::cerr << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
             return false;
         }
     }
@@ -127,13 +141,17 @@ namespace biker_tests
     template bool check_equality(std::string message, boost::uint32_t a, boost::uint32_t b);
     template bool check_equality(std::string message, boost::uint64_t a, boost::uint64_t b);
     template bool check_equality(std::string message, boost::int64_t a,  boost::int64_t b);
+    template bool check_equality(std::string message, boost::int32_t a,  boost::int32_t b);
     template bool check_equality(std::string message, boost::int64_t a,  boost::int32_t b);
     template bool check_equality(std::string message, boost::int32_t a,  boost::int64_t b);
     template bool check_equality(std::string message, boost::uint64_t a, boost::uint32_t b);
     template bool check_equality(std::string message, boost::uint32_t a, boost::uint64_t b);
     template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
     template bool check_equality(std::string message, OSMProperty a,     OSMProperty b);
-    
+    template bool check_equality(std::string message, OSMNode a,         OSMNode b);
+    template bool check_equality(std::string message, GPSPosition a,     GPSPosition b);
+    template bool check_equality(std::string message, OSMTurnRestriction a, OSMTurnRestriction b);
+  
     std::string uint64_t2string(boost::uint64_t integer)
     {
         std::string retVal("");
@@ -147,10 +165,10 @@ namespace biker_tests
 
     int testProgram(std::string testName)
     {
-        cout << "starting program tests..." << endl << flush;
+        cerr << "starting program tests..." << endl << flush;
         
         boost::algorithm::to_lower(testName);
-        cout << "requested test: " << testName << endl;
+        cerr << "requested test: " << testName << endl;
         
         if (testName == "routingedge")
             return biker_tests::testRoutingEdge();
@@ -162,6 +180,10 @@ namespace biker_tests
             return biker_tests::testBasename();
         else if (testName == "spatialitedatabaseconnection")
             return biker_tests::testSpatialiteDatabaseConnection();
+        else if (testName == "temporaryosmdatabaseconnection")
+            return biker_tests::testTemporaryOSMDatabaseConnection();
+        else if (testName == "databaseramcache")
+            return biker_tests::testDatabaseRAMCache();
         else if (testName == "gpsposition")
             return biker_tests::testGPSPosition();
         else if (testName == "osmnode")
@@ -172,15 +194,27 @@ namespace biker_tests
             return biker_tests::testOSMEdge();
         else if (testName == "osmproperty")
             return biker_tests::testOSMProperty();
-        else if (testName == "osmrelation")
-            return biker_tests::testOSMRelation();
+        else if (testName == "osmturnrestriction")
+            return biker_tests::testOSMTurnRestriction();
         else if (testName == "osmparser")
             return biker_tests::testOSMParser();
+        else if (testName == "blockingqueue")
+            return biker_tests::testBlockingQueue();
+        else if (testName == "binaryheap")
+            return biker_tests::testBinaryHeap();
+        else if (testName == "hashclosedlist")
+            return biker_tests::testHashClosedList();
         else if (testName == "gpsroute")
             return biker_tests::testGPSRoute();
+        else if (testName == "srtmprovider")
+            return biker_tests::testSRTMProvider();
+        else if (testName == "webserver")
+            return biker_tests::testWebServer();
+        else if (testName == "potentialfunction")
+            return biker_tests::testPotentialFunction();
         
         //Anpassen, falls Fehler auftraten!
-        std::cout << "error: did not find test \"" << testName << "\"." << std::endl;
+        std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;
         return EXIT_FAILURE;
     }
     
