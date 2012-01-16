@@ -157,10 +157,11 @@ bool HttpRequestProcessor::sendFile(QFile& file)
         writeString(_socket, "Content-Length: ");
         writeString(_socket, QString::number(file.size()) + "\n");
         writeString(_socket, "\n");
+        _socket->flush();
         char data[66000];
         int bytesRead=0;
         int bytesWritten=0;
-        while ((file.bytesAvailable() > 0) && (bytesWriiten != -1))
+        while ((file.bytesAvailable() > 0) && (bytesWritten != -1))
         {
             std::cerr << "lese häppchen." << file.bytesAvailable() << std::endl;
             //64KB-Häppchen der Datei lesen und versenden
