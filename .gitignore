@@ -12,6 +12,7 @@ build/
 *~
 
 #Objektdateien und builds
+*.gch
 *.o
 *.out
 *.obj
