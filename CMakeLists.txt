@@ -278,6 +278,7 @@ ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
 ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
+ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
 
 
 #Zum Erstellen von automatischen Installationspaketen
