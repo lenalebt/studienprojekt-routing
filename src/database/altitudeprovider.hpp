@@ -21,6 +21,7 @@
 #include <QtConcurrentRun>
 #include <QDataStream>
 #include <QDir>
+#include <QFileInfo>
 
 #define SRTM_DATA_VOID -32768
 /**

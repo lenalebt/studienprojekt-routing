@@ -61,8 +61,10 @@ double SRTMProvider::getAltitude(double lat, double lon)
             }
             std::cerr << "Irgendwas wurde auch runtergeladen." << std::endl;
             
-            //QDir makedir;
-            //makedir.mkpath(_cachedir);
+            QFileInfo fileInfo(fileName);
+            QString filePath = fileInfo.absolutePath();
+            QDir makedir;
+            makedir.mkpath(filePath);
             zipFile.open(QIODevice::WriteOnly);
             QDataStream zipFileOutStream(&zipFile);
             zipFileOutStream << data;            
@@ -223,8 +225,11 @@ void SRTMProvider::createFileList()
         ////exit(1); //ERROR: SRTM-Filecount was wrong. Should not matter to comment this out.
     //}
     
-    //QDir makedir;
-    //makedir.mkpath(_cachedir);
+    
+    QFileInfo fileInfo(_cachedir + _srtmFileList);
+    QString filePath = fileInfo.absolutePath();
+    QDir makedir;
+    makedir.mkpath(filePath);
     QFile file(_cachedir + _srtmFileList);
     if (!file.open(QIODevice::WriteOnly)) { 
         std::cerr << "Could not open file " << _cachedir << _srtmFileList << std::endl;
@@ -313,7 +318,14 @@ namespace biker_tests
 {
 	int testSRTMProvider()
 	{
-		SRTMProvider s;
+		
+        //std::cerr << "Jetzt erstmal nur entzippen" << std::endl;
+        //SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
+        //qint16 *buffer;
+        //int res = srtmZipFileObject.getData("/home/pia/.biker/srtm/Eurasia/N51E007.hgt.zip", &buffer);
+        //std::cerr << QString::number(res, 10) << std::endl;
+        
+        SRTMProvider s;
         s.getAltitude(51.457, 7.014);
 		
 		return EXIT_SUCCESS;
