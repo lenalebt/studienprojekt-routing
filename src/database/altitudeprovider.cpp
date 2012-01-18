@@ -68,10 +68,10 @@ double SRTMProvider::getAltitude(double lat, double lon)
             zipFileOutStream << data;            
             zipFile.close(); 
                        
-            if(!zipFile.open(QIODevice::ReadOnly)){
-                std::cout << "Fehler beim öffnen des Downloads der Daten für " << fileList[latLonToIndex(intlat, intlon)] << "." << std::endl;
-                return altitude;
-            }
+            //if(!zipFile.open(QIODevice::ReadOnly)){
+                //std::cout << "Fehler beim öffnen des Downloads der Daten für " << fileList[latLonToIndex(intlat, intlon)] << "." << std::endl;
+                //return altitude;
+            //}
         }
         // [TODO] Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
         
