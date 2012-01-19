@@ -5,6 +5,9 @@
 /**
  * @todo Implementieren
  * @todo Testen
+ * @bug Wenn der User eine Position aussucht, bei der ein Knoten, der nicht
+ *      am Graphen beteiligt ist, am nächsten ist, wird dieser als Startpunkt
+ *      ausgewählt. Fälschlicherweise wird dann keine Route berechnet!
  */
 GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
 {
