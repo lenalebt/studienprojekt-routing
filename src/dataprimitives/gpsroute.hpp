@@ -103,7 +103,7 @@ public:
      * @brief gibt die Anzahl der Elemente zurück.
      * @return die Anzahl an Elementen.
      */
-    int getSize()
+    int getSize() const
     {
        return route.size(); 
     }
@@ -155,9 +155,9 @@ public:
      * @brief Kopiert eine Route.
      * @param r die Route, dei Kopiert werden soll.
      */
-    GPSRoute(GPSRoute& r)
+    GPSRoute(const GPSRoute& r)
     {
-        for (int index = 0; index < route.size(); index++)
+        for (int index = 0; index < r.getSize(); index++)
         {
             route.insert(index, r[index]);
         }
@@ -185,7 +185,7 @@ public:
      * @param i Indexstelle, an der sich das gesuchte Objekt befinden soll.
      * @return die GPSPosition an der Stelle i.
      */
-    GPSPosition operator[](int i)
+    GPSPosition operator[](int i) const
     {
         return route.at(i);
     }
