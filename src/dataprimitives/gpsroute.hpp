@@ -28,7 +28,7 @@ public:
      * 
      * @return Die Länge der Route in Metern.
      */
-    double calcLength()
+    double calcLength() const
     {
         double length = 0.0;
         for (int index = 1; index < route.size(); index++)
@@ -194,7 +194,7 @@ public:
      * @param r die Liste, die mit der aktuellen verglichen wird.
      * @return ein Boolischer Wert, der angibt, ob zwei Listen gleich sind, oder nicht.
      */
-    bool operator == (GPSRoute& r)
+    bool operator == (const GPSRoute& r) const
     {
         return route == r.get();
     }
@@ -203,7 +203,7 @@ private:
      * @brief gibt die Liste zurück.
      * @return die Liste.
      */
-    QList<GPSPosition> get()
+    QList<GPSPosition> get() const
     {
        return route;
     }
