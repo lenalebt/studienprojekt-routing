@@ -28,7 +28,7 @@ public:
      * 
      * @return Die Länge der Route in Metern.
      */
-    double calcLength()
+    double calcLength() const
     {
         double length = 0.0;
         for (int index = 1; index < route.size(); index++)
@@ -103,7 +103,7 @@ public:
      * @brief gibt die Anzahl der Elemente zurück.
      * @return die Anzahl an Elementen.
      */
-    int getSize()
+    int getSize() const
     {
        return route.size(); 
     }
@@ -155,9 +155,9 @@ public:
      * @brief Kopiert eine Route.
      * @param r die Route, dei Kopiert werden soll.
      */
-    GPSRoute(GPSRoute& r)
+    GPSRoute(const GPSRoute& r)
     {
-        for (int index = 0; index < route.size(); index++)
+        for (int index = 0; index < r.getSize(); index++)
         {
             route.insert(index, r[index]);
         }
@@ -185,7 +185,7 @@ public:
      * @param i Indexstelle, an der sich das gesuchte Objekt befinden soll.
      * @return die GPSPosition an der Stelle i.
      */
-    GPSPosition operator[](int i)
+    GPSPosition operator[](int i) const
     {
         return route.at(i);
     }
@@ -194,7 +194,7 @@ public:
      * @param r die Liste, die mit der aktuellen verglichen wird.
      * @return ein Boolischer Wert, der angibt, ob zwei Listen gleich sind, oder nicht.
      */
-    bool operator == (GPSRoute& r)
+    bool operator == (const GPSRoute& r) const
     {
         return route == r.get();
     }
@@ -203,7 +203,7 @@ private:
      * @brief gibt die Liste zurück.
      * @return die Liste.
      */
-    QList<GPSPosition> get()
+    QList<GPSPosition> get() const
     {
        return route;
     }

@@ -2,7 +2,8 @@
 #define DIJKSTRA_HPP
 
 #include "router.hpp"
-#include "router.hpp"
+#include "routingnode.hpp"
+#include "database.hpp"
 
 /**
  * @brief Implementiert den klassischen Dijkstra-Algorithmus in einer
@@ -17,9 +18,12 @@
 class DijkstraRouter : public Router
 {
 private:
+    DatabaseConnection* _db;
     
+    GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
-    
+    DijkstraRouter(DatabaseConnection* db);
+    GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
 /**
@@ -39,5 +43,10 @@ private:
 public:
     
 };
+
+namespace biker_tests
+{
+    int testDijkstraRouter();
+}
 
 #endif //DIJKSTRA_HPP
