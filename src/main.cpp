@@ -30,6 +30,11 @@ public:
     std::string tests_testName;
     bool tests_starttest;
     
+    //Datenvorverarbeitung
+    std::string dbFilename;
+    std::string osmFilename;
+    bool parseOsmFile;
+    
     ProgramOptions() :
         webserver_public_html_folder(""),
         webserver_port(8080),
@@ -39,7 +44,11 @@ public:
         threads_threadpool_size(5),
         
         tests_testName("all"),
-        tests_starttest(false)
+        tests_starttest(false),
+        
+        dbFilename(""),
+        osmFilename(""),
+        parseOsmFile(false)
     {
         
     }
@@ -65,6 +74,8 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
         ("webserver-public-html-folder,d", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value(""), "set public html folder of webserver")
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(5), "set maximum thread pool size of webserver")
+        ("parse", po::value<std::string>(&(programOptions->osmFilename))->default_value("input.osm"), "set filename to parse for parser")
+        ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("output.db"), "set output database filename for parser")
         ;
     
     po::variables_map vm;
@@ -103,6 +114,13 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
     if (vm.count("test"))
     {
         programOptions->tests_starttest = true;
+        //Testname wurde schon gesetzt vom Framework
+    }
+    
+    if (vm.count("parse"))
+    {
+        programOptions->parseOsmFile = true;
+        //Dateinamen wurden schon gesetzt vom Framework
     }
     
     return EXIT_SUCCESS;
@@ -140,6 +158,18 @@ int main ( int argc, char* argv[] )
         server.reset(new HttpServerThread<BikerHttpRequestProcessor>(programOptions.webserver_port, programOptions.webserver_threadpool_size));
         server->startServer();
     }
+    
+    /* TODO: Für den Parser:
+     * programOptions->parseOsmFile abfragen. Hier steht, ob geparst werden soll.
+     * 
+     * Die Dateinamen findet man in programOptions->osmFilename und
+     * programoptions->dbFilename.
+     * 
+     * Evtl muss man sich noch überlegen ob man das "start-webserver"
+     * übergehen will, wenn er parsen soll - oder er startet dafür einen
+     * Thread. Lass uns da nochmal reden.
+     * 
+     */
     
     //Warte, bis der Server beendet wird, so einer gestartet/initialisiert wurde...
     if (server)
