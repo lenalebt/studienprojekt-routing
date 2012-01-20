@@ -47,6 +47,7 @@ private:
     TemporaryOSMDatabaseConnection _tmpDBConnection;
     SpatialiteDatabaseConnection _finalDBConnection;
     
+    
     BlockingQueue<boost::shared_ptr<OSMNode> > _nodeQueue;
     BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
@@ -57,7 +58,7 @@ public:
     
     OSMParser parser;
     
-    void startparser(QString filename);    
+    void startparser(QString osmFilename, QString dbFilename);    
     bool deQueue();
     bool enQueue();
     void saveNodeToTmpDatabase();
@@ -66,6 +67,9 @@ public:
     void saveNodeToDatabase(const RoutingNode& node);
     void saveEdgeToDatabase(const RoutingEdge& edge);
     void saveTurnRestrictionToDatabase();
+    int returnStreetType(const RoutingEdge& edge);
+    int returnStreetSurfaceQuality(const RoutingEdge& edge);
+    int returnStreetSurfaceType(const RoutingEdge& edge);
 };
 
 namespace biker_tests

@@ -12,13 +12,14 @@ DataPreprocessing::DataPreprocessing()
 //               Dann Queues auslesen und in tmp DB speichern
 //      2.Phase: Kategorisieren
 //
-void DataPreprocessing::startparser(QString filename)
+void DataPreprocessing::startparser(QString osmFilename, QString dbFilename)
 {
-    parser.parse(filename);
+    _finalDBConnection.open(dbFilename);
+    parser.parse(osmFilename);
 }
 
 void DataPreprocessing::saveNodeToTmpDatabase()
-{
+{    
     while(_nodeQueue.dequeue(_osmNode))
     {
         _tmpDBConnection.saveOSMNode(*_osmNode);        
@@ -61,40 +62,12 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
     _finalDBConnection.saveEdge(edge);
 }
 
-
+//TODO kategorisierungsfunktionen implementieren
 
 namespace biker_tests
 {    
     int testDataPreprocessing()
-    {
-        
-        DataPreprocessing::DataPreprocessing()
-        : _nodeQueue(1000), _wayQueue(1000), _turnRestrictionQueue(1000),
-        parser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue)
-        {
-            
-        }   
-            
-        boost::shared_ptr<OSMNode> _osmNode;
-        boost::shared_ptr<OSMWay> _osmWay;
-        boost::shared_ptr<OSMTurnRestriction> _osmTurnRestriction;
-        
-        boost::shared_ptr<RoutingNode> routingNode;
-        boost::shared_ptr<RoutingEdge> routingEdge;
-
-        TemporaryOSMDatabaseConnection _tmpDBConnection;
-        SpatialiteDatabaseConnection _finalDBConnection;
-        
-        //~ BlockingQueue<boost::shared_ptr<OSMNode> > _nodeQueue;
-        //~ BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
-        //~ BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
-
-        //~ BlockingQueue<boost::shared_ptr<OSMNode> > _nodeQueue;
-        //~ BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
-        //~ BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
-                    
-        //~ OSMParser parser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue);
-                
+    {        
         return EXIT_SUCCESS;
         //return EXIT_FAILURE;
     }
