@@ -22,6 +22,7 @@
 #include "blockingqueue.hpp"
 #include "closedlist.hpp"
 #include "heap.hpp"
+#include "datapreprocessing.hpp"
 #include "webserver.hpp"
 #include "potentialfunction.hpp"
 #include "dijkstra.hpp"
@@ -207,6 +208,8 @@ namespace biker_tests
             return biker_tests::testHashClosedList();
         else if (testName == "gpsroute")
             return biker_tests::testGPSRoute();
+        else if(testName == "datapreprocessing")
+            return biker_tests::testDataPreprocessing();
         else if (testName == "srtmprovider")
             return biker_tests::testSRTMProvider();
         else if (testName == "webserver")
