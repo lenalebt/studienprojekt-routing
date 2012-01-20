@@ -24,11 +24,6 @@
 #include <qtconcurrentrun.h>
 #include <QApplication>
 
-namespace biker_tests
-{
-    int testDataPreprocessing();
-}
-
 /**
  * @brief Diese Klasse kuemmert sich um jegliche Form der Datenvorverarbeitung
  * 
@@ -69,7 +64,15 @@ public:
     void saveEdgeToTmpDatabase();
     void saveTurnRestrictionToTmpDatabase();
     void saveNodeToDatabase(const RoutingNode& node);
-    void saveEdgeToDatabase();
+    void saveEdgeToDatabase(const RoutingEdge& edge);
     void saveTurnRestrictionToDatabase();
 };
+
+namespace biker_tests
+{
+    /**
+     * @ingroup tests
+     */
+    int testDataPreprocessing();
+}
 #endif //DATAPREPROCESSING_HPP
