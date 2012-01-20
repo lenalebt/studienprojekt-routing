@@ -8,6 +8,11 @@ DataPreprocessing::DataPreprocessing()
     
 }
 
+DataPreprocessing::~DataPreprocessing()
+{
+    
+}
+
 //TODO: 1.Phase: OSMParser-Objekt fuellt Queues
 //               Dann Queues auslesen und in tmp DB speichern
 //      2.Phase: Kategorisieren

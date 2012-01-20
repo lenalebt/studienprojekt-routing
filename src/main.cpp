@@ -10,6 +10,7 @@
 #include <QThreadPool>
 #include <QCoreApplication>
 #include "webserver.hpp"
+#include "datapreprocessing.hpp"
 
 namespace po = boost::program_options;
 using namespace std;
@@ -169,7 +170,13 @@ int main ( int argc, char* argv[] )
      * übergehen will, wenn er parsen soll - oder er startet dafür einen
      * Thread. Lass uns da nochmal reden.
      * 
+     * Hier ist erstmal eine Beispielimplementierung.
      */
+    if (programOptions.parseOsmFile)
+    {
+        DataPreprocessing preprocessor;
+        preprocessor.startparser(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str());
+    }
     
     //Warte, bis der Server beendet wird, so einer gestartet/initialisiert wurde...
     if (server)
