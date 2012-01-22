@@ -19,7 +19,7 @@ void DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
      if(fileToParse.contains(".osm"))
      {
         //parser.parse(osmFilename);
-        //~ QFuture<void> future = QtConcurrent::run(parser.parse, QString);
+        QFuture<void> future = QtConcurrent::run(parser.parse, QString);
      }
      else if (fileToParse.contains(".pbf"))
      {
