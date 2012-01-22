@@ -95,6 +95,7 @@ SET(
     
     #src/database/parser
     src/database/parser/osmparser.cpp
+    src/database/parser/pbfparser.cpp
     
     #src/routing/
     src/routing/routingmetric.cpp
@@ -140,6 +141,7 @@ SET(
     
     #src/database/parser
     src/database/parser/osmparser.hpp
+    src/database/parser/pbfparser.hpp
     
     #src/routing/
     src/routing/routingmetric.hpp
@@ -210,6 +212,7 @@ INCLUDE_DIRECTORIES(
     src/database/parser/
     src/database/parser/pbf/
     src/network/
+    ${CMAKE_CURRENT_BINARY_DIR}/src/database/parser/pbf/
     )
 
 IF(DOXYGEN_FOUND)
@@ -283,6 +286,7 @@ ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 ADD_TEST(datapreprocessing		  "biker" "--test" "preprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
+ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
 
 
 #Zum Erstellen von automatischen Installationspaketen

@@ -2,7 +2,34 @@
 #define DIJKSTRA_HPP
 
 #include "router.hpp"
-#include "router.hpp"
+#include "routingnode.hpp"
+#include "database.hpp"
+
+template<typename K, typename V>
+class NodeCostLessAndQHashFunctor
+{
+private:
+    QHash<K, V> hashMap;
+public:
+    NodeCostLessAndQHashFunctor()
+    {
+        
+    }
+    bool operator()(K a, K b)
+    {
+        return (hashMap[a] < hashMap[b]);
+    }
+    void setValue(K key, V value)
+    {
+        //Setzt wirklich den Wert und fügt nicht was neues ein
+        hashMap.insert(key, value);
+    }
+    V getValue(K key)
+    {
+        return hashMap[key];
+    }
+};
+template class NodeCostLessAndQHashFunctor<boost::uint64_t, double>;
 
 /**
  * @brief Implementiert den klassischen Dijkstra-Algorithmus in einer
@@ -17,9 +44,12 @@
 class DijkstraRouter : public Router
 {
 private:
+    DatabaseConnection* _db;
     
+    GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
-    
+    DijkstraRouter(DatabaseConnection* db);
+    GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
 /**
@@ -39,5 +69,10 @@ private:
 public:
     
 };
+
+namespace biker_tests
+{
+    int testDijkstraRouter();
+}
 
 #endif //DIJKSTRA_HPP

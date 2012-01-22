@@ -30,7 +30,7 @@ public:
      * @param endPosition Das Ziel der Route
      * @return Eine Route vom Start zum Ziel, die nach der angegebenen RoutingMetric die beste ist.
      */
-    virtual GPSRoute calculateShortestRoute(GPSPosition startPosition, GPSPosition endPosition)=0;
+    virtual GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)=0;
 };
 
 #endif //ROUTER_HPP
