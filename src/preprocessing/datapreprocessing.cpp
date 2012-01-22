@@ -78,11 +78,6 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 
 //TODO kategorisierungsfunktionen implementieren
 
-DataPreprocessing::~DataPreprocessing()
-{
-
-} 
-
 namespace biker_tests
 {    
     int testDataPreprocessing()
