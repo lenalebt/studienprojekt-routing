@@ -16,6 +16,7 @@
 #include "temporarydatabase.hpp"
 #include "databaseramcache.hpp"
 #include "osmparser.hpp"
+#include "pbfparser.hpp"
 #include "altitudeprovider.hpp"
 #include <QString>
 #include <QVector>
@@ -200,6 +201,8 @@ namespace biker_tests
             return biker_tests::testOSMTurnRestriction();
         else if (testName == "osmparser")
             return biker_tests::testOSMParser();
+        else if (testName == "pbfparser")
+            return biker_tests::testPBFParser();
         else if (testName == "blockingqueue")
             return biker_tests::testBlockingQueue();
         else if (testName == "binaryheap")
