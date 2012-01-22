@@ -215,6 +215,9 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}/src/database/parser/pbf/
     )
 
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.osm ${CMAKE_CURRENT_BINARY_DIR}/data/rub.osm COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/rub.pbf COPYONLY)
+
 IF(DOXYGEN_FOUND)
     #Semikolon-getrennte Liste in Whitespace-getrennte Liste konvertieren
     FOREACH(ARG ${biker_HEADERS})
