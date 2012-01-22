@@ -17,12 +17,12 @@ void DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     _finalDBConnection.open(dbFilename);
      
      if(fileToParse.contains(".osm"))
-     {
+     {  //kleine Anmerkung: Vielleicht besser gucken, ob .osm am Ende steht? Problem: .osm-Dateien sind oft gepackt (.bz2), diese Dateien sollten wir nicht fressen, sondern ne Fehlermeldung ausgeben. So würden sie gefressen.
         //parser.parse(osmFilename);
         //~ QFuture<void> future = QtConcurrent::run(parser.parse, QString);
      }
      else if (fileToParse.contains(".pbf"))
-     {
+     {   //kleine Anmerkung: Vielleicht besser gucken, ob .pbf am Ende steht?
          //TODO: implementieren
      }
 }
