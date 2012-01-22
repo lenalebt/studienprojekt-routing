@@ -186,9 +186,15 @@ boost::shared_ptr<RoutingNode> SpatialiteDatabaseConnection::getNodeByID(boost::
     RoutingNode node;
     node.setID(id);
     if (node.isIDInLongFormat())
+    {
+        std::cerr << RoutingNode::convertIDToShortFormat(id);
         sqlite3_bind_int64(_getNodeByIDStatement, 1, RoutingNode::convertIDToShortFormat(id));
+    }
     else
+    {
+        std::cerr << id;
         sqlite3_bind_int64(_getNodeByIDStatement, 1, id);
+    }
 	
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getNodeByIDStatement)) != SQLITE_DONE)
@@ -642,6 +648,7 @@ namespace biker_tests
         node = RoutingNode(26, 51.5, 7.5);
         CHECK(connection.saveNode(node));
         CHECK(*connection.getNodeByID(26) == node);
+        CHECK(*connection.getNodeByID(RoutingNode::convertIDToLongFormat(26)) == node);
         
         RoutingEdge edge(45, 25, 26);
         std::cerr << "Save Edge..." << std::endl;

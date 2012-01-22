@@ -138,6 +138,7 @@ namespace biker_tests
         node = RoutingNode(26, 51.5, 7.5);
         CHECK(cache.saveNode(node));
         CHECK(*cache.getNodeByID(26) == node);
+        CHECK(*cache.getNodeByID(RoutingNode::convertIDToLongFormat(26)) == node);
         
         RoutingEdge edge(45, 25, 26);
         std::cerr << "Save Edge..." << std::endl;
