@@ -4,6 +4,10 @@
 #Das Buildverzeichnis sollte nicht getrackt werden, so vorhanden
 build/
 
+#Keine OSM-Dateien. Die muss man explizit hinzufügen.
+*.osm
+*.osm.bz2
+*.pbf
 
 #Keine Backups von Dateien tracken.
 *.bak
