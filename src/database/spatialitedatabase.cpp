@@ -183,7 +183,12 @@ boost::shared_ptr<RoutingNode> SpatialiteDatabaseConnection::getNodeByID(boost::
 	}
 	
 	// Parameter an das Statement binden
-	sqlite3_bind_int64(_getNodeByIDStatement, 1, id);
+    RoutingNode node;
+    node.setID(id);
+    if (node.isIDInLongFormat())
+        sqlite3_bind_int64(_getNodeByIDStatement, 1, RoutingNode::convertIDToShortFormat(id));
+    else
+        sqlite3_bind_int64(_getNodeByIDStatement, 1, id);
 	
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getNodeByIDStatement)) != SQLITE_DONE)
