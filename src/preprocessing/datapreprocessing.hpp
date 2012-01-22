@@ -17,13 +17,14 @@
 #include "routingnode.hpp"
 #include "routingedge.hpp"
 #include "tests.hpp"
+//~ #include <QtConcurrentRun>
+//~ #include <QDebug>
+//~ #include <QThread>
+//~ #include <QString>
+//~ #include <qtconcurrentrun.h>
+//~ #include <QApplication>
 #include <QtConcurrentRun>
-#include <QDebug>
-#include <QThread>
 #include <QString>
-#include <qtconcurrentrun.h>
-#include <QApplication>
-
 /**
  * @brief Diese Klasse kuemmert sich um jegliche Form der Datenvorverarbeitung
  * 

@@ -12,10 +12,19 @@ DataPreprocessing::DataPreprocessing()
 //               Dann Queues auslesen und in tmp DB speichern
 //      2.Phase: Kategorisieren
 //
-void DataPreprocessing::startparser(QString osmFilename, QString dbFilename)
+void DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 {
     _finalDBConnection.open(dbFilename);
-    parser.parse(osmFilename);
+     
+     if(fileToParse.contains(".osm"))
+     {
+        //parser.parse(osmFilename);
+        //~ QFuture<void> future = QtConcurrent::run(parser.parse, QString);
+     }
+     else if (fileToParse.contains(".pbf"))
+     {
+         //TODO: implementieren
+     }
 }
 
 void DataPreprocessing::saveNodeToTmpDatabase()
@@ -63,6 +72,11 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 }
 
 //TODO kategorisierungsfunktionen implementieren
+
+DataPreprocessing::~DataPreprocessing()
+{
+
+} 
 
 namespace biker_tests
 {    
