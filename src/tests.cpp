@@ -204,6 +204,8 @@ namespace biker_tests
             return biker_tests::testBlockingQueue();
         else if (testName == "binaryheap")
             return biker_tests::testBinaryHeap();
+        else if (testName == "multithreadedhashclosedlist")
+            return biker_tests::testMultiThreadedHashClosedList();
         else if (testName == "hashclosedlist")
             return biker_tests::testHashClosedList();
         else if (testName == "gpsroute")

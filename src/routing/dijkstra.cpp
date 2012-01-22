@@ -117,6 +117,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         while (!heap.isEmpty())
         {
             activeNode = heap.removeMinimumCostElement();
+            closedList.addElement(activeNode);
             //TODO
         }
         
