@@ -35,6 +35,10 @@ bool DatabaseRAMCache::isDBOpen()
     return _connection->isDBOpen();
 }
 
+boost::shared_ptr<RoutingNode> DatabaseRAMCache::getNodeByID(boost::uint64_t id)
+{
+    return _connection->getNodeByID(id);
+}
 
 QVector<boost::shared_ptr<RoutingNode> > DatabaseRAMCache::getNodes(const GPSPosition &searchMidpoint, double radius)
 {
@@ -133,6 +137,8 @@ namespace biker_tests
         CHECK(cache.saveNode(node));
         node = RoutingNode(26, 51.5, 7.5);
         CHECK(cache.saveNode(node));
+        CHECK(*cache.getNodeByID(26) == node);
+        CHECK(*cache.getNodeByID(RoutingNode::convertIDToLongFormat(26)) == node);
         
         RoutingEdge edge(45, 25, 26);
         std::cerr << "Save Edge..." << std::endl;

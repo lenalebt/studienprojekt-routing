@@ -38,6 +38,7 @@
 #include <QFile>
 #include <QDebug>
 #include <QStringList>
+#include "tests.hpp"
 
 #define NANO ( 1000.0 * 1000.0 * 1000.0 )
 #define MAX_BLOCK_HEADER_SIZE ( 64 * 1024 )
@@ -56,7 +57,7 @@ private:
     boost::shared_ptr<OSMNode> node;
     boost::shared_ptr<OSMWay> way;
     boost::shared_ptr<OSMEdge> edge;
-    boost::shared_ptr<OSMTurnRestriction> restriction;
+    boost::shared_ptr<OSMTurnRestriction> relation;
 
     int nodeCount;
     int wayCount;
@@ -161,6 +162,11 @@ static inline bool openQFile( QFile* file, QIODevice::OpenMode mode )
 		return false;
 	}
 	return true;
+}
+
+namespace biker_tests
+{
+    int testPBFParser();
 }
 
 #endif // PBFPARSER_HPP

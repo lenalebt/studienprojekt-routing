@@ -87,22 +87,122 @@ bool PBFParser::parse(QString filename)
 
         if ( type == EntityNode ) {
             this->nodeCount++;
-
             //TODO: dbWriter.addNode(inputNode);
+            _nodeQueue->enqueue(inputNode);
             inputNode = boost::shared_ptr<OSMNode>(new OSMNode());
-
+            
             continue;
         }
 
         if ( type == EntityWay ) {
             
             //TODO: dbWriter.addWay(inputWay);
+            _wayQueue->enqueue(inputWay);
             inputWay = boost::shared_ptr<OSMWay>(new OSMWay());
 
             continue;
         }
 
         if ( type == EntityRelation ) {
+            
+            bool ready = false;
+            bool invalidRestriction = false;
+            std::vector< RelationMember >  C = inputRelation.members;
+            for (std::vector< RelationMember >::const_iterator constIt = C.begin(); constIt != C.end(); ++constIt) {
+                RelationMember relationMemberOne = *constIt;
+                long ref = relationMemberOne.ref;
+                int t = relationMemberOne.type;
+                QString role = relationMemberOne.role;
+                if(t == 0)
+                {
+                    if(role == "from")
+                    {
+                        relation->setFromId(ref);
+                    }
+                    else if(role == "to")
+                    {
+                        relation->setToId(ref);
+                    }
+                }
+                else if (t == 1)
+                {
+                    if(role == "via")
+                    {
+                        relation->setViaId(ref);
+                    }
+                }
+            }
+            std::vector< Tag >  D = inputRelation.tags;
+            for (std::vector< Tag > ::const_iterator constIt = D.begin(); constIt != D.end(); ++constIt) {
+                Tag relationTagOne = *constIt;
+                QString value = relationTagOne.value;
+                QString key = relationTagOne.key;
+                if (key == "type")
+                {
+                    if(value == "restriction")
+                    {
+                        if(!invalidRestriction)
+                        {
+                            ready = true;
+                        }
+                    }
+                }
+                if(value == "no_left_turn")
+                {
+                    relation->setLeft(true);
+                }
+                else if(value == "no_right_turn ")
+                {
+                    relation->setRight(true);
+                }
+                else if(value == "no_straight_on")
+                {
+                    relation->setStraight(true);
+                }
+                else if(value == "no_u_turn")
+                {
+                    relation->setUTurn(true);
+                }
+                else if(value == "only_right_turn ")
+                {
+                    relation->setLeft(true);
+                    relation->setStraight(true);
+                    relation->setUTurn(true);
+                }
+                else if(value == "only_left_turn ")
+                {
+                    relation->setRight(true);
+                    relation->setStraight(true);
+                }
+                else if(value == "only_straight_on")
+                {
+                    relation->setLeft(true);
+                    relation->setRight(true);
+                    relation->setUTurn(true);
+                }
+                // die Fälle von no_exit & no_entry + deren Unterscheidung verstehen wir nicht so ganz und daher
+                // werden diese beiden fälle nicht behandelt & für die weitere bearbeitung ignoriert.
+                else if(value == "no_entry")
+                {
+                    ready = false;
+                    invalidRestriction = true;
+                }
+                else if(value == "no_exit")
+                {
+                    ready = false;
+                    invalidRestriction = true;
+                }
+            }
+            if (ready == true)
+            {
+                if(!invalidRestriction)
+                {
+                    _turnRestrictionQueue ->enqueue(relation);
+                }
+            }
+            
+            relation = boost::shared_ptr<OSMTurnRestriction>(new OSMTurnRestriction());
+            //
             continue;
         }
     }
@@ -470,3 +570,48 @@ void PBFParser::SzFree( void *p, void *address)
     free( address );
 }
 
+namespace biker_tests
+{
+    int testPBFParser()
+    {
+        /*
+        BlockingQueue<boost::shared_ptr<OSMNode> > nodeQueue(30000);
+        BlockingQueue<boost::shared_ptr<OSMWay> > wayQueue(10000);
+        BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > turnRestrictionQueue(1000);
+        
+        QVector<boost::shared_ptr<OSMNode> > nodeVector;
+        QVector<boost::shared_ptr<OSMWay> > wayVector;
+        QVector<boost::shared_ptr<OSMTurnRestriction> > turnRestrictionVector;
+        
+        boost::shared_ptr<OSMNode> node;
+        boost::shared_ptr<OSMWay> way;
+        boost::shared_ptr<OSMTurnRestriction> turnRestriction;
+        
+        PBFParser parser(&nodeQueue, &wayQueue, &turnRestrictionQueue);
+        CHECK(parser.parse("data/rub.pbf"));
+        while (nodeQueue.dequeue(node))
+        {
+            nodeVector << node;
+        }
+        while (wayQueue.dequeue(way))
+        {
+            wayVector << way;
+        }
+        while (turnRestrictionQueue.dequeue(turnRestriction))
+        {
+            turnRestrictionVector << turnRestriction;
+        }
+        CHECK(!nodeVector.isEmpty());
+        CHECK(!wayVector.isEmpty());
+        //in dem betrachteten Ausschnitt sind leider keine Abbiegebeschränkungen.
+        CHECK(turnRestrictionVector.isEmpty());
+        
+        CHECK_EQ(nodeVector.size(), 20055);
+        CHECK_EQ(wayVector.size(), 3354);
+        CHECK_EQ(turnRestrictionVector.size(), 0);
+        
+        return EXIT_SUCCESS;
+        */
+        return EXIT_FAILURE;
+    }
+}
