@@ -23,6 +23,7 @@
 #include "closedlist.hpp"
 #include "heap.hpp"
 #include "webserver.hpp"
+#include "potentialfunction.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -148,6 +149,7 @@ namespace biker_tests
     template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
     template bool check_equality(std::string message, OSMProperty a,     OSMProperty b);
     template bool check_equality(std::string message, OSMNode a,         OSMNode b);
+    template bool check_equality(std::string message, GPSPosition a,     GPSPosition b);
     template bool check_equality(std::string message, OSMTurnRestriction a, OSMTurnRestriction b);
   
     std::string uint64_t2string(boost::uint64_t integer)
@@ -208,6 +210,8 @@ namespace biker_tests
             return biker_tests::testSRTMProvider();
         else if (testName == "webserver")
             return biker_tests::testWebServer();
+        else if (testName == "potentialfunction")
+            return biker_tests::testPotentialFunction();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;

@@ -64,6 +64,21 @@ public:
      * ist - in diesem Fall kann nie mehr
      * ein Element zurückgegeben werden.
      * 
+     * Um ein Element aus der Queue zu entfernen, wird sie folgendermaßen benutzt:
+     * @code
+     * BlockingQueue<int> queue;
+     * int a = 5;
+     * queue.enqueue(3);
+     * queue.enqueue(5);
+     * queue.enqueue(7);
+     * 
+     * while(queue.dequeue(a))
+     * {
+     *      std::cout << a << " ";
+     * }
+     * //Ausgabe: 3 5 7
+     * @endcode
+     * 
      * @param[out] t In dieser Variable wird das Element abgelegt, das
      *      aus der Queue entfernt wurde, so es eines gab.
      * @return <code>true</code>, wenn das Entfernen aus der Queue erfolgreich war,
@@ -121,8 +136,17 @@ public:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testBlockingQueue();
+    /**
+     * @ingroup tests
+     */
     template <typename T> int testBlockingQueueSource(BlockingQueue<T>* queue);
+    /**
+     * @ingroup tests
+     */
     template <typename T> int testBlockingQueueDrain(BlockingQueue<T>* queue);
 }
 

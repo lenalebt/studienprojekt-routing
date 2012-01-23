@@ -48,7 +48,7 @@ public:
         this->thisRestriction.noRight = noRight;
         this->thisRestriction.noStraight = noStraight;
         this->thisRestriction.noUTurn = noUTurn;
-    };
+    }
     /**
      * @brief Erstellt eine leere Relation mit Standardwerten.
      */
@@ -137,6 +137,9 @@ std::ostream& operator<<(std::ostream& os, const OSMTurnRestriction& r);
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testOSMTurnRestriction();
 } 
 

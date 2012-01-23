@@ -82,6 +82,9 @@ std::ostream& operator<<(std::ostream& os, const RoutingNode& node);
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testRoutingNode();
 }
 

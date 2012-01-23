@@ -12,9 +12,12 @@
 #include "tests.hpp"
 #include <boost/shared_ptr.hpp>
 
-
+//Muss oben stehen, sonst kann man die Funktion nicht als friend unten benutzen.
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testTemporaryOSMDatabaseConnection();
 }
 

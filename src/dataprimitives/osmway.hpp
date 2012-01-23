@@ -36,6 +36,11 @@ private:
     static QVector<OSMProperty> bikeReverseOnewayProperties();
     static QVector<OSMProperty> noBikeOnewayProperties();
 public:
+    
+    /**
+     * @brief Erstellt einen Way mit Standardeigenschaften (keine) und ohne zugehörige Knoten.
+     */
+    OSMWay() : id(0) {};
     /**
      * @brief Erstellt einen Way mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörige Knoten.
      * @param id Die ID des Ways.
@@ -129,6 +134,7 @@ namespace biker_tests
 {
     /**
      * @todo Implementieren, dieser Test ist noch leer.
+     * @ingroup tests
      */
     int testOSMWay();
 } 

@@ -107,7 +107,7 @@ std::ostream& operator<<(std::ostream& os, const OSMEdge& e);
 namespace biker_tests
 {
     /**
-     * @todo Implementieren!
+     * @ingroup tests
      */
     int testOSMEdge();
 }

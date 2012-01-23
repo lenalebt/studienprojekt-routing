@@ -92,9 +92,11 @@ SET(
     
     #src/database/parser
     src/database/parser/osmparser.cpp
+    src/database/parser/pbfparser.cpp
     
     #src/routing/
     src/routing/routingmetric.cpp
+    src/routing/potentialfunction.cpp
     src/routing/router.cpp
     src/routing/heap.cpp
     src/routing/closedlist.cpp
@@ -133,6 +135,7 @@ SET(
     
     #src/database/parser
     src/database/parser/osmparser.hpp
+    src/database/parser/pbfparser.hpp
     
     #src/routing/
     src/routing/routingmetric.hpp
@@ -202,6 +205,7 @@ INCLUDE_DIRECTORIES(
     src/database/parser/
     src/database/parser/pbf/
     src/network/
+    ${CMAKE_CURRENT_BINARY_DIR}/src/database/parser/pbf/
     )
 
 IF(DOXYGEN_FOUND)
@@ -265,6 +269,7 @@ ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
 ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
+ADD_TEST(potentialfunction                "biker" "--test" "potentialfunction")
 ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
 ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")

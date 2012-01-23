@@ -78,6 +78,9 @@ std::ostream& operator<<(std::ostream& os, const OSMNode& p);
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testOSMNode();
 }
 
