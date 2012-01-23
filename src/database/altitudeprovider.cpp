@@ -66,8 +66,9 @@ double SRTMProvider::getAltitude(double lat, double lon)
             QDir makedir;
             makedir.mkpath(filePath);
             zipFile.open(QIODevice::WriteOnly);
-            QDataStream zipFileOutStream(&zipFile);
-            zipFileOutStream << data;            
+            //QDataStream zipFileOutStream(&zipFile);
+            //zipFileOutStream << data;            
+            zipFile.write(data);
             zipFile.close(); 
                        
             //if(!zipFile.open(QIODevice::ReadOnly)){
@@ -77,9 +78,9 @@ double SRTMProvider::getAltitude(double lat, double lon)
         }
         // [TODO] Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
         
-        SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
-        std::cerr << "Soll jetzt entzippt werden." << std::endl;
-        resolution = srtmZipFileObject.getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
+        //SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
+        std::cerr << "Soll jetzt entzippt werden: " << fileName << std::endl;
+        resolution = SrtmZipFile::getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
         std::cerr << "Bei entzippen ermittelte Auflösung der entsippten Kachel: " << QString::number(resolution, 10) << std::endl;
         if(resolution > 0){ // srtmZipFileObject.getData hat nicht den Defaultwert zurückgegeben
             valid = true;
