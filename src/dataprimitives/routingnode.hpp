@@ -60,7 +60,7 @@ public:
      * @param id Die zu konvertierende ID
      * @return Die konvertierte ID
      */
-    boost::uint64_t convertIDToLongFormat(const boost::uint64_t id);
+    static boost::uint64_t convertIDToLongFormat(const boost::uint64_t id);
     
     /**
      * @brief Wandelt eine ID in das Format um, in dem Knoten ihre ID
@@ -69,7 +69,9 @@ public:
      * @param id Die zu konvertierende ID
      * @return Die konvertierte ID
      */
-    boost::uint64_t convertIDToShortFormat(const boost::uint64_t id);
+    static boost::uint64_t convertIDToShortFormat(const boost::uint64_t id);
+    
+    bool isIDInLongFormat();
     
     RoutingNode(int id) : id(id) {}
     RoutingNode(int id, gps_float lat, gps_float lon) : GPSPosition(lat, lon), id(id) {}

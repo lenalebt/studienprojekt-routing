@@ -1,5 +1,11 @@
 #include "routingnode.hpp"
 
+bool RoutingNode::isIDInLongFormat()
+{
+    boost::uint64_t mask = 0xFF00000000000000llu;
+    return (id & mask);
+}
+
 boost::uint64_t RoutingNode::convertIDToLongFormat(const boost::uint64_t id)
 {
     boost::uint64_t mask = 0xFFFFFFFFFFFFFFllu;

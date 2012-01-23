@@ -22,8 +22,10 @@
 #include "blockingqueue.hpp"
 #include "closedlist.hpp"
 #include "heap.hpp"
+#include "datapreprocessing.hpp"
 #include "webserver.hpp"
 #include "potentialfunction.hpp"
+#include "dijkstra.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -206,12 +208,16 @@ namespace biker_tests
             return biker_tests::testHashClosedList();
         else if (testName == "gpsroute")
             return biker_tests::testGPSRoute();
+        else if(testName == "datapreprocessing")
+            return biker_tests::testDataPreprocessing();
         else if (testName == "srtmprovider")
             return biker_tests::testSRTMProvider();
         else if (testName == "webserver")
             return biker_tests::testWebServer();
         else if (testName == "potentialfunction")
             return biker_tests::testPotentialFunction();
+        else if (testName == "dijkstrarouter")
+            return biker_tests::testDijkstraRouter();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;

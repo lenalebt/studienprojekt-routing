@@ -80,7 +80,10 @@ SET(
     src/dataprimitives/osmedge.cpp
     src/dataprimitives/osmturnrestriction.cpp
     src/dataprimitives/osmproperty.cpp
-    
+      
+    #src/preprocessing
+    src/preprocessing/datapreprocessing.cpp
+
     #src/database/
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
@@ -122,7 +125,10 @@ SET(
     src/dataprimitives/osmedge.hpp
     src/dataprimitives/routingnode.hpp
     src/dataprimitives/routingedge.hpp
-    
+
+    #src/preprocessing
+    src/preprocessing/datapreprocessing.hpp
+
     #src/database/
     src/database/altitudeprovider.hpp
     src/database/database.hpp
@@ -201,6 +207,7 @@ INCLUDE_DIRECTORIES(
     src/
     src/routing/
     src/dataprimitives/
+    src/preprocessing/
     src/database/
     src/database/parser/
     src/database/parser/pbf/
@@ -277,7 +284,9 @@ ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")
 ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
 ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
+ADD_TEST(datapreprocessing		  "biker" "--test" "preprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
+ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
 
 
 #Zum Erstellen von automatischen Installationspaketen

@@ -5,6 +5,15 @@
 #include <math.h>
 #include <QtEndian>
 
+// TODO
+//  Downloaden läuft jetzt.
+// - Was man noch machen könnte: Eine ausgeklügeltere Fehlerbehandlung, falls Download schief läuft.
+//  Momentan führt jeder Fehler in der Verarbeitung dazu, dass als ermittelter Höhenwer NN zurückgegeben wird.
+// - Was auch noch nicht fertig ist, ist die Behandlung von falschen SRTM-Werten. Da muss noch eine schöne Lösung für her: Gewichtete Höhe aus umliegenden Werten.
+// - Das öffnen der Zipdateien läuft auch noch nicht. Oder es liegt am Speichern der selbigen.
+// - Schön gemacht werden muss auch noch, dass falls Datei, bzw Ordner nicht vorhanden sind, der Ordner noch erstellt wird.
+// - Speichern der fileList in eine Datei mit Endung? Um dem Betriebssystem den Umgang zu erleichtern?
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
