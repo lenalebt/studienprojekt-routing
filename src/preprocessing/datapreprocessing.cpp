@@ -3,7 +3,8 @@
 
 DataPreprocessing::DataPreprocessing()
     : _nodeQueue(1000), _wayQueue(1000), _turnRestrictionQueue(1000),
-    parser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue)
+    osmParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue),
+    pbfParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue)
 {
     
 }
@@ -17,19 +18,25 @@ DataPreprocessing::~DataPreprocessing()
 //               Dann Queues auslesen und in tmp DB speichern
 //      2.Phase: Kategorisieren
 //
-void DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
+bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 {
     _finalDBConnection.open(dbFilename);
-     
-     if(fileToParse.contains(".osm"))
-     {  //kleine Anmerkung: Vielleicht besser gucken, ob .osm am Ende steht? Problem: .osm-Dateien sind oft gepackt (.bz2), diese Dateien sollten wir nicht fressen, sondern ne Fehlermeldung ausgeben. So würden sie gefressen.
-        //parser.parse(osmFilename);
-        QFuture<void> future = QtConcurrent::run(parser.parse, QString);
-     }
-     else if (fileToParse.contains(".pbf"))
-     {   //kleine Anmerkung: Vielleicht besser gucken, ob .pbf am Ende steht?
-         //TODO: implementieren
-     }
+
+    //Prueft, ob .osm oder .pbf am Ende vorhanden
+    if(fileToParse.endsWith(".osm"))
+    {
+        QFuture<bool> future = QtConcurrent::run(&osmParser, &OSMParser::parse, fileToParse);
+        return true;
+    }
+    else if (fileToParse.endsWith(".pbf"))
+    {
+        QFuture<bool> future = QtConcurrent::run(&pbfParser, &PBFParser::parse, fileToParse);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void DataPreprocessing::saveNodeToTmpDatabase()
