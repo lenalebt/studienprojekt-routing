@@ -1,6 +1,8 @@
 #include "dijkstra.hpp"
 #include "tests.hpp"
 #include <limits>
+#include "closedlist.hpp"
+#include "heap.hpp"
 
 /**
  * @todo Implementieren
@@ -80,6 +82,8 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition
         }
         //endNode ist der Knoten mit der kürzesten Entfernung zu endPosition.
         
+        //TODO: Start- und Endknoten müssen Graphen-Knoten sein, sonst haut das mit den IDs nicht hin.
+        
         return calculateShortestRoute(startNode, endNode);
     }
 }
@@ -95,7 +99,27 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
     }
     else
     {
-        //TODO
+        //Initialisiere Datenstrukturen
+        HashClosedList closedList;
+        NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
+        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
+        QHash<boost::uint64_t, boost::uint64_t> predecessor;
+        
+        //Startknoten zum Heap hinzufügen, Kosten auf Null setzen, Vorgänger auf Null setzen
+        nodeCosts.setValue(startNode.getID(), 0.0);
+        heap.add(startNode.getID());
+        predecessor.insert(startNode.getID(), 0);
+        
+        boost::uint64_t activeNode = 0;
+        
+        //TODO: Vorgängerzeiger-Liste führen. Auch als QHash?
+        
+        while (!heap.isEmpty())
+        {
+            activeNode = heap.removeMinimumCostElement();
+            //TODO
+        }
+        
         return GPSRoute();
     }
 }

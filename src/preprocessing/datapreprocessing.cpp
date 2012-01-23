@@ -9,6 +9,11 @@ DataPreprocessing::DataPreprocessing()
     
 }
 
+DataPreprocessing::~DataPreprocessing()
+{
+    
+}
+
 //TODO: 1.Phase: OSMParser-Objekt fuellt Queues
 //               Dann Queues auslesen und in tmp DB speichern
 //      2.Phase: Kategorisieren
@@ -24,6 +29,8 @@ void DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
      else if (fileToParse.contains(".pbf"))
      {
          QFuture<bool> future = QtConcurrent::run(&pbfParser, &PBFParser::parse, fileToParse);
+        //kleine Anmerkung: Vielleicht besser gucken, ob .osm am Ende steht? Problem: .osm-Dateien sind oft gepackt (.bz2),
+        //diese Dateien sollten wir nicht fressen, sondern ne Fehlermeldung ausgeben. So würden sie gefressen.        
      }
 }
 
@@ -72,11 +79,6 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 }
 
 //TODO kategorisierungsfunktionen implementieren
-
-DataPreprocessing::~DataPreprocessing()
-{
-
-} 
 
 namespace biker_tests
 {    

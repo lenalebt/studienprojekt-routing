@@ -372,6 +372,8 @@ void BikerHttpRequestProcessor::processRequest()
     }
 }
 
+template class HttpServerThread<BikerHttpRequestProcessor>;
+
 namespace biker_tests
 {
     int testWebServer()
