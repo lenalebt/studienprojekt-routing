@@ -574,6 +574,7 @@ namespace biker_tests
 {
     int testPBFParser()
     {
+        /*
         BlockingQueue<boost::shared_ptr<OSMNode> > nodeQueue(30000);
         BlockingQueue<boost::shared_ptr<OSMWay> > wayQueue(10000);
         BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > turnRestrictionQueue(1000);
@@ -610,5 +611,7 @@ namespace biker_tests
         CHECK_EQ(turnRestrictionVector.size(), 0);
         
         return EXIT_SUCCESS;
+        */
+        return EXIT_FAILURE;
     }
 }
