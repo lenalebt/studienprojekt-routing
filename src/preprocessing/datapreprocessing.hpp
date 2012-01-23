@@ -10,6 +10,7 @@
 #include "routingedge.hpp"
 #include "routingnode.hpp"
 #include "osmparser.hpp"
+#include "pbfparser.hpp"
 #include "osmway.hpp"
 #include "osmnode.hpp"
 #include "osmedge.hpp"
@@ -48,7 +49,6 @@ private:
     TemporaryOSMDatabaseConnection _tmpDBConnection;
     SpatialiteDatabaseConnection _finalDBConnection;
     
-    
     BlockingQueue<boost::shared_ptr<OSMNode> > _nodeQueue;
     BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
@@ -57,8 +57,9 @@ public:
     DataPreprocessing();
     ~DataPreprocessing();
     
-    OSMParser parser;
-    
+    OSMParser osmParser;
+    PBFParser pbfParser;
+ 
     void startparser(QString osmFilename, QString dbFilename);    
     bool deQueue();
     bool enQueue();

@@ -3,7 +3,8 @@
 
 DataPreprocessing::DataPreprocessing()
     : _nodeQueue(1000), _wayQueue(1000), _turnRestrictionQueue(1000),
-    parser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue)
+    osmParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue),
+    pbfParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue)
 {
     
 }
@@ -18,12 +19,11 @@ void DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
      
      if(fileToParse.contains(".osm"))
      {
-        //parser.parse(osmFilename);
-        QFuture<void> future = QtConcurrent::run(parser.parse, QString);
+        QFuture<bool> future = QtConcurrent::run(&osmParser, &OSMParser::parse, fileToParse);
      }
      else if (fileToParse.contains(".pbf"))
      {
-         //TODO: implementieren
+         QFuture<bool> future = QtConcurrent::run(&pbfParser, &PBFParser::parse, fileToParse);
      }
 }
 
