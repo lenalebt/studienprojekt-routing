@@ -60,7 +60,7 @@ public:
     OSMParser osmParser;
     PBFParser pbfParser;
  
-    void startparser(QString osmFilename, QString dbFilename);    
+    bool startparser(QString osmFilename, QString dbFilename);    
     bool deQueue();
     bool enQueue();
     void saveNodeToTmpDatabase();
