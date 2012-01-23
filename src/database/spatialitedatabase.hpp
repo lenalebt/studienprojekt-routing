@@ -22,6 +22,7 @@ private:
     sqlite3* _db;
     sqlite3_stmt* _saveNodeStatement;
     sqlite3_stmt* _getNodeStatement;
+    sqlite3_stmt* _getNodeByIDStatement;
     sqlite3_stmt* _saveEdgeStatement;
     sqlite3_stmt* _getEdgeStatementID;
     sqlite3_stmt* _getEdgeStatementStartNode;
@@ -43,6 +44,8 @@ public:
     void close();
     void open(QString dbConnectionString);
     bool isDBOpen();
+    boost::shared_ptr<RoutingNode> getNodeByID(boost::uint64_t id);
+    /** @todo Implementieren! */
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& searchMidpoint, double radius);
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& ulCorner, const GPSPosition& brCorner);
     bool saveNode(const RoutingNode& node);

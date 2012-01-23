@@ -470,3 +470,45 @@ void PBFParser::SzFree( void *p, void *address)
     free( address );
 }
 
+namespace biker_tests
+{
+    int testPBFParser()
+    {
+        BlockingQueue<boost::shared_ptr<OSMNode> > nodeQueue(30000);
+        BlockingQueue<boost::shared_ptr<OSMWay> > wayQueue(10000);
+        BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > turnRestrictionQueue(1000);
+        
+        QVector<boost::shared_ptr<OSMNode> > nodeVector;
+        QVector<boost::shared_ptr<OSMWay> > wayVector;
+        QVector<boost::shared_ptr<OSMTurnRestriction> > turnRestrictionVector;
+        
+        boost::shared_ptr<OSMNode> node;
+        boost::shared_ptr<OSMWay> way;
+        boost::shared_ptr<OSMTurnRestriction> turnRestriction;
+        
+        PBFParser parser(&nodeQueue, &wayQueue, &turnRestrictionQueue);
+        CHECK(parser.parse("data/rub.pbf"));
+        while (nodeQueue.dequeue(node))
+        {
+            nodeVector << node;
+        }
+        while (wayQueue.dequeue(way))
+        {
+            wayVector << way;
+        }
+        while (turnRestrictionQueue.dequeue(turnRestriction))
+        {
+            turnRestrictionVector << turnRestriction;
+        }
+        CHECK(!nodeVector.isEmpty());
+        CHECK(!wayVector.isEmpty());
+        //in dem betrachteten Ausschnitt sind leider keine Abbiegebeschränkungen.
+        CHECK(turnRestrictionVector.isEmpty());
+        
+        CHECK_EQ(nodeVector.size(), 20055);
+        CHECK_EQ(wayVector.size(), 3354);
+        CHECK_EQ(turnRestrictionVector.size(), 0);
+        
+        return EXIT_SUCCESS;
+    }
+}

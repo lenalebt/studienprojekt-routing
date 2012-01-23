@@ -11,6 +11,7 @@
 
 SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
+    _getNodeByIDStatement(NULL),
     _saveEdgeStatement(NULL), _getEdgeStatementID(NULL), _getEdgeStatementStartNode(NULL),
     _getEdgeStatementEndNode(NULL), _deleteEdgeStatement(NULL)
 {
@@ -24,6 +25,8 @@ SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
 		sqlite3_finalize(_saveNodeStatement);
     if(_getNodeStatement != NULL)
 		sqlite3_finalize(_getNodeStatement);
+    if(_getNodeByIDStatement != NULL)
+		sqlite3_finalize(_getNodeByIDStatement);
     if(_saveEdgeStatement != NULL)
 		sqlite3_finalize(_saveEdgeStatement);
     if(_getEdgeStatementID != NULL)
@@ -163,11 +166,77 @@ bool SpatialiteDatabaseConnection::isDBOpen()
     return _dbOpen;
 }
 
+boost::shared_ptr<RoutingNode> SpatialiteDatabaseConnection::getNodeByID(boost::uint64_t id)
+{
+    boost::shared_ptr<RoutingNode> retVal;
+    
+	int rc;
+	if(_getNodeByIDStatement == NULL)
+	{		
+		rc = sqlite3_prepare_v2(_db, "SELECT ID, MIN_LAT, MIN_LON FROM NODES WHERE ID=?;",
+			-1, &_getNodeByIDStatement, NULL);
+		if (rc != SQLITE_OK)
+		{	
+			std::cerr << "Failed to create getNodeByIDStatement." << " Resultcode: " << rc << std::endl;
+			return boost::shared_ptr<RoutingNode>();
+		}
+	}
+	
+	// Parameter an das Statement binden
+    RoutingNode node;
+    node.setID(id);
+    if (node.isIDInLongFormat())
+    {
+        std::cerr << RoutingNode::convertIDToShortFormat(id);
+        sqlite3_bind_int64(_getNodeByIDStatement, 1, RoutingNode::convertIDToShortFormat(id));
+    }
+    else
+    {
+        std::cerr << id;
+        sqlite3_bind_int64(_getNodeByIDStatement, 1, id);
+    }
+	
+	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+	while ((rc = sqlite3_step(_getNodeByIDStatement)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+        
+        //Erstelle einen neuen Knoten auf dem Heap.
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        RoutingNode* newNode = new RoutingNode(sqlite3_column_int64(_getNodeByIDStatement, 0),
+                        sqlite3_column_double(_getNodeByIDStatement, 1),
+                        sqlite3_column_double(_getNodeByIDStatement, 2));
+        //Gib ihn an einen boost::shared_ptr weiter. newNode jetzt nicht mehr verwenden oder delete drauf anwenden!
+        boost::shared_ptr<RoutingNode> ptr(newNode);
+        //den boost::shared_ptr zur Liste hinzufügen
+        retVal = ptr;
+    }
+	
+    if (rc != SQLITE_DONE)
+	{	
+		std::cerr << "Failed to execute getNodeByIDStatement." << " Resultcode: " << rc << std::endl;
+		return boost::shared_ptr<RoutingNode>();
+	}
+	
+	
+	rc = sqlite3_reset(_getNodeByIDStatement);
+	if(rc != SQLITE_OK)
+	{
+		std::cerr << "Failed to reset getNodeByIDStatement." << " Resultcode: " << rc << std::endl;
+	}
+	
+    return retVal;
+}
 
 QVector<boost::shared_ptr<RoutingNode> >
 SpatialiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double radius)
 {
-    return QVector<boost::shared_ptr<RoutingNode> >();
+    //Berechne einfach die beiden Punkte, die in den Ecken des umgebenden
+    //Rechtecks sein müssten, plus ein bisschen.
+    return this->getNodes(searchMidpoint.calcPositionInDistance(360-45, radius*1.45),
+        searchMidpoint.calcPositionInDistance(180-45, radius*1.45));
 }
 
 
@@ -578,6 +647,8 @@ namespace biker_tests
         CHECK(connection.saveNode(node));
         node = RoutingNode(26, 51.5, 7.5);
         CHECK(connection.saveNode(node));
+        CHECK(*connection.getNodeByID(26) == node);
+        CHECK(*connection.getNodeByID(RoutingNode::convertIDToLongFormat(26)) == node);
         
         RoutingEdge edge(45, 25, 26);
         std::cerr << "Save Edge..." << std::endl;
