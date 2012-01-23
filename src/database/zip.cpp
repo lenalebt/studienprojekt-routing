@@ -24,7 +24,8 @@
     Read SRTM zip files. */
 #include "zip.hpp"
 //#include "settings.h"
-
+#include "tests.hpp"
+#include <iostream>
 #include <QFileInfo>
 #include <QDebug>
 #include <zzip/lib.h>
@@ -43,6 +44,8 @@ int SrtmZipFile::getData(QString filename, qint16 **buffer)
     
     QFileInfo fi(filename);
     QString uncompressedFile = fi.path()+'/'+fi.completeBaseName();
+    
+    std::cerr << filename.toAscii().constData() << std::endl;
 
     int size = 0;
     if (QFileInfo(uncompressedFile).exists()) {
@@ -65,12 +68,13 @@ int SrtmZipFile::getData(QString filename, qint16 **buffer)
         }
         file.close();
     } else {
-        ZZIP_DIR* dir = zzip_dir_open(filename.toAscii(), 0);
+        ZZIP_DIR* dir = zzip_dir_open(filename.toAscii().constData(), 0);
+        //ZZIP_DIR* dir = zzip_dir_open("/home/lena/.biker/srtm/Eurasia/N51E007.hgt.zip", 0);
         if (!dir) {
-            qCritical() << "ZIP: Could not open zip file" << filename;
+            std::cerr << "ZIP: Could not open zip file " << filename.toAscii().constData() << std::endl;
             return 0;
         }
-        ZZIP_FILE* fp = zzip_file_open(dir, fi.completeBaseName().toAscii(), 0);
+        ZZIP_FILE* fp = zzip_file_open(dir, fi.completeBaseName().toAscii().constData(), 0);
         if (!fp) {
             qCritical() << "ZIP: Could not find" <<  fi.completeBaseName() << "in" << filename;
             return 0;
