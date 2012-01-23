@@ -104,28 +104,114 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
         BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
         QHash<boost::uint64_t, boost::uint64_t> predecessor;
+        QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
         
-        //Startknoten zum Heap hinzufügen, Kosten auf Null setzen, Vorgänger auf Null setzen
+        //Startknoten: Kosten auf Null setzen, zum Heap und Puffer hinzufügen, Vorgänger auf Null setzen
         nodeCosts.setValue(startNode.getID(), 0.0);
         heap.add(startNode.getID());
+        nodeMap.insert(RoutingNode::convertIDToShortFormat(startNode.getID()), _db->getNodeByID(startNode.getID()));
         predecessor.insert(startNode.getID(), 0);
         
-        boost::uint64_t activeNode = 0;
+        boost::uint64_t activeNodeLongID = 0;
+        boost::shared_ptr<RoutingNode> activeNode;
         
-        //TODO: Vorgängerzeiger-Liste führen. Auch als QHash?
+        //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
+        //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
         
         while (!heap.isEmpty())
         {
-            activeNode = heap.removeMinimumCostElement();
-            //TODO
+            //Aktuelles Element wird jetzt abschließend betrachtet.
+            activeNodeLongID = heap.removeMinimumCostElement();
+            activeNode = nodeMap[activeNodeLongID];
+            closedList.addElement(activeNodeLongID);
+            
+            //Wenn der jetzt abschließend zu betrachtende Knoten der Endkonten ist: Fertig.
+            if (startNode.getID() == endNode.getID())
+            {
+                break;
+            }
+            
+            //Hole Liste von Kanten, die in abschließend betrachtetem
+            //Knoten beginnen und bearbeite sie.
+            QVector<boost::shared_ptr<RoutingEdge> > edgeList = 
+                _db->getEdgesByStartNodeID(startNode.getID());
+            for (QVector<boost::shared_ptr<RoutingEdge> >::iterator it =
+                edgeList.begin(); it < edgeList.end(); it++)
+            {
+                //ID zwischenspeichern, damit sie nicht immer neu berechnet werden muss
+                boost::uint64_t activeEdgeEndNodeLongID = (*it)->getEndNodeID();
+                //Wenn der Endknoten noch nicht abschließend betrachtet wurde (müsste immer wahr sein...)
+                if (!closedList.contains((*it)->getEndNodeID()))
+                {
+                    //Erstmal Knoten aus der DB holen und puffern, wenn er noch nicht geladen wurde
+                    boost::uint64_t activeEdgeEndNodeShortID =
+                        RoutingNode::convertIDToShortFormat((*it)->getEndNodeID());
+                    boost::shared_ptr<RoutingNode> activeEdgeEndNode;
+                    if (!nodeMap.contains(activeEdgeEndNodeShortID))
+                    {
+                        activeEdgeEndNode = _db->getNodeByID(activeEdgeEndNodeShortID);
+                        nodeMap.insert(activeEdgeEndNodeShortID, activeEdgeEndNode);
+                    }
+                    else
+                    {
+                        activeEdgeEndNode = nodeMap[activeEdgeEndNodeShortID];
+                    }
+                    
+                    
+                    //Wurde der Knoten schon einmal betrachtet, oder nicht?
+                    if (!heap.contains(activeEdgeEndNodeLongID))
+                    {
+                        //Neuen Knoten zum Heap dazu, nachdem neue Kosten gesetzt wurden.
+                        nodeCosts.setValue(activeEdgeEndNodeLongID, nodeCosts.getValue(activeNodeLongID) + 
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode));
+                        heap.add(activeEdgeEndNodeLongID);
+                        //Vorgänger-Zeiger setzen
+                        predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
+                    }
+                    else
+                    {
+                        double newCosts = nodeCosts.getValue(activeNodeLongID) + 
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
+                        if (newCosts < nodeCosts.getValue(activeEdgeEndNodeLongID))
+                        {
+                            nodeCosts.setValue(activeEdgeEndNodeLongID, newCosts);
+                            heap.decreaseKey(activeEdgeEndNodeLongID);
+                            predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
+                        }
+                    }
+                }
+            }
         }
         
-        return GPSRoute();
+        std::cerr << "finished, search space contains " << nodeMap.size() << " elements." << std::endl;
+        
+        if (activeNodeLongID == endNode.getID())
+        {
+            boost::uint64_t activeNodeID = activeNodeLongID;
+            GPSRoute route;
+            while (activeNodeID != 0)
+            {
+                route.insertForward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
+                activeNodeID = predecessor[activeNodeID];
+            }
+            return route;
+        }
+        else
+        {
+            std::cerr << "did not find a route." << std::endl;
+            return GPSRoute();
+        }
+        
+        
+        /* TODO:
+         * - Fertige Route heraussuchen und zurückgeben.
+         * - Evtl. Routenbeschreibung erzeugen?
+         */
     }
 }
 
-DijkstraRouter::DijkstraRouter(DatabaseConnection* db) :
-    _db(db)
+DijkstraRouter::DijkstraRouter(DatabaseConnection* db, RoutingMetric* metric) :
+    _db(db), _metric(metric)
 {
     
 }
@@ -134,6 +220,8 @@ namespace biker_tests
 {
     int testDijkstraRouter()
     {
+        
+        DijkstraRouter router(0, 0);
         return EXIT_FAILURE;
     }
 }

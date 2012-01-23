@@ -38,6 +38,7 @@
 #include <QFile>
 #include <QDebug>
 #include <QStringList>
+#include "tests.hpp"
 
 #define NANO ( 1000.0 * 1000.0 * 1000.0 )
 #define MAX_BLOCK_HEADER_SIZE ( 64 * 1024 )
@@ -161,6 +162,11 @@ static inline bool openQFile( QFile* file, QIODevice::OpenMode mode )
 		return false;
 	}
 	return true;
+}
+
+namespace biker_tests
+{
+    int testPBFParser();
 }
 
 #endif // PBFPARSER_HPP

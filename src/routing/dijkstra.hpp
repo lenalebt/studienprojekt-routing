@@ -4,6 +4,7 @@
 #include "router.hpp"
 #include "routingnode.hpp"
 #include "database.hpp"
+#include "routingmetric.hpp"
 
 template<typename K, typename V>
 class NodeCostLessAndQHashFunctor
@@ -45,10 +46,11 @@ class DijkstraRouter : public Router
 {
 private:
     DatabaseConnection* _db;
+    RoutingMetric* _metric;
     
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
-    DijkstraRouter(DatabaseConnection* db);
+    DijkstraRouter(DatabaseConnection* db, RoutingMetric* metric);
     GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
