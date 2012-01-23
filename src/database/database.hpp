@@ -50,6 +50,18 @@ public:
     virtual bool isDBOpen()=0;
     
     /**
+     * @brief Lädt aus der DB den Knoten mit der angegebenen ID.
+     * 
+     * Wenn die ID im kurzen Format war, wird einfach der Knoten geladen.
+     * War er im langen Format, wird das kurze Format gebildet und dieser
+     * Knoten dann geladen.
+     * 
+     * @return Den herausgesuchten Knoten, so er gefunden wurde. Sonst ist
+     *      der Zeiger nicht initialisiert (-> 0).
+     */
+    virtual boost::shared_ptr<RoutingNode> getNodeByID(boost::uint64_t id)=0;
+    
+    /**
      * @brief Sucht aus der Datenbank alle Knoten heraus, die sich im Umkreis von
      *      <code>radius</code> Metern um den Suchmittelpunkt befinden.
      * 

@@ -16,12 +16,14 @@
 #include "temporarydatabase.hpp"
 #include "databaseramcache.hpp"
 #include "osmparser.hpp"
+#include "pbfparser.hpp"
 #include "altitudeprovider.hpp"
 #include <QString>
 #include <QVector>
 #include "blockingqueue.hpp"
 #include "closedlist.hpp"
 #include "heap.hpp"
+#include "datapreprocessing.hpp"
 #include "webserver.hpp"
 #include "potentialfunction.hpp"
 #include "dijkstra.hpp"
@@ -199,14 +201,20 @@ namespace biker_tests
             return biker_tests::testOSMTurnRestriction();
         else if (testName == "osmparser")
             return biker_tests::testOSMParser();
+        else if (testName == "pbfparser")
+            return biker_tests::testPBFParser();
         else if (testName == "blockingqueue")
             return biker_tests::testBlockingQueue();
         else if (testName == "binaryheap")
             return biker_tests::testBinaryHeap();
+        else if (testName == "multithreadedhashclosedlist")
+            return biker_tests::testMultiThreadedHashClosedList();
         else if (testName == "hashclosedlist")
             return biker_tests::testHashClosedList();
         else if (testName == "gpsroute")
             return biker_tests::testGPSRoute();
+        else if(testName == "datapreprocessing")
+            return biker_tests::testDataPreprocessing();
         else if (testName == "srtmprovider")
             return biker_tests::testSRTMProvider();
         else if (testName == "webserver")

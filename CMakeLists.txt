@@ -80,7 +80,10 @@ SET(
     src/dataprimitives/osmedge.cpp
     src/dataprimitives/osmturnrestriction.cpp
     src/dataprimitives/osmproperty.cpp
-    
+      
+    #src/preprocessing
+    src/preprocessing/datapreprocessing.cpp
+
     #src/database/
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
@@ -122,7 +125,10 @@ SET(
     src/dataprimitives/osmedge.hpp
     src/dataprimitives/routingnode.hpp
     src/dataprimitives/routingedge.hpp
-    
+
+    #src/preprocessing
+    src/preprocessing/datapreprocessing.hpp
+
     #src/database/
     src/database/altitudeprovider.hpp
     src/database/database.hpp
@@ -201,12 +207,16 @@ INCLUDE_DIRECTORIES(
     src/
     src/routing/
     src/dataprimitives/
+    src/preprocessing/
     src/database/
     src/database/parser/
     src/database/parser/pbf/
     src/network/
     ${CMAKE_CURRENT_BINARY_DIR}/src/database/parser/pbf/
     )
+
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.osm ${CMAKE_CURRENT_BINARY_DIR}/data/rub.osm COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/rub.pbf COPYONLY)
 
 IF(DOXYGEN_FOUND)
     #Semikolon-getrennte Liste in Whitespace-getrennte Liste konvertieren
@@ -268,6 +278,7 @@ ADD_TEST(osmedge                          "biker" "--test" "osmedge")
 ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
 ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
+ADD_TEST(pbfparser                        "biker" "--test" "pbfparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(potentialfunction                "biker" "--test" "potentialfunction")
 ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
@@ -277,6 +288,8 @@ ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")
 ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
 ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
+ADD_TEST(multithreadedhashclosedlist      "biker" "--test" "multithreadedhashclosedlist")
+ADD_TEST(datapreprocessing                "biker" "--test" "preprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
 

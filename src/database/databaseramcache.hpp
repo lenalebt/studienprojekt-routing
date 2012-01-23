@@ -28,6 +28,7 @@ public:
     void close();
     void open(QString dbConnectionString);
     bool isDBOpen();
+    boost::shared_ptr<RoutingNode> getNodeByID(boost::uint64_t id);
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& searchMidpoint, double radius);
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& ulCorner, const GPSPosition& brCorner);
     bool saveNode(const RoutingNode& node);
