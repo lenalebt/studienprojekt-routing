@@ -7,8 +7,9 @@
 #include <stdexcept>
 #include <iostream>
 
-void GPSRoute::exportGPX(QString filename, GPSRoute& route)
+void GPSRoute::exportGPX(QString filename)
 {
+    GPSRoute route = *this;
     QDomDocument doc;
     //zuerst das Grundelement erstellen, dann runter bis die Wegpunkte eingefügt werden.
     QDomElement root = doc.createElement("gpx");
@@ -82,8 +83,9 @@ void GPSRoute::exportGPX(QString filename, GPSRoute& route)
     file.close();
 }
 
-QString GPSRoute::exportGPXString(GPSRoute& route)
+QString GPSRoute::exportGPXString()
 {
+    GPSRoute route = *this;
     QDomDocument doc;
     //zuerst das Grundelement erstellen, dann runter bis die Wegpunkte eingefügt werden.
     QDomElement root = doc.createElement("gpx");
@@ -150,8 +152,9 @@ QString GPSRoute::exportGPXString(GPSRoute& route)
 }
 
 // ja, ide Art und Weise der Implementierung ist etwas unschön, aber sie sollte laufen :)
-void GPSRoute::exportJSON(QString filename, GPSRoute& route)
+void GPSRoute::exportJSON(QString filename)
 {
+    GPSRoute route = *this;
     QLocale locale(QLocale::C);//sonst schreibt er in eine GPX-Datei Kommas statt Punkte
     QString all;
     //Version
@@ -194,8 +197,9 @@ void GPSRoute::exportJSON(QString filename, GPSRoute& route)
     stream << all;//doc.toString();
     file.close();
 }
-QString GPSRoute::exportJSONString( GPSRoute& route)
+QString GPSRoute::exportJSONString()
 {
+    GPSRoute route = *this;
     QLocale locale(QLocale::C);//sonst schreibt er in eine GPX-Datei Kommas statt Punkte
     QString all;
     //Version
@@ -252,8 +256,8 @@ namespace biker_tests
         // oops ... falsch herum  ;)
         test.reverse();
         // die Route exportieren
-        test.exportGPX("test.gpx", test);
-        test.exportJSON("test.js", test);
+        test.exportGPX("test.gpx");
+        test.exportJSON("test.js");
         // nun sollte pos_one am anfang stehen
         CHECK_EQ(test.getStartingPoint(), pos_one);
         // nun sollte pos_three am ende stehen
