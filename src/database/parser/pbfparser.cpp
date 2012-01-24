@@ -40,6 +40,10 @@ PBFParser::~PBFParser()
 
 bool PBFParser::parse(QString filename)
 {
+    nodeCount = 0;
+    wayCount = 0;
+    relationCount = 0;
+    
     m_file.setFileName( filename );
 
     if ( !openQFile( &m_file, QIODevice::ReadOnly ) )
@@ -95,7 +99,9 @@ bool PBFParser::parse(QString filename)
         }
 
         if ( type == EntityWay ) {
-            
+            this->wayCount++;
+            if (this->wayCount == 1)
+                _nodeQueue->destroyQueue();
             //TODO: dbWriter.addWay(inputWay);
             _wayQueue->enqueue(inputWay);
             inputWay = boost::shared_ptr<OSMWay>(new OSMWay());
@@ -104,7 +110,9 @@ bool PBFParser::parse(QString filename)
         }
 
         if ( type == EntityRelation ) {
-            
+            this->relationCount++;
+            if (this->wayCount == 1)
+                _wayQueue->destroyQueue();
             bool ready = false;
             bool invalidRestriction = false;
             std::vector< RelationMember >  C = inputRelation.members;
@@ -206,6 +214,10 @@ bool PBFParser::parse(QString filename)
             continue;
         }
     }
+    
+    _nodeQueue->destroyQueue();
+    _wayQueue->destroyQueue();
+    _turnRestrictionQueue->destroyQueue();
     return true;
 }
 
@@ -574,7 +586,7 @@ namespace biker_tests
 {
     int testPBFParser()
     {
-        /*
+        
         BlockingQueue<boost::shared_ptr<OSMNode> > nodeQueue(30000);
         BlockingQueue<boost::shared_ptr<OSMWay> > wayQueue(10000);
         BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > turnRestrictionQueue(1000);
@@ -588,7 +600,9 @@ namespace biker_tests
         boost::shared_ptr<OSMTurnRestriction> turnRestriction;
         
         PBFParser parser(&nodeQueue, &wayQueue, &turnRestrictionQueue);
+        
         CHECK(parser.parse("data/rub.pbf"));
+        
         while (nodeQueue.dequeue(node))
         {
             nodeVector << node;
@@ -601,6 +615,7 @@ namespace biker_tests
         {
             turnRestrictionVector << turnRestriction;
         }
+        
         CHECK(!nodeVector.isEmpty());
         CHECK(!wayVector.isEmpty());
         //in dem betrachteten Ausschnitt sind leider keine Abbiegebeschränkungen.
@@ -610,8 +625,37 @@ namespace biker_tests
         CHECK_EQ(wayVector.size(), 3354);
         CHECK_EQ(turnRestrictionVector.size(), 0);
         
+        
+        nodeVector.clear();
+        wayVector.clear();
+        turnRestrictionVector.clear();
+        
+        BlockingQueue<boost::shared_ptr<OSMNode> > nodeQueue2(2000);
+        BlockingQueue<boost::shared_ptr<OSMWay> > wayQueue2(500);
+        BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > turnRestrictionQueue2(10);
+        
+        PBFParser parser2(&nodeQueue2, &wayQueue2, &turnRestrictionQueue2);
+        CHECK(parser2.parse("data/bochum_city.pbf"));
+        while (nodeQueue2.dequeue(node))
+        {
+            nodeVector << node;
+        }
+        while (wayQueue2.dequeue(way))
+        {
+            wayVector << way;
+        }
+        while (turnRestrictionQueue2.dequeue(turnRestriction))
+        {
+            turnRestrictionVector << turnRestriction;
+        }
+        CHECK(!nodeVector.isEmpty());
+        CHECK(!wayVector.isEmpty());
+        CHECK(!turnRestrictionVector.isEmpty());
+        
+        CHECK_EQ(nodeVector.size(), 1588);
+        CHECK_EQ(wayVector.size(), 269);
+        CHECK_EQ(turnRestrictionVector.size(), 2);
+        
         return EXIT_SUCCESS;
-        */
-        return EXIT_FAILURE;
     }
 }
