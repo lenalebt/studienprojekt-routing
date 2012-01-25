@@ -97,7 +97,7 @@ public:
      * @brief Erstellt aus dem Weg die zugekörigen Kanten als OSMEdge.
      * @return Die Liste aller Kanten des Weges.
      */
-    QVector<OSMEdge> getEdgeList(); //TODO implementierung
+    QVector<OSMEdge> getEdgeList();
     
     /**
      * @brief Gibt zurück, ob es sich um einen Weg mit Einbahneigenschaften handelt.
