@@ -9,25 +9,89 @@
       <script defer="defer" type="text/javascript">
             var map;
             
-            function init() {
-                map = new OpenLayers.Map('map');
-                map.addControl(new OpenLayers.Control.LayerSwitcher());
-                map.addControl(new OpenLayers.Control.MousePosition());
-                
-                var osm = new OpenLayers.Layer.OSM();
+            function init()
+            {
+                map = new OpenLayers.Map("map");
+                var osm=new OpenLayers.Layer.OSM.Mapnik(
+                    "OpenStreetMap");
                 map.addLayer(osm);
                 
-                var oepnv = new OpenLayers.Layer.OSM("ÖPNV-Karte",
-                    "http://tile.xn--pnvkarte-m4a.de/tilegen/${z}/${x}/${y}.png", {
-                    numZoomLevels : 16,
-                    alpha : true,
-                    isBaseLayer : true,
-                    visibility : false
-                });
+            }
+            
+            function createMap(a,b)
+            {
+                map = new OpenLayers.Map("map",
+                    {controls:[<!--new OpenLayers.Control.ArgParser,-->
+                    <!--new OpenLayers.Control.Attribution,-->
+                    new OpenLayers.Control.LayerSwitcher,
+                    new OpenLayers.Control.Navigation,
+                    new OpenLayers.Control.PanZoom,
+                    new OpenLayers.Control.PanZoomBar,
+                    new OpenLayers.Control.ScaleLine({geodesic:!0})],
+                    units:"m",
+                    maxResolution:156543.0339,
+                    numZoomLevels:20,
+                    displayProjection:new OpenLayers.Projection("EPSG:4326")
+                    });
+                var osm=new OpenLayers.Layer.OSM.Mapnik(
+                    "OpenStreetMap",
+                    {attribution:"",
+                    keyid:"mapnik",
+                    displayOutsideMaxExtent:!0,
+                    wrapDateLine:!0,
+                    layerCode:"M"});
+                map.addLayer(osm);
+
+                var osmarender=new OpenLayers.Layer.OSM.Osmarender(
+                    "Osmarender",
+                    {attribution:"",
+                    keyid:"osmarender",
+                    displayOutsideMaxExtent:!0,
+                    wrapDateLine:!0,
+                    layerCode:"O"});
+                map.addLayer(osmarender);
+                var cyclemap=new OpenLayers.Layer.OSM.CycleMap(
+                    "javascripts.map.base.cycle_map",
+                    {attribution:"Tiles courtesy of <a href='http://www.opencyclemap.org/' target='_blank'>Andy Allan</a>",
+                    keyid:"cyclemap",
+                    displayOutsideMaxExtent:!0,
+                    wrapDateLine:!0,
+                    layerCode:"C"});
+                map.addLayer(cyclemap);
+                var oepnv=new OpenLayers.Layer.OSM.TransportMap(
+                    "javascripts.map.base.transport_map",
+                    {attribution: "Tiles courtesy of <a href='http://www.opencyclemap.org/' target='_blank'>Andy Allan</a>",
+                    keyid:"transportmap",
+                    displayOutsideMaxExtent:!0,
+                    wrapDateLine:!0,
+                    layerCode:"T"});
                 map.addLayer(oepnv);
                 
-                map.zoomToMaxExtent();
+                var g=new OpenLayers.Layer.OSM(
+                    "javascripts.map.base.mapquest",
+                    ["http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                    "http://otile2.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                    "http://otile3.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                    "http://otile4.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png"],
+                    {attribution:"Tiles courtesy of <a href='http://www.mapquest.com/' target='_blank'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>",
+                    keyid:"mapquest",
+                    displayOutsideMaxExtent:!0,
+                    wrapDateLine:!0,
+                    numZoomLevels:19,
+                    layerCode:"Q"});
+                map.addLayer(g);
+                var h=Math.max(c.numZoomLevels,
+                    d.numZoomLevels);
+                return markers=new OpenLayers.Layer.Markers("Markers",
+                    {displayInLayerSwitcher:!1,
+                    numZoomLevels:h,
+                    maxExtent:new OpenLayers.Bounds(-20037508,-20037508,20037508,20037508),
+                    maxResolution:156543,
+                    units:"m",
+                    projection:"EPSG:900913"}),
+                    map.addLayer(markers),map
             }
+            
         </script>
   </body>
 </html>
