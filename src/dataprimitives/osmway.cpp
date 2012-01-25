@@ -1,6 +1,10 @@
 #include "osmway.hpp"
 #include "QVectorIterator"
 
+/**
+ * @bug Fügt nur die Edges in eine Richtung ein und achtet nicht
+ *  auf Einbahnstraßen (und deren Richtung! Kann umgekehrt sein!)
+ */
 QVector<OSMEdge> OSMWay::getEdgeList(){
     QVector<OSMEdge> edgeList;
     OSMEdge newEdge(id, properties);    
@@ -154,11 +158,38 @@ int OSMWay::isOneWayForBikes()
 
 namespace biker_tests
 {
+    /**
+     * @todo Dieser Test ist viel (!) zu kurz.
+     */
     int testOSMWay()
     {
-        OSMWay way(0);
+        OSMWay way(25);
+        CHECK_EQ_TYPE(way.getID(), 25, boost::uint64_t);
+        way.addMember(1);
+        way.addMember(2);
+        way.addMember(3);
+        way.addMember(4);
+        QVector<boost::uint64_t> wayMemberList = way.getMemberList();
+        CHECK(!wayMemberList.isEmpty());
+        CHECK_EQ(wayMemberList.size(), 4);
+        CHECK_EQ_TYPE(wayMemberList[0], 1, boost::uint64_t);
+        CHECK_EQ_TYPE(wayMemberList[1], 2, boost::uint64_t);
+        CHECK_EQ_TYPE(wayMemberList[2], 3, boost::uint64_t);
+        CHECK_EQ_TYPE(wayMemberList[3], 4, boost::uint64_t);
         
-        CHECK_EQ_TYPE(way.getID(), 0, boost::uint64_t);
+        way.addProperty(OSMProperty("key", "value"));
+        way.addProperty(OSMProperty("key2", "value2"));
+        CHECK_EQ(way.getProperties()[0], OSMProperty("key", "value"));
+        CHECK_EQ(way.getProperties()[1], OSMProperty("key2", "value2"));
+        
+        //TODO: Test für OSMEdge erweitern
+        QVector<OSMEdge> edgeList = way.getEdgeList();
+        CHECK_EQ(edgeList.size(), 6);
+        CHECK_EQ_TYPE(edgeList[0].getID(), 25, boost::uint64_t);
+        CHECK_EQ_TYPE(edgeList[1].getID(), 25, boost::uint64_t);
+        CHECK_EQ_TYPE(edgeList[2].getID(), 25, boost::uint64_t);
+        CHECK(edgeList[0].getProperties().contains(way.getProperties()[0]));
+        CHECK(edgeList[0].getProperties().contains(way.getProperties()[1]));
         
         return EXIT_SUCCESS;
     }
