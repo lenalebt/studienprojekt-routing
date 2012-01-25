@@ -127,7 +127,7 @@ public:
      *      gültig ist.
      * @todo 
      */
-    int isOneWayForBikes();
+    int isOnewayForBikes();
 };
 
 namespace biker_tests

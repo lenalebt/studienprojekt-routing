@@ -118,7 +118,7 @@ int OSMWay::isOneway()
     return false;
 }
 
-int OSMWay::isOneWayForBikes()
+int OSMWay::isOnewayForBikes()
 {
     int _isOneway = isOneway();
     if (_isOneway == 0)
@@ -176,6 +176,27 @@ namespace biker_tests
         CHECK_EQ_TYPE(wayMemberList[1], 2, boost::uint64_t);
         CHECK_EQ_TYPE(wayMemberList[2], 3, boost::uint64_t);
         CHECK_EQ_TYPE(wayMemberList[3], 4, boost::uint64_t);
+        CHECK_EQ(way.isOneway(), 0)
+        CHECK_EQ(way.isOnewayForBikes(), 0)
+        
+        OSMWay way2(26);
+        way2.addMember(5);
+        way2.addMember(6);
+        way2.addMember(7);
+        way2.addMember(8);
+        QVector<boost::uint64_t> way2MemberList = way2.getMemberList();
+        CHECK_EQ_TYPE(way2MemberList[0], 5, boost::uint64_t);
+        CHECK_EQ_TYPE(way2MemberList[1], 6, boost::uint64_t);
+        CHECK_EQ_TYPE(way2MemberList[2], 7, boost::uint64_t);
+        CHECK_EQ_TYPE(way2MemberList[3], 8, boost::uint64_t);
+        CHECK_EQ(way2.isOneway(), 0);
+        CHECK_EQ(way2.isOnewayForBikes(), 0);
+        way2.addProperty(OSMProperty("oneway", "yes"));
+        CHECK_EQ(way2.isOneway(), 1);
+        CHECK_EQ(way2.isOnewayForBikes(), 1);
+        way2.addProperty(OSMProperty("oneway:bicycle", "no"));
+        CHECK_EQ(way2.isOneway(), 1);
+        CHECK_EQ(way2.isOnewayForBikes(), 0);
         
         way.addProperty(OSMProperty("key", "value"));
         way.addProperty(OSMProperty("key2", "value2"));
