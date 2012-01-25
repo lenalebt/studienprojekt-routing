@@ -1,0 +1,82 @@
+            <!-- Layer fürs Zeichnen -->
+            
+            var pointLayer = new OpenLayers.Layer.Vector("Point Layer");
+            var lineLayer = new OpenLayers.Layer.Vector("Line Layer");
+            map addLayers([pointLayer,lineLayer]);
+            
+                drawControls = {
+                    point: new OpenLayers.Control.DrawFeature(pointLayer,
+                                OpenLayers.Handler.Point),
+                    line: new OpenLayers.Control.DrawFeature(lineLayer,
+                                OpenLayers.Handler.Path)
+                };           
+                for(var key in drawControls) {
+                    map.addControl(drawControls[key]);
+                } 
+            function toggleControl(element) {
+                for(key in drawControls) {
+                    var control = drawControls[key];
+                    if(element.value == key && element.checked) {
+                        control.activate();
+                    } else {
+                        control.deactivate();
+                    }
+                }
+            }
+
+            function allowPan(element) {
+                var stop = !element.checked;
+                for(var key in drawControls) {
+                    drawControls[key].handler.stopDown = stop;
+                    drawControls[key].handler.stopUp = stop;
+                }
+            }            
+            
+            
+            <!-- Formular für radio menü fürs malen -->
+            	  <ul id="controlToggle">
+            <li>
+                <input type="radio" name="type" value="none" id="noneToggle"
+                       onclick="toggleControl(this);" checked="checked" />
+                <label for="noneToggle">navigate</label>
+            </li>
+            <li>
+                <input type="radio" name="type" value="point" id="pointToggle" onclick="toggleControl(this);" />
+                <label for="pointToggle">draw point</label>
+            </li>
+            <li>
+                <input type="radio" name="type" value="line" id="lineToggle" onclick="toggleControl(this);" />
+                <label for="lineToggle">draw line</label>
+            </li>
+        </ul>
+            
+            -----------------------------------------
+            
+            
+            <!-- marker layer .. -->
+            map.setCenter(new OpenLayers.LonLat(10.2, 48.9), 5);
+            
+
+
+   var markers = new OpenLayers.Layer.Markers( "Markers" );
+    map.addLayer(markers);
+
+    var size = new OpenLayers.Size(21,25);	
+   var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);	
+    var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
+
+   markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(),icon));  
+   
+   
+   
+   ---------------------------------------
+   
+   
+   
+     <!-- cycle map fehlt noch.... funktioniert nicht...   -->
+     <!--     var cycle = new OpenLayers.Layer.OSM.CycleMap("CycleMap");  oder so-->
+       
+ 
+            
+
+            
