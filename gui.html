@@ -4,19 +4,24 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>OpenLayers Google Layer Example</title>
-    <link rel="stylesheet" href="style.css" type="text/css">
+    <title>Biker</title>
+   <link rel="stylesheet" href="style.css" type="text/css">
     <!-- this gmaps key generated for http://openlayers.org/dev/ -->
     <script src='http://maps.google.com/maps?file=api&amp;v=2&amp;key=ABQIAAAAjpkAC9ePGem0lIq5XcMiuhR_wWLPFku8Ix9i2SXYRVK3e45q1BQUd_beF8dtzKET_EteAjPdGDwqpQ'></script>
     <script src="http://openlayers.org/api/OpenLayers.js"></script>
     <script type="text/javascript">
         var map;
+        
 
         function init() {
             map = new OpenLayers.Map('map');
             map.addControl(new OpenLayers.Control.LayerSwitcher());
             map.addControl(new OpenLayers.Control.PanZoomBar());
+            map.addControl(new OpenLayers.Control.MousePosition());
             
+            
+
+
             var gphy = new OpenLayers.Layer.Google(
                 "Google Physical",
                 {type: G_PHYSICAL_MAP}
@@ -33,7 +38,9 @@
                 "Google Satellite",
                 {type: G_SATELLITE_MAP, numZoomLevels: 22}
             );
-            var osm = new OpenLayers.Layer.OSM(  
+            var osm = new OpenLayers.Layer.OSM(
+				"Open Street Map",
+				{numZoomLevels: 17}
 			);    
 			var OepnvLayer = new OpenLayers.Layer.OSM("ÖPNV Karte",
 				"http://tile.xn--pnvkarte-m4a.de/tilegen/${z}/${x}/${y}.png", {
@@ -42,30 +49,18 @@
 					isBaseLayer : true,
 					visibility : false
 				});
-
-     <!-- cycle map fehlt noch.... funktioniert nicht...   -->
-     <!--     var cycle = new OpenLayers.Layer.OSM.CycleMap("CycleMap");  oder so-->
-        
-            
-              
-			map.addLayers([gphy, gmap, ghyb, gsat, osm, OepnvLayer]);
+			var layerCycleMap = new OpenLayers.Layer.OSM("CycleMap");
+             
+			map.addLayers([gphy, gmap, ghyb, gsat, osm, OepnvLayer, layerCycleMap]);
             map.setCenter(new OpenLayers.LonLat(10.2, 48.9), 5);
-    <!--        
-    var markers = new OpenLayers.Layer.Markers( "Markers" );
-    map.addLayer(markers);
-
-    var size = new OpenLayers.Size(21,25);
-    var offset = new OpenLayers.Pixel(-(size.w/2), -size.h);
-    var icon = new OpenLayers.Icon('http://www.openlayers.org/dev/img/marker.png', size, offset);
-    markers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(map.OpenLayers.Events.getMousePosition()),icon));   
-    -->
-            
             
         }
     </script>
 
   </head>
   <body onload="init()">
-    <div id="map" class="smallmap"></div>
+
+                <div style="width:100%; height:100%" id="map" class="smallmap"></div>
+
   </body>
 </html>
