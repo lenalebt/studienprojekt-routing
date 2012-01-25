@@ -217,6 +217,8 @@ INCLUDE_DIRECTORIES(
 
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.osm ${CMAKE_CURRENT_BINARY_DIR}/data/rub.osm COPYONLY)
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/rub.pbf COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.osm ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.osm COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.pbf COPYONLY)
 
 IF(DOXYGEN_FOUND)
     #Semikolon-getrennte Liste in Whitespace-getrennte Liste konvertieren
