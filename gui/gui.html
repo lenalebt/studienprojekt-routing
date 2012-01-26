@@ -76,8 +76,8 @@
                 {type: google.maps.MapTypeId.TERRAIN}
                 // used to be {type: G_PHYSICAL_MAP}
             );
-            map.addLayer(gphy);*/
-            /*var gmap = new OpenLayers.Layer.Google.V3(
+            map.addLayer(gphy);
+            var gmap = new OpenLayers.Layer.Google.V3(
                 "Google Streets", // the default
                 {numZoomLevels: 20}
                 // default type, no change needed here
@@ -94,7 +94,7 @@
                 {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22}
                 // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
             );
-            map.addLayer(gsat);*/
+            map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
             map.setCenter(
                 new OpenLayers.LonLat(7.45, 51.3).transform(
                     new OpenLayers.Projection("EPSG:4326"),
