@@ -18,6 +18,7 @@
                 new OpenLayers.Control.Attribution,
                 new OpenLayers.Control.LayerSwitcher,
                 new OpenLayers.Control.Navigation,
+                new OpenLayers.Control.MousePosition,
                 //new OpenLayers.Control.PanZoom,   //Einkommentieren bringt das Problem mit den doppelten Zoombuttons
                 new OpenLayers.Control.PanZoomBar,
                 new OpenLayers.Control.ScaleLine({geodesic:true})],
@@ -95,11 +96,22 @@
                 // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
             );
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
+            
+            var markers = new OpenLayers.Layer.Markers( "Markers" );
+            map.addLayer(markers);
+            
+            var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
+                  .transform(
+                    new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                    map.getProjectionObject() // to Spherical Mercator Projection
+                  );
+            markers.addMarker(new OpenLayers.Marker(lonLat, new OpenLayers.Icon("img/marker-red.png")));
+            
             map.setCenter(
-                new OpenLayers.LonLat(7.45, 51.3).transform(
+                new OpenLayers.LonLat(7.2662, 51.447).transform(
                     new OpenLayers.Projection("EPSG:4326"),
                     map.getProjectionObject()
-                ), 10
+                ), 11
             );    
         }
     </script>
