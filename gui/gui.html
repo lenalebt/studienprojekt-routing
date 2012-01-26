@@ -13,7 +13,14 @@
             {
                 map = new OpenLayers.Map("map");
                 var osm=new OpenLayers.Layer.OSM.Mapnik(
-                    "OpenStreetMap");
+                    "OpenStreetMap",
+                    {controls:[<!--new OpenLayers.Control.ArgParser,-->
+                    <!--new OpenLayers.Control.Attribution,-->
+                    new OpenLayers.Control.LayerSwitcher,
+                    new OpenLayers.Control.Navigation,
+                    new OpenLayers.Control.PanZoom,
+                    new OpenLayers.Control.PanZoomBar,
+                    new OpenLayers.Control.ScaleLine({geodesic:!0})]});
                 map.addLayer(osm);
                 
             }
