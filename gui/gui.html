@@ -71,6 +71,30 @@
                 numZoomLevels:19,
                 layerCode:"Q"});
             map.addLayer(mapquest);*/   //MapQuest kann vielleicht benutzt werden. Rechte klären!
+            /*var gphy = new OpenLayers.Layer.Google(
+                "Google Physical",
+                {type: google.maps.MapTypeId.TERRAIN}
+                // used to be {type: G_PHYSICAL_MAP}
+            );
+            map.addLayer(gphy);*/
+            /*var gmap = new OpenLayers.Layer.Google.V3(
+                "Google Streets", // the default
+                {numZoomLevels: 20}
+                // default type, no change needed here
+            );
+            map.addLayer(gmap);
+            var ghyb = new OpenLayers.Layer.Google.V3(
+                "Google Hybrid",
+                {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
+                // used to be {type: G_HYBRID_MAP, numZoomLevels: 20}
+            );
+            map.addLayer(ghyb);
+            var gsat = new OpenLayers.Layer.Google.V3(
+                "Google Satellite",
+                {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22}
+                // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
+            );
+            map.addLayer(gsat);*/
             map.setCenter(
                 new OpenLayers.LonLat(7.45, 51.3).transform(
                     new OpenLayers.Projection("EPSG:4326"),
