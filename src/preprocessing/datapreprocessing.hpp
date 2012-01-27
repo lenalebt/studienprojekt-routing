@@ -54,7 +54,7 @@ private:
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
 
 public:    
-    DataPreprocessing();
+    DataPreprocessing(DatabaseConnection* finaldb);
     ~DataPreprocessing();
     
     OSMParser osmParser;

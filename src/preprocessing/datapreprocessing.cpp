@@ -1,10 +1,11 @@
 #include "datapreprocessing.hpp" 
 
 
-DataPreprocessing::DataPreprocessing()
+DataPreprocessing::DataPreprocessing(DatabaseConnection* finaldb)
     : _nodeQueue(1000), _wayQueue(1000), _turnRestrictionQueue(1000),
     osmParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue),
-    pbfParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue)
+    pbfParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue),
+      _finalDBConnection(finaldb)
 {
     
 }
@@ -14,13 +15,15 @@ DataPreprocessing::~DataPreprocessing()
     
 }
 
-//TODO: 1.Phase: OSMParser-Objekt fuellt Queues
-//               Dann Queues auslesen und in tmp DB speichern
-//      2.Phase: Kategorisieren
-//
 bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 {
     _finalDBConnection.open(dbFilename);
+    QTemporaryFile tmpFile;
+    tmpFile.open(QIODevice::WriteOnly);
+    QString tmpFilename = tmpFile.fileName();
+    tmpFile.close();
+    tmpFile.remove();
+    _tmpDBConnection.open(tmpFilename);
 
     //Prueft, ob .osm oder .pbf am Ende vorhanden
     if(fileToParse.endsWith(".osm"))
@@ -44,8 +47,7 @@ void DataPreprocessing::saveNodeToTmpDatabase()
     while(_nodeQueue.dequeue(_osmNode))
     {
         _tmpDBConnection.saveOSMNode(*_osmNode);        
-        routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));        
-        //~ _finalDBConnection.saveNode(*routingNnode);
+        routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));
         saveNodeToDatabase(*routingNode);
     }
 }
@@ -89,6 +91,9 @@ namespace biker_tests
 {    
     int testDataPreprocessing()
     {        
+        SpatialiteDatabaseConnection finalDB;
+        DataPreprocessing dataPreprocessing(&finalDB);
+        dataPreprocessing.startparser("data/rub.osm", "rub.db");
         return EXIT_SUCCESS;
         //return EXIT_FAILURE;
     }
