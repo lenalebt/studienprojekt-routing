@@ -72,11 +72,11 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
         ("test,t", po::value<std::string>(&(programOptions->tests_testName))->implicit_value("all"), "run program tests")
         ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpool_size))->default_value(10u), "set maximum thread pool size")
         ("start-webserver", "start webserver with given or standard settings")
-        ("webserver-public-html-folder,d", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value(""), "set public html folder of webserver")
+        ("webserver-public-html-folder,d", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value("./gui/"), "set public html folder of webserver")
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(5), "set maximum thread pool size of webserver")
-        ("parse", po::value<std::string>(&(programOptions->osmFilename))->default_value("input.osm"), "set filename to parse for parser")
-        ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("output.db"), "set output database filename for parser")
+        ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
+        ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->implicit_value("output.db"), "set output database filename for parser")
         ;
     
     po::variables_map vm;
