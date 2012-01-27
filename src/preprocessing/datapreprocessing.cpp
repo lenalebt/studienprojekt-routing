@@ -1,7 +1,7 @@
 #include "datapreprocessing.hpp" 
 
 
-DataPreprocessing::DataPreprocessing(DatabaseConnection* finaldb)
+DataPreprocessing::DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
     : _nodeQueue(1000), _wayQueue(1000), _turnRestrictionQueue(1000),
     osmParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue),
     pbfParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue),
