@@ -57,7 +57,7 @@ private:
     boost::shared_ptr<OSMNode> node;
     boost::shared_ptr<OSMWay> way;
     boost::shared_ptr<OSMEdge> edge;
-    boost::shared_ptr<OSMTurnRestriction> restriction;
+    boost::shared_ptr<OSMTurnRestriction> relation;
 
     int nodeCount;
     int wayCount;
