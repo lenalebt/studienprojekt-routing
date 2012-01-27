@@ -17,13 +17,15 @@ DataPreprocessing::~DataPreprocessing()
 
 bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 {
-    _finalDBConnection.open(dbFilename);
+    _finalDBConnection->open(dbFilename);
     QTemporaryFile tmpFile;
-    tmpFile.open(QIODevice::WriteOnly);
+    tmpFile.open();
     QString tmpFilename = tmpFile.fileName();
     tmpFile.close();
     tmpFile.remove();
     _tmpDBConnection.open(tmpFilename);
+    
+    std::cerr << "temp file created." << std::endl;
 
     //Prueft, ob .osm oder .pbf am Ende vorhanden
     if(fileToParse.endsWith(".osm"))
@@ -74,7 +76,7 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
         {
             _tmpDBConnection.saveOSMEdge(edgeList[i]);
             routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
-            _finalDBConnection.saveEdge(*routingEdge);
+            _finalDBConnection->saveEdge(*routingEdge);
         }
     }
 }
@@ -89,12 +91,12 @@ void DataPreprocessing::saveTurnRestrictionToTmpDatabase()
 
 void DataPreprocessing::saveNodeToDatabase(const RoutingNode &node)
 {
-    _finalDBConnection.saveNode(node);
+    _finalDBConnection->saveNode(node);
 }
 
 void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 {
-    _finalDBConnection.saveEdge(edge);
+    _finalDBConnection->saveEdge(edge);
 }
 
 //TODO kategorisierungsfunktionen implementieren
@@ -103,8 +105,8 @@ namespace biker_tests
 {    
     int testDataPreprocessing()
     {        
-        SpatialiteDatabaseConnection finalDB;
-        DataPreprocessing dataPreprocessing(&finalDB);
+        boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
+        DataPreprocessing dataPreprocessing(finalDB);
         dataPreprocessing.startparser("data/rub.osm", "rub.db");
         return EXIT_SUCCESS;
         //return EXIT_FAILURE;
