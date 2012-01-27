@@ -299,7 +299,7 @@ ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
 ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 ADD_TEST(multithreadedhashclosedlist      "biker" "--test" "multithreadedhashclosedlist")
-ADD_TEST(datapreprocessing                "biker" "--test" "preprocessing")
+ADD_TEST(datapreprocessing                "biker" "--test" "datapreprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
 
