@@ -28,12 +28,24 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     //Prueft, ob .osm oder .pbf am Ende vorhanden
     if(fileToParse.endsWith(".osm"))
     {
-        QFuture<bool> future = QtConcurrent::run(&osmParser, &OSMParser::parse, fileToParse);
+        QFuture<bool> future = QtConcurrent::run(&osmParser, &OSMParser::parse, fileToParse);            
+        future.waitForFinished();
+
+        saveNodeToTmpDatabase();
+        saveEdgeToTmpDatabase();
+        saveTurnRestrictionToTmpDatabase();
+
         return true;
     }
     else if (fileToParse.endsWith(".pbf"))
     {
         QFuture<bool> future = QtConcurrent::run(&pbfParser, &PBFParser::parse, fileToParse);
+        future.waitForFinished();
+
+        saveNodeToTmpDatabase();
+        saveEdgeToTmpDatabase();
+        saveTurnRestrictionToTmpDatabase();
+
         return true;
     }
     else
