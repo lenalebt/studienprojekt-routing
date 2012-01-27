@@ -50,8 +50,8 @@ private:
     BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
     
-    OSMParser osmParser;
-    PBFParser pbfParser;
+    boost::shared_ptr<OSMParser> _osmParser;
+    boost::shared_ptr<PBFParser> _pbfParser;
     
     TemporaryOSMDatabaseConnection _tmpDBConnection;
     boost::shared_ptr<DatabaseConnection> _finalDBConnection;

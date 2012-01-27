@@ -3,8 +3,8 @@
 
 DataPreprocessing::DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
     : _nodeQueue(1000), _wayQueue(1000), _turnRestrictionQueue(1000),
-    osmParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue),
-    pbfParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue),
+    _osmParser(),
+    _pbfParser(),
       _finalDBConnection(finaldb)
 {
     
@@ -30,12 +30,14 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     //Prueft, ob .osm oder .pbf am Ende vorhanden
     if(fileToParse.endsWith(".osm"))
     {
-        QFuture<bool> future = QtConcurrent::run(&osmParser, &OSMParser::parse, fileToParse);
+        _osmParser.reset(new OSMParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
+        QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);
         return true;
     }
     else if (fileToParse.endsWith(".pbf"))
     {
-        QFuture<bool> future = QtConcurrent::run(&pbfParser, &PBFParser::parse, fileToParse);
+        _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
+        QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
         return true;
     }
     else
