@@ -95,7 +95,7 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
         std::cerr << "We need a minimum threadpoolsize of 5. Setting to 5." << std::endl;
         programOptions->threads_threadpool_size = 5;
     }
-    std::cerr << "Using up to " << programOptions->threads_threadpool_size << " threads." << std::endl;
+    std::cerr << "Using up to " << programOptions->threads_threadpool_size << " threads for standard purposes." << std::endl;
     QThreadPool::globalInstance()->setMaxThreadCount(programOptions->threads_threadpool_size);
     
     
