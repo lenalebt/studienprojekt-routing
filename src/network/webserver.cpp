@@ -229,6 +229,7 @@ bool HttpRequestProcessor::preprocessRequest()
     
     if (httpHelloRegExp.indexIn(line) == -1)
     {
+        std::cerr << "not well-formed: \"" << line << "\"" << std::endl;
         return false;
     }
     
