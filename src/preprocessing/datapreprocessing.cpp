@@ -33,24 +33,23 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         _osmParser.reset(new OSMParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);
 
-        future.waitForFinished();
-
         saveNodeToTmpDatabase();
         saveEdgeToTmpDatabase();
         saveTurnRestrictionToTmpDatabase();
 
-
+        future.waitForFinished();
         return true;
     }
     else if (fileToParse.endsWith(".pbf"))
     {
         _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
-        future.waitForFinished();
 
         saveNodeToTmpDatabase();
         saveEdgeToTmpDatabase();
         saveTurnRestrictionToTmpDatabase();
+
+        future.waitForFinished();
 
         return true;
     }
@@ -64,9 +63,12 @@ void DataPreprocessing::saveNodeToTmpDatabase()
 {    
     while(_nodeQueue.dequeue(_osmNode))
     {
-        _tmpDBConnection.saveOSMNode(*_osmNode);        
+        std::cerr << "while loop" << std::endl;
+        _tmpDBConnection.saveOSMNode(*_osmNode);
+        std::cerr << "saved to tmpdb" << std::endl;
         routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));
         saveNodeToDatabase(*routingNode);
+        std::cerr << "saved to db" << std::endl;
     }
 }
 
