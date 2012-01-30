@@ -107,6 +107,7 @@ SET(
     
     #src/network/
     src/network/webserver.cpp
+    src/network/filedownloader.cpp
     )
 
 #Hier Header eintragen
@@ -153,6 +154,7 @@ SET(
     
     #src/network/
     src/network/webserver.hpp
+    src/network/filedownloader.hpp
     )
 
 #Hier die Dateien eintragen, die durch den moc müssen

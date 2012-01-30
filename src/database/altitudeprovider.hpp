@@ -4,6 +4,7 @@
 #include "gpsposition.hpp"
 #include "zip.hpp"
 #include "tests.hpp"
+#include "filedownloader.hpp"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -180,16 +181,7 @@ public:
     ~SRTMProvider();
 };
 
-class FileDownloader: public QObject
-{
-private:
-public:
-    FileDownloader();
-    ~FileDownloader();
-    //void run();
-    QByteArray downloadURL(QUrl &url);
-    //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error); // vll TODO
-};
+
 
 
 //Klasse SRTMTile wird nun doch nicht verwendet

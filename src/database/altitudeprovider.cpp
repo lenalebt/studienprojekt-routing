@@ -263,49 +263,7 @@ SRTMProvider::~SRTMProvider()
 {	
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////
-// Klasse FileDownloader //////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////
-FileDownloader::FileDownloader():QObject()
-{
-    //manager = new QNetworkAccessManager(this);//this);
-    //connect(manager, SIGNAL(finished(QNetworkReply*)),
-         //this, SLOT(replyFinished(QNetworkReply* r)));
-} 
-FileDownloader::~FileDownloader()
-{
-}
 
-//void FileDownloader::run()
-//{
-    ////Wird aufgerufen, wenn start() gestartet wird
-//}
-
-//void FileDownloader::replyFinished(QNetworkReply* r){
-    //finished = true;
-//}
-
-QByteArray FileDownloader::downloadURL(QUrl &url)
-{
-    
-    QNetworkAccessManager manager;
-    QNetworkRequest request(url);    
-    QNetworkReply *reply = manager.get(request);
-    QByteArray data;
-
-    QEventLoop loop;
-    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-    loop.exec();
-    
-    if(reply->error() == QNetworkReply::NoError){
-        data = reply->readAll();
-    }
-    
-    delete reply;
-    return data;
-}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
