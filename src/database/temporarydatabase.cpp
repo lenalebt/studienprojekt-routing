@@ -818,7 +818,10 @@ QVector<boost::shared_ptr<OSMTurnRestriction> > TemporaryOSMDatabaseConnection::
     return restrictions;
 }
 
-
+/**
+ * @bug INSERT OR IGNORE versteckt Fehler evtl. . Warum tritt eine Constraint
+ *      Violation (->19) auf manchmal, wenn man es nicht so macht?
+ */
 bool TemporaryOSMDatabaseConnection::saveOSMEdge(const OSMEdge& edge)
 {
     QVector<OSMProperty> properties = edge.getProperties();
