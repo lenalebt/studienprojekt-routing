@@ -174,7 +174,8 @@ int main ( int argc, char* argv[] )
      */
     if (programOptions.parseOsmFile)
     {
-        DataPreprocessing preprocessor;
+        boost::shared_ptr<SpatialiteDatabaseConnection> ptr(new SpatialiteDatabaseConnection());
+        DataPreprocessing preprocessor(ptr);
         preprocessor.startparser(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str());
     }
     

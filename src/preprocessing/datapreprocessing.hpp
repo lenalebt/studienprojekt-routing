@@ -45,22 +45,21 @@ private:
     
     boost::shared_ptr<RoutingNode> routingNode;
     boost::shared_ptr<RoutingEdge> routingEdge;
-
-    TemporaryOSMDatabaseConnection _tmpDBConnection;
-    SpatialiteDatabaseConnection _finalDBConnection;
     
     BlockingQueue<boost::shared_ptr<OSMNode> > _nodeQueue;
     BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
-
-public:    
-    DataPreprocessing();
-    ~DataPreprocessing();
     
-    OSMParser osmParser;
-    PBFParser pbfParser;
+    boost::shared_ptr<OSMParser> _osmParser;
+    boost::shared_ptr<PBFParser> _pbfParser;
+    
+    TemporaryOSMDatabaseConnection _tmpDBConnection;
+    boost::shared_ptr<DatabaseConnection> _finalDBConnection;
+public:    
+    DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb);
+    ~DataPreprocessing();
  
-    bool startparser(QString osmFilename, QString dbFilename);    
+    bool startparser(QString osmFilename, QString dbFilename);
     bool deQueue();
     bool enQueue();
     void saveNodeToTmpDatabase();
