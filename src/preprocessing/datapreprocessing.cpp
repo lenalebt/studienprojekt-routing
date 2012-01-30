@@ -56,6 +56,9 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     }
 }
 
+/**
+ * @todo Alle paar tausend/zehntausend Nodes die Transaktion schließen und wieder öffnen
+ */
 void DataPreprocessing::saveNodeToTmpDatabase()
 {
     std::cerr << "Parsing Nodes..." << std::endl;
@@ -78,6 +81,9 @@ void DataPreprocessing::saveNodeToTmpDatabase()
     _tmpDBConnection.endTransaction();
 }
 
+/**
+ * @todo Alle paar tausend/zehntausend Edges die Transaktion schließen und wieder öffnen
+ */
 void DataPreprocessing::saveEdgeToTmpDatabase()
 {
     std::cerr << "Parsing Ways..." << std::endl;
