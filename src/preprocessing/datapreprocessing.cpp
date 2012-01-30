@@ -66,7 +66,15 @@ void DataPreprocessing::saveNodeToTmpDatabase()
     _tmpDBConnection.beginTransaction();
     while(_nodeQueue.dequeue(_osmNode))
     {
-        _tmpDBConnection.saveOSMNode(*_osmNode);
+        if(_tmpDBConnection.saveOSMNode(*_osmNode) == true)
+        {
+            std::cerr << "node saved to tmpdb" << std::endl;
+        }
+        else
+        {
+            std::cerr << "node NOT saved to tmpdb" << std::endl;
+        }
+                
         routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));
         saveNodeToDatabase(*routingNode);
     }
@@ -86,9 +94,15 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
         QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
         for(int i = 0; i < edgeList.size(); i++)
         {
-            //std::cerr << edgeList[i] << std::endl;
-            _tmpDBConnection.saveOSMEdge(edgeList[i]);
-            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, edgeList[i].getStartNode(), edgeList[i].getEndNode()));
+            if(_tmpDBConnection.saveOSMEdge(edgeList[i]) == true)
+            {
+                std::cerr << "edge saved" << std::endl;
+            }
+            else
+            {
+                std::cerr << "edge NOT saved" << std::endl;
+            }
+            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
             _finalDBConnection->saveEdge(*routingEdge);
         }
     }
@@ -106,12 +120,26 @@ void DataPreprocessing::saveTurnRestrictionToTmpDatabase()
 
 void DataPreprocessing::saveNodeToDatabase(const RoutingNode &node)
 {
-    _finalDBConnection->saveNode(node);
+    if(_finalDBConnection->saveNode(node) == true)
+    {
+        std::cerr << "node saved to finalDB" << std::endl;
+    }
+    else
+    {
+        std::cerr << "node NOT saved finalDB" << std::endl;
+    }
 }
 
 void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 {
-    _finalDBConnection->saveEdge(edge);
+    if(_finalDBConnection->saveEdge(edge))
+    {
+        std::cerr << "edge saved to finalDB" << std::endl;
+    }
+    else
+    {
+        std::cerr << "edge NOT saved to finalDB" << std::endl;
+    }
 }
 
 //TODO kategorisierungsfunktionen implementieren
