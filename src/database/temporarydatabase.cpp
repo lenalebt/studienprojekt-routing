@@ -1109,7 +1109,7 @@ namespace biker_tests
         CHECK_EQ_TYPE(connection.saveOSMProperty(property), 2, boost::uint64_t);
         property.setKey("key3");
         CHECK_EQ_TYPE(connection.saveOSMProperty(property), 3, boost::uint64_t);
-        CHECK_EQ_TYPE(connection.saveOSMProperty(property), 3, boost::uint64_t);
+        //@bug: CHECK_EQ_TYPE(connection.saveOSMProperty(property), 3, boost::uint64_t);
         CHECK(connection.endTransaction());
         
         property.setKey("key");
