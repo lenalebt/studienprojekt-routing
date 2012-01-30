@@ -60,31 +60,38 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 }
 
 void DataPreprocessing::saveNodeToTmpDatabase()
-{    
+{
+    _finalDBConnection->beginTransaction();
+    _tmpDBConnection.beginTransaction();
     while(_nodeQueue.dequeue(_osmNode))
     {
-        std::cerr << "while loop" << std::endl;
         _tmpDBConnection.saveOSMNode(*_osmNode);
-        std::cerr << "saved to tmpdb" << std::endl;
         routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));
         saveNodeToDatabase(*routingNode);
-        std::cerr << "saved to db" << std::endl;
     }
+    _finalDBConnection->endTransaction();
+    _tmpDBConnection.endTransaction();
 }
 
 void DataPreprocessing::saveEdgeToTmpDatabase()
 {
+    _finalDBConnection->beginTransaction();
+    _tmpDBConnection.beginTransaction();
+    boost::uint64_t edgeID=0;
     while(_wayQueue.dequeue(_osmWay))
     {
         //edges aus way extrahieren
         QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
         for(int i = 0; i < edgeList.size(); i++)
         {
-            _tmpDBConnection.saveOSMEdge(edgeList[i]);
-            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
+            if (!_tmpDBConnection.saveOSMEdge(edgeList[i]))
+                std::cerr << "";//edgeList[i] << std::endl;
+            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, edgeList[i].getStartNode(), edgeList[i].getEndNode()));
             _finalDBConnection->saveEdge(*routingEdge);
         }
     }
+    _finalDBConnection->endTransaction();
+    _tmpDBConnection.endTransaction();
 }
 
 void DataPreprocessing::saveTurnRestrictionToTmpDatabase()
@@ -110,7 +117,13 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 namespace biker_tests
 {    
     int testDataPreprocessing()
-    {        
+    {
+        QFile file("rub.db");
+        
+        std::cerr << "Removing database test file \"rub.db\"..." << std::endl;
+        if (file.exists())
+            file.remove();
+        
         boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
         DataPreprocessing dataPreprocessing(finalDB);
         dataPreprocessing.startparser("data/rub.osm", "rub.db");
