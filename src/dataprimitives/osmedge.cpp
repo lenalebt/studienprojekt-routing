@@ -2,7 +2,7 @@
 
 bool operator==(const OSMEdge& e1, const OSMEdge& e2)
 {
-    if ((e1.getID() == e2.getID()) && (e1.getStartNode() == e2.getStartNode()) &&
+    if ((e1.getID() == e2.getID()) && (e1.getForward() == e2.getForward()) &&(e1.getStartNode() == e2.getStartNode()) &&
         (e1.getEndNode() == e2.getEndNode()) && (e1.getProperties().size() == e2.getProperties().size()))
     {
         QVector<OSMProperty> props1 = e1.getProperties();
@@ -21,7 +21,7 @@ bool operator==(const OSMEdge& e1, const OSMEdge& e2)
 }
 std::ostream& operator<<(std::ostream& os, const OSMEdge& e)
 {
-    os << "wayid: " << e.getID() << " startnode: " << e.getStartNode() << 
+    os << "wayid: " << e.getID() << " forward: " << e.getForward() << " startnode: " << e.getStartNode() << 
         " endnode: " << e.getEndNode();
     QVector<OSMProperty> props = e.getProperties();
     for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
@@ -44,7 +44,7 @@ namespace biker_tests
         OSMProperty prop2("key2", "val2");
         QVector<OSMProperty> propList;
         propList << prop1 << prop2;
-		OSMEdge edge2(0, 1, 7,propList);		
+		OSMEdge edge2(0, true, 1, 7,propList);		
 		
         CHECK_EQ_TYPE(edge2.getID(), 0, boost::uint64_t);
         CHECK_EQ_TYPE(edge2.getStartNode(), 1, boost::uint64_t);
