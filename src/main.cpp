@@ -132,7 +132,7 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
  * @param argc Anzahl Aufrufargumente
  * @param argv Werte der Aufrufparameter
  * @return ob das Programm erfolgreich beendet wurde
- * @todo Noch kein effektiver Inhalt.
+ * @bug Wenn eine Datei als --dbfile übergeben wird, die schon existiert, wird sie noch nicht gelöscht, sondern Daten angefügt.
  */
 int main ( int argc, char* argv[] )
 {

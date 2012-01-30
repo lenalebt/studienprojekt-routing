@@ -48,7 +48,6 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         saveTurnRestrictionToTmpDatabase();
 
         future.waitForFinished();
-
         return true;
     }
     else
