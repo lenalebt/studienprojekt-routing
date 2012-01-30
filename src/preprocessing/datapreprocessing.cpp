@@ -25,8 +25,6 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     tmpFile.remove();
     _tmpDBConnection.open(tmpFilename);
     
-    std::cerr << "temp file created." << std::endl;
-
     //Prueft, ob .osm oder .pbf am Ende vorhanden
     if(fileToParse.endsWith(".osm"))
     {
@@ -68,7 +66,6 @@ void DataPreprocessing::saveNodeToTmpDatabase()
     {
         if(_tmpDBConnection.saveOSMNode(*_osmNode) == true)
         {
-            std::cerr << "node saved to tmpdb" << std::endl;
         }
         else
         {
@@ -96,13 +93,12 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
         {
             if(_tmpDBConnection.saveOSMEdge(edgeList[i]) == true)
             {
-                std::cerr << "edge saved" << std::endl;
             }
             else
             {
                 std::cerr << "edge NOT saved" << std::endl;
             }
-            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
+            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, edgeList[i].getStartNode(), edgeList[i].getEndNode()));
             _finalDBConnection->saveEdge(*routingEdge);
         }
     }
@@ -122,7 +118,6 @@ void DataPreprocessing::saveNodeToDatabase(const RoutingNode &node)
 {
     if(_finalDBConnection->saveNode(node) == true)
     {
-        std::cerr << "node saved to finalDB" << std::endl;
     }
     else
     {
@@ -134,7 +129,6 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 {
     if(_finalDBConnection->saveEdge(edge))
     {
-        std::cerr << "edge saved to finalDB" << std::endl;
     }
     else
     {

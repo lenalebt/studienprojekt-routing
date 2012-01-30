@@ -247,9 +247,10 @@ boost::uint64_t TemporaryOSMDatabaseConnection::saveOSMProperty(const OSMPropert
     }
     
     //Wenn schon in DB vorhanden, dann den Wert nehmen den es schon gibt!
-    boost::uint64_t tmpPropertyID = getOSMPropertyID(property);
-    if (tmpPropertyID != 0)
-        return tmpPropertyID;
+    //boost::uint64_t tmpPropertyID = getOSMPropertyID(property);
+    //if (tmpPropertyID != 0)
+    //    return tmpPropertyID;
+    //^^Das spart Speicher, ist aber viel langsamer...
     
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
     sqlite3_bind_null(_saveOSMPropertyStatement, 1);

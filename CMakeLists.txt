@@ -13,11 +13,15 @@ SET (biker_VERSION_MINOR 03)
 ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
 
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
-MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
+MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\" or \"cmake -DCMAKE_BUILD_TYPE=Profiling\".")
 IF (CMAKE_BUILD_TYPE STREQUAL Debug)
     MESSAGE("CMAKE_BUILD_TYPE set to Debug.")
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
     MESSAGE("CMAKE_BUILD_TYPE set to Release.")
+ELSEIF (CMAKE_BUILD_TYPE STREQUAL Profiling)
+    MESSAGE("CMAKE_BUILD_TYPE set to Profiling.")
+    SET(CMAKE_CXX_FLAGS_PROFILING "-pg")
+#    SET(CMAKE_EXE_LINKER_FLAGS_PROFILING "-pg")
 ENDIF ()
 
 #Evtl muss man mal für die Compiler verschiedene Einstellungen machen: Wenn, dann hier.
