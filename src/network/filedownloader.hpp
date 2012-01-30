@@ -8,21 +8,11 @@
 #include <QUrl>
 #include <QNetworkRequest>
 #include <QEventLoop>
-//#include <boost/cstdint.hpp>
-//#include <QFile>
-//#include <QDir>
-//#include <QMap>
-//#include <QCache>
-//#include <QRegExp>
-//#include <QThread>
-//#include <QFuture>
-//#include <QtConcurrentRun>
-//#include <QDataStream>
-//#include <QDir>
-//#include <QFileInfo>
 
 /**
- * @brief 
+ * @brief Mit dieser Klasse können einfache http-Downloads vorgenommen werden.
+ * 
+ * Es gibt keine Fehlerbehandlung für missglückte Downloads.
  * 
  * 
  * 
@@ -37,6 +27,14 @@ private:
 public:
     FileDownloader();
     ~FileDownloader();
+    /**
+     * @brief Führt Download für angegebene Url aus.
+     * 
+     * Dabei wird der Punkt über seine GPSPosition angegeben.
+     * 
+     * @param url Die Url für die der Download vorgenommen werden soll (muss inkl. http:// angegeben werden).
+     * @return Die vollständige Netzwerkantwort (ist leer falls Download gescheitert ist).
+     */
     QByteArray downloadURL(QUrl &url);
     //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error); // vll TODO
 };
