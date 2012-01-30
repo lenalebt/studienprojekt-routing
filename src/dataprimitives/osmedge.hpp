@@ -50,6 +50,14 @@ public:
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
+     * @param startNode Startknoten der Edge.
+     * @param endNode Endknoten der Edge.
+     * @param propList Die zugehörigen Eigenschaften der Edge.
+     */
+    OSMEdge(boost::uint64_t id, boost::uint64_t startNode, boost::uint64_t endNode, QVector<OSMProperty> propList) : id(id), forward(true), startNode(startNode), endNode(endNode), properties(propList) {};
+    /**
+     * @brief Erstellt eine Edge mit angegebener ID, Eigenschaften und zugehörigen Knoten.
+     * @param id Die ID des Weges zu dem die Edge gehört.
      * @param forward Die Richtung der Kante in Bezug auf den zugehörigen Weg.
      * @param startNode Startknoten der Edge.
      * @param endNode Endknoten der Edge.
