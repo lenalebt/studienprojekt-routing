@@ -18,4 +18,3 @@ double EuclidianRoutingMetric::timeEdge(const RoutingEdge &edge, const RoutingNo
     return this->rateEdge(edge, startNode, endNode) / 5;
 }
 
-
