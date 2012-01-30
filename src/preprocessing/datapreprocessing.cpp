@@ -61,6 +61,7 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 
 void DataPreprocessing::saveNodeToTmpDatabase()
 {
+    std::cerr << "Parsing Nodes..." << std::endl;
     _finalDBConnection->beginTransaction();
     _tmpDBConnection.beginTransaction();
     while(_nodeQueue.dequeue(_osmNode))
@@ -75,6 +76,7 @@ void DataPreprocessing::saveNodeToTmpDatabase()
 
 void DataPreprocessing::saveEdgeToTmpDatabase()
 {
+    std::cerr << "Parsing Ways..." << std::endl;
     _finalDBConnection->beginTransaction();
     _tmpDBConnection.beginTransaction();
     boost::uint64_t edgeID=0;
@@ -84,8 +86,8 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
         QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
         for(int i = 0; i < edgeList.size(); i++)
         {
-            if (!_tmpDBConnection.saveOSMEdge(edgeList[i]))
-                std::cerr << "";//edgeList[i] << std::endl;
+            //std::cerr << edgeList[i] << std::endl;
+            _tmpDBConnection.saveOSMEdge(edgeList[i]);
             routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, edgeList[i].getStartNode(), edgeList[i].getEndNode()));
             _finalDBConnection->saveEdge(*routingEdge);
         }
