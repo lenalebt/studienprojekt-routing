@@ -60,7 +60,7 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
                 else if (atts.qName(i) == "lat")
                     lat = atts.value(i).toDouble();
             }
-            node = boost::shared_ptr<OSMNode>(new OSMNode(id, GPSPosition(lon, lat), QVector<OSMProperty>()));
+            node = boost::shared_ptr<OSMNode>(new OSMNode(id, GPSPosition(lat, lon), QVector<OSMProperty>()));
 
         }
         else if (qName == "way")
