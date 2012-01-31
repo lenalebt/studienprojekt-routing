@@ -2,20 +2,30 @@
 
 bool RoutingNode::isIDInLongFormat()
 {
-    boost::uint64_t mark = 0x8000000000000000llu;
+    boost::uint64_t mark = 0x4000000000000000llu;
+    return (id & mark);
+}
+
+bool RoutingNode::isIDInLongFormat(const boost::uint64_t id)
+{
+    boost::uint64_t mark = 0x4000000000000000llu;
     return (id & mark);
 }
 
 boost::uint64_t RoutingNode::convertIDToLongFormat(const boost::uint64_t id)
 {
+    if (RoutingNode::isIDInLongFormat(id))
+        return id;
     boost::uint64_t mask = 0x00FFFFFFFFFFFFFFllu;
-    boost::uint64_t mark = 0x8000000000000000llu;
+    boost::uint64_t mark = 0x4000000000000000llu;
     return ((id & mask) << 8) | mark;
 }
 
 boost::uint64_t RoutingNode::convertIDToShortFormat(const boost::uint64_t id)
 {
-    boost::uint64_t mark = 0x8000000000000000llu;
+    if (!RoutingNode::isIDInLongFormat(id))
+        return id;
+    boost::uint64_t mark = 0x4000000000000000llu;
     return ((id & ~mark) >> 8);
 }
 
@@ -41,22 +51,22 @@ namespace biker_tests
         CHECK_EQ_TYPE(node1.getID(), 1u, boost::uint64_t);
         
         node1.setAndConvertID(1);
-        CHECK_EQ_TYPE(node1.getID(), 9223372036854776064ull, boost::uint64_t)
+        CHECK_EQ_TYPE(node1.getID(), 4611686018427388160ull, boost::uint64_t)
         
         node1.setAndConvertID(2);
-        CHECK_EQ_TYPE(node1.getID(), 9223372036854776320ull, boost::uint64_t)
+        CHECK_EQ_TYPE(node1.getID(), 4611686018427388416ull, boost::uint64_t)
         
         node1.setAndConvertID(3);
-        CHECK_EQ_TYPE(node1.getID(), 9223372036854776576ull, boost::uint64_t)
+        CHECK_EQ_TYPE(node1.getID(), 4611686018427388672ull, boost::uint64_t)
         
         node1.setAndConvertID(4316256737ll);
-        CHECK_EQ_TYPE(node1.getID(), 9223373141816500480ull, boost::uint64_t)
+        CHECK_EQ_TYPE(node1.getID(), 4611687123389112576ull, boost::uint64_t)
         
-        CHECK_EQ_TYPE(node1.convertIDToLongFormat(4316256737ll), 9223373141816500480ull, boost::uint64_t);
-        CHECK_EQ_TYPE(node1.convertIDToShortFormat(9223373141816500480ull), 4316256737ll, boost::uint64_t);
-        CHECK_EQ_TYPE(node1.convertIDToShortFormat(768), 3u, boost::uint64_t);
-        CHECK_EQ_TYPE(node1.convertIDToShortFormat(512), 2u, boost::uint64_t);
-        CHECK_EQ_TYPE(node1.convertIDToShortFormat(256), 1u, boost::uint64_t);
+        CHECK_EQ_TYPE(node1.convertIDToLongFormat(4316256737ll), 4611687123389112576ull, boost::uint64_t);
+        CHECK_EQ_TYPE(node1.convertIDToShortFormat(4611687123389112576ull), 4316256737ll, boost::uint64_t);
+        CHECK_EQ_TYPE(node1.convertIDToShortFormat(768), 768u, boost::uint64_t);
+        CHECK_EQ_TYPE(node1.convertIDToShortFormat(512), 512u, boost::uint64_t);
+        CHECK_EQ_TYPE(node1.convertIDToShortFormat(256), 256u, boost::uint64_t);
         
         CHECK_EQ_TYPE(RoutingNode::convertIDToShortFormat(RoutingNode::convertIDToLongFormat(26)), 26u, boost::uint64_t);
         

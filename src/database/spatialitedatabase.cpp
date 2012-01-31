@@ -187,12 +187,10 @@ boost::shared_ptr<RoutingNode> SpatialiteDatabaseConnection::getNodeByID(boost::
     node.setID(id);
     if (node.isIDInLongFormat())
     {
-        std::cerr << RoutingNode::convertIDToShortFormat(id);
         sqlite3_bind_int64(_getNodeByIDStatement, 1, RoutingNode::convertIDToShortFormat(id));
     }
     else
     {
-        std::cerr << id;
         sqlite3_bind_int64(_getNodeByIDStatement, 1, id);
     }
 	
@@ -235,8 +233,8 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double
 {
     //Berechne einfach die beiden Punkte, die in den Ecken des umgebenden
     //Rechtecks sein müssten, plus ein bisschen.
-    return this->getNodes(searchMidpoint.calcPositionInDistance(360-45, radius*1.45),
-        searchMidpoint.calcPositionInDistance(180-45, radius*1.45));
+    return this->getNodes(searchMidpoint.calcPositionInDistance(180+45, radius*1.45),
+        searchMidpoint.calcPositionInDistance(45, radius*1.45));
 }
 
 
@@ -263,6 +261,11 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 	sqlite3_bind_double(_getNodeStatement, 3, minCorner.getLon());
 	sqlite3_bind_double(_getNodeStatement, 4, maxCorner.getLon());
 	
+    /*std::cerr << "bound parameters:" << "minCorner.getLat()=" << minCorner.getLat() <<
+        ", maxCorner.getLat()=" << maxCorner.getLat() <<
+        ", minCorner.getLon()=" << minCorner.getLon() <<
+        ", maxCorner.getLon()=" << maxCorner.getLon() << std::endl;*/
+    
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getNodeStatement)) != SQLITE_DONE)
     {

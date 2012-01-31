@@ -308,7 +308,7 @@ ADD_TEST(multithreadedhashclosedlist      "biker" "--test" "multithreadedhashclo
 ADD_TEST(datapreprocessing                "biker" "--test" "datapreprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
-
+SET_TESTS_PROPERTIES(dijkstrarouter PROPERTIES DEPENDS datapreprocessing)
 
 #Zum Erstellen von automatischen Installationspaketen
 IF(UNIX)

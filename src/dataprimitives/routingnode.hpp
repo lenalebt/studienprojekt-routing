@@ -72,6 +72,7 @@ public:
     static boost::uint64_t convertIDToShortFormat(const boost::uint64_t id);
     
     bool isIDInLongFormat();
+    static inline bool isIDInLongFormat(const boost::uint64_t id);
     
     RoutingNode(int id) : id(id) {}
     RoutingNode(int id, gps_float lat, gps_float lon) : GPSPosition(lat, lon), id(id) {}

@@ -103,7 +103,7 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
             {
                 std::cerr << "edge NOT saved" << std::endl;
             }
-            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, edgeList[i].getStartNode(), edgeList[i].getEndNode()));
+            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode())));
             _finalDBConnection->saveEdge(*routingEdge);
         }
     }
