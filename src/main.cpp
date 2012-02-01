@@ -11,6 +11,12 @@
 #include <QCoreApplication>
 #include "webserver.hpp"
 #include "datapreprocessing.hpp"
+#include "gpsposition.hpp"
+#include "gpsroute.hpp"
+#include "router.hpp"
+#include "dijkstra.hpp"
+#include "altitudeprovider.hpp"
+#include <sstream>
 
 namespace po = boost::program_options;
 using namespace std;
@@ -32,9 +38,20 @@ public:
     bool tests_starttest;
     
     //Datenvorverarbeitung
-    std::string dbFilename;
     std::string osmFilename;
     bool parseOsmFile;
+    
+    //Datenbank
+    std::string dbFilename;
+    std::string dbBackend;
+    
+    //Routenberechnung
+    bool doRouting;
+    GPSPosition routingStartPoint;
+    GPSPosition routingEndPoint;
+    std::string routingStartPointString;
+    std::string routingEndPointString;
+    bool routeOutputAsGPX;
     
     ProgramOptions() :
         webserver_public_html_folder(""),
@@ -47,9 +64,18 @@ public:
         tests_testName("all"),
         tests_starttest(false),
         
-        dbFilename(""),
         osmFilename(""),
-        parseOsmFile(false)
+        parseOsmFile(false),
+        
+        dbFilename(""),
+        dbBackend("spatialite"),
+        
+        doRouting(false),
+        routingStartPoint(),
+        routingEndPoint(),
+        routingStartPointString(""),
+        routingEndPointString(""),
+        routeOutputAsGPX(true)
     {
         
     }
@@ -76,7 +102,11 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(10), "set maximum thread pool size of webserver")
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
-        ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->implicit_value("output.db"), "set output database filename for parser")
+        ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->implicit_value("database.db"), "set database filename for database operations")
+        ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->implicit_value("spatialite"), "set database backend. possible values: spatialite.")
+        ("route", po::value<std::string>(&(programOptions->routingStartPointString))->default_value("(0/0)"), "set routing startpoint.")
+        ("to", po::value<std::string>(&(programOptions->routingEndPointString))->default_value("(0/0)"), "set routing endpoint.")
+        ("json-output", "create routes as JSON instead of GPX.")
         ;
     
     po::variables_map vm;
@@ -123,6 +153,29 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
         programOptions->parseOsmFile = true;
         //Dateinamen wurden schon gesetzt vom Framework
     }
+    
+    if (vm.count("dbbackend"))
+    {
+        if (programOptions->dbBackend != "spatialite")
+        {
+            std::cerr << "did not find database backend \"" << programOptions->dbBackend
+                    << "\". see help for possible values." << std::endl;
+        }
+    }
+    
+    if (vm.count("route"))
+    {
+        programOptions->doRouting = true;
+        std::stringstream strstream (std::stringstream::in | std::stringstream::out);
+        strstream << programOptions->routingStartPointString << programOptions->routingEndPointString;
+        strstream >> (programOptions->routingStartPoint);
+        strstream >> (programOptions->routingEndPoint);
+    }
+    
+    if (vm.count("json-output"))
+        programOptions->routeOutputAsGPX = false;
+    else
+        programOptions->routeOutputAsGPX = true;
     
     return EXIT_SUCCESS;
 }
@@ -177,6 +230,31 @@ int main ( int argc, char* argv[] )
         boost::shared_ptr<SpatialiteDatabaseConnection> ptr(new SpatialiteDatabaseConnection());
         DataPreprocessing preprocessor(ptr);
         preprocessor.startparser(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str());
+    }
+    
+    if (programOptions.doRouting)
+    {
+        boost::shared_ptr<DatabaseConnection> db;
+        if (programOptions.dbBackend == "spatialite")
+            db.reset(new SpatialiteDatabaseConnection());
+        db->open(programOptions.dbFilename.c_str());
+        
+        boost::shared_ptr<Router> router;
+        boost::shared_ptr<RoutingMetric> metric;
+        boost::shared_ptr<AltitudeProvider> altitudeProvider;
+        
+        altitudeProvider.reset(new SRTMProvider());
+        metric.reset(new EuclidianRoutingMetric(altitudeProvider));
+        
+        router.reset(new DijkstraRouter(db, metric));
+        
+        GPSRoute route = router->calculateShortestRoute(programOptions.routingStartPoint, programOptions.routingEndPoint);
+        QString routeString;
+        if (programOptions.routeOutputAsGPX)
+            routeString = route.exportGPXString();
+        else
+            routeString = route.exportJSONString();
+        std::cout << routeString;
     }
     
     //Warte, bis der Server beendet wird, so einer gestartet/initialisiert wurde...

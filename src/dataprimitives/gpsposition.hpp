@@ -176,5 +176,6 @@ private:
 bool operator==(const GPSPosition& p1, const GPSPosition& p2);
 bool operator!=(const GPSPosition& p1, const GPSPosition& p2);
 std::ostream& operator<<(std::ostream& os, const GPSPosition& p);
+std::istream& operator>>(std::istream& is, GPSPosition& p);
 
 #endif // GPSPOSITION_HPP
