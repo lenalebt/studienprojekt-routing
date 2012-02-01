@@ -36,7 +36,7 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         saveNodeToTmpDatabase();
         saveEdgeToTmpDatabase();        
         saveTurnRestrictionToTmpDatabase();
-
+                
         future.waitForFinished();
         return true;
     }
@@ -88,6 +88,7 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
     _finalDBConnection->beginTransaction();
     _tmpDBConnection.beginTransaction();
     boost::uint64_t edgeID=0;
+    //TODO: nochmal ueberlegen, ob if-Abfrage nicht sinnvoller als while-loop
     while(_wayQueue.dequeue(_osmWay))
     {
         //edges aus way extrahieren
@@ -103,6 +104,11 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
                 std::cerr << "edge NOT saved" << std::endl;
             }
             routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
+            
+            //TODO: Bevor in finale Datenbank gespeichert wird, Hier die Kategorisierung starten
+            categorizeEdge(*routingEdge);
+            
+            //speichert routingEdge in die finale Datenbank
             //_finalDBConnection->saveEdge(*routingEdge);
         }
     }
@@ -145,7 +151,7 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 //TODO kategorisierungsfunktion implementieren
 void DataPreprocessing::categorizeEdge(const RoutingEdge &edge)
 {
-
+    //noch zu klaeren, wie es im Detail läuft (wird ein laengerer if-else-zweig)
 }
 
 //int DataPreprocessing::getStreetType();
