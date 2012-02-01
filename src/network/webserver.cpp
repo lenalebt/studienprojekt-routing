@@ -367,8 +367,10 @@ void BikerHttpRequestProcessor::processRequest()
     else
     {
         std::cerr << "dynamic request. TODO." << std::endl;
-        QRegExp cloudmadeApiRegExp("/([\\da-fA-F]+)/(api|API)/(0.\\d)(\(\\d+.\\d+,\\d+.\\d+\))(,\(\\d+.\\d+,\\d+.\\d+\))*/(\\w+)(/(\\w+))?");
-        //                                                                                                               ^^TODO ab hier
+        QRegExp cloudmadeApiKeyRegExp("/([\\da-fA-F]+)/(api|API)/(0.\\d)");
+        QRegExp cloudmadeApiPointListRegExp("/(\\d+.\\d+,\\d+.\\d+),(\\[(\\d+.\\d+,\\d+.\\d+)+\\],)?(\\d+.\\d+,\\d+.\\d+)");
+        QRegExp cloudmadeApiRouteTypeRegExp("/([a-zA-Z0-9]+)(/([a-zA-Z0-9]+))?.(gpx|GPX|js|JS)");
+        QRegExp cloudmadeApiAdditionalOptionsRegExp("(\\?lang=[a-zA-Z]{2}(&units=(km|KM|miles|MILES))?)?");
         this->send404();
     }
 }
@@ -384,6 +386,8 @@ namespace biker_tests
         BikerHttpRequestProcessor::publicHtmlDirectory = "./gui/";
         HttpServerThread<BikerHttpRequestProcessor> server(8081);
         server.startServer();
+        //todo: aufs hochfahren warten toller lösen als so
+        server.wait(300);
         
         FileDownloader downloader;
         QByteArray gui_html = downloader.downloadURL(QUrl("http://localhost:8081/files/gui.html"));
