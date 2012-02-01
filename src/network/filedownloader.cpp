@@ -13,26 +13,35 @@ FileDownloader::~FileDownloader()
 {
 }
 
-QByteArray FileDownloader::downloadURL(QUrl &url)
+QByteArray FileDownloader::downloadURL(const QUrl &url)
 {
     
+    QByteArray data;
+    QNetworkReply::NetworkError error;
+
+    return data = downloadURL(url, error);
+}
+
+QByteArray FileDownloader::downloadURL(const QUrl &url, QNetworkReply::NetworkError &error)
+{
+
     QNetworkAccessManager manager;
-    QNetworkRequest request(url);    
+    QNetworkRequest request(url);
     QNetworkReply *reply = manager.get(request);
     QByteArray data;
 
     QEventLoop loop;
     QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
     loop.exec();
-    
-    if(reply->error() == QNetworkReply::NoError){
+
+    error = reply->error();
+    if(error == QNetworkReply::NoError){
         data = reply->readAll();
     }
-    
+
     delete reply;
     return data;
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////

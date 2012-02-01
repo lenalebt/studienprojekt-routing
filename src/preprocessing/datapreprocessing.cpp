@@ -84,6 +84,34 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 }
 
 //TODO kategorisierungsfunktionen implementieren
+boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
+{
+    bool hasTrafficLights;
+    bool hasTrafficCalmingBumps;
+    bool hasStopSign;
+    bool hasStairs;
+    bool hasCycleBarrier;
+    boost::uint8_t streetType;
+    boost::uint8_t cyclewayType;
+    boost::uint8_t streetSurfaceType;
+    boost::uint8_t streetSurfaceQuality;
+    boost::uint8_t turnType;
+
+    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
+
+    routingEdge->setTrafficLights(hasTrafficLights);
+    routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
+    routingEdge->setStopSign(hasStopSign);
+    routingEdge->setStairs(hasStairs);
+    routingEdge->setCycleBarrier(hasCycleBarrier);
+    routingEdge->setStreetType(streetType);
+    routingEdge->setCyclewayType(cyclewayType);
+    routingEdge->setStreetSurfaceType(streetSurfaceType);
+    routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
+    routingEdge->setTurnType(turnType);
+
+    return routingEdge;
+}
 
 namespace biker_tests
 {    
