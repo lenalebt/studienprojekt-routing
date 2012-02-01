@@ -3,6 +3,7 @@
 #include <QRegExp>
 #include <QUrl>
 #include <QDir>
+#include "filedownloader.hpp"
 
 QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
 
@@ -366,6 +367,8 @@ void BikerHttpRequestProcessor::processRequest()
     else
     {
         std::cerr << "dynamic request. TODO." << std::endl;
+        QRegExp cloudmadeApiRegExp("/([\\da-fA-F]+)/(api|API)/(0.\\d)(\(\\d+.\\d+,\\d+.\\d+\))(,\(\\d+.\\d+,\\d+.\\d+\))*/(\\w+)(/(\\w+))?");
+        //                                                                                                               ^^TODO ab hier
         this->send404();
     }
 }
@@ -378,10 +381,20 @@ namespace biker_tests
     {
         std::cerr << "Testing Webserver..." << std::endl;
         
-        
+        BikerHttpRequestProcessor::publicHtmlDirectory = "./gui/";
         HttpServerThread<BikerHttpRequestProcessor> server(8081);
         server.startServer();
-        server.wait(10000);
+        
+        FileDownloader downloader;
+        QByteArray gui_html = downloader.downloadURL(QUrl("http://localhost:8081/files/gui.html"));
+        CHECK(gui_html.size()>0);
+        QByteArray marker_red_png = downloader.downloadURL(QUrl("http://localhost:8081/files/img/marker-red.png"));
+        CHECK(marker_red_png.size()>0);
+        QByteArray bad_request_404 = downloader.downloadURL(QUrl("http://localhost:8081/files/lalala"));
+        //QByteArray wird leer sein, wenn die Datei nicht heruntergeladen wurde
+        CHECK_EQ(bad_request_404.size(), 0);
+        
+        server.wait(100);
         
         return EXIT_FAILURE;
     }
