@@ -6,13 +6,10 @@
 #include <QtEndian>
 
 // TODO
-//  Downloaden läuft jetzt.
 // - Was man noch machen könnte: Eine ausgeklügeltere Fehlerbehandlung, falls Download schief läuft.
 //  Momentan führt jeder Fehler in der Verarbeitung dazu, dass als ermittelter Höhenwer NN zurückgegeben wird.
 // - Was auch noch nicht fertig ist, ist die Behandlung von falschen SRTM-Werten. Da muss noch eine schöne Lösung für her: Gewichtete Höhe aus umliegenden Werten.
-// - Das öffnen der Zipdateien läuft auch noch nicht. Oder es liegt am Speichern der selbigen.
-// - Schön gemacht werden muss auch noch, dass falls Datei, bzw Ordner nicht vorhanden sind, der Ordner noch erstellt wird.
-// - Speichern der fileList in eine Datei mit Endung? Um dem Betriebssystem den Umgang zu erleichtern?
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,9 +60,7 @@ double SRTMProvider::getAltitude(double lat, double lon)
             QString filePath = fileInfo.absolutePath();
             QDir makedir;
             makedir.mkpath(filePath);
-            zipFile.open(QIODevice::WriteOnly);
-            //QDataStream zipFileOutStream(&zipFile);
-            //zipFileOutStream << data;            
+            zipFile.open(QIODevice::WriteOnly);  
             zipFile.write(data);
             zipFile.close(); 
                        
@@ -219,12 +214,6 @@ void SRTMProvider::createFileList()
         }
     }
     
-    //if (fileList.size() != SRTM_FILE_COUNT) {
-        //std::cerr << "Could not download complete list of tiles from SRTM server. Got" << fileList.size() << "tiles but" << SRTM_FILE_COUNT << "were expected.";
-        ////exit(1); //ERROR: SRTM-Filecount was wrong. Should not matter to comment this out.
-    //}
-    
-    
     QFileInfo fileInfo(_cachedir + _srtmFileList);
     QString filePath = fileInfo.absolutePath();
     QDir makedir;
@@ -244,18 +233,14 @@ void SRTMProvider::createFileList()
 void SRTMProvider::downloadUrl(QUrl &dUrl, QString &data)
 {
     FileDownloader loader;
-    //QUrl url = QUrl(dUrl);
-    // QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
-    data = QString(loader.downloadURL(dUrl)); //future.result());
+    data = QString(loader.downloadURL(dUrl));
     return;    
 }
 
 void SRTMProvider::downloadUrl(QUrl &dUrl, QByteArray &data)
 {
     FileDownloader loader;
-    //QUrl url = QUrl(dUrl);
-    //QFuture<QByteArray> future = QtConcurrent::run(&loader, &FileDownloader::downloadURL, dUrl);
-    data = loader.downloadURL(dUrl);//future.result();
+    data = loader.downloadURL(dUrl);
     return;    
 }
 
@@ -275,15 +260,9 @@ namespace biker_tests
 {
 	int testSRTMProvider()
 	{
-		
-        //std::cerr << "Jetzt erstmal nur entzippen" << std::endl;
-        //SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
-        //qint16 *buffer;
-        //int res = srtmZipFileObject.getData("/home/pia/.biker/srtm/Eurasia/N51E007.hgt.zip", &buffer);
-        //std::cerr << QString::number(res, 10) << std::endl;
-        
+		      
         SRTMProvider s;
-        s.getAltitude(51.527, 16.96); // wird zu 107 berechnet (soll ca.110 sein)
+        CHECK_EQ_TYPE(s.getAltitude(51.527, 16.96), 107, double); // Tetraeder in Bottrop
 		
 		return EXIT_SUCCESS;
 	}
