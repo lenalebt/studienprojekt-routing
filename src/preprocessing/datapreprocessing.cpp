@@ -151,6 +151,13 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 //TODO kategorisierungsfunktion implementieren
 void DataPreprocessing::categorizeEdge(const RoutingEdge &edge)
 {
+    if(edge.hasStairs)
+    {
+    }
+    //...
+    
+    //edge.getSurfaceQuality aufrufen und damit die Qualitaet festlegen
+    
     //noch zu klaeren, wie es im Detail läuft (wird ein laengerer if-else-zweig)
 }
 
