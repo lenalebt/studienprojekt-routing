@@ -751,7 +751,6 @@ bool TemporaryOSMDatabaseConnection::saveOSMTurnRestriction(const OSMTurnRestric
         return false;
     }
 
-
     rc = sqlite3_reset(_saveOSMTurnRestrictionStatement);
     if(rc != SQLITE_OK)
     {

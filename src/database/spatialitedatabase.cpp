@@ -309,6 +309,14 @@ bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
             std::cerr << "Failed to create saveNodeStatement." << " Resultcode: " << rc << std::endl;
             return false;
         }
+        else
+        {
+            std::cerr << "saveNodeStatement created" << std::endl;
+        }
+    }
+    else
+    {
+        std::cerr << "saveNodeStatement NOT NULL" << std::endl;
     }
 
     // Parameter an das Statement binden
@@ -320,6 +328,9 @@ bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
 
     // Statement ausfuehren
     rc = sqlite3_step(_saveNodeStatement);
+    
+    std::cerr << "out:" << std::endl;
+    
     if (rc != SQLITE_DONE)
     {	
         std::cerr << "Failed to execute saveNodeStatement." << " Resultcode: " << rc << std::endl;

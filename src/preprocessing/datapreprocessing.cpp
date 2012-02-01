@@ -32,9 +32,9 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     {
         _osmParser.reset(new OSMParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);
-
+            
         saveNodeToTmpDatabase();
-        saveEdgeToTmpDatabase();
+        saveEdgeToTmpDatabase();        
         saveTurnRestrictionToTmpDatabase();
 
         future.waitForFinished();
@@ -73,7 +73,7 @@ void DataPreprocessing::saveNodeToTmpDatabase()
         }
                 
         routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));
-        saveNodeToDatabase(*routingNode);
+        //saveNodeToDatabase(*routingNode);
     }
 }
 
@@ -94,7 +94,7 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
                 std::cerr << "edge NOT saved" << std::endl;
             }
             routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
-            _finalDBConnection->saveEdge(*routingEdge);
+            //_finalDBConnection->saveEdge(*routingEdge);
         }
     }
 }
@@ -131,7 +131,15 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
     }
 }
 
-//TODO kategorisierungsfunktionen implementieren
+//TODO kategorisierungsfunktion implementieren
+void DataPreprocessing::categorizeEdge(const RoutingEdge &edge)
+{
+
+}
+
+//int DataPreprocessing::getStreetType();
+//int DataPreprocessing::getStreetSurfaceQuality();
+//int DataPreprocessing::getStreetSurfaceType();
 
 namespace biker_tests
 {    
