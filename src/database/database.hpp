@@ -176,6 +176,12 @@ public:
      *  oder nicht
      */
     virtual bool endTransaction()=0;
+    
+    /**
+     * @brief Erstellt die Indexe in der Datenbank
+     * @return Ob die Indexe erstellt werden konnten
+     */
+    virtual bool createIndexes()=0;
 };
 
 #endif //DATABASE_HPP 

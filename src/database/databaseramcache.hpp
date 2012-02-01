@@ -41,6 +41,7 @@ public:
     bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
     bool beginTransaction();
     bool endTransaction();
+    bool createIndexes();
 };
 
 namespace biker_tests

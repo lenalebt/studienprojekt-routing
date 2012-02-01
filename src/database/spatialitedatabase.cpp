@@ -124,12 +124,37 @@ bool SpatialiteDatabaseConnection::createTables()
 	
     //Liste von auszuführenden Statements erstellen
 	QStringList statements;
+    statements << "PRAGMA page_size = 4096;";
+    statements << "PRAGMA max_page_count = 2147483646;";
+    statements << "PRAGMA cache_size=10000;";
+    statements << "PRAGMA synchronous=OFF;";
+    statements << "PRAGMA journal_mode=MEMORY;";
+    statements << "PRAGMA temp_store = MEMORY;";
 	statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PROPERTIES INTEGER NOT NULL);";
-	statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODE);";
-	statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODE);";
 	statements << "CREATE VIRTUAL TABLE NODES USING rtree(ID, MIN_LAT, MAX_LAT, MIN_LON, MAX_LON);";
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     statements << "CREATE TABLE EDGES_STREETNAME(ID INTEGER PRIMARY KEY, STREETNAME VARCHAR);";
+    
+    //Alle Statements der Liste ausführen in einer Transaktion
+    //retVal = this->beginTransaction();
+	QStringList::const_iterator it;
+	for (it = statements.constBegin(); it != statements.constEnd(); it++)
+	{
+		retVal &= execCreateTableStatement(it->toStdString());
+	}
+    //retVal &= this->endTransaction();
+	
+	return retVal;
+}
+
+bool SpatialiteDatabaseConnection::createIndexes()
+{
+	bool retVal = true;
+	
+    //Liste von auszuführenden Statements erstellen
+	QStringList statements;
+	statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODE);";
+	statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODE);";
     
     //Alle Statements der Liste ausführen in einer Transaktion
     retVal = this->beginTransaction();

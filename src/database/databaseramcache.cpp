@@ -107,6 +107,10 @@ bool DatabaseRAMCache::endTransaction()
 {
     return _connection->endTransaction();
 }
+bool DatabaseRAMCache::createIndexes()
+{
+    return _connection->createIndexes();
+}
 
 namespace biker_tests
 {
