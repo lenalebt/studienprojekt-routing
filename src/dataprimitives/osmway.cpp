@@ -14,8 +14,13 @@ QVector<OSMEdge> OSMWay::getEdgeList(){
         i.toFront();  // Iterator springt vor den ersten Eintrag in memberIDList
         i.next();     // Iterator geht einen Schirtt weiter (gibt auch Wert zurück, der hier nicht verwendet wird)
         while (i.hasNext()){
-            newEdge.setNodes(i.peekPrevious(), i.next());
+            newEdge.setNodes(i.peekPrevious(), i.peekNext());
+            newEdge.setForward(true);
             edgeList << newEdge;
+            newEdge.setNodes(i.peekNext(), i.peekPrevious());
+            newEdge.setForward(false);
+            edgeList << newEdge;
+            i.next();
         } 
     }
     

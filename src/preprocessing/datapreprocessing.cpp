@@ -60,7 +60,10 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 }
 
 void DataPreprocessing::saveNodeToTmpDatabase()
-{    
+{
+    std::cerr << "Parsing Nodes..." << std::endl;
+    _finalDBConnection->beginTransaction();
+    _tmpDBConnection.beginTransaction();
     while(_nodeQueue.dequeue(_osmNode))
     {
         if(_tmpDBConnection.saveOSMNode(*_osmNode) == true)
@@ -75,10 +78,16 @@ void DataPreprocessing::saveNodeToTmpDatabase()
         routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));
         //saveNodeToDatabase(*routingNode);
     }
+    _finalDBConnection->endTransaction();
+    _tmpDBConnection.endTransaction();
 }
 
 void DataPreprocessing::saveEdgeToTmpDatabase()
 {
+    std::cerr << "Parsing Ways..." << std::endl;
+    _finalDBConnection->beginTransaction();
+    _tmpDBConnection.beginTransaction();
+    boost::uint64_t edgeID=0;
     while(_wayQueue.dequeue(_osmWay))
     {
         //edges aus way extrahieren
@@ -97,6 +106,8 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
             //_finalDBConnection->saveEdge(*routingEdge);
         }
     }
+    _finalDBConnection->endTransaction();
+    _tmpDBConnection.endTransaction();
 }
 
 void DataPreprocessing::saveTurnRestrictionToTmpDatabase()
@@ -144,7 +155,13 @@ void DataPreprocessing::categorizeEdge(const RoutingEdge &edge)
 namespace biker_tests
 {    
     int testDataPreprocessing()
-    {        
+    {
+        QFile file("rub.db");
+        
+        std::cerr << "Removing database test file \"rub.db\"..." << std::endl;
+        if (file.exists())
+            file.remove();
+        
         boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
         DataPreprocessing dataPreprocessing(finalDB);
         dataPreprocessing.startparser("data/rub.osm", "rub.db");

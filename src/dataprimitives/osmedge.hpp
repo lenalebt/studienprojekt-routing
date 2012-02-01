@@ -20,6 +20,7 @@ class OSMEdge
 {
 private:
     boost::uint64_t id;
+    bool forward;
     boost::uint64_t startNode;
     boost::uint64_t endNode;
     QVector<OSMProperty> properties;
@@ -30,24 +31,31 @@ public:
      */
     OSMEdge(){};
     /**
-     * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörigen Knoten.
+     * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörigen Knoten. Richtugn ist per default vorwärts (true).
      * @param id Die ID des Weges zu dem die Edge gehört.
      */
-    OSMEdge(boost::uint64_t id) : id(id), startNode(0), endNode(0) {};
+    OSMEdge(boost::uint64_t id) : id(id), forward(true), startNode(0), endNode(0) {};
+    /**
+     * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörigen Knoten.
+     * @param id Die ID des Weges zu dem die Edge gehört.
+     * @param forward Die Richtung der Kante in Bezug auf den zugehörigen Weg.
+     */
+    OSMEdge(boost::uint64_t id, bool forward) : id(id), forward(forward), startNode(0), endNode(0) {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID und Eigenschaften, ohne zugehörige Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
      * @param propList Die zugehörigen Eigenschaften der Edge.
      */
-    OSMEdge(boost::uint64_t id, QVector<OSMProperty> propList) : id(id), startNode(0), endNode(0), properties(propList) {};
+    OSMEdge(boost::uint64_t id, QVector<OSMProperty> propList) : id(id), forward(true), startNode(0), endNode(0), properties(propList) {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
+     * @param forward Die Richtung der Kante in Bezug auf den zugehörigen Weg.
      * @param startNode Startknoten der Edge.
      * @param endNode Endknoten der Edge.
      * @param propList Die zugehörigen Eigenschaften der Edge.
      */
-    OSMEdge(boost::uint64_t id, boost::uint64_t startNode, boost::uint64_t endNode, QVector<OSMProperty> propList) : id(id), startNode(startNode), endNode(endNode), properties(propList) {};
+    OSMEdge(boost::uint64_t id, bool forward, boost::uint64_t startNode, boost::uint64_t endNode, QVector<OSMProperty> propList) : id(id), forward(forward), startNode(startNode), endNode(endNode), properties(propList) {};
     /**
      * @brief Gibt die ID des Weges zu dem die Edge gehört zurück.
      * @return Die ID des Weges zu dem die Edge gehört.
@@ -58,6 +66,16 @@ public:
      * @param id Die Die ID des Weges zu dem die Edge gehört.
      */
     void setID(const boost::uint64_t id) {this->id = id;}
+    /**
+     * @brief Gibt die Richtung der Edge in Bezug auf den zugehörigen Weg.
+     * @return Die Richtung der Edge in Bezug auf den zugehörigen Weg.
+     */
+    bool getForward() const {return forward;}
+    /**
+     * @brief Setzt die Richtung der Edge in Bezug auf den zugehörigen Weg.
+     * @param forward Die Richtung der Edge in Bezug auf den zugehörigen Weg..
+     */
+    void setForward(const bool forward) {this->forward = forward;}
     /**
      * @brief Setzt die Knoten der Edge.
      * @param startNode Startknoten der Edge.

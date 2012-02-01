@@ -325,7 +325,7 @@ namespace biker_tests
         //std::cerr << QString::number(res, 10) << std::endl;
         
         SRTMProvider s;
-        s.getAltitude(51.457, 7.014);
+        s.getAltitude(51.527, 16.96); // wird zu 107 berechnet (soll ca.110 sein)
 		
 		return EXIT_SUCCESS;
 	}
