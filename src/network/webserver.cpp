@@ -262,8 +262,13 @@ bool HttpRequestProcessor::preprocessRequest()
     
     //Header abfragen.
     QRegExp httpHeader("(\\S\\S*):\\s\\s*([^\\n]*)");
+    int httpHeaderCount=0
     while (readLine(_socket, line))
     {
+        httpHeaderCount++;
+        //mehr als 127 Header-Zeilen wollen wir nicht verarbeiten: Da ist sicher jemand böses am Werk...
+        if (httpHeaderCount>127)
+            return false;
         if (httpHeader.indexIn(line) != -1)
         {
             _headerMap[httpHeader.cap(1)] = httpHeader.cap(2);
