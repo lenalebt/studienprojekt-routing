@@ -212,6 +212,21 @@ void HttpRequestProcessor::send405()
     writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Method not allowed</title></head><body><p>405 Method not allowed</p></body></html>");
     _socket->flush();
 }
+void HttpRequestProcessor::send102()
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, _httpVersion);
+    writeString(_socket, " 102 Processing\n\n");
+    _socket->flush();
+}
+void HttpRequestProcessor::send500()
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, _httpVersion);
+    writeString(_socket, " 500 Internal Server Error\n\n");
+    writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Internal Server error</title></head><body><p>500 Internal Server Error</p></body></html>");
+    _socket->flush();
+}
 
 bool HttpRequestProcessor::preprocessRequest()
 {
@@ -377,6 +392,7 @@ void BikerHttpRequestProcessor::processRequest()
         std::cerr << "dynamic request. TODO." << std::endl;
         /**
          * @todo RegExp nur einmal erzeugen und dann wiederverwenden!
+         * @todo Regexpe sind nicht 100% richtig, dadurch dass sie getrennt wurden...
          */
         QRegExp cloudmadeApiKeyRegExp("/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
         QRegExp cloudmadeApiPointListRegExp("/(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10})),(?:\\[(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))(?:,(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))");
@@ -392,6 +408,7 @@ void BikerHttpRequestProcessor::processRequest()
         else
         {
             this->send404();
+            return;
         }
         if ((position=cloudmadeApiPointListRegExp.indexIn(_requestPath, position)) != -1)
         {
@@ -411,6 +428,7 @@ void BikerHttpRequestProcessor::processRequest()
         else
         {
             this->send404();
+            return;
         }
         if ((position=cloudmadeApiRouteTypeRegExp.indexIn(_requestPath, position)) != -1)
         {
@@ -422,10 +440,14 @@ void BikerHttpRequestProcessor::processRequest()
         else
         {
             this->send404();
+            return;
         }
         
         //TODO: Routing starten, http-"wird bearbeitet" senden
-        this->send404();
+        this->send102();
+        
+        this->send500();
+        return;
     }
 }
 

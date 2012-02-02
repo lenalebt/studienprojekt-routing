@@ -137,18 +137,32 @@ protected:
     void send400();
     
     /**
-     * @brief Schickt eine 404-Nachricht mit kleiner Webseite an den Peer.
+     * @brief Schickt eine 404-Nachricht mit kleiner Webseite an den Peer (404 not found).
      * 
      * Die Verbindung sollte nach dem Versenden geschlossen werden.
      */
     void send404();
     
     /**
-     * @brief Schickt eine 405-Nachricht mit kleiner Webseite an den Peer.
+     * @brief Schickt eine 405-Nachricht mit kleiner Webseite an den Peer (405 Method not allowed).
      * 
      * Die Verbindung sollte nach dem Versenden geschlossen werden.
      */
     void send405();
+    
+    /**
+     * @brief Schickt eine 102-Nachricht an den Peer (102 Processing).
+     * 
+     * Wird gesendet, wenn eine zeitintensive Anfrage gestartet wurde.
+     */
+    void send102();
+    
+    /**
+     * @brief Schickt eine 500-Nachricht an den Peer (500 Internal Server Error).
+     * 
+     * Die Verbindung sollte nach dem Versenden geschlossen werden.
+     */
+    void send500();
 public:
     HttpRequestProcessor(int socketDescriptor);
     void run();
