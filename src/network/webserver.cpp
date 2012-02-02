@@ -212,9 +212,7 @@ void HttpRequestProcessor::send405()
     writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Method not allowed</title></head><body><p>405 Method not allowed</p></body></html>");
     _socket->flush();
 }
-/**
- * @todo PUT-, POST- und DELTE-Anfragen ablehnen
- */
+
 bool HttpRequestProcessor::preprocessRequest()
 {
     //Es kommt erstmal auf jeden Fall etwas Text.

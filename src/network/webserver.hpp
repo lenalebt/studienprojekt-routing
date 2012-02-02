@@ -229,7 +229,10 @@ public:
     BikerHttpRequestProcessor(int socketDescriptor) :
         HttpRequestProcessor(socketDescriptor) {}
     /**
-     * @todo Dynamische Requests bearbeiten, diese werden atm noch mit HTTP 404 beantwortet.
+     * @remarks Es werden nur GET-Anfragen beantwortet. Alle anderen werden mit
+     *      HTTP 405 beantwortet.
+     * @todo Dynamische Requests bearbeiten, diese werden atm noch mit HTTP 404
+     *      beantwortet.
      */
     void processRequest();
 };
