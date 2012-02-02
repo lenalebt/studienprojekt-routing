@@ -4,6 +4,9 @@
 #include <QUrl>
 #include <QDir>
 #include "filedownloader.hpp"
+#include "gpsposition.hpp"
+#include "router.hpp"
+#include "routingmetric.hpp"
 
 QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
 
@@ -367,10 +370,53 @@ void BikerHttpRequestProcessor::processRequest()
     else
     {
         std::cerr << "dynamic request. TODO." << std::endl;
-        QRegExp cloudmadeApiKeyRegExp("/([\\da-fA-F]+)/(api|API)/(0.\\d)");
-        QRegExp cloudmadeApiPointListRegExp("/(\\d+.\\d+,\\d+.\\d+),(\\[(\\d+.\\d+,\\d+.\\d+)+\\],)?(\\d+.\\d+,\\d+.\\d+)");
-        QRegExp cloudmadeApiRouteTypeRegExp("/([a-zA-Z0-9]+)(/([a-zA-Z0-9]+))?.(gpx|GPX|js|JS)");
-        QRegExp cloudmadeApiAdditionalOptionsRegExp("(\\?lang=[a-zA-Z]{2}(&units=(km|KM|miles|MILES))?)?");
+        /**
+         * @todo RegExp nur einmal erzeugen und dann wiederverwenden!
+         */
+        QRegExp cloudmadeApiKeyRegExp("/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
+        QRegExp cloudmadeApiPointListRegExp("/(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10})),(?:\\[(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))(?:,(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))");
+        QRegExp cloudmadeApiRouteTypeRegExp("/([a-zA-Z0-9]{1,64})(/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)");
+        
+        int position=0;
+        if ((position=cloudmadeApiKeyRegExp.indexIn(_requestPath, position)) != -1)
+        {
+            QString apiKey = cloudmadeApiKeyRegExp.cap(1);
+            int apiVersion = cloudmadeApiKeyRegExp.cap(2).toInt();
+            //API-Key gefunden. Falls uns der interessiert, hier was damit machen!
+        }
+        else
+        {
+            this->send404();
+        }
+        if ((position=cloudmadeApiPointListRegExp.indexIn(_requestPath, position)) != -1)
+        {
+            //Punktliste gefunden. Auswerten!
+            QString strLat, strLon;
+            QVector<GPSPosition> pointList;
+            //TODO: Herausfinden, was bei capureCount herauskommt und ob dieser for-Header passt
+            for (int i=1; i<cloudmadeApiPointListRegExp.captureCount(); i+=2)
+            {
+                strLat = cloudmadeApiPointListRegExp.cap(i);
+                strLon = cloudmadeApiPointListRegExp.cap(i+1);
+                //TODO: Beide Strings zu double casten und dann GPSPosition zur Liste dazu
+            }
+        }
+        else
+        {
+            this->send404();
+        }
+        if ((position=cloudmadeApiRouteTypeRegExp.indexIn(_requestPath, position)) != -1)
+        {
+            QString routeType = cloudmadeApiRouteTypeRegExp.cap(1);
+            QString routeModifier = cloudmadeApiRouteTypeRegExp.cap(2);
+            QString routeDataType = cloudmadeApiRouteTypeRegExp.cap(3);
+            //Routentyp gefunden. Auswerten!
+        }
+        else
+        {
+            this->send404();
+        }
+        
         this->send404();
     }
 }
@@ -397,6 +443,23 @@ namespace biker_tests
         QByteArray bad_request_404 = downloader.downloadURL(QUrl("http://localhost:8081/files/lalala"));
         //QByteArray wird leer sein, wenn die Datei nicht heruntergeladen wurde
         CHECK_EQ(bad_request_404.size(), 0);
+        
+        QRegExp cloudmadeApiKeyRegExp("/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
+        QRegExp cloudmadeApiPointListRegExp("/(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10})),(?:\\[(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))(?:,(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))");
+        QRegExp cloudmadeApiRouteTypeRegExp("/([a-zA-Z0-9]{1,64})(/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)");
+        
+        
+        //http://routes.cloudmade.com/8ee2a50541944fb9bcedded5165f09d9/api/0.3/51.22545,4.40730,%5B51.22,4.41,51.2,4.41%5D,51.23,4.42/car.js?lang=de&units=miles
+        //http://routes.cloudmade.com/8ee2a50541944fb9bcedded5165f09d9/api/0.3/47.25976,9.58423,47.26117,9.59882/bicycle.gpx
+        //http://routes.cloudmade.com/8ee2a50541944fb9bcedded5165f09d9/api/0.3/47.25976,9.58423,47.26117,9.59882/car/shortest.js
+        QString line = "http://routes.cloudmade.com/8ee2a50541944fb9bcedded5165f09d9/api/0.3/51.22545,4.40730,[51.22,4.41,51.2,4.41,51.22,4.41,51.2,4.41],51.23,4.42/car.js";
+        int i=0;
+        i=cloudmadeApiKeyRegExp.indexIn(line, i);
+        CHECK(i!=-1);
+        i=cloudmadeApiPointListRegExp.indexIn(line, i);
+        CHECK(i!=-1);
+        i=cloudmadeApiRouteTypeRegExp.indexIn(line, i);
+        CHECK(i!=-1);
         
         server.wait(100);
         
