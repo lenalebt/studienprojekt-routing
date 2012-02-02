@@ -108,6 +108,7 @@ protected:
      * @param socket Das Socket, das verwendet werden soll
      * @param line[out] Hier wird die Zeile reingeschrieben, die gelesen wurde
      * @return Ob eine Zeile gelesen werden konnte
+     * @remarks Liest maximal 4KiB Daten in einer Zeile, alles danach wird abgeschnitten.
      */
     bool readLine(QTcpSocket* socket, QString& line);
     /**
@@ -173,6 +174,11 @@ public:
      *      <code>_parameterMap</code> abgerufen werden.
      *  - Der Pfad wurde in <code>_requestPath</code> abgelegt.
      *  - Der Typ des Requests wurde in <code>_requestType</code> abgelegt.
+     * 
+     * @remarks Es werden nicht mehr als 127 Header-Zeilen erlaubt
+     * @remarks Es werden nicht mehr als 4KiB Daten pro Zeile angenommen.
+     *      Bei 4095 Bytes Daten oder mehr in einer Zeile wird der Request abgelehnt.
+     * @todo Request ablehnen, wenn er größer als 4KiB wird.
      */
     virtual void processRequest()=0;
 };

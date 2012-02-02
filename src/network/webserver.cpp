@@ -123,13 +123,13 @@ bool HttpRequestProcessor::readLine(QTcpSocket* socket, QString& line)
     bool didReadLine = false;
     int tries=0;
     int bytesRead=0;
-    char c[1024];
+    char c[4096];
     while (!didReadLine)
     {
         tries++;
         if (socket->canReadLine())
         {
-            if ((bytesRead = socket->readLine(c, 1023)))
+            if ((bytesRead = socket->readLine(c, 4095)))
             {
                 c[bytesRead] = '\0';
             }
@@ -399,6 +399,8 @@ void BikerHttpRequestProcessor::processRequest()
                 strLat = cloudmadeApiPointListRegExp.cap(i);
                 strLon = cloudmadeApiPointListRegExp.cap(i+1);
                 //TODO: Beide Strings zu double casten und dann GPSPosition zur Liste dazu
+                GPSPosition point(strLat.toDouble(), strLon.toDouble());
+                pointList << point;
             }
         }
         else
@@ -417,6 +419,7 @@ void BikerHttpRequestProcessor::processRequest()
             this->send404();
         }
         
+        //TODO: Routing starten, http-"wird bearbeitet" senden
         this->send404();
     }
 }
