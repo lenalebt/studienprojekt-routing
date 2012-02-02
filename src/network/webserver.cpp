@@ -262,7 +262,7 @@ bool HttpRequestProcessor::preprocessRequest()
     
     //Header abfragen.
     QRegExp httpHeader("(\\S\\S*):\\s\\s*([^\\n]*)");
-    int httpHeaderCount=0
+    int httpHeaderCount=0;
     while (readLine(_socket, line))
     {
         httpHeaderCount++;
