@@ -104,8 +104,8 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
         ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->implicit_value("database.db"), "set database filename for database operations")
         ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->implicit_value("spatialite"), "set database backend. possible values: spatialite.")
-        ("route", po::value<std::string>(&(programOptions->routingStartPointString))->default_value("(0/0)"), "set routing startpoint.")
-        ("to", po::value<std::string>(&(programOptions->routingEndPointString))->default_value("(0/0)"), "set routing endpoint.")
+        ("route", po::value<std::string>(&(programOptions->routingStartPointString))->implicit_value("(0/0)"), "set routing startpoint.")
+        ("to", po::value<std::string>(&(programOptions->routingEndPointString))->implicit_value("(0/0)"), "set routing endpoint.")
         ("json-output", "create routes as JSON instead of GPX.")
         ;
     
