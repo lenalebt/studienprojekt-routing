@@ -53,7 +53,7 @@ private:
     BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
 
-    boost::shared_ptr<RoutingEdge> categorizeEdge(const OSMEdge &osmEdge);
+    boost::shared_ptr<RoutingEdge> categorizeEdge(const OSMEdge& osmEdge);
 
 public:    
     DataPreprocessing();
