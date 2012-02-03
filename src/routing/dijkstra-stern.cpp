@@ -101,10 +101,12 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
     {
         //Initialisiere Datenstrukturen
         HashClosedList closedList;
-        NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
+        NodeCostLessAndQHashFunctor<boost::uint64_t, double> estimatedCosts;
         BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
         QHash<boost::uint64_t, boost::uint64_t> predecessor;
         QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
+        QHash<boost::uint64_t, boost::uint64_t> nodeCosts;
+        
         
         
         //Startknoten: Kosten auf Null setzen, zum Heap und Puffer hinzufügen, Vorgänger auf Null setzen
@@ -162,20 +164,25 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
                     //Wurde der Knoten schon einmal betrachtet, oder nicht?
                     if (!heap.contains(activeEdgeEndNodeLongID))
                     {
-                        //Neuen Knoten zum Heap dazu, nachdem neue Kosten gesetzt wurden.
-                        nodeCosts.setValue(activeEdgeEndNodeLongID, nodeCosts.getValue(activeNodeLongID) + 
-                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode));
+                        
+                        nodeCosts[activeEdgeEndNodeLongID] = nodeCosts[activeNodeLongID] +
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
+                        //------------- + abstand zum zielort noch hinzufügen + -----------//
+                        estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance);
+
                         heap.add(activeEdgeEndNodeLongID);
                         //Vorgänger-Zeiger setzen
                         predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
                     }
                     else
                     {
-                        double newCosts = nodeCosts.getValue(activeNodeLongID) + 
+                        double newCosts = nodeCosts[activeNodeLongID] + 
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
-                        if (newCosts < nodeCosts.getValue(activeEdgeEndNodeLongID))
+                        if (newCosts < nodeCosts[activeEdgeEndNodeLongID])
                         {
-                            nodeCosts.setValue(activeEdgeEndNodeLongID, newCosts);
+                            nodeCosts[activeEdgeEndNodeLongID] = newCosts;
+                            //estimatedCosts = ... 
                             heap.decreaseKey(activeEdgeEndNodeLongID);
                             predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
                         }
