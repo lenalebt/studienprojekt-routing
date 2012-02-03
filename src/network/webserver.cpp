@@ -176,7 +176,7 @@ bool HttpRequestProcessor::sendFile(QFile& file)
     }
     else
     {
-        //TODO: Fehler sagen. 403 oder so.
+        this->send500();
         _socket->flush();
         return false;
     }
@@ -394,52 +394,70 @@ void BikerHttpRequestProcessor::processRequest()
          * @todo RegExp nur einmal erzeugen und dann wiederverwenden!
          * @todo Regexpe sind nicht 100% richtig, dadurch dass sie getrennt wurden...
          */
-        QRegExp cloudmadeApiKeyRegExp("/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
-        QRegExp cloudmadeApiPointListRegExp("/(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10})),(?:\\[(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))(?:,(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))");
-        QRegExp cloudmadeApiRouteTypeRegExp("/([a-zA-Z0-9]{1,64})(/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)");
+        QRegExp cloudmadeApiKeyRegExp("^/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
+        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10})),(?:\\[(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))(?:,(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))");
+        QRegExp cloudmadeApiRouteTypeRegExp("^/([a-zA-Z0-9]{1,64})(/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)$");
+        
+        QString apiKey="";
+        int apiVersion=0;
+        QVector<GPSPosition> routePointList;
+        QString routeType="";
+        QString routeModifier="";
+        QString routeDataType="";
         
         int position=0;
-        if ((position=cloudmadeApiKeyRegExp.indexIn(_requestPath, position)) != -1)
+        if ((position=cloudmadeApiKeyRegExp.indexIn(_requestPath)) != -1)
         {
-            QString apiKey = cloudmadeApiKeyRegExp.cap(1);
-            int apiVersion = cloudmadeApiKeyRegExp.cap(2).toInt();
+            apiKey = cloudmadeApiKeyRegExp.cap(1);
+            apiVersion = cloudmadeApiKeyRegExp.cap(2).toInt();
             //API-Key gefunden. Falls uns der interessiert, hier was damit machen!
+            
+            if (apiVersion != 3)
+            {
+                std::cerr <<< "requested api version 0." << apiVersion << ", which is not supported." << std::endl;
+                this->send405();
+                return;
+            }
+            
+            position += cloudmadeApiKeyRegExp.cap(0).length();
         }
         else
         {
-            this->send404();
+            this->send400();
             return;
         }
-        if ((position=cloudmadeApiPointListRegExp.indexIn(_requestPath, position)) != -1)
+        position+=cloudmadeApiPointListRegExp.indexIn(_requestPath.mid(position));
+        if (cloudmadeApiPointListRegExp.cap(0).length() != 0)
         {
             //Punktliste gefunden. Auswerten!
             QString strLat, strLon;
-            QVector<GPSPosition> pointList;
-            //TODO: Herausfinden, was bei capureCount herauskommt und ob dieser for-Header passt
-            for (int i=1; i<cloudmadeApiPointListRegExp.captureCount(); i+=2)
+            routePointList.clear();
+            for (int i=1; i<=cloudmadeApiPointListRegExp.captureCount(); i+=2)
             {
                 strLat = cloudmadeApiPointListRegExp.cap(i);
                 strLon = cloudmadeApiPointListRegExp.cap(i+1);
-                //TODO: Beide Strings zu double casten und dann GPSPosition zur Liste dazu
                 GPSPosition point(strLat.toDouble(), strLon.toDouble());
-                pointList << point;
+                routePointList << point;
             }
+            
+            position += cloudmadeApiPointListRegExp.cap(0).length();
         }
         else
         {
-            this->send404();
+            this->send400();
             return;
         }
-        if ((position=cloudmadeApiRouteTypeRegExp.indexIn(_requestPath, position)) != -1)
+        position+=cloudmadeApiRouteTypeRegExp.indexIn(_requestPath.mid(position));
+        if (cloudmadeApiRouteTypeRegExp.cap(0).length() != 0)
         {
-            QString routeType = cloudmadeApiRouteTypeRegExp.cap(1);
-            QString routeModifier = cloudmadeApiRouteTypeRegExp.cap(2);
-            QString routeDataType = cloudmadeApiRouteTypeRegExp.cap(3);
+            routeType = cloudmadeApiRouteTypeRegExp.cap(1);
+            routeModifier = cloudmadeApiRouteTypeRegExp.cap(2);
+            routeDataType = cloudmadeApiRouteTypeRegExp.cap(3);
             //Routentyp gefunden. Auswerten!
         }
         else
         {
-            this->send404();
+            this->send400();
             return;
         }
         
