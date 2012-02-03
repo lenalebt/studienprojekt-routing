@@ -7,7 +7,7 @@ OSMParser::OSMParser(BlockingQueue<boost::shared_ptr<OSMNode> >* nodeQueue,
     : nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0),
       _nodeQueue(nodeQueue), _wayQueue(wayQueue), _turnRestrictionQueue(turnRestrictionQueue)
 {
-
+    
 }
 
 OSMParser::~OSMParser()
@@ -27,7 +27,7 @@ bool OSMParser::parse(QString filename)
 
 bool OSMParser::fatalError ( const QXmlParseException & exception )
 {
-    std::cerr << "FatalError" << std::endl;
+    std::cerr << "Fatal Error while parsing" << std::endl;
     std::cerr << exception.lineNumber() << " " << exception.columnNumber() << " " << exception.message().toStdString() << std::endl;
     return false;
 }
@@ -327,6 +327,37 @@ namespace biker_tests
         CHECK_EQ(nodeVector.size(), 20055);
         CHECK_EQ(wayVector.size(), 3354);
         CHECK_EQ(turnRestrictionVector.size(), 0);
+        
+        
+        nodeVector.clear();
+        wayVector.clear();
+        turnRestrictionVector.clear();
+        
+        BlockingQueue<boost::shared_ptr<OSMNode> > nodeQueue2(2000);
+        BlockingQueue<boost::shared_ptr<OSMWay> > wayQueue2(500);
+        BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > turnRestrictionQueue2(10);
+        
+        OSMParser parser2(&nodeQueue2, &wayQueue2, &turnRestrictionQueue2);
+        CHECK(parser2.parse("data/bochum_city.osm"));
+        while (nodeQueue2.dequeue(node))
+        {
+            nodeVector << node;
+        }
+        while (wayQueue2.dequeue(way))
+        {
+            wayVector << way;
+        }
+        while (turnRestrictionQueue2.dequeue(turnRestriction))
+        {
+            turnRestrictionVector << turnRestriction;
+        }
+        CHECK(!nodeVector.isEmpty());
+        CHECK(!wayVector.isEmpty());
+        CHECK(!turnRestrictionVector.isEmpty());
+        
+        CHECK_EQ(nodeVector.size(), 1588);
+        CHECK_EQ(wayVector.size(), 269);
+        CHECK_EQ(turnRestrictionVector.size(), 2);
         
         return EXIT_SUCCESS;
     }

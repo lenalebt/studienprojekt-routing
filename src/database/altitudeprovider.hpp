@@ -4,6 +4,7 @@
 #include "gpsposition.hpp"
 #include "zip.hpp"
 #include "tests.hpp"
+#include "filedownloader.hpp"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -21,6 +22,7 @@
 #include <QtConcurrentRun>
 #include <QDataStream>
 #include <QDir>
+#include <QFileInfo>
 
 #define SRTM_DATA_VOID -32768
 /**
@@ -87,13 +89,13 @@ private:
     
     QMap<int, QString> fileList;
     bool valid;
-    qint16 *buffer;
     int resolution;
     int intlat;
     int intlon;
     QString _cachedir;
     QString _srtmFileList;
     QUrl _url;
+    qint16 *buffer;
     // QCache<int, SRTMTile> tileCache;
     
     void loadFileList();
@@ -162,33 +164,24 @@ public:
     void downloadUrl(QUrl &url, QString &data);
     void downloadUrl(QUrl &dUrl, QByteArray &data);
     
-    SRTMProvider() : _cachedir(""), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/")
+    SRTMProvider() : _cachedir(""), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/"), buffer(0)
     {
         _cachedir = QDir::homePath() + "/.biker/srtm/";
     }
     
-    SRTMProvider(QString cachedir) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/")  {}
+    SRTMProvider(QString cachedir) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/"), buffer(0)  {}
     
-    SRTMProvider(QUrl url) : _cachedir(""), _srtmFileList("srtmfile"), _url(url)  
+    SRTMProvider(QUrl url) : _cachedir(""), _srtmFileList("srtmfile"), _url(url), buffer(0)  
     {
         _cachedir = QDir::homePath() + "/.biker/srtm/";
     }
     
-    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url(url)  {}
+    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url(url), buffer(0)  {}
     
     ~SRTMProvider();
 };
 
-class FileDownloader: public QObject
-{
-private:
-public:
-    FileDownloader();
-    ~FileDownloader();
-    //void run();
-    QByteArray downloadURL(QUrl &url);
-    //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error); // vll TODO
-};
+
 
 
 //Klasse SRTMTile wird nun doch nicht verwendet

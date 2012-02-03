@@ -44,11 +44,13 @@ double SRTMProvider::getAltitude(double lat, double lon)
         
         if(!zipFile.open(QIODevice::ReadOnly)){
             
-            std::cerr << "entsprechendes Zipfile konnte nicht geöffnet werden, soll nun runtetgeladen werden." << std::endl;
+            std::cerr << "Entsprechendes Zipfile konnte nicht geöffnet werden, soll nun runtetgeladen werden." << std::endl;
             QString altZipUrl =  _url.toString() + fileList[latLonToIndex(intlat, intlon)]; //Url bis .hgt.zip
             altZipUrl.toAscii().constData();
             QUrl srtmUrl(altZipUrl);
             QByteArray data;
+            
+            std::cerr << "Zipfile soll nun runtergeladen werden." << std::endl;
             downloadUrl(srtmUrl, data);
             
             if(data.isEmpty()){ // Download nicht geglückt
@@ -57,23 +59,26 @@ double SRTMProvider::getAltitude(double lat, double lon)
             }
             std::cerr << "Irgendwas wurde auch runtergeladen." << std::endl;
             
-            //QDir makedir;
-            //makedir.mkpath(_cachedir);
+            QFileInfo fileInfo(fileName);
+            QString filePath = fileInfo.absolutePath();
+            QDir makedir;
+            makedir.mkpath(filePath);
             zipFile.open(QIODevice::WriteOnly);
-            QDataStream zipFileOutStream(&zipFile);
-            zipFileOutStream << data;
-            
-            zipFile.close();            
-            if(!zipFile.open(QIODevice::ReadOnly)){
-                std::cout << "Fehler beim öffnen des Downloads der Daten für " << fileList[latLonToIndex(intlat, intlon)] << "." << std::endl;
-                return altitude;
-            }
+            //QDataStream zipFileOutStream(&zipFile);
+            //zipFileOutStream << data;            
+            zipFile.write(data);
+            zipFile.close(); 
+                       
+            //if(!zipFile.open(QIODevice::ReadOnly)){
+                //std::cout << "Fehler beim öffnen des Downloads der Daten für " << fileList[latLonToIndex(intlat, intlon)] << "." << std::endl;
+                //return altitude;
+            //}
         }
         // [TODO] Zip-Dateien evtl geöffnet lassen/im Speicher lassen, damit es schneller wird.
         
-        SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
-        std::cerr << "Soll jetzt entzippt werden." << std::endl;
-        resolution = srtmZipFileObject.getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
+        //SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
+        std::cerr << "Soll jetzt entzippt werden: " << fileName << std::endl;
+        resolution = SrtmZipFile::getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
         std::cerr << "Bei entzippen ermittelte Auflösung der entsippten Kachel: " << QString::number(resolution, 10) << std::endl;
         if(resolution > 0){ // srtmZipFileObject.getData hat nicht den Defaultwert zurückgegeben
             valid = true;
@@ -173,13 +178,8 @@ void SRTMProvider::createFileList()
             std::cerr << replyString << std::endl;
             QRegExp regex("<li>\\s*<a\\s+href=\"([^\"]+)");
             regex.indexIn(replyString);
-            //QStringList dateiListe;	
-            //int capCount = 0;
-            //int lat;
-            //int lon;
-            //int pos = 0;
-            //capCount = 0;
             pos = 0;
+            capCount = 0;
             dateiListe.clear();	
 
             while ((pos = regex.indexIn(replyString, pos)) != -1) {
@@ -188,22 +188,28 @@ void SRTMProvider::createFileList()
                 capCount++;
             }
             std::cerr << "capCount: " << QString::number(capCount, 10) << std::endl;
+            std::cerr << "Länge von dateiListe: " << QString::number(dateiListe.length(), 10) << std::endl;
                       
             QRegExp innerRx("([NS])(\\d{2})([EW])(\\d{3})");
-            for (int i=1;i<=capCount;i++){
-                lat = innerRx.cap(2).toInt();
-                lon = innerRx.cap(4).toInt();
-                if (innerRx.cap(1) == "S") {
-                    lat = -lat;
+            for (int i = 0; i < capCount; i++){
+                int po = innerRx.indexIn(dateiListe[i]);
+                if (po > -1){
+                    lat = innerRx.cap(2).toInt();
+                    lon = innerRx.cap(4).toInt();
+                    if (innerRx.cap(1) == "S") {
+                        lat = -lat;
+                    }
+                    if (innerRx.cap(3) == "W") {
+                        lon = - lon;
+                    }
+                    //S00E000.hgt.zip
+                    //123456789012345 => 15 bytes long
+                    fileList[latLonToIndex(lat, lon)] = continent+"/"+dateiListe[i].right(15);
                 }
-                if (innerRx.cap(3) == "W") {
-                    lon = - lon;
-                }
-                //S00E000.hgt.zip
-                //123456789012345 => 15 bytes long
-                fileList[latLonToIndex(lat, lon)] = continent+"/"+dateiListe[i].right(15);
+        
             }
-        std::cerr << "Letzter Eintrag in fileList: Index: " << QString::number(latLonToIndex(lat, lon), 10) << " Datei: " << continent << "/" << dateiListe[capCount].right(15) << std::endl;
+             
+        std::cerr << "Letzter Eintrag in fileList: Index: " << QString::number(latLonToIndex(lat, lon), 10) << " Datei: " << continent << "/" << dateiListe[capCount-1].right(15) << std::endl;
             
         }
         else
@@ -218,8 +224,11 @@ void SRTMProvider::createFileList()
         ////exit(1); //ERROR: SRTM-Filecount was wrong. Should not matter to comment this out.
     //}
     
-    //QDir makedir;
-    //makedir.mkpath(_cachedir);
+    
+    QFileInfo fileInfo(_cachedir + _srtmFileList);
+    QString filePath = fileInfo.absolutePath();
+    QDir makedir;
+    makedir.mkpath(filePath);
     QFile file(_cachedir + _srtmFileList);
     if (!file.open(QIODevice::WriteOnly)) { 
         std::cerr << "Could not open file " << _cachedir << _srtmFileList << std::endl;
@@ -254,49 +263,7 @@ SRTMProvider::~SRTMProvider()
 {	
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////
-// Klasse SRTMProvider //////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////
-FileDownloader::FileDownloader():QObject()
-{
-    //manager = new QNetworkAccessManager(this);//this);
-    //connect(manager, SIGNAL(finished(QNetworkReply*)),
-         //this, SLOT(replyFinished(QNetworkReply* r)));
-} 
-FileDownloader::~FileDownloader()
-{
-}
 
-//void FileDownloader::run()
-//{
-    ////Wird aufgerufen, wenn start() gestartet wird
-//}
-
-//void FileDownloader::replyFinished(QNetworkReply* r){
-    //finished = true;
-//}
-
-QByteArray FileDownloader::downloadURL(QUrl &url)
-{
-    
-    QNetworkAccessManager manager;
-    QNetworkRequest request(url);    
-    QNetworkReply *reply = manager.get(request);
-    QByteArray data;
-
-    QEventLoop loop;
-    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-    loop.exec();
-    
-    if(reply->error() == QNetworkReply::NoError){
-        data = reply->readAll();
-    }
-    
-    delete reply;
-    return data;
-}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -308,8 +275,15 @@ namespace biker_tests
 {
 	int testSRTMProvider()
 	{
-		SRTMProvider s;
-        s.getAltitude(51.457, 7.014);
+		
+        //std::cerr << "Jetzt erstmal nur entzippen" << std::endl;
+        //SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
+        //qint16 *buffer;
+        //int res = srtmZipFileObject.getData("/home/pia/.biker/srtm/Eurasia/N51E007.hgt.zip", &buffer);
+        //std::cerr << QString::number(res, 10) << std::endl;
+        
+        SRTMProvider s;
+        s.getAltitude(51.527, 16.96); // wird zu 107 berechnet (soll ca.110 sein)
 		
 		return EXIT_SUCCESS;
 	}

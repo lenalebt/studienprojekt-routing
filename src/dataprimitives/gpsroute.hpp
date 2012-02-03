@@ -79,7 +79,7 @@ public:
      * @param position Element, dass an den Anfang der Liste gesetzt werden soll.
      * @param pos Stelle in der Liste, an die das Element eingefügt werden soll.
      */
-    void insertAtPosition(int pos, GPSPosition position)
+    void insertAtPosition(int pos, const GPSPosition position)
     {
         route.insert(pos, position);
     } 
@@ -87,7 +87,7 @@ public:
      * @brief führt einen Wegpunkt vorwärts in die Route ein.
      * @param position Element, dass an den Anfang der Liste gesetzt werden soll.
      */
-    void insertForward(GPSPosition position)
+    void insertForward(const GPSPosition position)
     {
         route.insert(0, position);
     }    
@@ -95,7 +95,7 @@ public:
      * @brief führt einen Wegpunkt rückwärts in die Route ein.
      * @param position Element, dass an das Ende der Lise angefügt werden soll.
      */
-    void insertBackward(GPSPosition position)
+    void insertBackward(const GPSPosition position)
     {
         route.append(position);
     }
@@ -129,13 +129,13 @@ public:
      * von anderen Applikationen benutzt werden kann.
      * @param filename Name unter der die GPX-Datei gespeichert werden soll
      */
-    static void exportGPX(QString filename, GPSRoute& route);
+    void exportGPX(const QString filename);//, GPSRoute& route);
     /**
      * @brief Diese Funktion exportiert die Route in einen QString mit  GPX-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
      * @param route die Route, die ausgegeben werden soll
      */
-    QString exportGPXString(GPSRoute& route);
+    QString exportGPXString();//(GPSRoute& route);
 
     /**
      * @brief Diese Funktion exportiert die Route in das JSON-Format, sodass sie
@@ -143,13 +143,13 @@ public:
      * @param filename Name unter der die JSON-Datei gespeichert werden soll
      * @param route die Route, die ausgegeben werden soll
      */
-    static void exportJSON(QString filename, GPSRoute& route);
+    void exportJSON(const QString filename);//, GPSRoute& route);
     /**
      * @brief Diese Funktion exportiert die Route in einen QString mit  JSON-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
      * @param route die Route, die ausgegeben werden soll
      */
-    QString exportJSONString(GPSRoute& route);
+    QString exportJSONString();//GPSRoute& route);
 
     /**
      * @brief Kopiert eine Route.

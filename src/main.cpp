@@ -70,13 +70,13 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
     desc.add_options()
         ("help,h", "produce help message")
         ("test,t", po::value<std::string>(&(programOptions->tests_testName))->implicit_value("all"), "run program tests")
-        ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpool_size))->default_value(10u), "set maximum thread pool size")
+        ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpool_size))->default_value(10u), "set maximum thread pool size for standard purposes")
         ("start-webserver", "start webserver with given or standard settings")
-        ("webserver-public-html-folder,d", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value(""), "set public html folder of webserver")
+        ("webserver-public-html-folder,d", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value("./gui/"), "set public html folder of webserver")
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
-        ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(5), "set maximum thread pool size of webserver")
-        ("parse", po::value<std::string>(&(programOptions->osmFilename))->default_value("input.osm"), "set filename to parse for parser")
-        ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("output.db"), "set output database filename for parser")
+        ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(10), "set maximum thread pool size of webserver")
+        ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
+        ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->implicit_value("output.db"), "set output database filename for parser")
         ;
     
     po::variables_map vm;
@@ -95,7 +95,7 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
         std::cerr << "We need a minimum threadpoolsize of 5. Setting to 5." << std::endl;
         programOptions->threads_threadpool_size = 5;
     }
-    std::cerr << "Using up to " << programOptions->threads_threadpool_size << " threads." << std::endl;
+    std::cerr << "Using up to " << programOptions->threads_threadpool_size << " threads for standard purposes." << std::endl;
     QThreadPool::globalInstance()->setMaxThreadCount(programOptions->threads_threadpool_size);
     
     
@@ -132,7 +132,7 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
  * @param argc Anzahl Aufrufargumente
  * @param argv Werte der Aufrufparameter
  * @return ob das Programm erfolgreich beendet wurde
- * @todo Noch kein effektiver Inhalt.
+ * @bug Wenn eine Datei als --dbfile übergeben wird, die schon existiert, wird sie noch nicht gelöscht, sondern Daten angefügt.
  */
 int main ( int argc, char* argv[] )
 {
@@ -174,7 +174,8 @@ int main ( int argc, char* argv[] )
      */
     if (programOptions.parseOsmFile)
     {
-        DataPreprocessing preprocessor;
+        boost::shared_ptr<SpatialiteDatabaseConnection> ptr(new SpatialiteDatabaseConnection());
+        DataPreprocessing preprocessor(ptr);
         preprocessor.startparser(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str());
     }
     

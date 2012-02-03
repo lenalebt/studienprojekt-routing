@@ -163,14 +163,11 @@ bool HttpRequestProcessor::sendFile(QFile& file)
         int bytesWritten=0;
         while ((file.bytesAvailable() > 0) && (bytesWritten != -1))
         {
-            std::cerr << "lese häppchen." << file.bytesAvailable() << std::endl;
             //64KB-Häppchen der Datei lesen und versenden
             bytesRead = file.read(data, 65536);
             if (bytesRead != -1)
                 bytesWritten = _socket->write(data, bytesRead);
             _socket->flush();
-            
-            std::cerr << file.bytesAvailable() << "written:" << bytesWritten << std::endl;
         }
     }
     else
@@ -232,6 +229,7 @@ bool HttpRequestProcessor::preprocessRequest()
     
     if (httpHelloRegExp.indexIn(line) == -1)
     {
+        std::cerr << "not well-formed: \"" << line << "\"" << std::endl;
         return false;
     }
     
