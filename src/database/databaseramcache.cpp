@@ -7,6 +7,17 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/generator_iterator.hpp>
 
+boost::shared_ptr<DatabaseRAMCache> DatabaseRAMCache::_globalCacheInstance = boost::shared_ptr<DatabaseRAMCache>();
+
+boost::shared_ptr<DatabaseRAMCache> DatabaseRAMCache::getGlobalCacheInstance()
+{
+    return _globalCacheInstance;
+}
+void DatabaseRAMCache::setGlobalCacheInstance(boost::shared_ptr<DatabaseRAMCache> instance)
+{
+    _globalCacheInstance = instance;
+}
+
 DatabaseRAMCache::DatabaseRAMCache(boost::shared_ptr<DatabaseConnection> connection) :
     _connection(connection)
 {

@@ -16,6 +16,7 @@
 #include "router.hpp"
 #include "dijkstra.hpp"
 #include "altitudeprovider.hpp"
+#include "databaseramcache.hpp"
 #include <sstream>
 
 namespace po = boost::program_options;
@@ -249,7 +250,8 @@ int main ( int argc, char* argv[] )
             std::cerr << "error while opening database file \"" << programOptions.dbFilename << "\". exiting." << std::endl;
             return 1;
         }
-        db->setGlobalInstance(db);
+        boost::shared_ptr<DatabaseConnection> dbcache(new DatabaseRAMCache(db));
+        DatabaseConnection::setGlobalInstance(dbcache);
     }
     else
     {
