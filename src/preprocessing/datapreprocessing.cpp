@@ -178,6 +178,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
 
     routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
 
+    // Hier würden jetzt mit viel if und else, durch betrachtung der OSMPropertys der OSMEdge, die jeweiligen Werte der routingEdge gesetzt.
     routingEdge->setTrafficLights(hasTrafficLights);
     routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
     routingEdge->setStopSign(hasStopSign);
@@ -191,6 +192,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
 
     return routingEdge;
 }
+
 //int DataPreprocessing::getStreetType();
 //int DataPreprocessing::getStreetSurfaceQuality();
 //int DataPreprocessing::getStreetSurfaceType();
