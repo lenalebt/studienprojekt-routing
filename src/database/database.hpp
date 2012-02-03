@@ -26,8 +26,17 @@
 class DatabaseConnection
 {
 private:
-    
+    static boost::shared_ptr<DatabaseConnection> _globalInstance;
 public:
+    static void setGlobalInstance(boost::shared_ptr<DatabaseConnection> instance)
+    {
+        _globalInstance = instance;
+    }
+    static boost::shared_ptr<DatabaseConnection> getGlobalInstance()
+    {
+        return _globalInstance;
+    }
+    
     /**
      * @brief Schließt eine Verbindung zur Datenbank
      */

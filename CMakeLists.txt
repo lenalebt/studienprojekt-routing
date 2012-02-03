@@ -96,6 +96,7 @@ SET(
     src/database/zip.cpp
     src/database/sqlite_functions.cpp
     src/database/databaseramcache.cpp
+    src/database/database.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp

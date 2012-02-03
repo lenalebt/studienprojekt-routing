@@ -129,6 +129,15 @@ protected:
     bool sendFile(QFile& file);
     
     /**
+     * @brief Sendet eine Datei über die Verbindung, inklusive der richtigen
+     *      Header usw.
+     * 
+     * @param content Inhalt der Datei, die gesendet werden soll.
+     * @return Ob das Senden erfolgreich war, oder nicht.
+     */
+    bool sendFile(const QString& content);
+    
+    /**
      * @brief Schickt eine 400 (Bad Request)-Nachricht mit kleiner
      *      Webseite an den Peer.
      * 

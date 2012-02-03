@@ -7,6 +7,8 @@
 #include "gpsposition.hpp"
 #include "router.hpp"
 #include "routingmetric.hpp"
+#include "database.hpp"
+#include "dijkstra.hpp"
 
 QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
 
@@ -100,6 +102,8 @@ void HttpServerThread<HttpRequestProcessorType>::startServer()
     //Server-Thread starten
     _running = true;
     this->start();
+    //TODO: Aufs Hochfahren warten, schöner als so.
+    this->wait(300);
 }
 
 template <typename HttpRequestProcessorType>
@@ -180,6 +184,24 @@ bool HttpRequestProcessor::sendFile(QFile& file)
         _socket->flush();
         return false;
     }
+    //TODO: Header, die zum Dateiinhalt passen
+    //TODO: Dateiinhalt senden
+    //TODO: Bei Fehler false zurückgeben
+    //writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Bad request</title></head><body><p>400 Bad Request</p></body></html>");
+    _socket->flush();
+    
+    return true;
+}
+bool HttpRequestProcessor::sendFile(const QString& content)
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, _httpVersion);
+    writeString(_socket, " 200 OK\n");
+    writeString(_socket, "Content-Length: ");
+    writeString(_socket, QString::number(content.length()) + "\n");
+    writeString(_socket, "\n");
+    _socket->flush();
+    _socket->write(content.toUtf8());
     //TODO: Header, die zum Dateiinhalt passen
     //TODO: Dateiinhalt senden
     //TODO: Bei Fehler false zurückgeben
@@ -389,14 +411,12 @@ void BikerHttpRequestProcessor::processRequest()
     }
     else
     {
-        std::cerr << "dynamic request. TODO." << std::endl;
         /**
          * @todo RegExp nur einmal erzeugen und dann wiederverwenden!
-         * @todo Regexpe sind nicht 100% richtig, dadurch dass sie getrennt wurden...
          */
         QRegExp cloudmadeApiKeyRegExp("^/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
         QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10})),(?:\\[(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))(?:,(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))");
-        QRegExp cloudmadeApiRouteTypeRegExp("^/([a-zA-Z0-9]{1,64})(/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)$");
+        QRegExp cloudmadeApiRouteTypeRegExp("^/([a-zA-Z0-9]{1,64})(?:/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)$");
         
         QString apiKey="";
         int apiVersion=0;
@@ -408,13 +428,13 @@ void BikerHttpRequestProcessor::processRequest()
         int position=0;
         if ((position=cloudmadeApiKeyRegExp.indexIn(_requestPath)) != -1)
         {
-            apiKey = cloudmadeApiKeyRegExp.cap(1);
+            apiKey = cloudmadeApiKeyRegExp.cap(1).toLower();
             apiVersion = cloudmadeApiKeyRegExp.cap(2).toInt();
             //API-Key gefunden. Falls uns der interessiert, hier was damit machen!
             
             if (apiVersion != 3)
             {
-                std::cerr <<< "requested api version 0." << apiVersion << ", which is not supported." << std::endl;
+                std::cerr << "requested api version 0." << apiVersion << ", which is not supported." << std::endl;
                 this->send405();
                 return;
             }
@@ -450,9 +470,9 @@ void BikerHttpRequestProcessor::processRequest()
         position+=cloudmadeApiRouteTypeRegExp.indexIn(_requestPath.mid(position));
         if (cloudmadeApiRouteTypeRegExp.cap(0).length() != 0)
         {
-            routeType = cloudmadeApiRouteTypeRegExp.cap(1);
-            routeModifier = cloudmadeApiRouteTypeRegExp.cap(2);
-            routeDataType = cloudmadeApiRouteTypeRegExp.cap(3);
+            routeType = cloudmadeApiRouteTypeRegExp.cap(1).toLower();
+            routeModifier = cloudmadeApiRouteTypeRegExp.cap(2).toLower();
+            routeDataType = cloudmadeApiRouteTypeRegExp.cap(3).toLower();
             //Routentyp gefunden. Auswerten!
         }
         else
@@ -461,10 +481,64 @@ void BikerHttpRequestProcessor::processRequest()
             return;
         }
         
-        //TODO: Routing starten, http-"wird bearbeitet" senden
-        this->send102();
+        //TODO: Routing starten
+        //this->send102();
         
-        this->send500();
+        if ((routeType == "bicycle") || (routeType == "bike"))
+        {
+            boost::shared_ptr<RoutingMetric> metric;
+            boost::shared_ptr<Router> router;
+            boost::shared_ptr<DatabaseConnection> db;
+            //Routingmetrik festlegen anhand der Benutzerwahl
+            if (routeModifier == "euclidian")
+            {
+                metric.reset(new EuclidianRoutingMetric());
+            }
+            else if (routeModifier == "power")
+            {
+                //TODO: Gewicht etc aus der Anfrage herauslesen
+                metric.reset(new PowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider())));
+            }
+            else
+            {
+                std::cerr << "routeModifier \"" << routeModifier << "\" not supported." << std::endl;
+                this->send405();
+                return;
+            }
+            
+            //Datenbank ist die globale DB...
+            db = DatabaseConnection::getGlobalInstance();
+            
+            //Als Router nehmen wir erstmal Dijkstra.
+            router.reset(new DijkstraRouter(db, metric));
+            //TODO: Bei mehr als 2 Punkten richtig routen. atm werden Transitpunkte vernachlässigt.
+            //Start- und Endpunkt heraussuchen
+            GPSPosition startPosition = routePointList[0];
+            GPSPosition endPosition = routePointList.last();
+            
+            //Route berechnen
+            GPSRoute route = router->calculateShortestRoute(startPosition, endPosition);
+            //Keine Route gefunden? 404 senden.
+            if (!route.isEmpty())
+            {
+                this->send404();
+                return;
+            }
+            
+            //Antwort entsprechend des Routentypen senden.
+            if (routeType == "gpx")
+                this->sendFile(route.exportGPXString());
+            else if (routeType == "js")
+                this->sendFile(route.exportJSONString());
+            return;
+        }
+        else
+        {
+            std::cerr << "requested routeType=" << routeType << ", which is not supported." << std::endl;
+            this->send405();
+            return;
+        }
+        
         return;
     }
 }
@@ -481,7 +555,6 @@ namespace biker_tests
         HttpServerThread<BikerHttpRequestProcessor> server(8081);
         server.startServer();
         //todo: aufs hochfahren warten toller lösen als so
-        server.wait(300);
         
         FileDownloader downloader;
         QByteArray gui_html = downloader.downloadURL(QUrl("http://localhost:8081/files/gui.html"));

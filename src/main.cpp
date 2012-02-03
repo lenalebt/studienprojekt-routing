@@ -102,7 +102,7 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(10), "set maximum thread pool size of webserver")
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
-        ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->implicit_value("database.db"), "set database filename for database operations")
+        ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("database.db"), "set database filename for database operations")
         ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->implicit_value("spatialite"), "set database backend. possible values: spatialite.")
         ("route", po::value<std::string>(&(programOptions->routingStartPointString))->implicit_value("(0/0)"), "set routing startpoint.")
         ("to", po::value<std::string>(&(programOptions->routingEndPointString))->implicit_value("(0/0)"), "set routing endpoint.")
@@ -232,13 +232,32 @@ int main ( int argc, char* argv[] )
         preprocessor.startparser(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str());
     }
     
+    boost::shared_ptr<DatabaseConnection> db;
+    if (programOptions.dbBackend == "spatialite")
+        db.reset(new SpatialiteDatabaseConnection());
+    if (db)
+    {
+        QFile file(programOptions.dbFilename.c_str());
+        if (!file.exists())
+        {
+            std::cerr << "did not find database file \"" << programOptions.dbFilename << "\". exiting." << std::endl;
+            return 1;
+        }
+        db->open(programOptions.dbFilename.c_str());
+        if (!db->isDBOpen())
+        {
+            std::cerr << "error while opening database file \"" << programOptions.dbFilename << "\". exiting." << std::endl;
+            return 1;
+        }
+        db->setGlobalInstance(db);
+    }
+    else
+    {
+        std::cerr << "was not able to construct global database object. exiting." << std::endl;
+    }
+    
     if (programOptions.doRouting)
     {
-        boost::shared_ptr<DatabaseConnection> db;
-        if (programOptions.dbBackend == "spatialite")
-            db.reset(new SpatialiteDatabaseConnection());
-        db->open(programOptions.dbFilename.c_str());
-        
         boost::shared_ptr<Router> router;
         boost::shared_ptr<RoutingMetric> metric;
         boost::shared_ptr<AltitudeProvider> altitudeProvider;
