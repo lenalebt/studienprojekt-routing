@@ -221,6 +221,14 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.osm ${CMAKE_CURRENT_BINARY_D
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/rub.pbf COPYONLY)
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.osm ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.osm COPYONLY)
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.pbf COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/gui.html ${CMAKE_CURRENT_BINARY_DIR}/gui/gui.html COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/style.css ${CMAKE_CURRENT_BINARY_DIR}/gui/style.css COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-red.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-red.png COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-blue.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-blue.png COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-cyan.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-cyan.png COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-green.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-green.png COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-purple.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-purple.png COPYONLY)
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-yellow.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-yellow.png COPYONLY)
 
 IF(DOXYGEN_FOUND)
     #Semikolon-getrennte Liste in Whitespace-getrennte Liste konvertieren
@@ -293,7 +301,7 @@ ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
 ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 ADD_TEST(multithreadedhashclosedlist      "biker" "--test" "multithreadedhashclosedlist")
-ADD_TEST(datapreprocessing                "biker" "--test" "preprocessing")
+ADD_TEST(datapreprocessing                "biker" "--test" "datapreprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
 

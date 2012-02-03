@@ -7,7 +7,7 @@ OSMParser::OSMParser(BlockingQueue<boost::shared_ptr<OSMNode> >* nodeQueue,
     : nodeType(NONE), nodeCount(0), wayCount(0), relationCount(0),
       _nodeQueue(nodeQueue), _wayQueue(wayQueue), _turnRestrictionQueue(turnRestrictionQueue)
 {
-
+    
 }
 
 OSMParser::~OSMParser()
@@ -27,7 +27,7 @@ bool OSMParser::parse(QString filename)
 
 bool OSMParser::fatalError ( const QXmlParseException & exception )
 {
-    std::cerr << "FatalError" << std::endl;
+    std::cerr << "Fatal Error while parsing" << std::endl;
     std::cerr << exception.lineNumber() << " " << exception.columnNumber() << " " << exception.message().toStdString() << std::endl;
     return false;
 }
