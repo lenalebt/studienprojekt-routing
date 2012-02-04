@@ -27,6 +27,11 @@
                 numZoomLevels:20,
                 displayProjection:new OpenLayers.Projection("EPSG:4326")
                 });
+            var osmdeutsch = new OpenLayers.Layer.OSM("OSM deutscher Stil", [
+               "http://a.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
+               "http://b.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
+               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],{attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>'});
+            map.addLayer(osmdeutsch);
             var osm=new OpenLayers.Layer.OSM.Mapnik(
                 "OSM Mapnik",
                 {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a>",
