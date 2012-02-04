@@ -519,17 +519,21 @@ void BikerHttpRequestProcessor::processRequest()
             //Route berechnen
             GPSRoute route = router->calculateShortestRoute(startPosition, endPosition);
             //Keine Route gefunden? 404 senden.
-            if (!route.isEmpty())
+            if (route.isEmpty())
             {
+                std::cerr << "no route found." << std::endl;
                 this->send404();
                 return;
             }
             
             //Antwort entsprechend des Routentypen senden.
-            if (routeType == "gpx")
+            if (routeDataType == "gpx")
                 this->sendFile(route.exportGPXString());
-            else if (routeType == "js")
+            else if (routeDataType == "js")
                 this->sendFile(route.exportJSONString());
+            else
+                std::cerr << "route datatype \"" << routeDataType  << 
+                    "\" not supported." << std::endl;
             return;
         }
         else
