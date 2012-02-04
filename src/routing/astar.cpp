@@ -91,7 +91,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition
 /**
  * @todo: Implementieren
  */
-GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
+GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
 {
     if (!_db->isDBOpen())
     {
@@ -167,7 +167,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
                         
                         nodeCosts[activeEdgeEndNodeLongID] = nodeCosts[activeNodeLongID] +
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
-                        //------------- + abstand zum zielort noch hinzufügen + -----------//
+                        //-------------distance noch berechnen-----------//
                         estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance);
 
@@ -182,7 +182,9 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
                         if (newCosts < nodeCosts[activeEdgeEndNodeLongID])
                         {
                             nodeCosts[activeEdgeEndNodeLongID] = newCosts;
-                            //estimatedCosts = ... 
+                            //---------distance noch festlegen--------------
+                            estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
                             heap.decreaseKey(activeEdgeEndNodeLongID);
                             predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
                         }
