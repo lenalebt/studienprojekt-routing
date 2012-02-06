@@ -11,6 +11,7 @@
 #include <QCoreApplication>
 #include "webserver.hpp"
 #include "datapreprocessing.hpp"
+#include "simpledatapreprocessing.hpp"
 #include "gpsposition.hpp"
 #include "gpsroute.hpp"
 #include "router.hpp"
@@ -211,6 +212,9 @@ int main ( int argc, char* argv[] )
     //parse commandline options
     retVal = parseProgramOptions(argc, argv, &programOptions);
     
+    if (retVal == EXIT_FAILURE)
+        return EXIT_FAILURE;
+    
     if (programOptions.tests_starttest)
         return biker_tests::testProgram(programOptions.tests_testName);
     
@@ -236,9 +240,17 @@ int main ( int argc, char* argv[] )
      */
     if (programOptions.parseOsmFile)
     {
+        //TODO: Andere Backends zulassen
         boost::shared_ptr<SpatialiteDatabaseConnection> ptr(new SpatialiteDatabaseConnection());
         DataPreprocessing preprocessor(ptr);
-        preprocessor.startparser(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str());
+        return (preprocessor.startparser(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
+    }
+    else if (programOptions.simpleParseOsmFile)
+    {
+        //TODO: Andere Backends zulassen
+        boost::shared_ptr<SpatialiteDatabaseConnection> ptr(new SpatialiteDatabaseConnection());
+        SimpleDataPreprocessing preprocessor(ptr);
+        return (preprocessor.preprocess(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
     
     boost::shared_ptr<DatabaseConnection> db;

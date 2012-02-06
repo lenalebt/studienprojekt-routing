@@ -17,6 +17,7 @@
 #include "routingnode.hpp"
 #include "routingedge.hpp"
 #include "tests.hpp"
+#include "temporarydatabase.hpp"
 //~ #include <QtConcurrentRun>
 //~ #include <QDebug>
 //~ #include <QThread>
@@ -54,8 +55,10 @@ private:
     boost::shared_ptr<PBFParser> _pbfParser;
     
     boost::shared_ptr<DatabaseConnection> _finalDBConnection;
+    TemporaryOSMDatabaseConnection _tmpDBConnection;
     
     bool preprocess();
+    bool isStreet(const OSMWay& way);
     
 public:    
     SimpleDataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb);
