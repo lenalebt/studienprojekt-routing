@@ -3,7 +3,7 @@
 
 
 SimpleDataPreprocessing::SimpleDataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
-    : _nodeQueue(1000), _wayQueue(1000), _turnRestrictionQueue(1000),
+    : _nodeQueue(10000), _wayQueue(10000), _turnRestrictionQueue(10000),
     _osmParser(),
     _pbfParser(),
       _finalDBConnection(finaldb)
@@ -87,6 +87,13 @@ bool SimpleDataPreprocessing::preprocess()
     }
     _finalDBConnection->endTransaction();
     
+    std::cerr << "parsing turn restrictions..." << std::endl;
+    //Die Queues müssen alle geleert werden, sonst kann das Programm nicht beendet werden!
+    while (_turnRestrictionQueue.dequeue(_osmTurnRestriction))
+    {
+        
+    }
+    
     std::cerr << "creating indexes..." << std::endl;
     _finalDBConnection->createIndexes();
     return true;
@@ -111,6 +118,9 @@ bool SimpleDataPreprocessing::preprocess(QString fileToParse, QString dbFilename
         
         bool preprocessRetval = preprocess();
         future.waitForFinished();
+        _finalDBConnection->close();
+        _tmpDBConnection.close();
+        tmpFile.remove();
         return (preprocessRetval && future.result());
     }
     else if (fileToParse.endsWith(".pbf"))
@@ -120,6 +130,9 @@ bool SimpleDataPreprocessing::preprocess(QString fileToParse, QString dbFilename
         
         bool preprocessRetval = preprocess();
         future.waitForFinished();
+        _finalDBConnection->close();
+        _tmpDBConnection.close();
+        tmpFile.remove();
         return (preprocessRetval && future.result());
     }
     else
