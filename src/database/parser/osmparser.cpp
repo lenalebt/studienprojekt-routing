@@ -29,6 +29,12 @@ bool OSMParser::fatalError ( const QXmlParseException & exception )
 {
     std::cerr << "Fatal Error while parsing" << std::endl;
     std::cerr << exception.lineNumber() << " " << exception.columnNumber() << " " << exception.message().toStdString() << std::endl;
+    
+    //Es trat ein Fehler auf, dafür sorgen dass sich der, der den Parser benutzt, nicht aufhängt...
+    _nodeQueue->destroyQueue();
+    _wayQueue->destroyQueue();
+    _turnRestrictionQueue->destroyQueue();
+    
     return false;
 }
 
