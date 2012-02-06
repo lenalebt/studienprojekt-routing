@@ -41,6 +41,7 @@ public:
     //Datenvorverarbeitung
     std::string osmFilename;
     bool parseOsmFile;
+    bool simpleParseOsmFile;
     
     //Datenbank
     std::string dbFilename;
@@ -67,6 +68,7 @@ public:
         
         osmFilename(""),
         parseOsmFile(false),
+        simpleParseOsmFile(false),
         
         dbFilename(""),
         dbBackend("spatialite"),
@@ -103,6 +105,7 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(10), "set maximum thread pool size of webserver")
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
+        ("simple-parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for simple parser")
         ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("database.db"), "set database filename for database operations")
         ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->implicit_value("spatialite"), "set database backend. possible values: spatialite.")
         ("route", po::value<std::string>(&(programOptions->routingStartPointString))->implicit_value("(0/0)"), "set routing startpoint.")
@@ -152,6 +155,11 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
     if (vm.count("parse"))
     {
         programOptions->parseOsmFile = true;
+        //Dateinamen wurden schon gesetzt vom Framework
+    }
+    if (vm.count("simple-parse"))
+    {
+        programOptions->simpleParseOsmFile = true;
         //Dateinamen wurden schon gesetzt vom Framework
     }
     
