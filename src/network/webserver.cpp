@@ -588,6 +588,6 @@ namespace biker_tests
         
         server.wait(100);
         
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
 }
