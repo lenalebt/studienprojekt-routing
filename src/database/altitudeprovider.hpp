@@ -25,6 +25,37 @@
 #include <QFileInfo>
 
 #define SRTM_DATA_VOID -32768
+
+class SRTMTile
+{
+    public:
+        SRTMTile(int index): index(index), buffer(0), resolution(0), valid(false) {}
+        SRTMTile(int index, qint16 *buffer): index(index), buffer(buffer), resolution(0), valid(false) {}
+        SRTMTile(int index, qint16 *buffer, int resolution): index(index), buffer(buffer), resolution(resolution), valid(false) {}
+        SRTMTile(int index, qint16 *buffer, int resolution, bool valid): index(index), buffer(buffer), resolution(resolution), valid(valid) {}
+        ~SRTMTile();
+
+        void setIndex(const int index) {this->index = index;} //should be lat * 1000 + lon
+        int getIndex() const {return index;}
+
+        void setBuffer(qint16 *buffer) {this->buffer = buffer;}
+        qint16* getBuffer() {return buffer;}
+
+        void setResolution(const int resolution) {this->resolution = resolution;}
+        int getResolution() const {return resolution;}
+
+        void setValid(const bool valid) {this->valid = valid;}
+        bool getValid() const {return valid;}
+
+    private:
+
+        int index; //should be lat * 1000 + lon
+        qint16 *buffer;
+        int resolution;
+        bool valid;
+};
+
+
 /**
  * @brief Ein AltitudeProvider kann für jeden Punkt auf der Erde einen
  *      Höhenwert zurückgeben.
@@ -96,7 +127,7 @@ private:
     QString _srtmFileList;
     QUrl _url;
     qint16 *buffer;
-    // QCache<int, SRTMTile> tileCache;
+    QCache<int, SRTMTile> tileCache;
     
     void loadFileList();
     void createFileList();
@@ -180,9 +211,6 @@ public:
     
     ~SRTMProvider();
 };
-
-
-
 
 
 
