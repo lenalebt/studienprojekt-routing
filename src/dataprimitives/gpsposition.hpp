@@ -7,7 +7,7 @@
 
 #define EARTH_RADIUS 6371000
 
-typedef float gps_float;
+typedef double gps_float;
 
 //Muss oben stehen, da man den Test sonst nicht als friend deklarieren kann
 namespace biker_tests
