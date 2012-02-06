@@ -68,6 +68,7 @@ bool SimpleDataPreprocessing::preprocess()
             for(int i = 0; i < memberList.size(); i++)
             {
                 _osmNode = _tmpDBConnection.getOSMNodeByID(memberList[i]);
+                //Das mit dem nodeIDSet mache ich, weil man der DB nicht sagen kann dass sie doppeltes Einfügen ignorieren soll.
                 if (!nodeIDSet.contains(_osmNode->getID()))
                 {
                     RoutingNode routingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon());
