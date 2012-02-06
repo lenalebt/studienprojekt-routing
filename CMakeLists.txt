@@ -87,6 +87,7 @@ SET(
       
     #src/preprocessing
     src/preprocessing/datapreprocessing.cpp
+    src/preprocessing/simpledatapreprocessing.cpp
 
     #src/database/
     src/database/altitudeprovider.cpp
@@ -134,6 +135,7 @@ SET(
 
     #src/preprocessing
     src/preprocessing/datapreprocessing.hpp
+    src/preprocessing/simpledatapreprocessing.hpp
 
     #src/database/
     src/database/altitudeprovider.hpp
@@ -307,9 +309,10 @@ ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 ADD_TEST(multithreadedhashclosedlist      "biker" "--test" "multithreadedhashclosedlist")
 ADD_TEST(datapreprocessing                "biker" "--test" "datapreprocessing")
+ADD_TEST(simpledatapreprocessing          "biker" "--test" "simpledatapreprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
-SET_TESTS_PROPERTIES(dijkstrarouter PROPERTIES DEPENDS datapreprocessing)
+SET_TESTS_PROPERTIES(dijkstrarouter PROPERTIES DEPENDS simpledatapreprocessing)
 
 #Zum Erstellen von automatischen Installationspaketen
 IF(UNIX)
