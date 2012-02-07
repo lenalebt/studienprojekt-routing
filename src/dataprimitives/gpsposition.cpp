@@ -6,64 +6,6 @@
 #include <cmath>
 #include <sstream>
 
-gps_float GPSPosition::getLon() const
-{
-    return this->lon;
-}
-gps_float GPSPosition::getLat() const
-{
-    return this->lat;
-}
-
-void GPSPosition::setLon(const gps_float lon)
-{
-    this->lon = lon;
-    
-    while (this->lon >= 360.0)
-        this->lon -= 360.0;
-    while (this->lon < -360.0)
-        this->lon += 360.0;
-    if (this->lon >= 180.0)
-        this->lon -= 360.0;
-    if (this->lon < -180.0)
-        this->lon += 360.0;
-}
-
-void GPSPosition::setLat(const gps_float lat)
-{
-    if (lat > 90.0)
-        this->lat = 90.0;
-    else if (lat < -90.0)
-        this->lat = -90.0;
-    else
-        this->lat = lat;
-}
-
-gps_float GPSPosition::getRadLon() const
-{
-    return deg2rad<gps_float>(this->lon);
-}
-gps_float GPSPosition::getRadLat() const
-{
-    return deg2rad<gps_float>(this->lat);
-}
-
-void GPSPosition::setRadLon(const gps_float lon)
-{
-    this->lon = rad2deg<gps_float>(lon);
-    
-    while (this->lon >= 360.0)
-        this->lon -= 360.0;
-}
-
-void GPSPosition::setRadLat(const gps_float lat)
-{
-    this->lat = rad2deg<gps_float>(lat);
-    
-    while (this->lat >= 360.0)
-        this->lat -= 360.0;
-}
-
 double GPSPosition::calcCourseAngle(const GPSPosition& p2) const
 {
     if (!p2.isInitialized())
