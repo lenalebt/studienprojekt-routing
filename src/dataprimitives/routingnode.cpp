@@ -1,41 +1,5 @@
 #include "routingnode.hpp"
 
-bool RoutingNode::isIDInLongFormat()
-{
-    boost::uint64_t mark = 0x4000000000000000llu;
-    return (id & mark);
-}
-
-bool RoutingNode::isIDInLongFormat(const boost::uint64_t id)
-{
-    boost::uint64_t mark = 0x4000000000000000llu;
-    return (id & mark);
-}
-
-boost::uint64_t RoutingNode::convertIDToLongFormat(const boost::uint64_t id)
-{
-    if (RoutingNode::isIDInLongFormat(id))
-        return id;
-    boost::uint64_t mask = 0x00FFFFFFFFFFFFFFllu;
-    boost::uint64_t mark = 0x4000000000000000llu;
-    return ((id & mask) << 8) | mark;
-}
-
-boost::uint64_t RoutingNode::convertIDToShortFormat(const boost::uint64_t id)
-{
-    if (!RoutingNode::isIDInLongFormat(id))
-        return id;
-    boost::uint64_t mark = 0x4000000000000000llu;
-    return ((id & ~mark) >> 8);
-}
-
-bool RoutingNode::operator==(const RoutingNode& other)
-{
-    return (this->id == other.id) &&
-        (this->getLat() == other.getLat()) &&
-        (this->getLon() == other.getLon());
-}
-
 std::ostream& operator<<(std::ostream& os, const RoutingNode& node)
 {
     os << "RoutingNode, id:" << node.getID() << ", lat:" << node.getLat()

@@ -26,7 +26,7 @@ public:
      * @brief Gibt die ID des Knotens zurück.
      * @return Die ID des Knotens.
      */
-    virtual boost::uint64_t getID() const {return id;}
+    boost::uint64_t getID() const {return id;}
     
     /**
      * @brief Setzt die ID des Knotens auf den entsprechenden Wert.
@@ -34,7 +34,7 @@ public:
      * 
      * @param id Die neue ID des Knotens.
      */
-    virtual void setID(const boost::uint64_t id) {this->id = id;}
+    void setID(const boost::uint64_t id) {this->id = id;}
     
     /**
      * @brief Setzt die ID des Knotens auf den entsprechenden Wert und
@@ -48,7 +48,7 @@ public:
      * 
      * @param id Die neue ID des Knotens.
      */
-    virtual void setAndConvertID(const boost::uint64_t id)
+    void setAndConvertID(const boost::uint64_t id)
     {
         this->id = convertIDToLongFormat(id);
     }
@@ -60,7 +60,14 @@ public:
      * @param id Die zu konvertierende ID
      * @return Die konvertierte ID
      */
-    static boost::uint64_t convertIDToLongFormat(const boost::uint64_t id);
+    static inline boost::uint64_t convertIDToLongFormat(const boost::uint64_t id)
+    {
+        if (RoutingNode::isIDInLongFormat(id))
+            return id;
+        boost::uint64_t mask = 0x00FFFFFFFFFFFFFFllu;
+        boost::uint64_t mark = 0x4000000000000000llu;
+        return ((id & mask) << 8) | mark;
+    }
     
     /**
      * @brief Wandelt eine ID in das Format um, in dem Knoten ihre ID
@@ -69,17 +76,36 @@ public:
      * @param id Die zu konvertierende ID
      * @return Die konvertierte ID
      */
-    static boost::uint64_t convertIDToShortFormat(const boost::uint64_t id);
+    static inline boost::uint64_t convertIDToShortFormat(const boost::uint64_t id)
+    {
+        if (!RoutingNode::isIDInLongFormat(id))
+            return id;
+        boost::uint64_t mark = 0x4000000000000000llu;
+        return ((id & ~mark) >> 8);
+    }
     
-    bool isIDInLongFormat();
-    static inline bool isIDInLongFormat(const boost::uint64_t id);
+    bool isIDInLongFormat()
+    {
+        boost::uint64_t mark = 0x4000000000000000llu;
+        return (id & mark);
+    }
+    static inline bool isIDInLongFormat(const boost::uint64_t id)
+    {
+        boost::uint64_t mark = 0x4000000000000000llu;
+        return (id & mark);
+    }
     
     RoutingNode(int id) : id(id) {}
     RoutingNode(int id, GPSPosition pos) : GPSPosition(pos), id(id) {}
     RoutingNode(int id, gps_float lat, gps_float lon) : GPSPosition(lat, lon), id(id) {}
     RoutingNode() : id(0) {}
     
-    bool operator==(const RoutingNode& other);
+    bool operator==(const RoutingNode& other)
+    {
+        return (this->id == other.id) &&
+            (this->getLat() == other.getLat()) &&
+            (this->getLon() == other.getLon());
+    }
 };
 
 std::ostream& operator<<(std::ostream& os, const RoutingNode& node);
