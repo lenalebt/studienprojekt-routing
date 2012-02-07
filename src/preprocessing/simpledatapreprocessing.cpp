@@ -18,6 +18,7 @@ SimpleDataPreprocessing::~SimpleDataPreprocessing()
 
 bool SimpleDataPreprocessing::isStreet(const OSMWay& way)
 {
+    //Wenn ein "highway"-key gefunden wird, ist es eine Straße - sonst nicht.
     QVector<OSMProperty> props = way.getProperties();
     for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
     {
@@ -29,6 +30,7 @@ bool SimpleDataPreprocessing::isStreet(const OSMWay& way)
 
 bool SimpleDataPreprocessing::preprocess()
 {
+    //lege zuerst alle Knoten in die temporäre DB ab.
     std::cerr << "parsing nodes..." << std::endl;
     _tmpDBConnection.beginTransaction();
     int nodeCount=0;
@@ -46,7 +48,7 @@ bool SimpleDataPreprocessing::preprocess()
     _tmpDBConnection.endTransaction();
     
     
-    
+    //bearbeite dann alle Kanten.
     std::cerr << "parsing ways..." << std::endl;
     _finalDBConnection->beginTransaction();
     boost::uint64_t edgeID=0;
@@ -67,10 +69,10 @@ bool SimpleDataPreprocessing::preprocess()
             QVector<boost::uint64_t> memberList = _osmWay->getMemberList();
             for(int i = 0; i < memberList.size(); i++)
             {
-                _osmNode = _tmpDBConnection.getOSMNodeByID(memberList[i]);
                 //Das mit dem nodeIDSet mache ich, weil man der DB nicht sagen kann dass sie doppeltes Einfügen ignorieren soll.
-                if (!nodeIDSet.contains(_osmNode->getID()))
+                if (!nodeIDSet.contains(memberList[i]))
                 {
+                    _osmNode = _tmpDBConnection.getOSMNodeByID(memberList[i]);
                     RoutingNode routingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon());
                     _finalDBConnection->saveNode(routingNode);
                     nodeIDSet.insert(_osmNode->getID());
@@ -87,6 +89,7 @@ bool SimpleDataPreprocessing::preprocess()
     }
     _finalDBConnection->endTransaction();
     
+    //Abbiegebeschränkungen werden einfach überlesen.
     std::cerr << "parsing turn restrictions..." << std::endl;
     //Die Queues müssen alle geleert werden, sonst kann das Programm nicht beendet werden!
     while (_turnRestrictionQueue.dequeue(_osmTurnRestriction))
@@ -94,6 +97,7 @@ bool SimpleDataPreprocessing::preprocess()
         
     }
     
+    //Am Schluss noch Indexe erstellen
     std::cerr << "creating indexes..." << std::endl;
     _finalDBConnection->createIndexes();
     return true;
@@ -141,8 +145,6 @@ bool SimpleDataPreprocessing::preprocess(QString fileToParse, QString dbFilename
     }
 }
 
-//TODO kategorisierungsfunktionen implementieren
-
 namespace biker_tests
 {    
     int testSimpleDataPreprocessing()
@@ -156,6 +158,7 @@ namespace biker_tests
         boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
         SimpleDataPreprocessing dataPreprocessing(finalDB);
         CHECK(dataPreprocessing.preprocess("data/rub.osm", "rub.db"));
+        CHECK(dataPreprocessing.preprocess("data/bochum_city.osm", "bochum_city.db"));
         return EXIT_SUCCESS;
         //return EXIT_FAILURE;
     }
