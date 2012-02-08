@@ -167,7 +167,8 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
                         
                         nodeCosts[activeEdgeEndNodeLongID] = nodeCosts[activeNodeLongID] +
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
-                        //-------------distance noch berechnen-----------//
+                        //-distance = abstand aktueller knoten zu endposition-//
+                        float distance = (*activeNode)->calcDistance(endPosition);
                         estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance);
 
@@ -183,6 +184,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
                         {
                             nodeCosts[activeEdgeEndNodeLongID] = newCosts;
                             //---------distance noch festlegen--------------
+                            float distance = (*activeNode)->calcDistance(endPosition);
                             estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
                             heap.decreaseKey(activeEdgeEndNodeLongID);
