@@ -11,7 +11,7 @@
  *      am Graphen beteiligt ist, am nächsten ist, wird dieser als Startpunkt
  *      ausgewählt. Fälschlicherweise wird dann keine Route berechnet!
  */
-GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
+GPSRoute AStarRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
 {
     if (!_db->isDBOpen())
     {
@@ -102,15 +102,17 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
         //Initialisiere Datenstrukturen
         HashClosedList closedList;
         NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> estimatedCosts;
-        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> > heap(nodeCosts);
+        QHash<boost::uint64_t, boost::uint64_t> nodeCosts;
+        //estimated für nodeCosts eingesetzt
+        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> > heap(estimatedCosts);
         QHash<boost::uint64_t, boost::uint64_t> predecessor;
         QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
-        QHash<boost::uint64_t, boost::uint64_t> nodeCosts;
+
         
         
         
         //Startknoten: Kosten auf Null setzen, zum Heap und Puffer hinzufügen, Vorgänger auf Null setzen
-        nodeCosts.setValue(startNode.getID(), 0.0);
+        nodeCosts[startNode.getID()] = 0.0;
         heap.add(startNode.getID());
         nodeMap.insert(RoutingNode::convertIDToShortFormat(startNode.getID()), _db->getNodeByID(startNode.getID()));
         predecessor.insert(startNode.getID(), 0);
@@ -167,8 +169,8 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
                         
                         nodeCosts[activeEdgeEndNodeLongID] = nodeCosts[activeNodeLongID] +
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
-                        //-distance = abstand aktueller knoten zu endposition-//
-                        float distance = (*activeNode)->calcDistance(endPosition);
+                        //---------*activeNode oder *it benutzen??//
+                        float distance = (*activeNode).calcDistance(endNode);
                         estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance);
 
@@ -183,8 +185,8 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
                         if (newCosts < nodeCosts[activeEdgeEndNodeLongID])
                         {
                             nodeCosts[activeEdgeEndNodeLongID] = newCosts;
-                            //---------distance noch festlegen--------------
-                            float distance = (*activeNode)->calcDistance(endPosition);
+                            //-----------------------*activeNode oder *it benutzen?? ----- 
+                            float distance = (*activeNode).calcDistance(endNode);
                             estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
                             heap.decreaseKey(activeEdgeEndNodeLongID);
@@ -232,8 +234,9 @@ namespace biker_tests
 {
     int testAStarRouter()
     {
-        
+        std::cerr<<"ich mach was"<<std::endl;
         AStarRouter router(0, 0);
-        return EXIT_FAILURE;
+        std::cerr<<"ich komm durch"<<std::endl;
+        return EXIT_SUCCESS;
     }
 }
