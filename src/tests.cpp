@@ -28,6 +28,7 @@
 #include "potentialfunction.hpp"
 #include "dijkstra.hpp"
 #include "filedownloader.hpp"
+#include "astar.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -226,6 +227,8 @@ namespace biker_tests
             return biker_tests::testDijkstraRouter();
         else if (testName == "filedownloader")
             return biker_tests::testFileDownloader();
+        else if (testName == "astarrouter")
+            return biker_tests::testAStarRouter();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;

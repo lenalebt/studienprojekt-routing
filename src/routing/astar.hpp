@@ -7,12 +7,12 @@
 #include "routingmetric.hpp"
 
 template<typename K, typename V>
-class NodeCostLessAndQHashFunctor
+class NodeCostLessAndQHashFunctorStar
 {
 private:
     QHash<K, V> hashMap;
 public:
-    NodeCostLessAndQHashFunctor()
+    NodeCostLessAndQHashFunctorStar()
     {
         
     }
@@ -30,7 +30,7 @@ public:
         return hashMap[key];
     }
 };
-template class NodeCostLessAndQHashFunctor<boost::uint64_t, double>;
+template class NodeCostLessAndQHashFunctorStar<boost::uint64_t, double>;
 
 /**
  * @brief Implementiert den klassischen Dijkstra-Algorithmus in einer
@@ -50,7 +50,7 @@ private:
     
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
-    AStar(DatabaseConnection* db, RoutingMetric* metric);
+    AStarRouter(DatabaseConnection* db, RoutingMetric* metric);
     GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
@@ -64,7 +64,7 @@ public:
  * @todo Implementieren!
  * @ingroup routing
  */
-class MultithreadedDijkstraRouter : public Router
+class MultithreadedAStarRouter : public Router
 {
 private:
     

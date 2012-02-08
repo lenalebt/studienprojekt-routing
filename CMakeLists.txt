@@ -108,6 +108,7 @@ SET(
     src/routing/heap.cpp
     src/routing/closedlist.cpp
     src/routing/dijkstra.cpp
+    src/routing/astar.cpp
     
     #src/network/
     src/network/webserver.cpp
@@ -155,6 +156,7 @@ SET(
     src/routing/heap.hpp
     src/routing/closedlist.hpp
     src/routing/dijkstra.hpp
+    src/routing/astar.hpp
     
     #src/network/
     src/network/webserver.hpp

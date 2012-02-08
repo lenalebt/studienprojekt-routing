@@ -101,8 +101,8 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
     {
         //Initialisiere Datenstrukturen
         HashClosedList closedList;
-        NodeCostLessAndQHashFunctor<boost::uint64_t, double> estimatedCosts;
-        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
+        NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> estimatedCosts;
+        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> > heap(nodeCosts);
         QHash<boost::uint64_t, boost::uint64_t> predecessor;
         QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
         QHash<boost::uint64_t, boost::uint64_t> nodeCosts;
