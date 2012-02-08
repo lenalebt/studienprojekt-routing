@@ -47,12 +47,43 @@ class SRTMTile
         void setValid(const bool valid) {this->valid = valid;}
         bool getValid() const {return valid;}
 
+        bool fillTile(QString fileName);
+        /**
+         * @brief Holt die Höhe in Metern, für eine übergebene Koordinate.
+         *
+         *
+         * @param lat Der Breitengrad
+         * @param lon Der Längengrad
+         * @return Den Höhenwert an dieser Stelle
+         */
+        double getAltitudeFromLatLon(double lat, double lon);
+
+
     private:
 
         int index; //should be lat * 1000 + lon
         qint16 *buffer;
         int resolution;
         bool valid;
+
+        /**
+         * @brief Holt aus den unter buffer abgelegten Daten den Höhenwert des übergebenen Pixels.
+         *
+         * Dabei wird der Pixel über seine beiden Koordinaten angegeben. Das
+         * verwendete Koordinatensystems startet in der oberen linken Ecke
+         * und wächst zur rechten unteren Ecke.
+         *
+         * @param x X-Wert (aus Nachkommastelle des Längengrads).
+         * @param y Y-Wert (aus Nachkommastelle das Breitengrads).
+         * @return Den Höhenwert an dieser Stelle
+         */
+        int getPixelValue(int x, int y);
+
+        float avg(float a, float b, float weight){
+            if (a == SRTM_DATA_VOID) return b;
+            if (b == SRTM_DATA_VOID) return a;
+            return b*weight + a*(1-weight);
+        }
 };
 
 
@@ -119,49 +150,20 @@ class SRTMProvider : public AltitudeProvider
 private:
     
     QMap<int, QString> fileList;
-    bool valid;
-    int resolution;
-    int intlat;
-    int intlon;
     QString _cachedir;
     QString _srtmFileList;
     QUrl _url;
-    qint16 *buffer;
+    int index;
     QCache<int, SRTMTile> tileCache;
     
     void loadFileList();
     void createFileList();
-    /**
-     * @brief Holt die Höhe in Metern, für eine übergebene Koordinate.
-     * 
-     * 
-     * @param lat Der Breitengrad
-     * @param lon Der Längengrad
-     * @return Den Höhenwert an dieser Stelle
-     */
-    double getAltitudeFromLatLon(double lat, double lon);
-    
-    /**
-     * @brief Holt aus den unter buffer abgelegten Daten den Höhenwert des übergebenen Pixels.
-     * 
-     * Dabei wird der Pixel über seine beiden Koordinaten angegeben. Das 
-     * verwendete Koordinatensystems startet in der oberen linken Ecke 
-     * und wächst zur rechten unteren Ecke.
-     * 
-     * @param x X-Wert (aus Nachkommastelle des Längengrads).
-     * @param y Y-Wert (aus Nachkommastelle das Breitengrads).
-     * @return Den Höhenwert an dieser Stelle
-     */
-    int getPixelValue(int x, int y);
+    bool fillTile(int index, SRTMTile **tile);
+    bool downloadZipFile(QString fileName, QFile &ZipFile);
+
     
     int latLonToIndex(int lat, int lon){ 
         return lat * 1000 + lon; 
-    }
-    
-    float avg(float a, float b, float weight){
-        if (a == SRTM_DATA_VOID) return b;
-        if (b == SRTM_DATA_VOID) return a;
-        return b*weight + a*(1-weight);
     }
     
 public:
@@ -190,24 +192,30 @@ public:
      * 
      * @param url URL als QUrl die aufgerufen werden soll
      * @param data QString in den der Inhalt der der NetworkReply gespeichert weden soll
-     * @return enum QNetworkReply::NetworkError (Ist NoError wenn kein Fehler aufgetreten ist.)
      */
     void downloadUrl(QUrl &url, QString &data);
+    /**
+     * @brief Läd Antwort für die übergebe URL in data.
+     *
+     *
+     * @param url URL als QUrl die aufgerufen werden soll
+     * @param data QByteArray in das der Inhalt der der NetworkReply gespeichert weden soll
+     */
     void downloadUrl(QUrl &dUrl, QByteArray &data);
     
-    SRTMProvider() : _cachedir(""), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/"), buffer(0)
+    SRTMProvider() : _cachedir(""), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/")
     {
         _cachedir = QDir::homePath() + "/.biker/srtm/";
     }
     
-    SRTMProvider(QString cachedir) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/"), buffer(0)  {}
+    SRTMProvider(QString cachedir) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/") {}
     
-    SRTMProvider(QUrl url) : _cachedir(""), _srtmFileList("srtmfile"), _url(url), buffer(0)  
+    SRTMProvider(QUrl url) : _cachedir(""), _srtmFileList("srtmfile"), _url(url)
     {
         _cachedir = QDir::homePath() + "/.biker/srtm/";
     }
     
-    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url(url), buffer(0)  {}
+    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url(url) {}
     
     ~SRTMProvider();
 };

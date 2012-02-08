@@ -25,85 +25,87 @@ double SRTMProvider::getAltitude(double lat, double lon)
 {
     double altitude = 0.0; // Defaultwert für Höhe ist NN
 
-    intlat = int(floor(lat)); //Nachkommastellen der Koordinaten entfernen und zu int casten
-    intlon = int(floor(lon));
-    int index = latLonToIndex(intlat, intlon);
+    index = latLonToIndex(int(floor(lat)), int(floor(lon)));
 
-    resolution = 0;
-    valid = false;
+    SRTMTile *tile = new SRTMTile(index);
+
 
     if(tileCache.contains(index)){
-        SRTMTile *tile = tileCache[index];
-        buffer = tile->getBuffer();
-        resolution = tile->getResolution();
-        valid = tile->getValid();
+        tile = tileCache[index];
+    }
+    else if(fillTile(index, &tile)){
+        tileCache.insert(index, tile);
     }
     else{
- 
-        QString fileName; // hier soll die Zipdatei liegen nach dem Download, also Name incl. Pfad (wird aus _cachedir und Index erstellt)
 
-
-        loadFileList(); // per loadFilelist(): fileListe vorhanden? falls nicht, laden!
-
-        if (fileList.contains(index)){// Falls Koordinate vorhanden..
-
-            std::cerr << "Gesuchte Koordinate ist in filelist." << std::endl;
-            fileName = _cachedir+fileList[index];
-
-            QFile zipFile(fileName);
-
-            if(!zipFile.open(QIODevice::ReadOnly)){
-
-                std::cerr << "Entsprechendes Zipfile konnte nicht geöffnet werden, soll nun runtetgeladen werden." << std::endl;
-                QString altZipUrl =  _url.toString() + fileList[index]; //Url bis .hgt.zip
-                altZipUrl.toAscii().constData();
-                QUrl srtmUrl(altZipUrl);
-                QByteArray data;
-
-                std::cerr << "Zipfile soll nun runtergeladen werden." << std::endl;
-                downloadUrl(srtmUrl, data);
-
-                if(data.isEmpty()){ // Download nicht geglückt
-                    std::cout << "Fehler beim downloaden der Daten für " << fileList[index] << "." << std::endl;
-                    return altitude;
-                }
-                std::cerr << "Irgendwas wurde auch runtergeladen." << std::endl;
-
-                QFileInfo fileInfo(fileName);
-                QString filePath = fileInfo.absolutePath();
-                QDir makedir;
-                makedir.mkpath(filePath);
-                zipFile.open(QIODevice::WriteOnly);
-                zipFile.write(data);
-                zipFile.close();
-
-
-            }
-            //SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
-            std::cerr << "Soll jetzt entzippt werden: " << fileName << std::endl;
-            resolution = SrtmZipFile::getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
-            std::cerr << "Bei entzippen ermittelte Auflösung der entsippten Kachel: " << QString::number(resolution, 10) << std::endl;
-            if(resolution > 0){ // srtmZipFileObject.getData hat nicht den Defaultwert zurückgegeben
-                valid = true;
-                SRTMTile *tile = new SRTMTile(index, buffer, resolution, valid);
-                tileCache.insert(index, tile);
-
-            }
-
-        } //end if(fileList.contains(index))
-    }//end else from if(tileCache.contains(index))
-
-    if (resolution > 0){
-        altitude = getAltitudeFromLatLon(lat, lon);
+        return altitude;
     }
+
+    altitude = tile->getAltitudeFromLatLon(lat, lon);
     
     std::cerr << "Altitide wurde zu " << QString::number(altitude, 'g', 3) << " berechnet." << std::endl;
-
-    if (buffer) delete buffer;
 
     return altitude;
 }
 
+bool SRTMProvider::downloadZipFile(QString fileName, QFile &zipFile){
+
+    QString altZipUrl =  _url.toString() + fileList[index]; //Url bis .hgt.zip
+    altZipUrl.toAscii().constData();
+    QUrl srtmUrl(altZipUrl);
+    QByteArray data;
+
+    std::cerr << "Zipfile soll nun runtergeladen werden." << std::endl;
+    downloadUrl(srtmUrl, data);
+
+    if(data.isEmpty()){ // Download nicht geglückt
+        std::cout << "Fehler beim downloaden der Daten für " << fileList[index] << "." << std::endl;
+        return false;
+    }
+    std::cerr << "Irgendwas wurde auch runtergeladen." << std::endl;
+
+    QFileInfo fileInfo(fileName);
+    QString filePath = fileInfo.absolutePath();
+    QDir makedir;
+    makedir.mkpath(filePath);
+    zipFile.open(QIODevice::WriteOnly);
+    zipFile.write(data);
+    zipFile.close();
+
+    return true;
+}
+
+bool SRTMProvider::fillTile(int index, SRTMTile **tile){
+
+    bool tileFilled = false;
+
+    QString fileName; // hier soll die Zipdatei liegen nach dem Download, also Name incl. Pfad (wird aus _cachedir und Index erstellt)
+
+    loadFileList(); // per loadFilelist(): fileListe vorhanden? falls nicht, laden!
+
+    if (fileList.contains(index)){// Falls Koordinate vorhanden..
+
+        std::cerr << "Gesuchte Koordinate ist in filelist." << std::endl;
+        fileName = _cachedir+fileList[index];
+
+        QFile zipFile(fileName);
+        bool zipFileExists = zipFile.open(QIODevice::ReadOnly);
+
+        if(!zipFileExists){
+
+            std::cerr << "Entsprechendes Zipfile konnte nicht geöffnet werden, soll nun runtetgeladen werden." << std::endl;
+
+            zipFileExists = downloadZipFile(fileName, zipFile);
+
+        }
+        if(zipFileExists){
+            //SrtmZipFile srtmZipFileObject;//Zip-Datei entzippen:
+            tileFilled = (*tile)->fillTile(fileName);
+
+        }
+    }
+    return tileFilled;
+}
 
 void SRTMProvider::loadFileList()
 {
@@ -231,7 +233,24 @@ SRTMProvider::~SRTMProvider()
 {	
 }
 
-int SRTMProvider::getPixelValue(int x, int y)
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+// SRTMTile /////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+bool SRTMTile::fillTile(QString fileName){
+    valid = false;
+    std::cerr << "Soll jetzt entzippt werden: " << fileName << std::endl;
+    resolution = SrtmZipFile::getData(fileName, &buffer); //Pixeldichte (Pixel entlang einer Seite) im Tile
+    std::cerr << "Bei entzippen ermittelte Auflösung der entsippten Kachel: " << QString::number(resolution, 10) << std::endl;
+    if(resolution > 0){ // srtmZipFileObject.getData hat nicht den Defaultwert zurückgegeben
+        valid = true;
+    }
+    return valid;
+}
+
+int SRTMTile::getPixelValue(int x, int y)
         {
     qint16 value = 0;
     if(x >= 0 && x < resolution && y >= 0 && y < resolution){
@@ -241,12 +260,12 @@ int SRTMProvider::getPixelValue(int x, int y)
     return value;
 }
 
-double SRTMProvider::getAltitudeFromLatLon(double lat, double lon)
+double SRTMTile::getAltitudeFromLatLon(double lat, double lon)
 {
     std::cerr << "Sind nun in getAltitideFromLatLon angekommen." << std::endl;
     if (!valid) return SRTM_DATA_VOID;
-    lat -= intlat;
-    lon -= intlon;
+    lat -= int(floor(lat));
+    lon -= int(floor(lon));
     double value__ = 0.0; // Defaultwert für Höhe ist NN
     if(lat >= 0.0 && lat < 1.0 && lon >= 0.0 && lon < 1.0){
         double x = lon * (resolution - 1);
@@ -284,8 +303,8 @@ namespace biker_tests
 		      
         SRTMProvider s;
         CHECK_EQ_TYPE(s.getAltitude(51.527, 16.96), 107, double); // Tetraeder in Bottrop
-        CHECK_EQ_TYPE(s.getAltitude(51.527, 16.96), 107, double); // Tetraeder in Bottrop
+        CHECK_EQ_TYPE(s.getAltitude(51.427, 16.86), 97.6, double); // Zweiter Wert im gleichen Tile
 
-		return EXIT_SUCCESS;
+        return EXIT_SUCCESS;
 	}
 }
