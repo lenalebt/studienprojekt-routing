@@ -44,8 +44,6 @@ int SrtmZipFile::getData(QString filename, qint16 **buffer)
     
     QFileInfo fi(filename);
     QString uncompressedFile = fi.path()+'/'+fi.completeBaseName();
-    
-    std::cerr << filename.toAscii().constData() << std::endl;
 
     int size = 0;
     if (QFileInfo(uncompressedFile).exists()) {

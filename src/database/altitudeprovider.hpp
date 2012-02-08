@@ -47,7 +47,15 @@ class SRTMTile
         void setValid(const bool valid) {this->valid = valid;}
         bool getValid() const {return valid;}
 
+        /**
+         * @brief Versucht die Daten aus der angegeben Zipdatei unkomprimiert im <code>SRTMTile</code> abzulegen.
+         *
+         *
+         * @param fileName Der Dateiname (inkl. Pfad) der zu betrachtenden Zipdatei.
+         * @return Gibt <code>true</code> zurück, falls die Datei ins <code>SRTMTile</code> geladen werden konnte, sonst <code>false</code>.
+         */
         bool fillTile(QString fileName);
+
         /**
          * @brief Holt die Höhe in Metern, für eine übergebene Koordinate.
          *
@@ -79,6 +87,14 @@ class SRTMTile
          */
         int getPixelValue(int x, int y);
 
+        /**
+         * @brief Ermittelt den gewichteten Durchschnitt von <code>a</code> und <code>b</code>.
+         *
+         * @param weight Die Gewichtung von <code>a</code> und <code>b</code>; ist <code>0</code>, falls nur <code>a</code> oder <code>1</code>, falls nur <code>b</code>.
+         * @param a
+         * @param b
+         * @return Der gewichtete Durchschnitt von <code>a</code> und <code>b</code>.
+         */
         float avg(float a, float b, float weight){
             if (a == SRTM_DATA_VOID) return b;
             if (b == SRTM_DATA_VOID) return a;
