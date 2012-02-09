@@ -22,7 +22,10 @@ class DatabaseRAMCache : public DatabaseConnection
 {
 private:
     boost::shared_ptr<DatabaseConnection> _connection;
+    static boost::shared_ptr<DatabaseRAMCache> _globalCacheInstance;
 public:
+    static boost::shared_ptr<DatabaseRAMCache> getGlobalCacheInstance();
+    static void setGlobalCacheInstance(boost::shared_ptr<DatabaseRAMCache> instance);
     DatabaseRAMCache(boost::shared_ptr<DatabaseConnection> connection);
     ~DatabaseRAMCache();
     void close();
@@ -41,6 +44,7 @@ public:
     bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
     bool beginTransaction();
     bool endTransaction();
+    bool createIndexes();
 };
 
 namespace biker_tests

@@ -3,6 +3,7 @@
 #include <limits>
 #include "closedlist.hpp"
 #include "heap.hpp"
+#include "spatialitedatabase.hpp"
 
 /**
  * @todo Implementieren
@@ -15,6 +16,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition
 {
     if (!_db->isDBOpen())
     {
+        std::cerr << "database file is closed." << std::endl;
         return GPSRoute();
     }
     else
@@ -35,6 +37,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition
                 nodeList = _db->getNodes(startPosition, 5000.0);
                 if (nodeList.isEmpty())
                 {
+                    std::cerr << "did not find a matching starting point." << std::endl;
                     //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
                     return GPSRoute();
                 }
@@ -63,6 +66,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition
                 nodeList = _db->getNodes(endPosition, 5000.0);
                 if (nodeList.isEmpty())
                 {
+                    std::cerr << "did not find a matching end point" << std::endl;
                     //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
                     return GPSRoute();
                 }
@@ -95,11 +99,13 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
 {
     if (!_db->isDBOpen())
     {
+        std::cerr << "database file is closed." << std::endl;
         return GPSRoute();
     }
     else
     {
         //Initialisiere Datenstrukturen
+        //std::cerr << "init data structures" << std::endl;
         HashClosedList closedList;
         NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
         BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
@@ -108,34 +114,45 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         
         
         //Startknoten: Kosten auf Null setzen, zum Heap und Puffer hinzufügen, Vorgänger auf Null setzen
-        nodeCosts.setValue(startNode.getID(), 0.0);
-        heap.add(startNode.getID());
-        nodeMap.insert(RoutingNode::convertIDToShortFormat(startNode.getID()), _db->getNodeByID(startNode.getID()));
-        predecessor.insert(startNode.getID(), 0);
+        boost::uint64_t activeNodeLongID = RoutingNode::convertIDToLongFormat(startNode.getID());
+        boost::uint64_t activeNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
         
-        boost::uint64_t activeNodeLongID = 0;
+        nodeCosts.setValue(activeNodeLongID, 0.0);
+        heap.add(activeNodeLongID);
+        nodeMap.insert(activeNodeShortID, _db->getNodeByID(startNode.getID()));
+        predecessor.insert(activeNodeLongID, 0);
+        
         boost::shared_ptr<RoutingNode> activeNode;
+        
+        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
+        boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
         //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
         //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
         
+        //std::cerr << "starting while loop" << std::endl;
         while (!heap.isEmpty())
         {
+            //std::cerr << ".";
             //Aktuelles Element wird jetzt abschließend betrachtet.
             activeNodeLongID = heap.removeMinimumCostElement();
-            activeNode = nodeMap[activeNodeLongID];
+            activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
+            activeNode = nodeMap[activeNodeShortID];
             closedList.addElement(activeNodeLongID);
             
+            //std::cerr << activeNodeLongID << ":" << activeNodeShortID;
+            
             //Wenn der jetzt abschließend zu betrachtende Knoten der Endkonten ist: Fertig.
-            if (startNode.getID() == endNode.getID())
+            if (activeNodeShortID == endNodeShortID)
             {
+                //std::cerr << "found endnode!";
                 break;
             }
             
             //Hole Liste von Kanten, die in abschließend betrachtetem
             //Knoten beginnen und bearbeite sie.
             QVector<boost::shared_ptr<RoutingEdge> > edgeList = 
-                _db->getEdgesByStartNodeID(startNode.getID());
+                _db->getEdgesByStartNodeID(activeNodeLongID);
             for (QVector<boost::shared_ptr<RoutingEdge> >::iterator it =
                 edgeList.begin(); it < edgeList.end(); it++)
             {
@@ -184,9 +201,9 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
             }
         }
         
-        std::cerr << "finished, search space contains " << nodeMap.size() << " elements." << std::endl;
+        std::cerr << "finished, search space contains " << nodeMap.size() << " nodes." << std::endl;
         
-        if (activeNodeLongID == endNode.getID())
+        if (activeNodeShortID == endNodeShortID)
         {
             boost::uint64_t activeNodeID = activeNodeLongID;
             GPSRoute route;
@@ -211,7 +228,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
     }
 }
 
-DijkstraRouter::DijkstraRouter(DatabaseConnection* db, RoutingMetric* metric) :
+DijkstraRouter::DijkstraRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric) :
     _db(db), _metric(metric)
 {
     
@@ -221,8 +238,23 @@ namespace biker_tests
 {
     int testDijkstraRouter()
     {
+        boost::shared_ptr<DatabaseConnection> db(new SpatialiteDatabaseConnection());
+        boost::shared_ptr<RoutingMetric> metric(new EuclidianRoutingMetric());
+        db->open("rub.db");
         
-        DijkstraRouter router(0, 0);
-        return EXIT_FAILURE;
+        CHECK(db->isDBOpen());
+        
+        GPSRoute route;
+        CHECK(route.isEmpty());
+        
+        DijkstraRouter router(db, metric);
+        std::cerr << "routing...." << std::endl;
+        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        
+        CHECK(!route.isEmpty());
+        route.exportGPX("dijkstra.gpx");
+        route.exportJSON("dijkstra.js");
+        
+        return EXIT_SUCCESS;
     }
 }

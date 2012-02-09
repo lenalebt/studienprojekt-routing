@@ -4,64 +4,7 @@
 
 #include "gpsposition.hpp"
 #include <cmath>
-
-gps_float GPSPosition::getLon() const
-{
-    return this->lon;
-}
-gps_float GPSPosition::getLat() const
-{
-    return this->lat;
-}
-
-void GPSPosition::setLon(const gps_float lon)
-{
-    this->lon = lon;
-    
-    while (this->lon >= 360.0)
-        this->lon -= 360.0;
-    while (this->lon < -360.0)
-        this->lon += 360.0;
-    if (this->lon >= 180.0)
-        this->lon -= 360.0;
-    if (this->lon < -180.0)
-        this->lon += 360.0;
-}
-
-void GPSPosition::setLat(const gps_float lat)
-{
-    if (lat > 90.0)
-        this->lat = 90.0;
-    else if (lat < -90.0)
-        this->lat = -90.0;
-    else
-        this->lat = lat;
-}
-
-gps_float GPSPosition::getRadLon() const
-{
-    return deg2rad<gps_float>(this->lon);
-}
-gps_float GPSPosition::getRadLat() const
-{
-    return deg2rad<gps_float>(this->lat);
-}
-
-void GPSPosition::setRadLon(const gps_float lon)
-{
-    this->lon = rad2deg<gps_float>(lon);
-    
-    while (this->lon >= 360.0)
-        this->lon -= 360.0;
-}
-
-void GPSPosition::setRadLat(const gps_float lat)
-{
-    this->lat = rad2deg<gps_float>(lat);
-    
-    while (this->lat >= 360.0)
-        this->lat -= 360.0;
-}
+#include <sstream>
 
 double GPSPosition::calcCourseAngle(const GPSPosition& p2) const
 {
@@ -118,10 +61,20 @@ bool operator!=(const GPSPosition& p1, const GPSPosition& p2)
 
 std::ostream& operator<<(std::ostream& os, const GPSPosition& p)
 {
-    os << "lat: " << p.getLat() << " lon: " << p.getLon();
+    os << "(" << p.getLat() << "/" << p.getLon() << ")";
     return os;
 }
 
+std::istream& operator>>(std::istream& is, GPSPosition& p)
+{
+    double lon=0.0;
+    double lat=0.0;
+    char c;
+    is >> c >> lat >> c >> lon >> c;
+    p.setLat(lat);
+    p.setLon(lon);
+    return is;
+}
 
 bool GPSPosition::isInitialized() const
 {
@@ -199,6 +152,14 @@ namespace biker_tests
         CHECK_EQ(pos.calcXi(pos2), 0.000784806152905);
         
         CHECK_EQ_TYPE(pos.calcCourseAngle(pos2), 0.000459404801803, float);
+        
+        GPSPosition tmppos1, tmppos2;
+        std::stringstream strstream (std::stringstream::in | std::stringstream::out);
+        strstream << "(51/7)" << "(52.6/8.9)";
+        strstream >> tmppos1;
+        strstream >> tmppos2;
+        CHECK_EQ(tmppos1, GPSPosition(51, 7));
+        CHECK_EQ(tmppos2, GPSPosition(52.6, 8.9));
         
         return EXIT_SUCCESS;
     }

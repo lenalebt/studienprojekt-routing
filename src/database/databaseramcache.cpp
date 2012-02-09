@@ -7,6 +7,17 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/generator_iterator.hpp>
 
+boost::shared_ptr<DatabaseRAMCache> DatabaseRAMCache::_globalCacheInstance = boost::shared_ptr<DatabaseRAMCache>();
+
+boost::shared_ptr<DatabaseRAMCache> DatabaseRAMCache::getGlobalCacheInstance()
+{
+    return _globalCacheInstance;
+}
+void DatabaseRAMCache::setGlobalCacheInstance(boost::shared_ptr<DatabaseRAMCache> instance)
+{
+    _globalCacheInstance = instance;
+}
+
 DatabaseRAMCache::DatabaseRAMCache(boost::shared_ptr<DatabaseConnection> connection) :
     _connection(connection)
 {
@@ -106,6 +117,10 @@ bool DatabaseRAMCache::beginTransaction()
 bool DatabaseRAMCache::endTransaction()
 {
     return _connection->endTransaction();
+}
+bool DatabaseRAMCache::createIndexes()
+{
+    return _connection->createIndexes();
 }
 
 namespace biker_tests

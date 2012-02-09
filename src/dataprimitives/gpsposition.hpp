@@ -39,50 +39,82 @@ public:
      * @brief Gibt den Längengrad des Punktes zurück, in Grad.
      * @return den Längengrad in Grad
      */
-    virtual gps_float getLon() const;
+    virtual gps_float getLon() const {return this->lon;}
     /**
      * @brief Gibt den Breitengrad des Punktes zurück, in Grad.
      * @return den Breitengrad in Grad
      */
-    virtual gps_float getLat() const;
+    virtual gps_float getLat() const {return this->lat;}
     /**
      * @brief Gibt den Längengrad des Punktes zurück, in Bogenmaß.
      * @return den Längengrad in Bogenmaß
      */
-    virtual gps_float getRadLon() const;
+    virtual gps_float getRadLon() const {return deg2rad<gps_float>(this->lon);}
     /**
      * @brief Gibt den Breitengrad des Punktes zurück, in Bogenmaß.
      * @return den Breitengrad in Bogenmaß
      */
-    virtual gps_float getRadLat() const;
+    virtual gps_float getRadLat() const {return deg2rad<gps_float>(this->lat);}
     /**
      * @brief Setzt den Längengrad des Punktes in Grad.
      * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
      *      umgewandelt, dass er in dem Intervall liegt.
      * @param lon Längengrad in Grad
      */
-    virtual void setLon(const gps_float lon);
+    virtual void setLon(const gps_float lon)
+    {
+        this->lon = lon;
+        
+        while (this->lon >= 360.0)
+            this->lon -= 360.0;
+        while (this->lon < -360.0)
+            this->lon += 360.0;
+        if (this->lon >= 180.0)
+            this->lon -= 360.0;
+        if (this->lon < -180.0)
+            this->lon += 360.0;
+    }
     /**
      * @brief Setzt den Breitengrad des Punktes in Grad.
      * @remarks Wenn der Winkel nicht in [-90°, 90°] liegt, wird er
      *      einfach abgeschnitten.
      * @param lat Breitengrad in Grad
      */
-    virtual void setLat(const gps_float lat);
+    virtual void setLat(const gps_float lat)
+    {
+        if (lat > 90.0)
+            this->lat = 90.0;
+        else if (lat < -90.0)
+            this->lat = -90.0;
+        else
+            this->lat = lat;
+    }
     /**
      * @brief Setzt den Längengrad des Punktes in Bogenmaß.
      * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
      *      umgewandelt, dass er in dem Intervall liegt.
      * @param lon Längengrad in Bogenmaß
      */
-    virtual void setRadLon(const gps_float lon);
+    virtual void setRadLon(const gps_float lon)
+    {
+        this->lon = rad2deg<gps_float>(lon);
+        
+        while (this->lon >= 360.0)
+            this->lon -= 360.0;
+    }
     /**
      * @brief Setzt den Breitengrad des Punktes in Bogenmaß.
      * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
      *      einfach abgeschnitten.
      * @param lat Breitengrad in Bogenmaß
      */
-    virtual void setRadLat(const gps_float lat);
+    virtual void setRadLat(const gps_float lat)
+    {
+        this->lat = rad2deg<gps_float>(lat);
+        
+        while (this->lat >= 360.0)
+            this->lat -= 360.0;
+    }
 
     //Die folgenden Funktionen dienen zur Berechnung von Zusammenhängen mehrerer Koordinaten (Entfernung, ...)
     /**
@@ -176,5 +208,6 @@ private:
 bool operator==(const GPSPosition& p1, const GPSPosition& p2);
 bool operator!=(const GPSPosition& p1, const GPSPosition& p2);
 std::ostream& operator<<(std::ostream& os, const GPSPosition& p);
+std::istream& operator>>(std::istream& is, GPSPosition& p);
 
 #endif // GPSPOSITION_HPP

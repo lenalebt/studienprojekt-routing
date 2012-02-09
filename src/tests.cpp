@@ -24,6 +24,7 @@
 #include "closedlist.hpp"
 #include "heap.hpp"
 #include "datapreprocessing.hpp"
+#include "simpledatapreprocessing.hpp"
 #include "webserver.hpp"
 #include "potentialfunction.hpp"
 #include "dijkstra.hpp"
@@ -217,6 +218,8 @@ namespace biker_tests
             return biker_tests::testGPSRoute();
         else if(testName == "datapreprocessing")
             return biker_tests::testDataPreprocessing();
+        else if(testName == "simpledatapreprocessing")
+            return biker_tests::testSimpleDataPreprocessing();
         else if (testName == "srtmprovider")
             return biker_tests::testSRTMProvider();
         else if (testName == "webserver")

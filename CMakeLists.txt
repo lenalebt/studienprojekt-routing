@@ -87,6 +87,7 @@ SET(
       
     #src/preprocessing
     src/preprocessing/datapreprocessing.cpp
+    src/preprocessing/simpledatapreprocessing.cpp
 
     #src/database/
     src/database/altitudeprovider.cpp
@@ -96,6 +97,7 @@ SET(
     src/database/zip.cpp
     src/database/sqlite_functions.cpp
     src/database/databaseramcache.cpp
+    src/database/database.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp
@@ -134,6 +136,7 @@ SET(
 
     #src/preprocessing
     src/preprocessing/datapreprocessing.hpp
+    src/preprocessing/simpledatapreprocessing.hpp
 
     #src/database/
     src/database/altitudeprovider.hpp
@@ -223,18 +226,20 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}/src/database/parser/pbf/
     )
 
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.osm ${CMAKE_CURRENT_BINARY_DIR}/data/rub.osm COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/rub.pbf COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.osm ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.osm COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.pbf COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/gui.html ${CMAKE_CURRENT_BINARY_DIR}/gui/gui.html COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/style.css ${CMAKE_CURRENT_BINARY_DIR}/gui/style.css COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-red.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-red.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-blue.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-blue.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-cyan.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-cyan.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-green.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-green.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-purple.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-purple.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-yellow.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-yellow.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.osm ${CMAKE_CURRENT_BINARY_DIR}/data/rub.osm COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/rub.pbf COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.osm ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.osm COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.pbf COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/gui.html ${CMAKE_CURRENT_BINARY_DIR}/gui/gui.html COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/style.css ${CMAKE_CURRENT_BINARY_DIR}/gui/style.css COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-red.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-red.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-blue.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-blue.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-cyan.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-cyan.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-green.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-green.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-purple.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-purple.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-yellow.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-yellow.png COPYONLY)
+FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/gui DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 IF(DOXYGEN_FOUND)
     #Semikolon-getrennte Liste in Whitespace-getrennte Liste konvertieren
@@ -308,9 +313,10 @@ ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 ADD_TEST(multithreadedhashclosedlist      "biker" "--test" "multithreadedhashclosedlist")
 ADD_TEST(datapreprocessing                "biker" "--test" "datapreprocessing")
+ADD_TEST(simpledatapreprocessing          "biker" "--test" "simpledatapreprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
-
+SET_TESTS_PROPERTIES(dijkstrarouter PROPERTIES DEPENDS simpledatapreprocessing)
 
 #Zum Erstellen von automatischen Installationspaketen
 IF(UNIX)
