@@ -45,12 +45,12 @@ template class NodeCostLessAndQHashFunctorStar<boost::uint64_t, double>;
 class AStarRouter : public Router
 {
 private:
-    DatabaseConnection* _db;
-    RoutingMetric* _metric;
+    boost::shared_ptr<DatabaseConnection> _db;
+    boost::shared_ptr<RoutingMetric> _metric;
     
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
-    AStarRouter(DatabaseConnection* db, RoutingMetric* metric);
+    AStarRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric);
     GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 

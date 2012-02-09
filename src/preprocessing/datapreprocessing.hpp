@@ -68,9 +68,12 @@ public:
     void saveNodeToDatabase(const RoutingNode& node);
     void saveEdgeToDatabase(const RoutingEdge& edge);
     void saveTurnRestrictionToDatabase();
-    int returnStreetType(const RoutingEdge& edge);
-    int returnStreetSurfaceQuality(const RoutingEdge& edge);
-    int returnStreetSurfaceType(const RoutingEdge& edge);
+
+    void categorizeEdge(const RoutingEdge& edge);
+
+    int getStreetType(const RoutingEdge& edge);
+    int getStreetSurfaceQuality(const RoutingEdge& edge);
+    int getStreetSurfaceType(const RoutingEdge& edge);
 };
 
 namespace biker_tests

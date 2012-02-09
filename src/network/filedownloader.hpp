@@ -35,7 +35,7 @@ public:
      * @param url Die Url für die der Download vorgenommen werden soll (muss inkl. http:// angegeben werden).
      * @return Die vollständige Netzwerkantwort (ist leer falls Download gescheitert ist).
      */
-    QByteArray downloadURL(QUrl &url);
+    QByteArray downloadURL(const QUrl &url);
     //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error); // vll TODO
 };
 

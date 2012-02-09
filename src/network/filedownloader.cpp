@@ -13,7 +13,7 @@ FileDownloader::~FileDownloader()
 {
 }
 
-QByteArray FileDownloader::downloadURL(QUrl &url)
+QByteArray FileDownloader::downloadURL(const QUrl &url)
 {
     
     QNetworkAccessManager manager;

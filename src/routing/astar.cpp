@@ -3,6 +3,7 @@
 #include <limits>
 #include "closedlist.hpp"
 #include "heap.hpp"
+#include "spatialitedatabase.hpp"
 
 /**
  * @todo Implementieren
@@ -224,7 +225,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
     }
 }
 
-AStarRouter::AStarRouter(DatabaseConnection* db, RoutingMetric* metric) :
+AStarRouter::AStarRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric) :
     _db(db), _metric(metric)
 {
     
@@ -234,9 +235,23 @@ namespace biker_tests
 {
     int testAStarRouter()
     {
-        std::cerr<<"ich mach was"<<std::endl;
-        AStarRouter router(0, 0);
-        std::cerr<<"ich komm durch"<<std::endl;
+        boost::shared_ptr<DatabaseConnection> db(new SpatialiteDatabaseConnection());
+        boost::shared_ptr<RoutingMetric> metric(new EuclidianRoutingMetric());
+        db->open("rub.db");
+        
+        CHECK(db->isDBOpen());
+        
+        GPSRoute route;
+        CHECK(route.isEmpty());
+        
+        AStarRouter router(db, metric);
+        std::cerr << "routing...." << std::endl;
+        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        
+        CHECK(!route.isEmpty());
+        route.exportGPX("astar.gpx");
+        route.exportJSON("astar.js");
+        
         return EXIT_SUCCESS;
     }
 }
