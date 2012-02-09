@@ -310,7 +310,7 @@ ADD_TEST(multithreadedhashclosedlist      "biker" "--test" "multithreadedhashclo
 ADD_TEST(datapreprocessing                "biker" "--test" "datapreprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
-
+ADD_TEST(astarrouter                      "biker" "--test" "astarrouter")
 
 #Zum Erstellen von automatischen Installationspaketen
 IF(UNIX)
