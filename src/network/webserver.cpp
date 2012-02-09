@@ -164,6 +164,8 @@ bool HttpRequestProcessor::sendFile(QFile& file)
         writeString(_socket, " 200 OK\n");
         writeString(_socket, "Content-Length: ");
         writeString(_socket, QString::number(file.size()) + "\n");
+        writeString(_socket, "Pragma: no-cache\n");
+        writeString(_socket, "Cache-Control: no-store\n");
         writeString(_socket, "\n");
         _socket->flush();
         char data[66000];
@@ -199,6 +201,8 @@ bool HttpRequestProcessor::sendFile(const QString& content)
     writeString(_socket, " 200 OK\n");
     writeString(_socket, "Content-Length: ");
     writeString(_socket, QString::number(content.length()) + "\n");
+    writeString(_socket, "Pragma: no-cache\n");
+    writeString(_socket, "Cache-Control: no-store\n");
     writeString(_socket, "\n");
     _socket->flush();
     _socket->write(content.toUtf8());
@@ -370,6 +374,7 @@ void BikerHttpRequestProcessor::processRequest()
     if (_requestPath.contains(".."))
     {
         //".." im Pfad ist ein falscher Request. Damit könnte man ins Dateisystem gelangen.
+        std::cerr << "\"..\" in request: not allowed." << std::endl;
         this->send400();
     }
     
@@ -415,7 +420,7 @@ void BikerHttpRequestProcessor::processRequest()
          * @todo RegExp nur einmal erzeugen und dann wiederverwenden!
          */
         QRegExp cloudmadeApiKeyRegExp("^/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
-        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10})),(?:\\[(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))(?:,(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))");
+        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
         QRegExp cloudmadeApiRouteTypeRegExp("^/([a-zA-Z0-9]{1,64})(?:/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)$");
         
         QString apiKey="";

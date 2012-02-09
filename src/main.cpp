@@ -59,10 +59,10 @@ public:
     ProgramOptions() :
         webserver_public_html_folder(""),
         webserver_port(8080),
-        webserver_threadpool_size(5),
+        webserver_threadpool_size(20),
         webserver_startWebserver(false),
         
-        threads_threadpool_size(5),
+        threads_threadpool_size(20),
         
         tests_testName("all"),
         tests_starttest(false),
@@ -100,11 +100,11 @@ int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
     desc.add_options()
         ("help,h", "produce help message")
         ("test,t", po::value<std::string>(&(programOptions->tests_testName))->implicit_value("all"), "run program tests")
-        ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpool_size))->default_value(10u), "set maximum thread pool size for standard purposes")
+        ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpool_size))->default_value(20u), "set maximum thread pool size for standard purposes")
         ("start-webserver", "start webserver with given or standard settings")
         ("webserver-public-html-folder,d", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value("./gui/"), "set public html folder of webserver")
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
-        ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(10), "set maximum thread pool size of webserver")
+        ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(20u), "set maximum thread pool size of webserver")
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
         ("simple-parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for simple parser")
         ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("database.db"), "set database filename for database operations")
