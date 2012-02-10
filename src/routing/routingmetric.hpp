@@ -33,8 +33,8 @@ enum MeasurementUnit
  * einzige Voraussetzung ist, dass sie nur positive Werte für die Kosten zurückgibt.
  * 
  * @ingroup routing
- * @author Lena Brueder
- * @date 2011-11-02
+ * @author Thorsten Scheller
+ * @date 2012-1-23
  * @copyright GNU GPL v3
  * @todo Fehlt: Beim Erzeugen einer Instanz soll immer gleich ein
  *      AltitudeProvider mit übergeben werden können. Fabrikmethoden
@@ -43,27 +43,28 @@ enum MeasurementUnit
 class RoutingMetric
 {
 protected:
-    QVector<boost::shared_ptr<PotentialFunction> > potFuncList;
-    AltitudeProvider* altitudeProvider;
+    QVector<boost::shared_ptr<PotentialFunction> > _potFuncList;
+    boost::shared_ptr<AltitudeProvider> _altitudeProvider;
 public:
-    RoutingMetric() : potFuncList(), altitudeProvider(0) {}
+    RoutingMetric() : _potFuncList(), _altitudeProvider() {}
+    RoutingMetric(boost::shared_ptr<AltitudeProvider> provider) : _potFuncList(), _altitudeProvider(provider) {}
     /**
-     * @brief Bewertet eine Kante nach bestimmten Kriterien.
-     * 
-     * Die Kriterien, nach denen bewertet wird, hängen von der Implementierung der
-     * Klasse ab. Die Funktion kann entweder Zeiten in Sekunden, oder eine
-     * fiktive Bewertungseinheit zurückgeben. Welche Einheit der zurückgegebene Wert hat
-     * wird in der Funktion
-     * 
-     * @param edge Die Kante, die bewertet werden soll.
-     * @param startNode Der Startknoten der Kante.
-     * @param endNode Der Endknoten der Kante.
-     * @remarks Es werden Start- und Endknoten angegeben, obwohl deren ID
-     *      in der Kante gespeichert ist, weil so der Zugriff auf deren
-     *      Längen- und Breitengrad einfacher und schneller ist.
-     * @attention Die Funktion darf keine negativen Werte zurückgeben!
-     * @return Die Bewertung der angegebenen Kante.
-     */
+    * @brief Bewertet eine Kante nach bestimmten Kriterien.
+    *
+    * Die Kriterien, nach denen bewertet wird, hängen von der Implementierung der
+    * Klasse ab. Die Funktion kann entweder Zeiten in Sekunden, oder eine
+    * fiktive Bewertungseinheit zurückgeben. Welche Einheit der zurückgegebene Wert hat
+    * wird in der Funktion
+    *
+    * @param edge Die Kante, die bewertet werden soll.
+    * @param startNode Der Startknoten der Kante.
+    * @param endNode Der Endknoten der Kante.
+    * @remarks Es werden Start- und Endknoten angegeben, obwohl deren ID
+    * in der Kante gespeichert ist, weil so der Zugriff auf deren
+    * Längen- und Breitengrad einfacher und schneller ist.
+    * @attention Die Funktion darf keine negativen Werte zurückgeben!
+    * @return Die Bewertung der angegebenen Kante.
+    */
     virtual double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)=0;
     /**
      * @brief Fügt eine Potentialfunktion in die Bewertung ein.
@@ -73,7 +74,10 @@ public:
      * 
      * @param potentialFunction Ein boost::shared_ptr auf eine beliebige Potentialfunktion.
      */
-    virtual void addPotentialFunction(boost::shared_ptr<PotentialFunction> potentialFunction) {potFuncList << potentialFunction;}
+    virtual void addPotentialFunction(boost::shared_ptr<PotentialFunction> potentialFunction) 
+    {
+        _potFuncList << potentialFunction;
+    }
     /**
      * @brief Gibt an, in welcher Einheit die Bewertung von rateEdge() angegeben wird.
      * 
@@ -82,28 +86,31 @@ public:
      * @return In welcher Einheit die Bewertung von rateEdge() angegeben wird.
      * @see MeasurementUnit
      */
-    virtual MeasurementUnit getMeasurementUnit() {return VIRTUAL;}
+    virtual MeasurementUnit getMeasurementUnit() 
+    {
+        return VIRTUAL;
+    }
     
     /**
-     * @brief Gibt zurück, wie lang man benötigt um diese Kante zu befahren.
-     * 
-     * Die Einheit ist Sekunden. Die Funktion wird verwendet, um dem Benutzer
-     * eine Rückmeldung zu geben über die Zeit, die benötigt wird um eine
-     * Route zu befahren.
-     * 
-     * @remarks Wenn in rateEdge() Sekunden zurückgegeben werden, ist diese
-     *      Funktion identisch zu rateEdge().
-     * @param edge Die Kante, die bewertet werden soll.
-     * @param startNode Der Startknoten der Kante.
-     * @param endNode Der Endknoten der Kante.
-     * @remarks Es werden Start- und Endknoten angegeben, obwohl deren ID
-     *      in der Kante gespeichert ist, weil so der Zugriff auf deren
-     *      Längen- und Breitengrad einfacher und schneller ist.
-     * @attention Die Funktion darf keine negativen Werte zurückgeben!
-     * @return Die Zeit, de man benötigt um die angegebene Kante zu befahren.
-     */
+    * @brief Gibt zurück, wie lang man benötigt um diese Kante zu befahren.
+    *
+    * Die Einheit ist Sekunden. Die Funktion wird verwendet, um dem Benutzer
+    * eine Rückmeldung zu geben über die Zeit, die benötigt wird um eine
+    * Route zu befahren.
+    *
+    * @remarks Wenn in rateEdge() Sekunden zurückgegeben werden, ist diese
+    * Funktion identisch zu rateEdge().
+    * @param edge Die Kante, die bewertet werden soll.
+    * @param startNode Der Startknoten der Kante.
+    * @param endNode Der Endknoten der Kante.
+    * @remarks Es werden Start- und Endknoten angegeben, obwohl deren ID
+    * in der Kante gespeichert ist, weil so der Zugriff auf deren
+    * Längen- und Breitengrad einfacher und schneller ist.
+    * @attention Die Funktion darf keine negativen Werte zurückgeben!
+    * @return Die Zeit, de man benötigt um die angegebene Kante zu befahren.
+    */
     virtual double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)=0;
-    
+
     virtual ~RoutingMetric();
 }; 
 
@@ -113,7 +120,90 @@ private:
     
 public:
     EuclidianRoutingMetric() {}
+    EuclidianRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) : RoutingMetric(provider) {}
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
 };
+
+class PowerRoutingMetric : public RoutingMetric
+{
+private:
+    double weight;
+    double efficiency;
+    /**
+     * @brief Diese Funktion berrechnet die Leistung mittels Distanz und Zeit
+     * @param distance die Entfernung in Metern
+     * @param time die Zeit in Sekunden
+     * @param hightDifference der Höhenunterschied in Metern
+     * @param weight das Gesammtgewicht des Systems Fahrrad-Fahrer
+     * @return die Leistung.
+     */
+    double calculateDistanceTime(double distance, double time, double hight, double weight)
+    {
+        // Am Steigungs-Dreieck gilt der Satz von Pythagoras: s^2 = x^2 + h^2
+        double fullDistance = sqrt( pow(distance, 2) + pow(hight, 2));
+        // Die Geschwindigkeit in m/s ist definiert als gefahrene Strecke pro Zeit
+        double speed = fullDistance / time;
+        //
+        double hightDifference = hight/distance;
+        // Die Leistung ist Arbeit pro Zeit: P = E / t & Die zu verrichtende Arbeit errechnet sich aus der Höhendifferenz und dem Gesamtgewicht von Fahrer und Fahrrad: E = G * 9.81 ms^-2 * h mit G = Gesamtgewicht von Fahrer und Fahrrad in kg
+        double efficiency = weight * pow(9.81, -2.0) * hightDifference * speed / sqrt(1 + pow(hightDifference, 2.0));
+        return efficiency;
+    }
+    /**
+     * @brief Diese Funktion berrechnet die Leistung mittels der Geschwindigkeit
+     * @param speed die Geschwindigkeit in Metern / Sekunde
+     * @param hightDifference der Höhenunterschied in Metern / Distanz in Metern
+     * @param weight das Gesammtgewicht des Systems Fahrrad-Fahrer
+     * @return die Leistung.
+     */
+    double calculateSpeed(double speed, double hightDifference, double weight)
+    {
+        //
+        double efficiency = weight * pow(9.81, -2.0) * hightDifference * speed / sqrt(1 + pow(hightDifference, 2.0));
+        return efficiency;
+    }
+    /**
+     * @brief Diese Funktion berrechnet die Leistung mittels Distanz und Zeit
+     * @param efficency die Leistung
+     * @param hightDifference der Höhenunterschied in Metern
+     * @param weight das Gesammtgewicht des Systems Fahrrad-Fahrer
+     * @return die Zeit.
+     */
+    double calculate(double efficiency, double hightDifference, double weight, double distance)
+    {
+        //
+        double time = distance /(efficiency * sqrt(1 + pow(hightDifference, 2.0)) / (weight * pow(9.81, -2.0) * hightDifference));
+        return time;
+    }
+public:
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) :
+        RoutingMetric(provider)
+    {
+        weight = 85.0;
+        efficiency = 3.0 * 85.0;
+    }
+    PowerRoutingMetric (boost::shared_ptr<AltitudeProvider> provider, double newWeight, double newEfficiency) :
+        RoutingMetric(provider), weight(newWeight), efficiency(newEfficiency)
+    {}
+
+    double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
+    {
+        double hightStart = _altitudeProvider->getAltitude(startNode);
+        double hightEnd = _altitudeProvider->getAltitude(endNode);
+        double hightDifference = hightStart-hightEnd;
+        if (hightDifference < 0.0)
+        {
+            hightDifference = hightDifference * (-1.0);
+        }
+        double distance = startNode.calcDistance(endNode);
+        double result = calculate(efficiency, hightDifference, weight, distance);
+        return result;
+    }
+    /**
+     * @todo IMPLEMENTIEREN!
+     */
+    double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode) {return 0.0;}
+ };
+
 #endif //ROUTINGMETRIC_HPP

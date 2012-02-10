@@ -7,17 +7,21 @@ PROJECT(biker)
 
 #Hier Versionsnummer setzen
 SET (biker_VERSION_MAJOR 0)
-SET (biker_VERSION_MINOR 03)
+SET (biker_VERSION_MINOR 04)
 
 #Programmversion dem Quelltext bekannt machen
 ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
 
 #Bissl mit cmake rumspielen... Hauptziel: Verständnis :)
-MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\".")
+MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\" or \"cmake -DCMAKE_BUILD_TYPE=Profiling\".")
 IF (CMAKE_BUILD_TYPE STREQUAL Debug)
     MESSAGE("CMAKE_BUILD_TYPE set to Debug.")
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
     MESSAGE("CMAKE_BUILD_TYPE set to Release.")
+ELSEIF (CMAKE_BUILD_TYPE STREQUAL Profiling)
+    MESSAGE("CMAKE_BUILD_TYPE set to Profiling.")
+    SET(CMAKE_CXX_FLAGS_PROFILING "-pg")
+#    SET(CMAKE_EXE_LINKER_FLAGS_PROFILING "-pg")
 ENDIF ()
 
 #Evtl muss man mal für die Compiler verschiedene Einstellungen machen: Wenn, dann hier.
@@ -83,6 +87,7 @@ SET(
       
     #src/preprocessing
     src/preprocessing/datapreprocessing.cpp
+    src/preprocessing/simpledatapreprocessing.cpp
 
     #src/database/
     src/database/altitudeprovider.cpp
@@ -92,6 +97,7 @@ SET(
     src/database/zip.cpp
     src/database/sqlite_functions.cpp
     src/database/databaseramcache.cpp
+    src/database/database.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp
@@ -104,6 +110,7 @@ SET(
     src/routing/heap.cpp
     src/routing/closedlist.cpp
     src/routing/dijkstra.cpp
+    src/routing/astar.cpp
     
     #src/network/
     src/network/webserver.cpp
@@ -129,6 +136,7 @@ SET(
 
     #src/preprocessing
     src/preprocessing/datapreprocessing.hpp
+    src/preprocessing/simpledatapreprocessing.hpp
 
     #src/database/
     src/database/altitudeprovider.hpp
@@ -151,6 +159,7 @@ SET(
     src/routing/heap.hpp
     src/routing/closedlist.hpp
     src/routing/dijkstra.hpp
+    src/routing/astar.hpp
     
     #src/network/
     src/network/webserver.hpp
@@ -217,18 +226,20 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}/src/database/parser/pbf/
     )
 
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.osm ${CMAKE_CURRENT_BINARY_DIR}/data/rub.osm COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/rub.pbf COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.osm ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.osm COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.pbf COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/gui.html ${CMAKE_CURRENT_BINARY_DIR}/gui/gui.html COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/style.css ${CMAKE_CURRENT_BINARY_DIR}/gui/style.css COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-red.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-red.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-blue.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-blue.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-cyan.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-cyan.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-green.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-green.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-purple.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-purple.png COPYONLY)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-yellow.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-yellow.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.osm ${CMAKE_CURRENT_BINARY_DIR}/data/rub.osm COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/rub.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/rub.pbf COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.osm ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.osm COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/data/bochum_city.pbf ${CMAKE_CURRENT_BINARY_DIR}/data/bochum_city.pbf COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/gui.html ${CMAKE_CURRENT_BINARY_DIR}/gui/gui.html COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/style.css ${CMAKE_CURRENT_BINARY_DIR}/gui/style.css COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-red.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-red.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-blue.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-blue.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-cyan.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-cyan.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-green.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-green.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-purple.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-purple.png COPYONLY)
+#CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/gui/img/marker-yellow.png ${CMAKE_CURRENT_BINARY_DIR}/gui/img/marker-yellow.png COPYONLY)
+FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/gui DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 IF(DOXYGEN_FOUND)
     #Semikolon-getrennte Liste in Whitespace-getrennte Liste konvertieren
@@ -302,8 +313,12 @@ ADD_TEST(binaryheap                       "biker" "--test" "binaryheap")
 ADD_TEST(hashclosedlist                   "biker" "--test" "hashclosedlist")
 ADD_TEST(multithreadedhashclosedlist      "biker" "--test" "multithreadedhashclosedlist")
 ADD_TEST(datapreprocessing                "biker" "--test" "datapreprocessing")
+ADD_TEST(simpledatapreprocessing          "biker" "--test" "simpledatapreprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
+ADD_TEST(astarrouter                      "biker" "--test" "astarrouter")
+
+SET_TESTS_PROPERTIES(dijkstrarouter PROPERTIES DEPENDS simpledatapreprocessing)
 
 
 #Zum Erstellen von automatischen Installationspaketen

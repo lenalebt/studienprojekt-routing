@@ -34,6 +34,7 @@ private:
      * @return Ob die Tabellen erstellt werden konnten
      */
     bool createTables();
+    
     /**
      * @brief Führt die Statements aus, die die Tabellen erstellen sollen
      * @return Ob die Ausführung erfolgreich war, oder nicht
@@ -62,6 +63,8 @@ public:
     
     bool beginTransaction();
     bool endTransaction();
+    
+    bool createIndexes();
 };
 
 namespace biker_tests

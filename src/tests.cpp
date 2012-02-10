@@ -24,10 +24,12 @@
 #include "closedlist.hpp"
 #include "heap.hpp"
 #include "datapreprocessing.hpp"
+#include "simpledatapreprocessing.hpp"
 #include "webserver.hpp"
 #include "potentialfunction.hpp"
 #include "dijkstra.hpp"
 #include "filedownloader.hpp"
+#include "astar.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -90,7 +92,7 @@ namespace biker_tests
     template<> bool check_equality(std::string message, double a, double b)
     {
         std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
-        if (fabs(a - b) < DOUBLE_EQUALITY_BARRIER)
+        if ((a == b) || (fabs((a / b) - 1) < DOUBLE_EQUALITY_BARRIER))
         {
             std::cerr << "passed!" << std::endl;
             return true;
@@ -106,7 +108,7 @@ namespace biker_tests
     template<> bool check_equality(std::string message, float a, float b)
     {
         std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
-        if (fabs(a - b) < FLOAT_EQUALITY_BARRIER)
+        if ((a == b) || (fabs((a / b) - 1) < FLOAT_EQUALITY_BARRIER))
         {
             std::cerr << "passed!" << std::endl;
             return true;
@@ -216,6 +218,8 @@ namespace biker_tests
             return biker_tests::testGPSRoute();
         else if(testName == "datapreprocessing")
             return biker_tests::testDataPreprocessing();
+        else if(testName == "simpledatapreprocessing")
+            return biker_tests::testSimpleDataPreprocessing();
         else if (testName == "srtmprovider")
             return biker_tests::testSRTMProvider();
         else if (testName == "webserver")
@@ -226,6 +230,8 @@ namespace biker_tests
             return biker_tests::testDijkstraRouter();
         else if (testName == "filedownloader")
             return biker_tests::testFileDownloader();
+        else if (testName == "astarrouter")
+            return biker_tests::testAStarRouter();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;
