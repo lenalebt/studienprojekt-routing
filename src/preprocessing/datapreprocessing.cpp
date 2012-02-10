@@ -15,26 +15,26 @@ DataPreprocessing::~DataPreprocessing()
     
 }
 
+bool DataPreprocessing::isStreet(const OSMWay& way)
+{
+    //Wenn ein "highway"-key gefunden wird, ist es eine Straße - sonst nicht.
+    QVector<OSMProperty> props = way.getProperties();
+    for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
+    {
+        if (it->getKey() == "highway")
+            return true;
+    }
+    return false;
+}
+
 bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 {
-    _finalDBConnection->open(dbFilename);
-    QTemporaryFile tmpFile;
-    tmpFile.open();
-    QString tmpFilename = tmpFile.fileName();
-    tmpFile.close();
-    tmpFile.remove();
-    _tmpDBConnection.open(tmpFilename);
-    
     //Prueft, ob .osm oder .pbf am Ende vorhanden
     if(fileToParse.endsWith(".osm"))
     {
         _osmParser.reset(new OSMParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
-        QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);
-        
-        saveNodeToTmpDatabase();
-        saveEdgeToTmpDatabase();        
-        saveTurnRestrictionToTmpDatabase();
-        
+        QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);        
+        preprocess();
         future.waitForFinished();
         return true;
     }
@@ -42,15 +42,7 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     {
         _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
-        
-        saveNodeToTmpDatabase();
-        saveEdgeToTmpDatabase();
-        saveTurnRestrictionToTmpDatabase();
-        
-        std::cerr << "creating indexes" << std::endl;
-        _tmpDBConnection.createIndexes();
-        _finalDBConnection->createIndexes();
-        
+        preprocess();
         future.waitForFinished();
         return true;
     }
@@ -58,6 +50,28 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     {
         return false;
     }
+}
+
+bool DataPreprocessing::preprocess()
+{
+    //~ _finalDBConnection->open(dbFilename);
+    //~ QTemporaryFile tmpFile;
+    //~ tmpFile.open();
+    //~ QString tmpFilename = tmpFile.fileName();
+    //~ tmpFile.close();
+    //~ tmpFile.remove();
+    //~ _tmpDBConnection.open(tmpFilename);
+    
+        //~ saveNodeToTmpDatabase();
+        //~ saveEdgeToTmpDatabase();        
+        //~ saveTurnRestrictionToTmpDatabase();
+        //~ 
+        //~ future.waitForFinished();
+        
+        
+        
+        //~ _tmpDBConnection.createIndexes();
+        //~ _finalDBConnection->createIndexes();
 }
 
 /**

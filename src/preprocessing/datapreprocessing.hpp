@@ -59,11 +59,27 @@ private:
     TemporaryOSMDatabaseConnection _tmpDBConnection;
     boost::shared_ptr<DatabaseConnection> _finalDBConnection;
     
+    /**
+     * @brief Stellt fest, ob es sich bei einer Kante um eine Straße
+     *      handelt, oder nicht.
+     * 
+     * Prüft lediglich, ob eine Eigenschaft mit highway-Tag vorhanden ist.
+     * 
+     * @return Ob es sich um eine Straße handelt.
+     */
+    bool isStreet(const OSMWay& way);
+    
 public:    
     DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb);
     ~DataPreprocessing();
  
+    /**
+     * @brief Parsed ueber .osm/.pbf-Dateien und wirft 
+     * 
+     * @return Ob es sich um eine Straße handelt.
+     */
     bool startparser(QString osmFilename, QString dbFilename);
+    bool preprocess();
     bool deQueue();
     bool enQueue();
     void saveNodeToTmpDatabase();

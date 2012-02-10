@@ -62,6 +62,7 @@ bool SimpleDataPreprocessing::preprocess()
             QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
             for(int i = 0; i < edgeList.size(); i++)
             {
+                //TODO: kategorisieren
                 RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
                 _finalDBConnection->saveEdge(routingEdge);
             }
