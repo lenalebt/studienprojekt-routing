@@ -248,7 +248,6 @@ public:
      *      wichtige Daten auszuliefern werden nur solche Dateien ausgeliefert,
      *      die für alle Benutzer des Systems lesbar sind.
      */
-    static QString publicHtmlDirectory;
     BikerHttpRequestProcessor(int socketDescriptor) :
         HttpRequestProcessor(socketDescriptor) {}
     /**

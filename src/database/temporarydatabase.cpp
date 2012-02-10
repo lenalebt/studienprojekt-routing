@@ -152,6 +152,13 @@ bool TemporaryOSMDatabaseConnection::createTables()
 	
     //Liste von auszuführenden Statements erstellen
 	QStringList statements;
+    statements << "PRAGMA page_size = 4096;";
+    statements << "PRAGMA max_page_count = 2147483646;";
+    statements << "PRAGMA cache_size=10000;";
+    statements << "PRAGMA synchronous=OFF;";
+    statements << "PRAGMA journal_mode=MEMORY;";
+    statements << "PRAGMA temp_store = MEMORY;";
+    
 	statements << "CREATE TABLE IF NOT EXISTS PROPERTIES(PROPERTYID INTEGER PRIMARY KEY, KEY VARCHAR, VALUE VARCHAR);";
     
     statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER PRIMARY KEY, LAT DOUBLE NOT NULL, LON DOUBLE NOT NULL);";

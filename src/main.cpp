@@ -160,7 +160,6 @@ int main ( int argc, char* argv[] )
     boost::shared_ptr<HttpServerThread<BikerHttpRequestProcessor> > server;
     if (programOptions->webserver_startWebserver)
     {
-        BikerHttpRequestProcessor::publicHtmlDirectory = programOptions->webserver_public_html_folder.c_str();
         server.reset(new HttpServerThread<BikerHttpRequestProcessor>(programOptions->webserver_port, programOptions->webserver_threadpool_size));
         server->startServer();
     }
@@ -209,12 +208,12 @@ int main ( int argc, char* argv[] )
             std::cerr << "error while opening database file \"" << programOptions->dbFilename << "\". exiting." << std::endl;
             return 1;
         }
-        boost::shared_ptr<DatabaseConnection> dbcache(new DatabaseRAMCache(db));
-        DatabaseConnection::setGlobalInstance(dbcache);
+        db->close();
     }
     else
     {
-        std::cerr << "was not able to construct global database object. exiting." << std::endl;
+        std::cerr << "was not able to construct database object. exiting." << std::endl;
+        return 1;
     }
     
     if (programOptions->doRouting)

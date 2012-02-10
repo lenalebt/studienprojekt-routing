@@ -9,8 +9,8 @@
 #include "routingmetric.hpp"
 #include "database.hpp"
 #include "dijkstra.hpp"
-
-QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
+#include "programoptions.hpp"
+#include "spatialitedatabase.hpp"
 
 template <typename HttpRequestProcessorType>
 void HttpServerThread<HttpRequestProcessorType>::run()
@@ -384,14 +384,14 @@ void BikerHttpRequestProcessor::processRequest()
     {
         //"/files/" entfernen!
         QString _myRequestPath = _requestPath.remove(0, 7);
-        QDir mainDir(publicHtmlDirectory);
-        if ((publicHtmlDirectory == "") || !mainDir.exists())
+        QDir mainDir((ProgramOptions::getInstance()->webserver_public_html_folder).c_str());
+        if ((ProgramOptions::getInstance()->webserver_public_html_folder == "") || !mainDir.exists())
         {
             this->send404();
             return;
         }
-        QFile file(publicHtmlDirectory + "/" + _myRequestPath);
-        QDir dir(publicHtmlDirectory + "/" + _myRequestPath);
+        QFile file(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
+        QDir dir(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
         
         //Wenn die Datei existiert, und alle sie lesen dürfen (nicht nur
         //    Benutzer oder Gruppe): Datei senden. Sonst: 404 Not found.
@@ -511,8 +511,10 @@ void BikerHttpRequestProcessor::processRequest()
                 return;
             }
             
+            if (ProgramOptions::getInstance()->dbBackend == "spatialite")
+                db.reset(new SpatialiteDatabaseConnection());
             //Datenbank ist die globale DB...
-            db = DatabaseConnection::getGlobalInstance();
+            db->open(ProgramOptions::getInstance()->dbFilename.c_str());
             
             //Als Router nehmen wir erstmal Dijkstra.
             router.reset(new DijkstraRouter(db, metric));
@@ -560,7 +562,7 @@ namespace biker_tests
     {
         std::cerr << "Testing Webserver..." << std::endl;
         
-        BikerHttpRequestProcessor::publicHtmlDirectory = "./gui/";
+        ProgramOptions::getInstance()->webserver_public_html_folder = "./gui/";
         HttpServerThread<BikerHttpRequestProcessor> server(8081);
         server.startServer();
         //todo: aufs hochfahren warten toller lösen als so
