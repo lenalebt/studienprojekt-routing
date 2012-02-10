@@ -4,6 +4,7 @@
 #include "gpsposition.hpp"
 #include "zip.hpp"
 #include "tests.hpp"
+#include "filedownloader.hpp"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -180,68 +181,7 @@ public:
     ~SRTMProvider();
 };
 
-class FileDownloader: public QObject
-{
-private:
-public:
-    FileDownloader();
-    ~FileDownloader();
-    //void run();
-    QByteArray downloadURL(QUrl &url);
-    //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error); // vll TODO
-};
 
-
-//Klasse SRTMTile wird nun doch nicht verwendet
-/**
- * @brief 
- * 
- * 
- * 
- * @author Lena Brüder
- * @date 2011-11-28
- * @copyright GNU GPL v3
- * @todo Doxygen, Implementieren, Definieren, blablabla
- */
- /*
-class SRTMTile
-{
-private:
-    int _lat;
-    int _lon;
-    int _size;
-    
-    boost::uint16_t* _data;
-    
-    bool _valid;
-    QFile _file;
-    QDir _cacheDirectory;
-    */
-    /**
-     * @brief Lädt Daten aus der zip-Datei, die mit <code>file</code> bezeichnet ist
-            und speichert sie in <code>data</code>.
-     * 
-     * @todo implementieren
-     */
-    //void getData();
-    
-    /**
-     * @brief 
-     * 
-     * @return 
-     * @todo 
-     */
-    //void downloadData();
-    /*
-public:
-    double getAltitude(double lat, double lon);
-    
-    SRTMTile(double lat, double lon, QDir cacheDirectory) : _lat(lat), _lon(lon), _cacheDirectory(cacheDirectory)
-    {
-        
-    }
-};
-*/
 
 
 

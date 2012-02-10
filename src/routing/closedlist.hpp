@@ -92,11 +92,29 @@ private:
     QSet<boost::uint64_t> _set;
     boost::uint64_t _overlappingElement;
 public:
-    bool contains(boost::uint64_t elementID) const;
-	void addElement(boost::uint64_t elementID);
-	void removeElement(boost::uint64_t elementID);
-	int size() const;
-    boost::uint64_t getOverlappingElement() const;
+    bool contains(boost::uint64_t elementID) const
+    {
+        return _set.contains(elementID);
+    }
+	void addElement(boost::uint64_t elementID)
+    {
+        if (_set.contains(elementID))
+        _overlappingElement = elementID;
+        _set << elementID;
+    }
+    
+	void removeElement(boost::uint64_t elementID)
+    {
+        _set.remove(elementID);
+    }
+	int size() const
+    {
+        return _set.size();
+    }
+    boost::uint64_t getOverlappingElement() const
+    {
+        return _overlappingElement;
+    }
     
     HashClosedList() : _overlappingElement(0) {}
 };
@@ -172,11 +190,76 @@ private:
     mutable QReadWriteLock _lock;
     boost::uint64_t _overlappingElement;
 public:
-    bool contains(boost::uint64_t elementID, RoutingThread thread) const;
-	void addElement(boost::uint64_t elementID, RoutingThread thread);
-	void removeElement(boost::uint64_t elementID, RoutingThread thread);
-	int size(RoutingThread thread) const;
-    boost::uint64_t getOverlappingElement() const;
+    bool contains(boost::uint64_t elementID, RoutingThread thread) const
+    {
+        QReadLocker locker(&_lock);
+        switch (thread)
+        {
+            case S_THREAD:
+                return _sSet.contains(elementID);
+                break;
+            case T_THREAD:
+                return _tSet.contains(elementID);
+                break;
+            default:
+                return false;
+        }
+        return false;
+    }
+	void addElement(boost::uint64_t elementID, RoutingThread thread)
+    {
+        QWriteLocker locker(&_lock);
+        switch (thread)
+        {
+            case S_THREAD:
+                _sSet << elementID;
+                if (_tSet.contains(elementID))
+                    _overlappingElement = elementID;
+                break;
+            case T_THREAD:
+                _tSet << elementID;
+                if (_sSet.contains(elementID))
+                    _overlappingElement = elementID;
+                break;
+            default:
+                ;
+        }
+    }
+	void removeElement(boost::uint64_t elementID, RoutingThread thread)
+    {
+        QWriteLocker locker(&_lock);
+        switch (thread)
+        {
+            case S_THREAD:
+                _sSet.remove(elementID);
+                break;
+            case T_THREAD:
+                _tSet.remove(elementID);
+                break;
+            default:
+                ;
+        }
+    }
+	int size(RoutingThread thread) const
+    {
+        QReadLocker locker(&_lock);
+        switch (thread)
+        {
+            case S_THREAD:
+                return _sSet.size();
+                break;
+            case T_THREAD:
+                return _tSet.size();
+                break;
+            default:
+                return 0;
+        }
+        return 0;
+    }
+    boost::uint64_t getOverlappingElement() const
+    {
+        return _overlappingElement;
+    }
     
     MultiThreadedHashClosedList() : _overlappingElement(0) {}
 };

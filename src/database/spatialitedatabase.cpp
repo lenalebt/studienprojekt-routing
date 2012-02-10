@@ -124,12 +124,37 @@ bool SpatialiteDatabaseConnection::createTables()
 	
     //Liste von auszuführenden Statements erstellen
 	QStringList statements;
+    statements << "PRAGMA page_size = 4096;";
+    statements << "PRAGMA max_page_count = 2147483646;";
+    statements << "PRAGMA cache_size=10000;";
+    statements << "PRAGMA synchronous=OFF;";
+    statements << "PRAGMA journal_mode=MEMORY;";
+    statements << "PRAGMA temp_store = MEMORY;";
 	statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PROPERTIES INTEGER NOT NULL);";
-	statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODE);";
-	statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODE);";
 	statements << "CREATE VIRTUAL TABLE NODES USING rtree(ID, MIN_LAT, MAX_LAT, MIN_LON, MAX_LON);";
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     statements << "CREATE TABLE EDGES_STREETNAME(ID INTEGER PRIMARY KEY, STREETNAME VARCHAR);";
+    
+    //Alle Statements der Liste ausführen in einer Transaktion
+    //retVal = this->beginTransaction();
+	QStringList::const_iterator it;
+	for (it = statements.constBegin(); it != statements.constEnd(); it++)
+	{
+		retVal &= execCreateTableStatement(it->toStdString());
+	}
+    //retVal &= this->endTransaction();
+	
+	return retVal;
+}
+
+bool SpatialiteDatabaseConnection::createIndexes()
+{
+	bool retVal = true;
+	
+    //Liste von auszuführenden Statements erstellen
+	QStringList statements;
+	statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODE);";
+	statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODE);";
     
     //Alle Statements der Liste ausführen in einer Transaktion
     retVal = this->beginTransaction();
@@ -187,12 +212,10 @@ boost::shared_ptr<RoutingNode> SpatialiteDatabaseConnection::getNodeByID(boost::
     node.setID(id);
     if (node.isIDInLongFormat())
     {
-        std::cerr << RoutingNode::convertIDToShortFormat(id);
         sqlite3_bind_int64(_getNodeByIDStatement, 1, RoutingNode::convertIDToShortFormat(id));
     }
     else
     {
-        std::cerr << id;
         sqlite3_bind_int64(_getNodeByIDStatement, 1, id);
     }
 	
@@ -235,8 +258,8 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double
 {
     //Berechne einfach die beiden Punkte, die in den Ecken des umgebenden
     //Rechtecks sein müssten, plus ein bisschen.
-    return this->getNodes(searchMidpoint.calcPositionInDistance(360-45, radius*1.45),
-        searchMidpoint.calcPositionInDistance(180-45, radius*1.45));
+    return this->getNodes(searchMidpoint.calcPositionInDistance(180+45, radius*1.45),
+        searchMidpoint.calcPositionInDistance(45, radius*1.45));
 }
 
 
@@ -263,6 +286,11 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 	sqlite3_bind_double(_getNodeStatement, 3, minCorner.getLon());
 	sqlite3_bind_double(_getNodeStatement, 4, maxCorner.getLon());
 	
+    /*std::cerr << "bound parameters:" << "minCorner.getLat()=" << minCorner.getLat() <<
+        ", maxCorner.getLat()=" << maxCorner.getLat() <<
+        ", minCorner.getLon()=" << minCorner.getLon() <<
+        ", maxCorner.getLon()=" << maxCorner.getLon() << std::endl;*/
+    
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getNodeStatement)) != SQLITE_DONE)
     {

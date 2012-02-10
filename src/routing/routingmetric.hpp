@@ -65,7 +65,7 @@ public:
     * @attention Die Funktion darf keine negativen Werte zurückgeben!
     * @return Die Bewertung der angegebenen Kante.
     */
-        virtual double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)=0;
+    virtual double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)=0;
     /**
      * @brief Fügt eine Potentialfunktion in die Bewertung ein.
      * 
@@ -120,6 +120,7 @@ private:
     
 public:
     EuclidianRoutingMetric() {}
+    EuclidianRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) : RoutingMetric(provider) {}
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
 };
@@ -176,7 +177,8 @@ private:
         return time;
     }
 public:
-    PowerRoutingMetric()
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) :
+        RoutingMetric(provider)
     {
         weight = 85.0;
         efficiency = 3.0 * 85.0;
@@ -198,7 +200,10 @@ public:
         double result = calculate(efficiency, hightDifference, weight, distance);
         return result;
     }
-    double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+    /**
+     * @todo IMPLEMENTIEREN!
+     */
+    double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode) {return 0.0;}
  };
 
 #endif //ROUTINGMETRIC_HPP

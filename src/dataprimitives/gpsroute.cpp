@@ -25,7 +25,7 @@ void GPSRoute::exportGPX(QString filename)
     //zusätzliche Daten, wie Zeit & Entfernung
     QDomElement rootExtensions = doc.createElement("extensions");
     QDomElement  rootDistance = doc.createElement("distance");
-    QDomText distanceText = doc.createTextNode(locale.toString(route.calcLength()));
+    QDomText distanceText = doc.createTextNode(locale.toString(route.calcLength(), 'f', 9));
     rootDistance.appendChild(distanceText);
     rootExtensions.appendChild(rootDistance);
     /*
@@ -41,8 +41,8 @@ void GPSRoute::exportGPX(QString filename)
     for (int i=0; i<route.getSize(); i++)
     {
         wptPoint = doc.createElement("wpt");
-        wptPoint.setAttribute("lat", locale.toString(route[i].getLat()));
-        wptPoint.setAttribute("lon", locale.toString(route[i].getLon()));
+        wptPoint.setAttribute("lat", locale.toString(route[i].getLat(), 'f', 9));
+        wptPoint.setAttribute("lon", locale.toString(route[i].getLon(), 'f', 9));
         root.appendChild(wptPoint);
     }
     //Routepunkte einfügen
@@ -55,11 +55,11 @@ void GPSRoute::exportGPX(QString filename)
     for(int i=0; i<route.getSize(); i++)
     {
         rtePoint = doc.createElement("rtept");
-        rtePoint.setAttribute("lat", locale.toString(route[i].getLat()));
-        rtePoint.setAttribute("lon", locale.toString(route[i].getLon()));
+        rtePoint.setAttribute("lat", locale.toString(route[i].getLat(), 'f', 9));
+        rtePoint.setAttribute("lon", locale.toString(route[i].getLon(), 'f', 9));
         QDomElement extensions = doc.createElement("extensions");
         QDomElement distance = doc.createElement("distance");
-        QDomText distanceElementText = doc.createTextNode(locale.toString(route[i].calcDistance(help)));
+        QDomText distanceElementText = doc.createTextNode(locale.toString(route[i].calcDistance(help), 'f', 9));
         distance.appendChild(distanceElementText);
         extensions.appendChild(distance);
         // AUSKOMMENTIERT: eventuel zur späteren Verwendung 
@@ -101,7 +101,7 @@ QString GPSRoute::exportGPXString()
     //zusätzliche Daten, wie Zeit & Entfernung
     QDomElement rootExtensions = doc.createElement("extensions");
     QDomElement  rootDistance = doc.createElement("distance");
-    QDomText distanceText = doc.createTextNode(locale.toString(route.calcLength()));
+    QDomText distanceText = doc.createTextNode(locale.toString(route.calcLength(), 'f', 9));
     rootDistance.appendChild(distanceText);
     rootExtensions.appendChild(rootDistance);
     /*
@@ -117,8 +117,8 @@ QString GPSRoute::exportGPXString()
     for (int i=0; i<route.getSize(); i++)
     {
         wptPoint = doc.createElement("wpt");
-        wptPoint.setAttribute("lat", locale.toString(route[i].getLat()));
-        wptPoint.setAttribute("lon", locale.toString(route[i].getLon()));
+        wptPoint.setAttribute("lat", locale.toString(route[i].getLat(), 'f', 9));
+        wptPoint.setAttribute("lon", locale.toString(route[i].getLon(), 'f', 9));
         root.appendChild(wptPoint);
     }
     //Routepunkte einfügen
@@ -131,11 +131,11 @@ QString GPSRoute::exportGPXString()
     for(int i=0; i<route.getSize(); i++)
     {
         rtePoint = doc.createElement("rtept");
-        rtePoint.setAttribute("lat", locale.toString(route[i].getLat()));
-        rtePoint.setAttribute("lon", locale.toString(route[i].getLon()));
+        rtePoint.setAttribute("lat", locale.toString(route[i].getLat(), 'f', 9));
+        rtePoint.setAttribute("lon", locale.toString(route[i].getLon(), 'f', 9));
         QDomElement extensions = doc.createElement("extensions");
         QDomElement distance = doc.createElement("distance");
-        QDomText distanceElementText = doc.createTextNode(locale.toString(route[i].calcDistance(help)));
+        QDomText distanceElementText = doc.createTextNode(locale.toString(route[i].calcDistance(help), 'f', 9));
         distance.appendChild(distanceElementText);
         extensions.appendChild(distance);
         // AUSKOMMENTIERT: eventuel zur späteren Verwendung 
@@ -170,15 +170,15 @@ void GPSRoute::exportJSON(QString filename)
     for(; i<route.getSize()-1; i++)
     {
         all.append("[");
-        all.append(locale.toString(route[i].getLat()));
+        all.append(locale.toString(route[i].getLat(), 'f', 9));
         all.append(",");
-        all.append(locale.toString(route[i].getLon()));
+        all.append(locale.toString(route[i].getLon(), 'f', 9));
         all.append( "],");
     }
     all.append("[");
-    all.append(locale.toString(route[i].getLat()));
+    all.append(locale.toString(route[i].getLat(), 'f', 9));
     all.append(",");
-    all.append(locale.toString(route[i].getLon()));
+    all.append(locale.toString(route[i].getLon(), 'f', 9));
     all.append("]");
     //Instruktionen (eventuell verfeinern)
     all.append("],\"route_instructions\":[]");
@@ -215,9 +215,9 @@ QString GPSRoute::exportJSONString()
     for(; i<route.getSize()-1; i++)
     {
         all.append("[");
-        all.append(locale.toString(route[i].getLat()));
+        all.append(locale.toString(route[i].getLat(), 'f', 9));
         all.append(",");
-        all.append(locale.toString(route[i].getLon()));
+        all.append(locale.toString(route[i].getLon(), 'f', 9));
         all.append( "],");
     }
     all.append("[");

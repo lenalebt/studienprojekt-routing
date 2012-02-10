@@ -66,6 +66,7 @@ private:
      * @return Ob die Tabellen erstellt werden konnten
      */
     bool createTables();
+    
     /**
      * @brief Führt die Statements aus, die die Tabellen erstellen sollen
      * @param paramCreateTableStatement Das CREATE TABLE-Statement, das ausgeführt
@@ -163,6 +164,12 @@ public:
      *  oder nicht
      */
     bool endTransaction();
+    
+    /**
+     * @brief Erstellt die Indexe in der Datenbank
+     * @return Ob die Indexe erstellt werden konnten
+     */
+    bool createIndexes();
     
     /**
      * @brief Legt eine OSMNode in der temporären Datenbank ab.

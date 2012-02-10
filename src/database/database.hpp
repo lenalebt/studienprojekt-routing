@@ -26,8 +26,17 @@
 class DatabaseConnection
 {
 private:
-    
+    static boost::shared_ptr<DatabaseConnection> _globalInstance;
 public:
+    static void setGlobalInstance(boost::shared_ptr<DatabaseConnection> instance)
+    {
+        _globalInstance = instance;
+    }
+    static boost::shared_ptr<DatabaseConnection> getGlobalInstance()
+    {
+        return _globalInstance;
+    }
+    
     /**
      * @brief Schließt eine Verbindung zur Datenbank
      */
@@ -176,6 +185,12 @@ public:
      *  oder nicht
      */
     virtual bool endTransaction()=0;
+    
+    /**
+     * @brief Erstellt die Indexe in der Datenbank
+     * @return Ob die Indexe erstellt werden konnten
+     */
+    virtual bool createIndexes()=0;
 };
 
 #endif //DATABASE_HPP 
