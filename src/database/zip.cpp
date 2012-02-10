@@ -44,7 +44,7 @@ int SrtmZipFile::getData(QString filename, qint16 **buffer)
     
     QFileInfo fi(filename);
     QString uncompressedFile = fi.path()+'/'+fi.completeBaseName();
-
+    
     int size = 0;
     if (QFileInfo(uncompressedFile).exists()) {
         QFile file(uncompressedFile);
@@ -67,7 +67,6 @@ int SrtmZipFile::getData(QString filename, qint16 **buffer)
         file.close();
     } else {
         ZZIP_DIR* dir = zzip_dir_open(filename.toAscii().constData(), 0);
-        //ZZIP_DIR* dir = zzip_dir_open("/home/lena/.biker/srtm/Eurasia/N51E007.hgt.zip", 0);
         if (!dir) {
             std::cerr << "ZIP: Could not open zip file " << filename.toAscii().constData() << std::endl;
             return 0;
