@@ -73,6 +73,7 @@ SET(
     biker_SOURCES
     src/main.cpp
     src/tests.cpp
+    src/programoptions.cpp
     
     #src/dataprimitives
     src/dataprimitives/gpsposition.cpp
@@ -122,6 +123,7 @@ SET(
     biker_HEADERS
     src/main.hpp
     src/tests.hpp
+    src/programoptions.hpp
     
     #src/dataprimitives
     src/dataprimitives/gpsposition.hpp

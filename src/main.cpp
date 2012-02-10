@@ -19,71 +19,10 @@
 #include "altitudeprovider.hpp"
 #include "databaseramcache.hpp"
 #include <sstream>
+#include "programoptions.hpp"
 
 namespace po = boost::program_options;
 using namespace std;
-
-class ProgramOptions
-{
-public:
-    //Webserver-spezifischer kram
-    std::string webserver_public_html_folder;
-    unsigned int webserver_port;
-    unsigned int webserver_threadpool_size;
-    bool webserver_startWebserver;
-    
-    //Threads
-    unsigned int threads_threadpool_size;
-    
-    //Tests
-    std::string tests_testName;
-    bool tests_starttest;
-    
-    //Datenvorverarbeitung
-    std::string osmFilename;
-    bool parseOsmFile;
-    bool simpleParseOsmFile;
-    
-    //Datenbank
-    std::string dbFilename;
-    std::string dbBackend;
-    
-    //Routenberechnung
-    bool doRouting;
-    GPSPosition routingStartPoint;
-    GPSPosition routingEndPoint;
-    std::string routingStartPointString;
-    std::string routingEndPointString;
-    bool routeOutputAsGPX;
-    
-    ProgramOptions() :
-        webserver_public_html_folder(""),
-        webserver_port(8080),
-        webserver_threadpool_size(20),
-        webserver_startWebserver(false),
-        
-        threads_threadpool_size(20),
-        
-        tests_testName("all"),
-        tests_starttest(false),
-        
-        osmFilename(""),
-        parseOsmFile(false),
-        simpleParseOsmFile(false),
-        
-        dbFilename(""),
-        dbBackend("spatialite"),
-        
-        doRouting(false),
-        routingStartPoint(),
-        routingEndPoint(),
-        routingStartPointString(""),
-        routingEndPointString(""),
-        routeOutputAsGPX(true)
-    {
-        
-    }
-};
 
 /**
  * @brief Parst die Kommandozeilenparameter.
@@ -94,7 +33,7 @@ public:
  * @bug Wenn man einen Parameter angibt, der nicht aufgeführt ist,
  *      stürzt das Programm ab (->Exception).
  */
-int parseProgramOptions(int argc, char* argv[], ProgramOptions* programOptions)
+int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions> programOptions)
 {
     po::options_description desc("Allowed options");
     desc.add_options()
@@ -208,21 +147,21 @@ int main ( int argc, char* argv[] )
     //Anwendung blockieren.
     QCoreApplication app(argc, argv);
     
-    ProgramOptions programOptions;
+    boost::shared_ptr<ProgramOptions> programOptions = ProgramOptions::getInstance();
     //parse commandline options
-    retVal = parseProgramOptions(argc, argv, &programOptions);
+    retVal = parseProgramOptions(argc, argv, programOptions);
     
     if (retVal == EXIT_FAILURE)
         return EXIT_FAILURE;
     
-    if (programOptions.tests_starttest)
-        return biker_tests::testProgram(programOptions.tests_testName);
+    if (programOptions->tests_starttest)
+        return biker_tests::testProgram(programOptions->tests_testName);
     
     boost::shared_ptr<HttpServerThread<BikerHttpRequestProcessor> > server;
-    if (programOptions.webserver_startWebserver)
+    if (programOptions->webserver_startWebserver)
     {
-        BikerHttpRequestProcessor::publicHtmlDirectory = programOptions.webserver_public_html_folder.c_str();
-        server.reset(new HttpServerThread<BikerHttpRequestProcessor>(programOptions.webserver_port, programOptions.webserver_threadpool_size));
+        BikerHttpRequestProcessor::publicHtmlDirectory = programOptions->webserver_public_html_folder.c_str();
+        server.reset(new HttpServerThread<BikerHttpRequestProcessor>(programOptions->webserver_port, programOptions->webserver_threadpool_size));
         server->startServer();
     }
     
@@ -238,36 +177,36 @@ int main ( int argc, char* argv[] )
      * 
      * Hier ist erstmal eine Beispielimplementierung.
      */
-    if (programOptions.parseOsmFile)
+    if (programOptions->parseOsmFile)
     {
         //TODO: Andere Backends zulassen
         boost::shared_ptr<SpatialiteDatabaseConnection> ptr(new SpatialiteDatabaseConnection());
         DataPreprocessing preprocessor(ptr);
-        return (preprocessor.startparser(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
+        return (preprocessor.startparser(programOptions->osmFilename.c_str(), programOptions->dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
-    else if (programOptions.simpleParseOsmFile)
+    else if (programOptions->simpleParseOsmFile)
     {
         //TODO: Andere Backends zulassen
         boost::shared_ptr<SpatialiteDatabaseConnection> ptr(new SpatialiteDatabaseConnection());
         SimpleDataPreprocessing preprocessor(ptr);
-        return (preprocessor.preprocess(programOptions.osmFilename.c_str(), programOptions.dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
+        return (preprocessor.preprocess(programOptions->osmFilename.c_str(), programOptions->dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
     
     boost::shared_ptr<DatabaseConnection> db;
-    if (programOptions.dbBackend == "spatialite")
+    if (programOptions->dbBackend == "spatialite")
         db.reset(new SpatialiteDatabaseConnection());
     if (db)
     {
-        QFile file(programOptions.dbFilename.c_str());
+        QFile file(programOptions->dbFilename.c_str());
         if (!file.exists())
         {
-            std::cerr << "did not find database file \"" << programOptions.dbFilename << "\". exiting." << std::endl;
+            std::cerr << "did not find database file \"" << programOptions->dbFilename << "\". exiting." << std::endl;
             return 1;
         }
-        db->open(programOptions.dbFilename.c_str());
+        db->open(programOptions->dbFilename.c_str());
         if (!db->isDBOpen())
         {
-            std::cerr << "error while opening database file \"" << programOptions.dbFilename << "\". exiting." << std::endl;
+            std::cerr << "error while opening database file \"" << programOptions->dbFilename << "\". exiting." << std::endl;
             return 1;
         }
         boost::shared_ptr<DatabaseConnection> dbcache(new DatabaseRAMCache(db));
@@ -278,7 +217,7 @@ int main ( int argc, char* argv[] )
         std::cerr << "was not able to construct global database object. exiting." << std::endl;
     }
     
-    if (programOptions.doRouting)
+    if (programOptions->doRouting)
     {
         boost::shared_ptr<Router> router;
         boost::shared_ptr<RoutingMetric> metric;
@@ -289,9 +228,9 @@ int main ( int argc, char* argv[] )
         
         router.reset(new DijkstraRouter(db, metric));
         
-        GPSRoute route = router->calculateShortestRoute(programOptions.routingStartPoint, programOptions.routingEndPoint);
+        GPSRoute route = router->calculateShortestRoute(programOptions->routingStartPoint, programOptions->routingEndPoint);
         QString routeString;
-        if (programOptions.routeOutputAsGPX)
+        if (programOptions->routeOutputAsGPX)
             routeString = route.exportGPXString();
         else
             routeString = route.exportJSONString();
