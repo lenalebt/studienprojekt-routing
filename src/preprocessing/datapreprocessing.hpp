@@ -29,7 +29,7 @@
 /**
  * @brief Diese Klasse kuemmert sich um jegliche Form der Datenvorverarbeitung
  * 
- * @ingroup preprocessing
+ * @ingroup preprocessingj
  * @author Sebastian Koehlert
  * @date 2011-12-21
  * @copyright GNU GPL v3
