@@ -24,12 +24,11 @@ double SRTMProvider::getAltitude(const GPSPosition& pos)
 double SRTMProvider::getAltitude(double lat, double lon)
 {
     double altitude = 0.0; // Defaultwert für Höhe ist NN
-
+    
     index = latLonToIndex(int(floor(lat)), int(floor(lon)));
-
+    
+    lock.lockForWrite();
     SRTMTile *tile = new SRTMTile(index);
-
-
     if(tileCache.contains(index)){
         tile = tileCache[index];
     }
@@ -37,11 +36,16 @@ double SRTMProvider::getAltitude(double lat, double lon)
         tileCache.insert(index, tile);
     }
     else{
-
+        lock.unlock();
         return altitude;
     }
-
-    return altitude = tile->getAltitudeFromLatLon(lat, lon);
+    lock.unlock();
+    
+    lock.lockForRead();
+    altitude = tile->getAltitudeFromLatLon(lat, lon);
+    lock.unlock();
+    
+    return altitude;
 }
 
 

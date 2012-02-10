@@ -23,7 +23,15 @@ enum MeasurementUnit
     /**
      * @brief Gibt an, dass keine festgelegte Maßeinheit verwendet wird.
      */
-    VIRTUAL
+    VIRTUAL,
+    
+    /**
+     * @brief Gibt an, dass als grobes Maß Entfernungen verwendet werden.
+     * 
+     * Dabei ist festgelegt, dass der Wert einer Kante niemals den Wert der
+     * Entfernung der beiden Endpunkte in Metern unterschreitet.
+     */
+    DISTANCE
 };
 
 /**
@@ -88,7 +96,7 @@ public:
      */
     virtual MeasurementUnit getMeasurementUnit() 
     {
-        return VIRTUAL;
+        return DISTANCE;
     }
     
     /**
@@ -112,6 +120,26 @@ public:
     virtual double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)=0;
 
     virtual ~RoutingMetric();
+    
+    /**
+     * @brief Macht eine Vorhersage über die zu erwartenden Kosten, um eine bestimmte
+     *      Entfernung zurückzulegen.
+     * 
+     * Die Schätzung muss in der Einheit erfolgen, die getMeasurementUnit()
+     * zurückgibt - dadurch wird es ermöglicht, A* einzusetzen auch in den
+     * Fällen, wo nicht die pure Entfernung als Metrik für den Algorithmus
+     * verwendet wird.
+     * 
+     * Es ist eine Standardimplementierung vorhanden, die die Entfernung
+     * von p1 zu p2 zurückgibt - kompatibel mit der Einheit DISTANCE.
+     * 
+     * @remarks Diese Funktion darf die Kosten niemals überschätzen.
+     * @return Die geschätzten Kosten von p1 zu p2.
+     */
+    virtual double estimateDistance(const GPSPosition& p1, const GPSPosition& p2)
+    {
+        return p1.calcDistance(p2);
+    }
 }; 
 
 class EuclidianRoutingMetric : public RoutingMetric
