@@ -96,6 +96,7 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
     //_tmpDBConnection.beginTransaction();
     boost::uint64_t edgeID=0;
     //TODO: nochmal ueberlegen, ob if-Abfrage nicht sinnvoller als while-loop
+    int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
     {
         //edges aus way extrahieren
