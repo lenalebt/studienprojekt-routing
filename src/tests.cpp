@@ -91,7 +91,7 @@ namespace biker_tests
     template<> bool check_equality(std::string message, double a, double b)
     {
         std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
-        if (fabs(a - b) < DOUBLE_EQUALITY_BARRIER)
+        if ((a == b) || (fabs((a / b) - 1) < DOUBLE_EQUALITY_BARRIER))
         {
             std::cerr << "passed!" << std::endl;
             return true;
@@ -107,7 +107,7 @@ namespace biker_tests
     template<> bool check_equality(std::string message, float a, float b)
     {
         std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
-        if (fabs(a - b) < FLOAT_EQUALITY_BARRIER)
+        if ((a == b) || (fabs((a / b) - 1) < FLOAT_EQUALITY_BARRIER))
         {
             std::cerr << "passed!" << std::endl;
             return true;

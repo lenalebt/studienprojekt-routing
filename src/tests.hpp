@@ -139,7 +139,7 @@ beispieltest.cpp:17: false == true?                                             
 #define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 
-#define DOUBLE_EQUALITY_BARRIER 10e-8
+#define DOUBLE_EQUALITY_BARRIER 10e-7
 #define FLOAT_EQUALITY_BARRIER  10e-5
 
 /**
