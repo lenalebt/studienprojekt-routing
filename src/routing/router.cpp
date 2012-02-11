@@ -3,7 +3,7 @@
 /**
  * @todo Implementieren
  */
-virtual GPSRoute Router::calculateShortestRoute(QVector<GPSPosition> pointList)
+GPSRoute Router::calculateShortestRoute(QVector<GPSPosition> pointList)
 {
-    
+    return GPSRoute();
 }
