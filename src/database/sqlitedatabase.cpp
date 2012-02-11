@@ -1,4 +1,4 @@
-#include "spatialitedatabase.hpp"
+#include "sqlitedatabase.hpp"
 #include <QStringList>
 #include <QFile>
 #include <sqlite_functions.hpp>
@@ -9,7 +9,7 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/generator_iterator.hpp>
 
-SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
+SQLiteDatabaseConnection::SQLiteDatabaseConnection() :
     _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
     _getNodeByIDStatement(NULL),
     _saveEdgeStatement(NULL), _getEdgeStatementID(NULL), _getEdgeStatementStartNode(NULL),
@@ -18,7 +18,7 @@ SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     
 }
 
-SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
+SQLiteDatabaseConnection::~SQLiteDatabaseConnection()
 {
     //Prepared Statements löschen
 	if(_saveNodeStatement != NULL)
@@ -42,13 +42,13 @@ SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
         this->close();
 }
 
-void SpatialiteDatabaseConnection::close()
+void SQLiteDatabaseConnection::close()
 {
     sqlite3_close(_db);
     _dbOpen = false;
 }
 
-void SpatialiteDatabaseConnection::open(QString dbConnectionString)
+void SQLiteDatabaseConnection::open(QString dbConnectionString)
 {
     int rc; //return-Wert speichern
     QFile file(dbConnectionString);
@@ -69,47 +69,6 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
         return;
     }
     
-    //Zeiger auf die Fehlernachricht von SQLite. Speicher wird von Sqlite
-    //selbst geholt und verwaltet, nur wieder freigeben ist nötig.
-    char* errorMessage;
-    
-    //Bekommt den Dateinamen von Spatialite direkt von CMake :).
-    std::string spatialiteFilename;
-    spatialiteFilename = QUOTEME(SPATIALITE_LIB);
-    
-    //Erlaube das Laden von Erweiterungen
-    rc = sqlite3_enable_load_extension(_db, 1);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to enable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
-    //Lade die Erweiterung
-    rc = sqlite3_load_extension(_db, spatialiteFilename.c_str(), 0, &errorMessage);
-    
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to load spatialite. Filename: \"" << spatialiteFilename
-            << ", Error message: \"" << errorMessage << "\"" << std::endl;
-        sqlite3_free(errorMessage);
-        return;
-    }
-    
-    //Verbiete das laden von Erweiterungen wieder (Sicherheitsfeature?)
-    rc = sqlite3_enable_load_extension(_db, 0);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to disable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
     //Erstelle Tabellen nur, wenn die Datei vorher nicht existierte.
     //Grund: IF NOT EXISTS gibt es nicht für virtuelle Tabellen.
     if (!dbExisted)
@@ -118,7 +77,7 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
         _dbOpen = true;
 }
 
-bool SpatialiteDatabaseConnection::createTables()
+bool SQLiteDatabaseConnection::createTables()
 {
 	bool retVal = true;
 	
@@ -147,7 +106,7 @@ bool SpatialiteDatabaseConnection::createTables()
 	return retVal;
 }
 
-bool SpatialiteDatabaseConnection::createIndexes()
+bool SQLiteDatabaseConnection::createIndexes()
 {
 	bool retVal = true;
 	
@@ -168,7 +127,7 @@ bool SpatialiteDatabaseConnection::createIndexes()
 	return retVal;
 }
 
-bool SpatialiteDatabaseConnection::execCreateTableStatement(std::string paramCreateTableStatement)
+bool SQLiteDatabaseConnection::execCreateTableStatement(std::string paramCreateTableStatement)
 {
 	char* errorMessage;
     //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
@@ -186,12 +145,12 @@ bool SpatialiteDatabaseConnection::execCreateTableStatement(std::string paramCre
 		return true;
 }
 
-bool SpatialiteDatabaseConnection::isDBOpen()
+bool SQLiteDatabaseConnection::isDBOpen()
 {
     return _dbOpen;
 }
 
-boost::shared_ptr<RoutingNode> SpatialiteDatabaseConnection::getNodeByID(boost::uint64_t id)
+boost::shared_ptr<RoutingNode> SQLiteDatabaseConnection::getNodeByID(boost::uint64_t id)
 {
     boost::shared_ptr<RoutingNode> retVal;
     
@@ -254,7 +213,7 @@ boost::shared_ptr<RoutingNode> SpatialiteDatabaseConnection::getNodeByID(boost::
 }
 
 QVector<boost::shared_ptr<RoutingNode> >
-SpatialiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double radius)
+SQLiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double radius)
 {
     //Berechne einfach die beiden Punkte, die in den Ecken des umgebenden
     //Rechtecks sein müssten, plus ein bisschen.
@@ -264,7 +223,7 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double
 
 
 QVector<boost::shared_ptr<RoutingNode> >
-SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPosition &maxCorner)
+SQLiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPosition &maxCorner)
 {
     QVector<boost::shared_ptr<RoutingNode> > retList;
     
@@ -326,7 +285,7 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 }
 
 
-bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
+bool SQLiteDatabaseConnection::saveNode(const RoutingNode &node)
 {
     int rc;
     if(_saveNodeStatement == NULL)
@@ -366,13 +325,13 @@ bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
 
 
 QVector<boost::shared_ptr<RoutingEdge> >
-SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
+SQLiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 {
     QVector<boost::shared_ptr<RoutingEdge> > edgeList;
       
 	int rc;
 	if(_getEdgeStatementStartNode == NULL)
-	{		
+	{
 		rc = sqlite3_prepare_v2(_db, "SELECT ID, STARTNODE, ENDNODE, PROPERTIES FROM EDGES WHERE STARTNODE=?;",
 			-1, &_getEdgeStatementStartNode, NULL);
 		if (rc != SQLITE_OK)
@@ -422,7 +381,7 @@ SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 
 
 QVector<boost::shared_ptr<RoutingEdge> >
-SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
+SQLiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 {
     QVector<boost::shared_ptr<RoutingEdge> > edgeList;
       
@@ -479,7 +438,7 @@ SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 
 
 boost::shared_ptr<RoutingEdge>
-SpatialiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
+SQLiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
 {
 	boost::shared_ptr<RoutingEdge> edge;
       
@@ -533,7 +492,7 @@ SpatialiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
 }
 
 
-bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
+bool SQLiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
 {
     int rc;
     if(_saveEdgeStatement == NULL)
@@ -569,13 +528,13 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
 }
 
 
-bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString name)
+bool SQLiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString name)
 {
     return saveEdge(edge);
     //TODO: Straßenname auch speichern.
 }
 
-bool SpatialiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
+bool SQLiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
 {
     int rc;
     if(_deleteEdgeStatement == NULL)
@@ -608,12 +567,12 @@ bool SpatialiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost
     return true;
 }
 
-QString SpatialiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
+QString SQLiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
 {
     return "";
 }
 
-bool SpatialiteDatabaseConnection::beginTransaction()
+bool SQLiteDatabaseConnection::beginTransaction()
 {
     char* errorMessage;
     //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
@@ -630,7 +589,7 @@ bool SpatialiteDatabaseConnection::beginTransaction()
     else
 		return true;
 }
-bool SpatialiteDatabaseConnection::endTransaction()
+bool SQLiteDatabaseConnection::endTransaction()
 {
     char* errorMessage;
     //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
@@ -650,9 +609,9 @@ bool SpatialiteDatabaseConnection::endTransaction()
 
 namespace biker_tests
 {
-    int testSpatialiteDatabaseConnection()
+    int testSQLiteDatabaseConnection()
     {
-        SpatialiteDatabaseConnection connection;
+        SQLiteDatabaseConnection connection;
         QFile file("test.db");
         
         std::cerr << "Removing database test file \"test.db\"..." << std::endl;

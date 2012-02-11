@@ -94,6 +94,7 @@ SET(
     src/database/altitudeprovider.cpp
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
+    src/database/sqlitedatabase.cpp
     src/database/temporarydatabase.cpp
     src/database/zip.cpp
     src/database/sqlite_functions.cpp
@@ -145,6 +146,7 @@ SET(
     src/database/database.hpp
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
+    src/database/sqlitedatabase.hpp
     src/database/temporarydatabase.hpp
     src/database/zip.hpp
     src/database/sqlite_functions.hpp
