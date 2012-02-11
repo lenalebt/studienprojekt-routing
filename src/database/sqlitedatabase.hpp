@@ -30,6 +30,8 @@ private:
     sqlite3_stmt* _getEdgeStatementID;
     sqlite3_stmt* _getEdgeStatementStartNode;
     sqlite3_stmt* _getEdgeStatementEndNode;
+    sqlite3_stmt* _saveEdgeStreetnameStatement;
+    sqlite3_stmt* _getEdgeStreetnameStatement;
     sqlite3_stmt* _deleteEdgeStatement;
     
     /**

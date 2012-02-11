@@ -13,7 +13,10 @@ SQLiteDatabaseConnection::SQLiteDatabaseConnection() :
     _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
     _getNodeByIDStatement(NULL),
     _saveEdgeStatement(NULL), _getEdgeStatementID(NULL), _getEdgeStatementStartNode(NULL),
-    _getEdgeStatementEndNode(NULL), _deleteEdgeStatement(NULL)
+    _getEdgeStatementEndNode(NULL),
+    _saveEdgeStreetnameStatement(NULL),
+    _getEdgeStreetnameStatement(NULL),
+    _deleteEdgeStatement(NULL)
 {
     
 }
@@ -35,6 +38,10 @@ SQLiteDatabaseConnection::~SQLiteDatabaseConnection()
 		sqlite3_finalize(_getEdgeStatementStartNode);
     if(_getEdgeStatementEndNode != NULL)
 		sqlite3_finalize(_getEdgeStatementEndNode);
+    if(_saveEdgeStreetnameStatement != NULL)
+		sqlite3_finalize(_saveEdgeStreetnameStatement);
+    if(_getEdgeStreetnameStatement != NULL)
+		sqlite3_finalize(_getEdgeStreetnameStatement);
     if(_deleteEdgeStatement != NULL)
 		sqlite3_finalize(_deleteEdgeStatement);
     
@@ -530,8 +537,38 @@ bool SQLiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
 
 bool SQLiteDatabaseConnection::saveEdge(const RoutingEdge &edge, const QString& name)
 {
-    return saveEdge(edge);
-    //TODO: Straßenname auch speichern.
+    if (!saveEdge(edge))
+        return false;
+    
+    int rc;
+    if(_saveEdgeStreetnameStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "INSERT OR IGNORE INTO EDGES_STREETNAME VALUES (@ID, @STREETNAME);", -1, &_saveEdgeStreetnameStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create saveEdgeStreetnameStatement." << " Resultcode: " << rc << std::endl;
+            return false;
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_saveEdgeStreetnameStatement, 1, edge.getID());
+    sqlite3_bind_text(_saveEdgeStreetnameStatement, 2, name.toLatin1(), -1, SQLITE_TRANSIENT);
+    
+    // Statement ausfuehren
+    rc = sqlite3_step(_saveEdgeStreetnameStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute saveEdgeStreetnameStatement." << " Resultcode: " << rc << std::endl;
+        return false;
+    }
+
+    rc = sqlite3_reset(_saveEdgeStreetnameStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset saveEdgeStreetnameStatement." << " Resultcode: " << rc << std::endl;
+    }
+    return true;
 }
 
 bool SQLiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
@@ -569,7 +606,47 @@ bool SQLiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::ui
 
 QString SQLiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
 {
-    return "";
+    QString streetname = "";
+      
+    int rc;
+    if(_getEdgeStreetnameStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT STREETNAME FROM EDGES_STREETNAME WHERE ID=?;",
+            -1, &_getEdgeStreetnameStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getEdgeStreetnameStatement." << " Resultcode: " << rc << std::endl;
+            return "";
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_getEdgeStreetnameStatement, 1, edge.getID());
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getEdgeStreetnameStatement)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+        
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        streetname = QString(reinterpret_cast<const char*>(sqlite3_column_text(_getEdgeStreetnameStatement, 0)));
+    }
+
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute getEdgeStreetnameStatement." << " Resultcode: " << rc << std::endl;
+        return "";
+    }
+
+    rc = sqlite3_reset(_getEdgeStreetnameStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset getEdgeStreetnameStatement." << " Resultcode: " << rc << std::endl;
+    }
+
+    return streetname;
 }
 
 bool SQLiteDatabaseConnection::beginTransaction()
@@ -612,22 +689,22 @@ namespace biker_tests
     int testSQLiteDatabaseConnection()
     {
         SQLiteDatabaseConnection connection;
-        QFile file("test.db");
+        QFile file("sqlitetest.db");
         
-        std::cerr << "Removing database test file \"test.db\"..." << std::endl;
+        std::cerr << "Removing database test file \"sqlitetest.db\"..." << std::endl;
         if (file.exists())
             file.remove();
         
-        std::cerr << "Opening \"test.db\"..." << std::endl;
-        connection.open("test.db");
+        std::cerr << "Opening \"sqlitetest.db\"..." << std::endl;
+        connection.open("sqlitetest.db");
         CHECK(connection.isDBOpen());
         
         std::cerr << "Closing database..." << std::endl;
         connection.close();
         CHECK(!connection.isDBOpen());
         
-        std::cerr << "Reopening \"test.db\"..." << std::endl;
-        connection.open("test.db");
+        std::cerr << "Reopening \"sqlitetest.db\"..." << std::endl;
+        connection.open("sqlitetest.db");
         CHECK(connection.isDBOpen());
         
         RoutingNode node(25, 51.0, 7.0);
@@ -642,7 +719,8 @@ namespace biker_tests
         std::cerr << "Save Edge..." << std::endl;
         edge.setCycleBarrier(true);
         edge.setCyclewayType(5);
-        CHECK(connection.saveEdge(edge));
+        CHECK(connection.saveEdge(edge, "Teststraße"));
+        CHECK_EQ_TYPE(connection.getStreetName(edge), "Teststraße", QString);
         edge = RoutingEdge(46, 26, 25);
         CHECK(connection.saveEdge(edge));
         

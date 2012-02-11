@@ -30,6 +30,7 @@
 #include "dijkstra.hpp"
 #include "filedownloader.hpp"
 #include "astar.hpp"
+#include "sqlitedatabase.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -186,6 +187,8 @@ namespace biker_tests
             return biker_tests::testBasename();
         else if (testName == "spatialitedatabaseconnection")
             return biker_tests::testSpatialiteDatabaseConnection();
+        else if (testName == "sqlitedatabaseconnection")
+            return biker_tests::testSQLiteDatabaseConnection();
         else if (testName == "temporaryosmdatabaseconnection")
             return biker_tests::testTemporaryOSMDatabaseConnection();
         else if (testName == "databaseramcache")
