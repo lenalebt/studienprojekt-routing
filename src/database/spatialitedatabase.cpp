@@ -13,7 +13,10 @@ SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
     _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
     _getNodeByIDStatement(NULL),
     _saveEdgeStatement(NULL), _getEdgeStatementID(NULL), _getEdgeStatementStartNode(NULL),
-    _getEdgeStatementEndNode(NULL), _deleteEdgeStatement(NULL)
+    _getEdgeStatementEndNode(NULL), 
+    _saveEdgeStreetnameStatement(NULL),
+    _getEdgeStreetnameStatement(NULL),
+    _deleteEdgeStatement(NULL)
 {
     
 }
@@ -35,6 +38,10 @@ SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
 		sqlite3_finalize(_getEdgeStatementStartNode);
     if(_getEdgeStatementEndNode != NULL)
 		sqlite3_finalize(_getEdgeStatementEndNode);
+    if(_saveEdgeStreetnameStatement != NULL)
+		sqlite3_finalize(_saveEdgeStreetnameStatement);
+    if(_getEdgeStreetnameStatement != NULL)
+		sqlite3_finalize(_getEdgeStreetnameStatement);
     if(_deleteEdgeStatement != NULL)
 		sqlite3_finalize(_deleteEdgeStatement);
     
@@ -569,10 +576,39 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
 }
 
 
-bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString name)
+bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, const QString& name)
 {
     return saveEdge(edge);
-    //TODO: Straßenname auch speichern.
+    
+    int rc;
+    if(_saveEdgeStreetnameStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO EDGES_STREETNAME VALUES (@ID, @STREETNAME);", -1, &_saveEdgeStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create saveEdgeStreetnameStatement." << " Resultcode: " << rc << std::endl;
+            return false;
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_saveEdgeStreetnameStatement, 1, edge.getID());
+    sqlite3_bind_text(_saveEdgeStreetnameStatement, 2, name.toLatin1(), -1, SQLITE_TRANSIENT);
+    
+    // Statement ausfuehren
+    rc = sqlite3_step(_saveEdgeStreetnameStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute saveEdgeStreetnameStatement." << " Resultcode: " << rc << std::endl;
+        return false;
+    }
+
+    rc = sqlite3_reset(_saveEdgeStreetnameStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset saveEdgeStreetnameStatement." << " Resultcode: " << rc << std::endl;
+    }
+    return true;
 }
 
 bool SpatialiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
@@ -683,7 +719,7 @@ namespace biker_tests
         std::cerr << "Save Edge..." << std::endl;
         edge.setCycleBarrier(true);
         edge.setCyclewayType(5);
-        CHECK(connection.saveEdge(edge));
+        CHECK(connection.saveEdge(edge, "Teststraße"));
         edge = RoutingEdge(46, 26, 25);
         CHECK(connection.saveEdge(edge));
         

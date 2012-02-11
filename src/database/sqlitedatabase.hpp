@@ -58,7 +58,7 @@ public:
     boost::shared_ptr<RoutingEdge> getEdgeByEdgeID(boost::uint64_t edgeID);
     bool saveEdge(const RoutingEdge& edge);
     /** @todo Speichern von Straßen implementieren */
-    bool saveEdge(const RoutingEdge& edge, QString name);
+    bool saveEdge(const RoutingEdge& edge, const QString& name);
     bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
     /** @todo implementieren */
     QString getStreetName(const RoutingEdge& edge);

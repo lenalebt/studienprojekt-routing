@@ -528,7 +528,7 @@ bool SQLiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
 }
 
 
-bool SQLiteDatabaseConnection::saveEdge(const RoutingEdge &edge, QString name)
+bool SQLiteDatabaseConnection::saveEdge(const RoutingEdge &edge, const QString& name)
 {
     return saveEdge(edge);
     //TODO: Straßenname auch speichern.

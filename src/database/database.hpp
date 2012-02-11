@@ -133,7 +133,7 @@ public:
      * @param name Der Name der Straße, zu der diese Kante gehört.
      * @return Ob Speichern erfolgreich war.
      */
-    virtual bool saveEdge(const RoutingEdge& edge, QString name)=0;
+    virtual bool saveEdge(const RoutingEdge& edge, const QString& name)=0;
     
     /**
      * @brief Gibt zu einer angegebenen Kante den Namen der Straße zurück, sofern es einen gibt.

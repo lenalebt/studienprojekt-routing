@@ -93,7 +93,7 @@ bool DatabaseRAMCache::saveEdge(const RoutingEdge &edge)
 }
 
 
-bool DatabaseRAMCache::saveEdge(const RoutingEdge &edge, QString name)
+bool DatabaseRAMCache::saveEdge(const RoutingEdge &edge, const QString& name)
 {
     return _connection->saveEdge(edge, name);
 }
