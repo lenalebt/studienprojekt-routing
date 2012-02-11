@@ -170,13 +170,13 @@ bool TemporaryOSMDatabaseConnection::createTables()
     statements << "CREATE TABLE IF NOT EXISTS TURNRESTRICTIONS(FROMID INTEGER NOT NULL, VIAID INTEGER NOT NULL, TOID INTEGER NOT NULL, LEFT BOOLEAN, RIGHT BOOLEAN, STRAIGHT BOOLEAN, UTURN BOOLEAN, PRIMARY KEY(FROMID, VIAID, TOID));";
     
     //Alle Statements der Liste ausführen in einer Transaktion
-    retVal = this->beginTransaction();
+    //retVal = this->beginTransaction();
 	QStringList::const_iterator it;
 	for (it = statements.constBegin(); it != statements.constEnd(); it++)
 	{
 		retVal &= execCreateTableStatement(it->toStdString());
 	}
-	retVal &= this->endTransaction();
+	//retVal &= this->endTransaction();
     
 	return retVal;
 }
