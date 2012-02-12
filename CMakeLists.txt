@@ -100,6 +100,7 @@ SET(
     src/database/sqlite_functions.cpp
     src/database/databaseramcache.cpp
     src/database/database.cpp
+    src/database/spacefillingcurves.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp
@@ -151,6 +152,7 @@ SET(
     src/database/zip.hpp
     src/database/sqlite_functions.hpp
     src/database/databaseramcache.hpp
+    src/database/spacefillingcurves.hpp
     
     #src/database/parser
     src/database/parser/osmparser.hpp
