@@ -3,6 +3,7 @@
 
 #include "database.hpp"
 #include <sqlite3.h>
+#include "spacefillingcurves.hpp"
 
 /**
  * @brief Implementierung einer DatabaseConnection mit einer
@@ -45,6 +46,8 @@ private:
      * @return Ob die Ausführung erfolgreich war, oder nicht
      */
     bool execCreateTableStatement(std::string);
+    
+    boost::shared_ptr<SpaceFillingCurve> spc;
 public:
     SQLiteDatabaseConnection();
     void close();

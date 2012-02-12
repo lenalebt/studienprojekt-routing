@@ -16,7 +16,8 @@ SQLiteDatabaseConnection::SQLiteDatabaseConnection() :
     _getEdgeStatementEndNode(NULL),
     _saveEdgeStreetnameStatement(NULL),
     _getEdgeStreetnameStatement(NULL),
-    _deleteEdgeStatement(NULL)
+    _deleteEdgeStatement(NULL),
+    spc(new ZOrderCurve())
 {
     
 }
