@@ -366,6 +366,8 @@ void BikerHttpRequestProcessor::processRequest()
     //TODO: Request bearbeiten
     std::cerr << "processing request..." << std::endl;
     
+    QRegExp numberRegExp("(\\d+(?:.\\d+)?)");
+    
     //Es wird nur GET unterstützt, der Rest nicht. Bei was anderem: Grantig sein und 405 antworten.
     if (_requestType != "GET")
     {
@@ -500,10 +502,17 @@ void BikerHttpRequestProcessor::processRequest()
             {
                 metric.reset(new EuclidianRoutingMetric());
             }
-            else if (routeModifier == "power")
+            else if (routeModifier == "simplepower")
             {
-                //TODO: Gewicht etc aus der Anfrage herauslesen
-                metric.reset(new SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider())));
+                double weight = 90.0;
+                double efficiency = 3 * weight;
+                
+                if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
+                    weight = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["efficiency"]) != -1)
+                    efficiency = numberRegExp.cap(1).toDouble();
+                
+                metric.reset(new SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider()), weight, efficiency));
             }
             else
             {
@@ -521,13 +530,9 @@ void BikerHttpRequestProcessor::processRequest()
             
             //Als Router nehmen wir erstmal Dijkstra.
             router.reset(new DijkstraRouter(db, metric));
-            //TODO: Bei mehr als 2 Punkten richtig routen. atm werden Transitpunkte vernachlässigt.
-            //Start- und Endpunkt heraussuchen
-            GPSPosition startPosition = routePointList[0];
-            GPSPosition endPosition = routePointList.last();
             
             //Route berechnen
-            GPSRoute route = router->calculateShortestRoute(startPosition, endPosition);
+            GPSRoute route = router->calculateShortestRoute(routePointList);
             //Keine Route gefunden? 404 senden.
             if (route.isEmpty())
             {
