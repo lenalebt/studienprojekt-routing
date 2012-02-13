@@ -92,47 +92,6 @@ void TemporaryOSMDatabaseConnection::open(QString dbConnectionString)
         return;
     }
     
-    //Zeiger auf die Fehlernachricht von SQLite. Speicher wird von Sqlite
-    //selbst geholt und verwaltet, nur wieder freigeben ist nötig.
-    char* errorMessage;
-    
-    //Bekommt den Dateinamen von Spatialite direkt von CMake :).
-    std::string spatialiteFilename;
-    spatialiteFilename = QUOTEME(SPATIALITE_LIB);
-    
-    //Erlaube das Laden von Erweiterungen
-    rc = sqlite3_enable_load_extension(_db, 1);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to enable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
-    //Lade die Erweiterung
-    rc = sqlite3_load_extension(_db, spatialiteFilename.c_str(), 0, &errorMessage);
-    
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to load spatialite. Filename: \"" << spatialiteFilename
-            << ", Error message: \"" << errorMessage << "\"" << std::endl;
-        sqlite3_free(errorMessage);
-        return;
-    }
-    
-    //Verbiete das laden von Erweiterungen wieder (Sicherheitsfeature?)
-    rc = sqlite3_enable_load_extension(_db, 0);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to disable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
     //Erstelle Tabellen nur, wenn die Datei vorher nicht existierte.
     //Grund: IF NOT EXISTS gibt es nicht für virtuelle Tabellen.
     if (!dbExisted)
