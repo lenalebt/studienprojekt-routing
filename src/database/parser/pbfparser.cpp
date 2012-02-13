@@ -43,7 +43,7 @@ bool PBFParser::parse(QString filename)
     nodeCount = 0;
     wayCount = 0;
     relationCount = 0;
-    
+    errorCount= 0;
     m_file.setFileName( filename );
 
     if ( !openQFile( &m_file, QIODevice::ReadOnly ) )
@@ -91,7 +91,6 @@ bool PBFParser::parse(QString filename)
 
         if ( type == EntityNode ) {
             this->nodeCount++;
-            //TODO: dbWriter.addNode(inputNode);
             _nodeQueue->enqueue(inputNode);
             inputNode = boost::shared_ptr<OSMNode>(new OSMNode());
             
@@ -101,8 +100,11 @@ bool PBFParser::parse(QString filename)
         if ( type == EntityWay ) {
             this->wayCount++;
             if (this->wayCount == 1)
+            {
+                errorCount++;
                 _nodeQueue->destroyQueue();
-            //TODO: dbWriter.addWay(inputWay);
+                //std::cerr<<errorCount<<std::endl;
+            }
             _wayQueue->enqueue(inputWay);
             inputWay = boost::shared_ptr<OSMWay>(new OSMWay());
 
@@ -111,8 +113,12 @@ bool PBFParser::parse(QString filename)
 
         if ( type == EntityRelation ) {
             this->relationCount++;
-            if (this->wayCount == 1)
+            if (this->relationCount == 1)
+            {
+                errorCount++;
                 _wayQueue->destroyQueue();
+                //std::cerr<<errorCount<<std::endl;
+            }
             bool ready = false;
             bool invalidRestriction = false;
             std::vector< RelationMember >  C = inputRelation.members;
@@ -215,9 +221,17 @@ bool PBFParser::parse(QString filename)
         }
     }
     
-    _nodeQueue->destroyQueue();
-    _wayQueue->destroyQueue();
+    if (wayCount < 1)
+    {
+        _nodeQueue->destroyQueue();
+    }
+    if (relationCount < 1)
+    {
+        _wayQueue->destroyQueue();
+    }
     _turnRestrictionQueue->destroyQueue();
+    //std::cerr<<++errorCount<<std::endl;
+    errorCount = 0;
     return true;
 }
 

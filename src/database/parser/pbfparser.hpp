@@ -62,7 +62,7 @@ private:
     int nodeCount;
     int wayCount;
     int relationCount;
-    
+    int errorCount;
     
 	enum Mode {
 		ModeNode, ModeWay, ModeRelation, ModeDense
