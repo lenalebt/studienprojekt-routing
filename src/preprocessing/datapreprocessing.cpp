@@ -162,36 +162,93 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 //}
 
 
-//TODO kategorisierungsfunktionen implementieren
-//boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
-//{
-//    bool hasTrafficLights;
-//    bool hasTrafficCalmingBumps;
-//    bool hasStopSign;
-//    bool hasStairs;
-//    bool hasCycleBarrier;
-//    boost::uint8_t streetType;
-//    boost::uint8_t cyclewayType;
-//    boost::uint8_t streetSurfaceType;
-//    boost::uint8_t streetSurfaceQuality;
-//    boost::uint8_t turnType;
+TODO kategorisierungsfunktionen implementieren
+boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
+{
+    bool hasTrafficLights;
+    bool hasTrafficCalmingBumps;
+    bool hasStopSign;
+    bool hasStairs;
+    bool hasCycleBarrier;
+    boost::uint8_t streetType;
+    boost::uint8_t cyclewayType;
+    boost::uint8_t streetSurfaceType = STREETSURFACETYPE_UNKNOWN;
+    boost::uint8_t streetSurfaceQuality;
+    //boost::uint8_t turnType;
 
-//    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
+    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
 
-//    // Hier würden jetzt mit viel if und else, durch betrachtung der OSMPropertys der OSMEdge, die jeweiligen Werte der routingEdge gesetzt.
-//    routingEdge->setTrafficLights(hasTrafficLights);
-//    routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
-//    routingEdge->setStopSign(hasStopSign);
-//    routingEdge->setStairs(hasStairs);
-//    routingEdge->setCycleBarrier(hasCycleBarrier);
-//    routingEdge->setStreetType(streetType);
-//    routingEdge->setCyclewayType(cyclewayType);
-//    routingEdge->setStreetSurfaceType(streetSurfaceType);
-//    routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
-//    routingEdge->setTurnType(turnType);
 
-//    return routingEdge;
-//}
+    QVector<OSMProperty> properties = osmEdge.getProperties();
+    for (QVector<OSMProperty>::const_iterator it = properties.constBegin(); it != properties.constEnd(); it++)
+    {
+        // Hier würden jetzt mit viel if und else, durch betrachtung der OSMPropertys der OSMEdge, die jeweiligen Werte der routingEdge gesetzt.
+        // STREETSURFACETYPE
+         if (it.getKey() == surface && tracktype){
+             switch (streetSurfaceType) {
+                     case paved && grade:1 STREETSURFACETYPE_PAVED;
+                     case asphalt STREETSURFACETYPE_ASPHALT;
+                     case sett STREETSURFACETYPE_SETT;
+                     case paving_stones STREETSURFACETYPE_PAVING_STONES;
+                     case tartarn STREETSURFACETYPE_TARTAN;
+                     case concrete STREETSURFACETYPE_CONCRETE;
+                     case cobblestone STREETSURFACETYPE_COBBLESTONE;
+                     case compacted STREETSURFACETYPE_COMPACTED;
+                     case fine_gravel STREETSURFACETYPE_FINEGRAVEL;
+                     case grass_paver STREETSURFACETYPE_GRASSPAVER;
+                     case gravel && pebblestone STREETSURFACETYPE_GRAVEL;
+                     case ground && dirt && mud && earth && clay && sand STREETSURFACETYPE_GROUND;
+                     case grass && artificial_turf STREETSURFACETYPE_GRASS;
+                     case metal STREETSURFACETYPE_METAL;
+                     default unpaved STREETSURFACETYPE_UNPAVED
+               }
+         }
+        ////////////////////SST
+
+        // STREETSURFACEQUALITY
+
+        ////////////////////SSQ
+    }
+    // STREETSURFACETYPE
+     if (surface && tracktype){
+         switch (streetSurfaceType) {
+                 case paved && grade:1 STREETSURFACETYPE_PAVED;
+                 case asphalt STREETSURFACETYPE_ASPHALT;
+                 case sett STREETSURFACETYPE_SETT;
+                 case paving_stones STREETSURFACETYPE_PAVING_STONES;
+                 case tartarn STREETSURFACETYPE_TARTAN;
+                 case concrete STREETSURFACETYPE_CONCRETE;
+                 case cobblestone STREETSURFACETYPE_COBBLESTONE;
+                 case compacted STREETSURFACETYPE_COMPACTED;
+                 case fine_gravel STREETSURFACETYPE_FINEGRAVEL;
+                 case grass_paver STREETSURFACETYPE_GRASSPAVER;
+                 case gravel && pebblestone STREETSURFACETYPE_GRAVEL;
+                 case ground && dirt && mud && earth && clay && sand STREETSURFACETYPE_GROUND;
+                 case grass && artificial_turf STREETSURFACETYPE_GRASS;
+                 case metal STREETSURFACETYPE_METAL;
+                 default unpaved STREETSURFACETYPE_UNPAVED
+           }
+     }
+    ////////////////////SST
+
+    // STREETSURFACEQUALITY
+
+    ////////////////////SSQ
+
+
+    routingEdge->setTrafficLights(hasTrafficLights);
+    routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
+    routingEdge->setStopSign(hasStopSign);
+    routingEdge->setStairs(hasStairs);
+    routingEdge->setCycleBarrier(hasCycleBarrier);
+    routingEdge->setStreetType(streetType);
+    routingEdge->setCyclewayType(cyclewayType);
+    routingEdge->setStreetSurfaceType(streetSurfaceType);
+    routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
+    //routingEdge->setTurnType(turnType);
+
+    return routingEdge;
+}
 
 //int DataPreprocessing::getStreetType();
 //int DataPreprocessing::getStreetSurfaceQuality();
