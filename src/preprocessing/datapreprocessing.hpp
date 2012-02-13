@@ -76,24 +76,16 @@ public:
     /**
      * @brief Parsed ueber .osm/.pbf-Dateien und wirft 
      * 
-     * @return Ob es sich um eine Straße handelt.
+     * @return Ob Parse-Prozess erfolgreich war
      */
     bool startparser(QString osmFilename, QString dbFilename);
     bool preprocess();
     bool deQueue();
     bool enQueue();
-    void saveNodeToTmpDatabase();
-    void saveEdgeToTmpDatabase();
-    void saveTurnRestrictionToTmpDatabase();
-    void saveNodeToDatabase(const RoutingNode& node);
-    void saveEdgeToDatabase(const RoutingEdge& edge);
-    void saveTurnRestrictionToDatabase();
-
-    void categorizeEdge(const RoutingEdge& edge);
-
     int getStreetType(const RoutingEdge& edge);
     int getStreetSurfaceQuality(const RoutingEdge& edge);
     int getStreetSurfaceType(const RoutingEdge& edge);
+    void categorizeEdge(const RoutingEdge& edge);    
 };
 
 namespace biker_tests

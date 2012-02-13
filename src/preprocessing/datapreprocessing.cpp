@@ -1,4 +1,5 @@
 #include "datapreprocessing.hpp" 
+#include <QSet>
 
 
 DataPreprocessing::DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
@@ -29,13 +30,24 @@ bool DataPreprocessing::isStreet(const OSMWay& way)
 
 bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 {
+    _finalDBConnection->open(dbFilename);
+    QTemporaryFile tmpFile;
+    tmpFile.open();
+    QString tmpFilename = tmpFile.fileName();
+    tmpFile.close();
+    tmpFile.remove();
+    _tmpDBConnection.open(tmpFilename);    
+    
     //Prueft, ob .osm oder .pbf am Ende vorhanden
     if(fileToParse.endsWith(".osm"))
     {
         _osmParser.reset(new OSMParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);        
-        preprocess();
+        preprocess();        
         future.waitForFinished();
+        _finalDBConnection->close();
+        _tmpDBConnection.close();
+        tmpFile.remove();
         return true;
     }
     else if (fileToParse.endsWith(".pbf"))
@@ -44,6 +56,9 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
         preprocess();
         future.waitForFinished();
+        _finalDBConnection->close();
+        _tmpDBConnection.close();
+        tmpFile.remove();
         return true;
     }
     else
@@ -54,127 +69,75 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 
 bool DataPreprocessing::preprocess()
 {
-    //~ _finalDBConnection->open(dbFilename);
-    //~ QTemporaryFile tmpFile;
-    //~ tmpFile.open();
-    //~ QString tmpFilename = tmpFile.fileName();
-    //~ tmpFile.close();
-    //~ tmpFile.remove();
-    //~ _tmpDBConnection.open(tmpFilename);
-    
-        //~ saveNodeToTmpDatabase();
-        //~ saveEdgeToTmpDatabase();        
-        //~ saveTurnRestrictionToTmpDatabase();
-        //~ 
-        //~ future.waitForFinished();
-        
-        
-        
-        //~ _tmpDBConnection.createIndexes();
-        //~ _finalDBConnection->createIndexes();
-}
-
-/**
- * @todo Alle paar tausend/zehntausend Nodes die Transaktion schließen und wieder öffnen
- */
-void DataPreprocessing::saveNodeToTmpDatabase()
-{
-    std::cerr << "Parsing Nodes..." << std::endl;
-    _finalDBConnection->beginTransaction();
-    //_tmpDBConnection.beginTransaction();
-    int nodeCount=0;
+    //Nodes in tmp DB speichern
+    _tmpDBConnection.beginTransaction();
+    int nodeCount = 0;
     while(_nodeQueue.dequeue(_osmNode))
     {
-        if(/*_tmpDBConnection.saveOSMNode(*_osmNode) == */true)
-        {
-        }
-        else
-        {
-            std::cerr << "node NOT saved to tmpdb" << std::endl;
-        }
-                
-        routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));
-        //saveNodeToDatabase(*routingNode);
-    }
-    _finalDBConnection->endTransaction();
-    //_tmpDBConnection.endTransaction();
-}
+        _tmpDBConnection.saveOSMNode(*_osmNode);
 
-/**
- * @todo Alle paar tausend/zehntausend Edges die Transaktion schließen und wieder öffnen
- */
-void DataPreprocessing::saveEdgeToTmpDatabase()
-{
-    std::cerr << "Parsing Ways..." << std::endl;
+        if (++nodeCount == 100000)
+        {
+            nodeCount = 0;
+            _tmpDBConnection.endTransaction();
+            _tmpDBConnection.beginTransaction();
+        }
+    }
+    _tmpDBConnection.endTransaction();
+
+    //alle Edges bearbeiten
     _finalDBConnection->beginTransaction();
-    //_tmpDBConnection.beginTransaction();
     boost::uint64_t edgeID=0;
-    //TODO: nochmal ueberlegen, ob if-Abfrage nicht sinnvoller als while-loop
+    QSet<boost::uint64_t> nodeIDSet;
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
     {
         //edges aus way extrahieren
-        QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
-        for(int i = 0; i < edgeList.size(); i++)
+        if (isStreet(*_osmWay))
         {
-            if(/*_tmpDBConnection.saveOSMEdge(edgeList[i]) == */true)
+            QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
+            for(int i = 0; i < edgeList.size(); i++)
             {
+                //TODO: kategorisieren
+                RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
+                _finalDBConnection->saveEdge(routingEdge);
             }
-            else
+            //So werden nur die Knoten in die DB gelegt, die auch von Edges benutzt werden.
+            QVector<boost::uint64_t> memberList = _osmWay->getMemberList();
+            for(int i = 0; i < memberList.size(); i++)
             {
-                std::cerr << "edge NOT saved" << std::endl;
+                //Das mit dem nodeIDSet mache ich, weil man der DB nicht sagen kann dass sie doppeltes Einfügen ignorieren soll.
+                if (!nodeIDSet.contains(memberList[i]))
+                {
+                    _osmNode = _tmpDBConnection.getOSMNodeByID(memberList[i]);
+                    RoutingNode routingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon());
+                    _finalDBConnection->saveNode(routingNode);
+                    nodeIDSet.insert(_osmNode->getID());
+                }
             }
-            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
             
-            //TODO: Bevor in finale Datenbank gespeichert wird, Hier die Kategorisierung starten
-            //categorizeEdge(*routingEdge);
-            
-            //speichert routingEdge in die finale Datenbank
-            //_finalDBConnection->saveEdge(*routingEdge);
-        }
-        if (++wayCount == 100000)
-        {
-            wayCount = 0;
-            _finalDBConnection->endTransaction();
-            //_tmpDBConnection.endTransaction();
-            
-            _finalDBConnection->beginTransaction();
-            //_tmpDBConnection.beginTransaction();
+            if (++wayCount == 100000)
+            {
+                wayCount = 0;
+                _finalDBConnection->endTransaction();
+                _finalDBConnection->beginTransaction();
+            }
         }
     }
     _finalDBConnection->endTransaction();
-    //_tmpDBConnection.endTransaction();
+    
+    //Die Queues müssen alle geleert werden, sonst kann das Programm nicht beendet werden!
+    while (_turnRestrictionQueue.dequeue(_osmTurnRestriction))
+    {
+        
+    }
+    
+    //Am Schluss noch Indexe erstellen
+    std::cerr << "creating indexes..." << std::endl;
+    _finalDBConnection->createIndexes();
+    return true;
 }
 
-void DataPreprocessing::saveTurnRestrictionToTmpDatabase()
-{
-    while(_turnRestrictionQueue.dequeue(_osmTurnRestriction))
-    {
-        //~ _tmpDBConnection.saveTurnRestrictionToTmpDatabase(*_turnRestrictionQueue);
-    }
-}
-
-void DataPreprocessing::saveNodeToDatabase(const RoutingNode &node)
-{
-    if(_finalDBConnection->saveNode(node) == true)
-    {
-    }
-    else
-    {
-        std::cerr << "node NOT saved finalDB" << std::endl;
-    }
-}
-
-void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
-{
-    if(_finalDBConnection->saveEdge(edge))
-    {
-    }
-    else
-    {
-        std::cerr << "edge NOT saved to finalDB" << std::endl;
-    }
-}
 
 //TODO kategorisierungsfunktion implementieren
 //void DataPreprocessing::categorizeEdge(const RoutingEdge &edge)
@@ -188,7 +151,6 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
     
 //    //noch zu klaeren, wie es im Detail läuft (wird ein laengerer if-else-zweig)
 //}
-
 
 //TODO kategorisierungsfunktionen implementieren
 //boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
