@@ -465,7 +465,9 @@ void BikerHttpRequestProcessor::processRequest()
                 strLat = cloudmadeApiPointListRegExp.cap(i);
                 strLon = cloudmadeApiPointListRegExp.cap(i+1);
                 GPSPosition point(strLat.toDouble(), strLon.toDouble());
-                routePointList << point;
+                //Workaround für (0/0)-Punkte. Warum ist das so?
+                if (point.isInitialized())
+                    routePointList << point;
             }
             
             position += cloudmadeApiPointListRegExp.cap(0).length();
