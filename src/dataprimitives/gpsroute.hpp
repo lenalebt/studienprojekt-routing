@@ -200,12 +200,20 @@ public:
     }
     
     //GPSRoute route; route << GPSPosition(1, 2);
+    /**
+      * @brief ein Operator zum einfügen eines GPSPositon Punkts
+      * @return diese GPSRoute
+      */
     GPSRoute& operator<<(const GPSPosition& point)
     {
         route << point;
         return *this;
     }
     //route << route2;
+    /**
+     * @brief ein Operator zum einfügen einer anderen Route in die aktuelle
+     * @return diese GPSRoute
+     */
     GPSRoute& operator<<(const GPSRoute& otherRoute)
     {
         route << otherRoute.get();
