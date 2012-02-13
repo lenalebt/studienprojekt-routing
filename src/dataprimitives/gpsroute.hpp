@@ -198,6 +198,19 @@ public:
     {
         return route == r.get();
     }
+    
+    //GPSRoute route; route << GPSPosition(1, 2);
+    GPSRoute& operator<<(const GPSPosition& point)
+    {
+        route << point;
+        return *this;
+    }
+    //route << route2;
+    GPSRoute& operator<<(const GPSRoute& otherRoute)
+    {
+        route << otherRoute.get();
+        return *this;
+    }
 private:
     /**
      * @brief gibt die Liste zurück.
