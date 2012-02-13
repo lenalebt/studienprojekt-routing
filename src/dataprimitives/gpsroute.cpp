@@ -164,13 +164,21 @@ namespace biker_tests
         GPSPosition pos_one(48.333333333, 2.123456789);
         GPSPosition pos_two(52.6, 13.00091);
         GPSPosition pos_three(51.0, 0.73098);
+        GPSPosition pos_test(1.23344, 0.0);
         // neue Route mit zweitem Wert zuerst eingefügt
         GPSRoute test(pos_two);
+        GPSRoute test2(test);
         // nun sollte zumindest ein Element in der Liste drin sein
         CHECK_EQ(test.isEmpty(), false);
         // nun die anderen beiden Positionen einfügen 
         test.insertBackward(pos_one);
         test.insertForward(pos_three);
+        //einen Klon
+        test2 = test;
+        // ... und die test-Position
+        test = test << pos_test;
+        // und beide Routen zusammenfügen
+        test << test2;
         // oops ... falsch herum  ;)
         test.reverse();
         // die Route exportieren
