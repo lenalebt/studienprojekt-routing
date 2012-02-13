@@ -31,6 +31,7 @@
 #include "filedownloader.hpp"
 #include "astar.hpp"
 #include "sqlitedatabase.hpp"
+#include "filedownloader.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -225,6 +226,8 @@ namespace biker_tests
             return biker_tests::testSimpleDataPreprocessing();
         else if (testName == "srtmprovider")
             return biker_tests::testSRTMProvider();
+        else if (testName == "filedownloader")
+            return biker_tests::testFileDownloader();
         else if (testName == "webserver")
             return biker_tests::testWebServer();
         else if (testName == "potentialfunction")

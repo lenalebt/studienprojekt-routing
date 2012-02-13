@@ -20,6 +20,7 @@
  * @date 2012-01-30
  * @copyright GNU GPL v3
  * @todo Doxygen, Test
+ * @ingroup network
  */
 class FileDownloader: public QObject
 {
