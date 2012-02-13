@@ -98,7 +98,7 @@ bool SQLiteDatabaseConnection::createTables()
     statements << "PRAGMA journal_mode=MEMORY;";
     statements << "PRAGMA temp_store = MEMORY;";
 	statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PROPERTIES INTEGER NOT NULL);";
-	statements << "CREATE VIRTUAL TABLE NODES USING rtree(ID, MIN_LAT, MAX_LAT, MIN_LON, MAX_LON);";
+	statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER PRIMARY KEY, LAT, LON, BUCKETID);";
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     statements << "CREATE TABLE EDGES_STREETNAME(ID INTEGER PRIMARY KEY, STREETNAME VARCHAR);";
     
@@ -165,7 +165,7 @@ boost::shared_ptr<RoutingNode> SQLiteDatabaseConnection::getNodeByID(boost::uint
 	int rc;
 	if(_getNodeByIDStatement == NULL)
 	{		
-		rc = sqlite3_prepare_v2(_db, "SELECT ID, MIN_LAT, MIN_LON FROM NODES WHERE ID=?;",
+		rc = sqlite3_prepare_v2(_db, "SELECT ID, LAT, LON FROM NODES WHERE ID=?;",
 			-1, &_getNodeByIDStatement, NULL);
 		if (rc != SQLITE_OK)
 		{	
@@ -238,7 +238,7 @@ SQLiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPositi
 	int rc;
 	if(_getNodeStatement == NULL)
 	{		
-		rc = sqlite3_prepare_v2(_db, "SELECT ID, MIN_LAT, MIN_LON FROM NODES WHERE MIN_LAT>=? AND MAX_LAT<=? AND MIN_LON>=? AND MAX_LON<=?;",
+		rc = sqlite3_prepare_v2(_db, "SELECT ID, LAT, LON FROM NODES WHERE BUCKETID>=? AND BUCKETID<=?;",
 			-1, &_getNodeStatement, NULL);
 		if (rc != SQLITE_OK)
 		{	
@@ -248,16 +248,11 @@ SQLiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPositi
 	}
 	
 	// Parameter an das Statement binden
-	sqlite3_bind_double(_getNodeStatement, 1, minCorner.getLat());
-	sqlite3_bind_double(_getNodeStatement, 2, maxCorner.getLat());
-	sqlite3_bind_double(_getNodeStatement, 3, minCorner.getLon());
-	sqlite3_bind_double(_getNodeStatement, 4, maxCorner.getLon());
+    boost::uint64_t minBucketID = spc->getBucketID(minCorner.getLat(), minCorner.getLon());
+    boost::uint64_t maxBucketID = spc->getBucketID(maxCorner.getLat(), maxCorner.getLon());
+	sqlite3_bind_int64(_getNodeStatement, 1, minBucketID);
+	sqlite3_bind_int64(_getNodeStatement, 2, maxBucketID);
 	
-    /*std::cerr << "bound parameters:" << "minCorner.getLat()=" << minCorner.getLat() <<
-        ", maxCorner.getLat()=" << maxCorner.getLat() <<
-        ", minCorner.getLon()=" << minCorner.getLon() <<
-        ", maxCorner.getLon()=" << maxCorner.getLon() << std::endl;*/
-    
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getNodeStatement)) != SQLITE_DONE)
     {
@@ -298,7 +293,7 @@ bool SQLiteDatabaseConnection::saveNode(const RoutingNode &node)
     int rc;
     if(_saveNodeStatement == NULL)
     {
-        rc = sqlite3_prepare_v2(_db, "INSERT INTO NODES VALUES (@ID, @MIN_LAT, @MAX_LAT, @MIN_LON, @MAX_LON);", -1, &_saveNodeStatement, NULL);
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO NODES VALUES(@ID, @LAT, @LON, @BUCKETID);", -1, &_saveNodeStatement, NULL);
         if (rc != SQLITE_OK)
         {	
             std::cerr << "Failed to create saveNodeStatement." << " Resultcode: " << rc << std::endl;
@@ -309,9 +304,8 @@ bool SQLiteDatabaseConnection::saveNode(const RoutingNode &node)
     // Parameter an das Statement binden
     sqlite3_bind_int64(_saveNodeStatement, 1, node.getID());
     sqlite3_bind_double(_saveNodeStatement, 2, node.getLat());
-    sqlite3_bind_double(_saveNodeStatement, 3, node.getLat());
-    sqlite3_bind_double(_saveNodeStatement, 4, node.getLon());
-    sqlite3_bind_double(_saveNodeStatement, 5, node.getLon());
+    sqlite3_bind_double(_saveNodeStatement, 3, node.getLon());
+    sqlite3_bind_int64(_saveNodeStatement, 4, spc->getBucketID(node.getLat(), node.getLon()));
 
     // Statement ausfuehren
     rc = sqlite3_step(_saveNodeStatement);

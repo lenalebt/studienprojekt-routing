@@ -17,6 +17,8 @@
 #include "router.hpp"
 #include "dijkstra.hpp"
 #include "altitudeprovider.hpp"
+#include "spatialitedatabase.hpp"
+#include "sqlitedatabase.hpp"
 #include "databaseramcache.hpp"
 #include <sstream>
 #include "programoptions.hpp"
@@ -47,7 +49,7 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
         ("simple-parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for simple parser")
         ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("database.db"), "set database filename for database operations")
-        ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->implicit_value("spatialite"), "set database backend. possible values: spatialite.")
+        ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->implicit_value("spatialite"), "set database backend. possible values: spatialite, sqlite.")
         ("route", po::value<std::string>(&(programOptions->routingStartPointString))->implicit_value("(0/0)"), "set routing startpoint.")
         ("to", po::value<std::string>(&(programOptions->routingEndPointString))->implicit_value("(0/0)"), "set routing endpoint.")
         ("json-output", "create routes as JSON instead of GPX.")
@@ -105,7 +107,7 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
     
     if (vm.count("dbbackend"))
     {
-        if (programOptions->dbBackend != "spatialite")
+        if ((programOptions->dbBackend != "spatialite") && (programOptions->dbBackend != "sqlite"))
         {
             std::cerr << "did not find database backend \"" << programOptions->dbBackend
                     << "\". see help for possible values." << std::endl;
@@ -139,6 +141,9 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
 int main ( int argc, char* argv[] )
 {
     cerr << "Biker Version " << QUOTEME(VERSION) << endl;
+    #ifdef SPATIALITE_FOUND
+        cerr << "compiled with spatialite support" << endl;
+    #endif
     int retVal=0;
     
     //wird benötigt für EventLoops etc. Diese werden nur in eigenen Threads
@@ -164,36 +169,12 @@ int main ( int argc, char* argv[] )
         server->startServer();
     }
     
-    /* TODO: Für den Parser:
-     * programOptions->parseOsmFile abfragen. Hier steht, ob geparst werden soll.
-     * 
-     * Die Dateinamen findet man in programOptions->osmFilename und
-     * programoptions->dbFilename.
-     * 
-     * Evtl muss man sich noch überlegen ob man das "start-webserver"
-     * übergehen will, wenn er parsen soll - oder er startet dafür einen
-     * Thread. Lass uns da nochmal reden.
-     * 
-     * Hier ist erstmal eine Beispielimplementierung.
-     */
-    if (programOptions->parseOsmFile)
-    {
-        //TODO: Andere Backends zulassen
-        boost::shared_ptr<SpatialiteDatabaseConnection> ptr(new SpatialiteDatabaseConnection());
-        DataPreprocessing preprocessor(ptr);
-        return (preprocessor.startparser(programOptions->osmFilename.c_str(), programOptions->dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
-    }
-    else if (programOptions->simpleParseOsmFile)
-    {
-        //TODO: Andere Backends zulassen
-        boost::shared_ptr<SpatialiteDatabaseConnection> ptr(new SpatialiteDatabaseConnection());
-        SimpleDataPreprocessing preprocessor(ptr);
-        return (preprocessor.preprocess(programOptions->osmFilename.c_str(), programOptions->dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
-    }
     
     boost::shared_ptr<DatabaseConnection> db;
     if (programOptions->dbBackend == "spatialite")
         db.reset(new SpatialiteDatabaseConnection());
+    else if (programOptions->dbBackend == "sqlite")
+        db.reset(new SQLiteDatabaseConnection());
     if (db)
     {
         QFile file(programOptions->dbFilename.c_str());
@@ -214,6 +195,17 @@ int main ( int argc, char* argv[] )
     {
         std::cerr << "was not able to construct database object. exiting." << std::endl;
         return 1;
+    }
+    
+    if (programOptions->parseOsmFile)
+    {
+        DataPreprocessing preprocessor(db);
+        return (preprocessor.startparser(programOptions->osmFilename.c_str(), programOptions->dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
+    }
+    else if (programOptions->simpleParseOsmFile)
+    {
+        SimpleDataPreprocessing preprocessor(db);
+        return (preprocessor.preprocess(programOptions->osmFilename.c_str(), programOptions->dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
     
     if (programOptions->doRouting)

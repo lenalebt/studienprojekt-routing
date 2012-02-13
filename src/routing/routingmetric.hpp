@@ -89,7 +89,7 @@ public:
     /**
      * @brief Gibt an, in welcher Einheit die Bewertung von rateEdge() angegeben wird.
      * 
-     * Standardmäßig gibt diese Funktion VIRTUAL zurück.
+     * Standardmäßig gibt diese Funktion DISTANCE zurück.
      * 
      * @return In welcher Einheit die Bewertung von rateEdge() angegeben wird.
      * @see MeasurementUnit
@@ -153,7 +153,7 @@ public:
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
 };
 
-class PowerRoutingMetric : public RoutingMetric
+class SimplePowerRoutingMetric : public RoutingMetric
 {
 private:
     double weight;
@@ -205,13 +205,13 @@ private:
         return time;
     }
 public:
-    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) :
+    SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) :
         RoutingMetric(provider)
     {
         weight = 85.0;
-        efficiency = 3.0 * 85.0;
+        efficiency = 3.0 * weight;
     }
-    PowerRoutingMetric (boost::shared_ptr<AltitudeProvider> provider, double newWeight, double newEfficiency) :
+    SimplePowerRoutingMetric (boost::shared_ptr<AltitudeProvider> provider, double newWeight, double newEfficiency) :
         RoutingMetric(provider), weight(newWeight), efficiency(newEfficiency)
     {}
 

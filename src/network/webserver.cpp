@@ -11,6 +11,7 @@
 #include "dijkstra.hpp"
 #include "programoptions.hpp"
 #include "spatialitedatabase.hpp"
+#include "sqlitedatabase.hpp"
 
 template <typename HttpRequestProcessorType>
 void HttpServerThread<HttpRequestProcessorType>::run()
@@ -502,7 +503,7 @@ void BikerHttpRequestProcessor::processRequest()
             else if (routeModifier == "power")
             {
                 //TODO: Gewicht etc aus der Anfrage herauslesen
-                metric.reset(new PowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider())));
+                metric.reset(new SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider())));
             }
             else
             {
@@ -513,6 +514,8 @@ void BikerHttpRequestProcessor::processRequest()
             
             if (ProgramOptions::getInstance()->dbBackend == "spatialite")
                 db.reset(new SpatialiteDatabaseConnection());
+            else if (ProgramOptions::getInstance()->dbBackend == "sqlite")
+                db.reset(new SQLiteDatabaseConnection());
             //Datenbank ist die globale DB...
             db->open(ProgramOptions::getInstance()->dbFilename.c_str());
             
