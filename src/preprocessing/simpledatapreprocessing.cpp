@@ -106,6 +106,11 @@ bool SimpleDataPreprocessing::preprocess()
 bool SimpleDataPreprocessing::preprocess(QString fileToParse, QString dbFilename)
 {
     _finalDBConnection->open(dbFilename);
+    if (!_finalDBConnection->isDBOpen())
+    {
+        std::cerr << "was not able to open database file \"" << dbFilename << "\"." << std::endl;
+        return false;
+    }
     QTemporaryFile tmpFile;
     tmpFile.open();
     QString tmpFilename = tmpFile.fileName();
@@ -141,6 +146,7 @@ bool SimpleDataPreprocessing::preprocess(QString fileToParse, QString dbFilename
     }
     else
     {
+        std::cerr << "no parser for file \"" << fileToParse << "\" available." << std::endl;
         return false;
     }
 }

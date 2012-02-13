@@ -178,18 +178,21 @@ int main ( int argc, char* argv[] )
     if (db)
     {
         QFile file(programOptions->dbFilename.c_str());
-        if (!file.exists())
+        if (!(programOptions->parseOsmFile || programOptions->simpleParseOsmFile))
         {
-            std::cerr << "did not find database file \"" << programOptions->dbFilename << "\". exiting." << std::endl;
-            return 1;
+            if (!file.exists())
+            {
+                std::cerr << "did not find database file \"" << programOptions->dbFilename << "\". exiting." << std::endl;
+                return 1;
+            }
+            db->open(programOptions->dbFilename.c_str());
+            if (!db->isDBOpen())
+            {
+                std::cerr << "error while opening database file \"" << programOptions->dbFilename << "\". exiting." << std::endl;
+                return 1;
+            }
+            db->close();
         }
-        db->open(programOptions->dbFilename.c_str());
-        if (!db->isDBOpen())
-        {
-            std::cerr << "error while opening database file \"" << programOptions->dbFilename << "\". exiting." << std::endl;
-            return 1;
-        }
-        db->close();
     }
     else
     {
@@ -199,11 +202,13 @@ int main ( int argc, char* argv[] )
     
     if (programOptions->parseOsmFile)
     {
+        std::cerr << "starting data preprocessing..." << std::endl;
         DataPreprocessing preprocessor(db);
         return (preprocessor.startparser(programOptions->osmFilename.c_str(), programOptions->dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
     else if (programOptions->simpleParseOsmFile)
     {
+        std::cerr << "starting simple data preprocessing..." << std::endl;
         SimpleDataPreprocessing preprocessor(db);
         return (preprocessor.preprocess(programOptions->osmFilename.c_str(), programOptions->dbFilename.c_str()) ? EXIT_SUCCESS : EXIT_FAILURE);
     }

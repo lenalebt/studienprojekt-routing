@@ -78,7 +78,6 @@ void SQLiteDatabaseConnection::open(QString dbConnectionString)
     }
     
     //Erstelle Tabellen nur, wenn die Datei vorher nicht existierte.
-    //Grund: IF NOT EXISTS gibt es nicht für virtuelle Tabellen.
     if (!dbExisted)
         _dbOpen = createTables();
     else

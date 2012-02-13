@@ -47,21 +47,43 @@ bool PBFParser::parse(QString filename)
     m_file.setFileName( filename );
 
     if ( !openQFile( &m_file, QIODevice::ReadOnly ) )
+    {
+        std::cerr << "could not open file \"" << filename << "\"." << std::endl;
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
+    }
 
     if ( !readBlockHeader() )
+    {
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
+    }
 
     if ( m_blockHeader.type() != "OSMHeader" ) {
         qCritical() << "OSMHeader missing, found" << m_blockHeader.type().data() << "instead";
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
     }
 
     if ( !readBlob() )
+    {
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
+    }
 
     if ( !m_headerBlock.ParseFromArray( m_buffer.data(), m_buffer.size() ) ) {
         qCritical() << "failed to parse HeaderBlock";
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
     }
     for ( int i = 0; i < m_headerBlock.required_features_size(); i++ ) {
@@ -74,6 +96,9 @@ bool PBFParser::parse(QString filename)
 
         if ( !supported ) {
             qCritical() << "required feature not supported:" << feature.data();
+            _nodeQueue->destroyQueue();
+            _wayQueue->destroyQueue();
+            _turnRestrictionQueue->destroyQueue();
             return false;
         }
     }
