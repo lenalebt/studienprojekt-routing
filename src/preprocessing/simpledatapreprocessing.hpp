@@ -4,7 +4,6 @@
 #include <boost/cstdint.hpp>
 #include "gpsposition.hpp"
 #include "database.hpp"
-#include "spatialitedatabase.hpp"
 #include "blockingqueue.hpp"
 #include "routingedge.hpp"
 #include "routingnode.hpp"
@@ -20,6 +19,12 @@
 #include "temporarydatabase.hpp"
 #include <QtConcurrentRun>
 #include <QString>
+#ifdef SPATIALITE_FOUND
+    #include "spatialitedatabase.hpp"
+#else
+    #include "sqlitedatabase.hpp"
+#endif
+
 /**
  * @brief Diese Klasse macht "einfache" Datenvorverarbeitung, d.h. legt
  *      die OSM-Daten fast 1:1 in die Datenbank ab, ohne eine komplette

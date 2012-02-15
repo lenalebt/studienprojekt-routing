@@ -5,7 +5,6 @@
 #include "gpsposition.hpp"
 #include "database.hpp"
 #include "temporarydatabase.hpp"
-#include "spatialitedatabase.hpp"
 #include "blockingqueue.hpp"
 #include "routingedge.hpp"
 #include "routingnode.hpp"
@@ -26,6 +25,12 @@
 //~ #include <QApplication>
 #include <QtConcurrentRun>
 #include <QString>
+#ifdef SPATIALITE_FOUND
+    #include "spatialitedatabase.hpp"
+#else
+    #include "sqlitedatabase.hpp"
+#endif
+
 /**
  * @brief Diese Klasse kuemmert sich um jegliche Form der Datenvorverarbeitung
  * 

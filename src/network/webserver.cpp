@@ -10,7 +10,9 @@
 #include "database.hpp"
 #include "dijkstra.hpp"
 #include "programoptions.hpp"
-#include "spatialitedatabase.hpp"
+#ifdef SPATIALITE_FOUND
+    #include "spatialitedatabase.hpp"
+#endif
 #include "sqlitedatabase.hpp"
 
 template <typename HttpRequestProcessorType>
@@ -523,9 +525,12 @@ void BikerHttpRequestProcessor::processRequest()
                 return;
             }
             
-            if (ProgramOptions::getInstance()->dbBackend == "spatialite")
-                db.reset(new SpatialiteDatabaseConnection());
-            else if (ProgramOptions::getInstance()->dbBackend == "sqlite")
+            #ifdef SPATIALITE_FOUND
+                if (ProgramOptions::getInstance()->dbBackend == "spatialite")
+                    db.reset(new SpatialiteDatabaseConnection());
+                else 
+            #endif
+            if (ProgramOptions::getInstance()->dbBackend == "sqlite")
                 db.reset(new SQLiteDatabaseConnection());
             //Datenbank ist die globale DB...
             db->open(ProgramOptions::getInstance()->dbFilename.c_str());

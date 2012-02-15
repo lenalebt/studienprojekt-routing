@@ -17,7 +17,12 @@
 #include "router.hpp"
 #include "dijkstra.hpp"
 #include "altitudeprovider.hpp"
-#include "spatialitedatabase.hpp"
+#ifdef ZZIP_FOUND
+    #include "srtmprovider.hpp"
+#endif
+#ifdef SPATIALITE_FOUND
+    #include "spatialitedatabase.hpp"
+#endif
 #include "sqlitedatabase.hpp"
 #include "databaseramcache.hpp"
 #include <sstream>
@@ -49,7 +54,11 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
         ("simple-parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for simple parser")
         ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("database.db"), "set database filename for database operations")
-        ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->implicit_value("spatialite"), "set database backend. possible values: spatialite, sqlite.")
+        #ifdef SPATIALITE_FOUND
+            ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->default_value("spatialite"), "set database backend. possible values: spatialite, sqlite.")
+        #else
+            ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->default_value("sqlite"), "set database backend. possible values: sqlite.")
+        #endif
         ("route", po::value<std::string>(&(programOptions->routingStartPointString))->implicit_value("(0/0)"), "set routing startpoint.")
         ("to", po::value<std::string>(&(programOptions->routingEndPointString))->implicit_value("(0/0)"), "set routing endpoint.")
         ("json-output", "create routes as JSON instead of GPX.")
@@ -107,7 +116,12 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
     
     if (vm.count("dbbackend"))
     {
-        if ((programOptions->dbBackend != "spatialite") && (programOptions->dbBackend != "sqlite"))
+        if (
+            #ifdef SPATIALITE_FOUND
+                (programOptions->dbBackend != "spatialite") && 
+            #endif
+            (programOptions->dbBackend != "sqlite")
+            )
         {
             std::cerr << "did not find database backend \"" << programOptions->dbBackend
                     << "\". see help for possible values." << std::endl;
@@ -143,6 +157,8 @@ int main ( int argc, char* argv[] )
     cerr << "Biker Version " << QUOTEME(VERSION) << endl;
     #ifdef SPATIALITE_FOUND
         cerr << "compiled with spatialite support" << endl;
+    #else
+        cerr << "compiled without spatialite support" << endl;
     #endif
     int retVal=0;
     
@@ -171,9 +187,12 @@ int main ( int argc, char* argv[] )
     
     
     boost::shared_ptr<DatabaseConnection> db;
-    if (programOptions->dbBackend == "spatialite")
-        db.reset(new SpatialiteDatabaseConnection());
-    else if (programOptions->dbBackend == "sqlite")
+    #ifdef SPATIALITE_FOUND
+        if (programOptions->dbBackend == "spatialite")
+            db.reset(new SpatialiteDatabaseConnection());
+        else 
+    #endif
+    if (programOptions->dbBackend == "sqlite")
         db.reset(new SQLiteDatabaseConnection());
     if (db)
     {
@@ -219,7 +238,11 @@ int main ( int argc, char* argv[] )
         boost::shared_ptr<RoutingMetric> metric;
         boost::shared_ptr<AltitudeProvider> altitudeProvider;
         
-        altitudeProvider.reset(new SRTMProvider());
+        #ifdef ZZIP_FOUND
+            altitudeProvider.reset(new SRTMProvider());
+        #else
+            altitudeProvider.reset(new ZeroAltitudeProvider());
+        #endif
         metric.reset(new EuclidianRoutingMetric(altitudeProvider));
         
         router.reset(new DijkstraRouter(db, metric));

@@ -3,7 +3,10 @@
 #include <limits>
 #include "closedlist.hpp"
 #include "heap.hpp"
-#include "spatialitedatabase.hpp"
+#ifdef SPATIALITE_FOUND
+    #include "spatialitedatabase.hpp"
+#endif
+#include "sqlitedatabase.hpp"
 
 /**
  * @todo Implementieren
@@ -238,7 +241,11 @@ namespace biker_tests
 {
     int testDijkstraRouter()
     {
-        boost::shared_ptr<DatabaseConnection> db(new SpatialiteDatabaseConnection());
+        #ifdef SPATIALITE_FOUND
+            boost::shared_ptr<SpatialiteDatabaseConnection> db(new SpatialiteDatabaseConnection());
+        #else
+            boost::shared_ptr<SQLiteDatabaseConnection> db(new SQLiteDatabaseConnection());
+        #endif
         boost::shared_ptr<RoutingMetric> metric(new EuclidianRoutingMetric());
         db->open("rub.db");
         

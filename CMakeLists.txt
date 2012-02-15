@@ -48,10 +48,10 @@ SET(QT_USE_QTGUI FALSE)
 #Qt für ganz viel Krams
 FIND_PACKAGE(Qt4 4.7 REQUIRED)
 #Spatialite für die Datenbank
-FIND_PACKAGE(SPATIALITE REQUIRED)
+FIND_PACKAGE(SPATIALITE)
 FIND_PACKAGE(SQLITE3 REQUIRED)
 #ZZipLib zum Entpacken von ZIP-Archiven
-FIND_PACKAGE(ZZIP REQUIRED)
+FIND_PACKAGE(ZZIP)
 #Boost für Kommandozeilenoptionen und so
 FIND_PACKAGE(Boost 1.42.0
     COMPONENTS
@@ -92,6 +92,7 @@ SET(
 
     #src/database/
     src/database/altitudeprovider.cpp
+    src/database/srtmprovider.cpp
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
     src/database/sqlitedatabase.cpp
@@ -144,6 +145,7 @@ SET(
 
     #src/database/
     src/database/altitudeprovider.hpp
+    src/database/srtmprovider.hpp
     src/database/database.hpp
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
@@ -213,10 +215,16 @@ SET(
     biker_UIS
     )
 
+IF (SPATIALITE_FOUND)
+    INCLUDE_DIRECTORIES(${SPATIALITE_INCLUDE_DIR})
+ENDIF()
+
+IF(ZZIP_FOUND)
+    INCLUDE_DIRECTORIES(${ZZIP_INCLUDE_DIR})
+ENDIF()
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${SPATIALITE_INCLUDE_DIR}
-    ${ZZIP_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
@@ -275,9 +283,12 @@ IF(DOXYGEN_FOUND)
 ENDIF()
 
 #Dem Quelltext sagen, wo die spatialite-library ist
-ADD_DEFINITIONS(-DSPATIALITE_LIB=${SPATIALITE_LIBRARY})
 IF(SPATIALITE_FOUND)
+    ADD_DEFINITIONS(-DSPATIALITE_LIB=${SPATIALITE_LIBRARY})
     ADD_DEFINITIONS(-DSPATIALITE_FOUND)
+ENDIF()
+IF(ZZIP_FOUND)
+    ADD_DEFINITIONS(-DZZIP_FOUND)
 ENDIF()
 
 
@@ -314,9 +325,13 @@ ADD_TEST(osmparser                        "biker" "--test" "osmparser")
 ADD_TEST(pbfparser                        "biker" "--test" "pbfparser")
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(potentialfunction                "biker" "--test" "potentialfunction")
-ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
+IF(ZZIP_FOUND)
+    ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
+ENDIF()
 ADD_TEST(filedownloader                   "biker" "--test" "filedownloader")
-ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
+IF(SPATIALITE_FOUND)
+    ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
+ENDIF()
 ADD_TEST(sqlitedatabaseconnection         "biker" "--test" "sqlitedatabaseconnection")
 ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
 ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")
@@ -394,12 +409,16 @@ INCLUDE(CPack)
 
 #Hier hinschreiben, welche Libs zu der ausführbaren Datei gelinkt werden
 #müssen.
+IF (SPATIALITE_FOUND)
+    TARGET_LINK_LIBRARIES(biker ${SPATIALITE_LIBRARY})
+ENDIF()
+IF (ZZIP_FOUND)
+    TARGET_LINK_LIBRARIES(biker ${ZZIP_LIBRARIES})
+ENDIF()
 TARGET_LINK_LIBRARIES(biker
     ${QT_LIBRARIES}
     ${QT_QTNETWORK_LIBRARIES}
     ${QT_QTXML_LIBRARIES}
-    ${SPATIALITE_LIBRARY}
-    ${ZZIP_LIBRARIES}
     ${Boost_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}

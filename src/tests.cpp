@@ -12,7 +12,9 @@
 #include "osmedge.hpp"
 #include "gpsposition.hpp"
 #include "gpsroute.hpp"
-#include "spatialitedatabase.hpp"
+#ifdef SPATIALITE_FOUND
+    #include "spatialitedatabase.hpp"
+#endif
 #include "temporarydatabase.hpp"
 #include "databaseramcache.hpp"
 #include "osmparser.hpp"
@@ -186,8 +188,10 @@ namespace biker_tests
             return biker_tests::testRoutingNode();
         else if (testName == "basename")
             return biker_tests::testBasename();
-        else if (testName == "spatialitedatabaseconnection")
-            return biker_tests::testSpatialiteDatabaseConnection();
+        #ifdef SPATIALITE_FOUND
+            else if (testName == "spatialitedatabaseconnection")
+                return biker_tests::testSpatialiteDatabaseConnection();
+        #endif
         else if (testName == "sqlitedatabaseconnection")
             return biker_tests::testSQLiteDatabaseConnection();
         else if (testName == "temporaryosmdatabaseconnection")

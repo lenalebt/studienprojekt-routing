@@ -221,7 +221,11 @@ namespace biker_tests
         if (file.exists())
             file.remove();
         
-        boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
+        #ifdef SPATIALITE_FOUND
+            boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
+        #else
+            boost::shared_ptr<SQLiteDatabaseConnection> finalDB(new SQLiteDatabaseConnection());
+        #endif
         DataPreprocessing dataPreprocessing(finalDB);
         dataPreprocessing.startparser("data/rub.osm", "rub.db");
         return EXIT_SUCCESS;

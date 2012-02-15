@@ -1,3 +1,5 @@
+#ifdef SPATIALITE_FOUND
+
 #include "spatialitedatabase.hpp"
 #include <QStringList>
 #include <QFile>
@@ -839,3 +841,5 @@ namespace biker_tests
         return EXIT_SUCCESS;
     }
 }
+
+#endif //SPATIALITE_FOUND
