@@ -163,6 +163,11 @@ int main ( int argc, char* argv[] )
     #else
         cerr << "compiled without zzip support" << endl;
     #endif
+    #ifdef PROTOBUF_FOUND
+        cerr << "compiled with protobuf support" << endl;
+    #else
+        cerr << "compiled without protobuf support" << endl;
+    #endif
     int retVal=0;
     
     //wird benötigt für EventLoops etc. Diese werden nur in eigenen Threads
