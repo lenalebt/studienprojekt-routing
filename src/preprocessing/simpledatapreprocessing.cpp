@@ -5,8 +5,10 @@
 SimpleDataPreprocessing::SimpleDataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
     : _nodeQueue(10000), _wayQueue(10000), _turnRestrictionQueue(10000),
     _osmParser(),
-    _pbfParser(),
-      _finalDBConnection(finaldb)
+    #ifdef PROTOBUF_FOUND
+        _pbfParser(),
+    #endif
+    _finalDBConnection(finaldb)
 {
     
 }
@@ -132,18 +134,20 @@ bool SimpleDataPreprocessing::preprocess(QString fileToParse, QString dbFilename
         tmpFile.remove();
         return (preprocessRetval && future.result());
     }
-    else if (fileToParse.endsWith(".pbf"))
-    {
-        _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
-        QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
-        
-        bool preprocessRetval = preprocess();
-        future.waitForFinished();
-        _finalDBConnection->close();
-        _tmpDBConnection.close();
-        tmpFile.remove();
-        return (preprocessRetval && future.result());
-    }
+    #ifdef PROTOBUF_FOUND
+        else if (fileToParse.endsWith(".pbf"))
+        {
+            _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
+            QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
+            
+            bool preprocessRetval = preprocess();
+            future.waitForFinished();
+            _finalDBConnection->close();
+            _tmpDBConnection.close();
+            tmpFile.remove();
+            return (preprocessRetval && future.result());
+        }
+    #endif
     else
     {
         std::cerr << "no parser for file \"" << fileToParse << "\" available." << std::endl;

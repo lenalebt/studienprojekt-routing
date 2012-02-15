@@ -49,7 +49,9 @@ private:
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
     
     boost::shared_ptr<OSMParser> _osmParser;
-    boost::shared_ptr<PBFParser> _pbfParser;
+    #ifdef PROTOBUF_FOUND
+        boost::shared_ptr<PBFParser> _pbfParser;
+    #endif
     
     boost::shared_ptr<DatabaseConnection> _finalDBConnection;
     TemporaryOSMDatabaseConnection _tmpDBConnection;

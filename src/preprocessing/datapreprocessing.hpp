@@ -56,7 +56,9 @@ private:
 
     
     boost::shared_ptr<OSMParser> _osmParser;
-    boost::shared_ptr<PBFParser> _pbfParser;
+    #ifdef PROTOBUF_FOUND
+        boost::shared_ptr<PBFParser> _pbfParser;
+    #endif
     
     TemporaryOSMDatabaseConnection _tmpDBConnection;
     boost::shared_ptr<DatabaseConnection> _finalDBConnection;

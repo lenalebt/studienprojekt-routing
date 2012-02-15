@@ -211,8 +211,10 @@ namespace biker_tests
             return biker_tests::testOSMTurnRestriction();
         else if (testName == "osmparser")
             return biker_tests::testOSMParser();
-        else if (testName == "pbfparser")
-            return biker_tests::testPBFParser();
+        #ifdef PROTOBUF_FOUND
+            else if (testName == "pbfparser")
+                return biker_tests::testPBFParser();
+        #endif
         else if (testName == "blockingqueue")
             return biker_tests::testBlockingQueue();
         else if (testName == "binaryheap")

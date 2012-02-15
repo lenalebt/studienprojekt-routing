@@ -1,3 +1,4 @@
+#ifdef PROTOBUF_FOUND
 /*
     Biker wants to be a routing software, intended to be useful for planning bike tours.
     Copyright (C) 2011  Lena Brueder
@@ -698,3 +699,5 @@ namespace biker_tests
         return EXIT_SUCCESS;
     }
 }
+
+#endif //PROTOBUF_FOUND

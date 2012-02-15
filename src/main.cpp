@@ -158,6 +158,11 @@ int main ( int argc, char* argv[] )
     #else
         cerr << "compiled without spatialite support" << endl;
     #endif
+    #ifdef ZZIP_FOUND
+        cerr << "compiled with zzip support" << endl;
+    #else
+        cerr << "compiled without zzip support" << endl;
+    #endif
     int retVal=0;
     
     //wird benötigt für EventLoops etc. Diese werden nur in eigenen Threads

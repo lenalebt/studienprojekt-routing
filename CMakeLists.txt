@@ -58,15 +58,22 @@ FIND_PACKAGE(Boost 1.42.0
     program_options
     REQUIRED)
 #Google Protocol Buffers (->Protobuf) zum Lesen von .pbf-Dateien
-FIND_PACKAGE(ProtocolBuffers REQUIRED)
+FIND_PACKAGE(ProtocolBuffers)
 #zlib zum Entpacken von PBF-Dateien
 FIND_PACKAGE(ZLIB REQUIRED)
 #Doxygen zum Erzeugen der Doku. Nicht notwendig zum Kompilieren.
 FIND_PACKAGE(Doxygen)
 
 #ProtocolBuffers-Compiler ausführen, um Quelldateien zu erstellen
-PROTOBUF_GENERATE_CPP(OSMFORMAT_PROTO_SOURCES OSMFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/osmformat.proto)
-PROTOBUF_GENERATE_CPP(FILEFORMAT_PROTO_SOURCES FILEFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/fileformat.proto)
+IF(ProtocolBuffers_FOUND)
+    PROTOBUF_GENERATE_CPP(OSMFORMAT_PROTO_SOURCES OSMFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/osmformat.proto)
+    PROTOBUF_GENERATE_CPP(FILEFORMAT_PROTO_SOURCES FILEFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/fileformat.proto)
+ELSE()
+    SET(OSMFORMAT_PROTO_SOURCES
+        )
+    SET(FILEFORMAT_PROTO_SOURCES
+        )
+ENDIF()
 
 #Hier Quelldateien eintragen
 SET(
@@ -223,10 +230,13 @@ IF(ZZIP_FOUND)
     INCLUDE_DIRECTORIES(${ZZIP_INCLUDE_DIR})
 ENDIF()
 
+IF(ProtocolBuffers_FOUND)
+    INCLUDE_DIRECTORIES(${PROTOBUF_INCLUDE_DIRS})
+ENDIF()
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}
     ${Boost_INCLUDE_DIR}
-    ${PROTOBUF_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
     ${SQLITE_INCLUDE_DIRS}
     src/
@@ -290,7 +300,9 @@ ENDIF()
 IF(ZZIP_FOUND)
     ADD_DEFINITIONS(-DZZIP_FOUND)
 ENDIF()
-
+IF(ProtocolBuffers_FOUND)
+    ADD_DEFINITIONS(-DPROTOBUF_FOUND)
+ENDIF()
 
 INCLUDE(
     ${QT_USE_FILE}
@@ -322,7 +334,9 @@ ADD_TEST(osmedge                          "biker" "--test" "osmedge")
 ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
 ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
-ADD_TEST(pbfparser                        "biker" "--test" "pbfparser")
+IF(ProtocolBuffers_FOUND)
+    ADD_TEST(pbfparser                        "biker" "--test" "pbfparser")
+ENDIF()
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(potentialfunction                "biker" "--test" "potentialfunction")
 IF(ZZIP_FOUND)
@@ -415,12 +429,14 @@ ENDIF()
 IF (ZZIP_FOUND)
     TARGET_LINK_LIBRARIES(biker ${ZZIP_LIBRARIES})
 ENDIF()
+IF(ProtocolBuffers_FOUND)
+    TARGET_LINK_LIBRARIES(biker ${PROTOBUF_LIBRARIES})
+ENDIF()
 TARGET_LINK_LIBRARIES(biker
     ${QT_LIBRARIES}
     ${QT_QTNETWORK_LIBRARIES}
     ${QT_QTXML_LIBRARIES}
     ${Boost_LIBRARIES}
-    ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIBRARIES}
     )
