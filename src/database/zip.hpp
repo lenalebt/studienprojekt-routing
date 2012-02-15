@@ -1,3 +1,4 @@
+#ifdef ZZIP_FOUND
 /*
     Biker wants to be a routing software, intended to be useful for planning bike tours.
     Copyright (C) 2011  Lena Brueder
@@ -35,3 +36,4 @@ class SrtmZipFile
 };
 
 #endif
+#endif  //ZZIP_FOUND

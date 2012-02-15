@@ -12,14 +12,13 @@
 #include "osmedge.hpp"
 #include "gpsposition.hpp"
 #include "gpsroute.hpp"
-#ifdef SPATIALITE_FOUND
-    #include "spatialitedatabase.hpp"
-#endif
+#include "spatialitedatabase.hpp"
 #include "temporarydatabase.hpp"
 #include "databaseramcache.hpp"
 #include "osmparser.hpp"
 #include "pbfparser.hpp"
 #include "altitudeprovider.hpp"
+#include "srtmprovider.hpp"
 #include <QString>
 #include <QVector>
 #include "blockingqueue.hpp"
@@ -228,8 +227,10 @@ namespace biker_tests
             return biker_tests::testDataPreprocessing();
         else if(testName == "simpledatapreprocessing")
             return biker_tests::testSimpleDataPreprocessing();
-        else if (testName == "srtmprovider")
-            return biker_tests::testSRTMProvider();
+        #ifdef ZZIP_FOUND
+            else if (testName == "srtmprovider")
+                return biker_tests::testSRTMProvider();
+        #endif
         else if (testName == "filedownloader")
             return biker_tests::testFileDownloader();
         else if (testName == "webserver")

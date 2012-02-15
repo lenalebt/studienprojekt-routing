@@ -19,11 +19,8 @@
 #include "temporarydatabase.hpp"
 #include <QtConcurrentRun>
 #include <QString>
-#ifdef SPATIALITE_FOUND
-    #include "spatialitedatabase.hpp"
-#else
-    #include "sqlitedatabase.hpp"
-#endif
+#include "spatialitedatabase.hpp"
+#include "sqlitedatabase.hpp"
 
 /**
  * @brief Diese Klasse macht "einfache" Datenvorverarbeitung, d.h. legt

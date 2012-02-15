@@ -10,10 +10,9 @@
 #include "database.hpp"
 #include "dijkstra.hpp"
 #include "programoptions.hpp"
-#ifdef SPATIALITE_FOUND
-    #include "spatialitedatabase.hpp"
-#endif
+#include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
+#include "srtmprovider.hpp"
 
 template <typename HttpRequestProcessorType>
 void HttpServerThread<HttpRequestProcessorType>::run()
@@ -516,7 +515,11 @@ void BikerHttpRequestProcessor::processRequest()
                 if (numberRegExp.indexIn(_parameterMap["efficiency"]) != -1)
                     efficiency = numberRegExp.cap(1).toDouble();
                 
-                metric.reset(new SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider()), weight, efficiency));
+                #ifdef ZZIP_FOUND
+                    metric.reset(new SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider()), weight, efficiency));
+                #else
+                    metric.reset(new SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new ZeroAltitudeProvider()), weight, efficiency));
+                #endif
             }
             else
             {

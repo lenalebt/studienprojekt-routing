@@ -20,9 +20,7 @@
 #ifdef ZZIP_FOUND
     #include "srtmprovider.hpp"
 #endif
-#ifdef SPATIALITE_FOUND
-    #include "spatialitedatabase.hpp"
-#endif
+#include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
 #include "databaseramcache.hpp"
 #include <sstream>

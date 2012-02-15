@@ -1,3 +1,5 @@
+#ifdef SPATIALITE_FOUND
+
 #ifndef SPATIALITEDATABASE_HPP
 #define SPATIALITEDATABASE_HPP
 
@@ -77,4 +79,5 @@ namespace biker_tests
     int testSpatialiteDatabaseConnection();
 }
 
-#endif //SPATIALITEDATABASE_HPP
+#endif  //SPATIALITEDATABASE_HPP
+#endif  //SPATIALITE_FOUND

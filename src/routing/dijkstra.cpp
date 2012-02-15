@@ -3,9 +3,7 @@
 #include <limits>
 #include "closedlist.hpp"
 #include "heap.hpp"
-#ifdef SPATIALITE_FOUND
-    #include "spatialitedatabase.hpp"
-#endif
+#include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
 
 /**

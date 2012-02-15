@@ -1,7 +1,5 @@
 #include "databaseramcache.hpp"
-#ifdef SPATIALITE_FOUND
-    #include "spatialitedatabase.hpp"
-#endif
+#include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
 #include <QFile>
 #include <boost/random/linear_congruential.hpp>
