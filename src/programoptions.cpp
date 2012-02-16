@@ -4,7 +4,7 @@ ProgramOptions::ProgramOptions() :
     webserver_public_html_folder(""),
     webserver_port(8080),
     webserver_threadpool_size(20),
-    webserver_startWebserver(false),
+    webserver_startWebserver(true),
     
     threads_threadpool_size(20),
     

@@ -17,9 +17,7 @@
 #include "router.hpp"
 #include "dijkstra.hpp"
 #include "altitudeprovider.hpp"
-#ifdef ZZIP_FOUND
-    #include "srtmprovider.hpp"
-#endif
+#include "srtmprovider.hpp"
 #include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
 #include "databaseramcache.hpp"
@@ -45,7 +43,7 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
         ("help,h", "produce help message")
         ("test,t", po::value<std::string>(&(programOptions->tests_testName))->implicit_value("all"), "run program tests")
         ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpool_size))->default_value(20u), "set maximum thread pool size for standard purposes")
-        ("start-webserver", "start webserver with given or standard settings")
+        ("no-start-webserver", "do not start webserver")
         ("webserver-public-html-folder,d", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value("./gui/"), "set public html folder of webserver")
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(20u), "set maximum thread pool size of webserver")
@@ -82,9 +80,12 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
     QThreadPool::globalInstance()->setMaxThreadCount(programOptions->threads_threadpool_size);
     
     
-    if (vm.count("start-webserver"))
+    if (vm.count("no-start-webserver"))
     {
-        programOptions->webserver_startWebserver = true;
+        programOptions->webserver_startWebserver = false;
+    }
+    else
+    {
         //Threadpool-Größe festlegen. Minimum nötig: 5.
         if (programOptions->webserver_threadpool_size < 5)
         {
