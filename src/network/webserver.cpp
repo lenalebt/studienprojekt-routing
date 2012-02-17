@@ -9,6 +9,7 @@
 #include "routingmetric.hpp"
 #include "database.hpp"
 #include "dijkstra.hpp"
+#include "astar.hpp"
 #include "programoptions.hpp"
 #include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
@@ -499,7 +500,8 @@ void BikerHttpRequestProcessor::processRequest()
         {
             boost::shared_ptr<RoutingMetric> metric;
             boost::shared_ptr<Router> router;
-            boost::shared_ptr<DatabaseConnection> db;
+            boost::shared_ptr<DatabaseConnection> dbA;
+            boost::shared_ptr<DatabaseConnection> dbB;
             //Routingmetrik festlegen anhand der Benutzerwahl
             if (routeModifier == "euclidian")
             {
@@ -530,16 +532,30 @@ void BikerHttpRequestProcessor::processRequest()
             
             #ifdef SPATIALITE_FOUND
                 if (ProgramOptions::getInstance()->dbBackend == "spatialite")
-                    db.reset(new SpatialiteDatabaseConnection());
+                {
+                    dbA.reset(new SpatialiteDatabaseConnection());
+                    dbB.reset(new SpatialiteDatabaseConnection());
+                }
                 else 
             #endif
             if (ProgramOptions::getInstance()->dbBackend == "sqlite")
-                db.reset(new SQLiteDatabaseConnection());
+            {
+                dbA.reset(new SQLiteDatabaseConnection());
+                dbB.reset(new SQLiteDatabaseConnection());
+            }
             //Datenbank ist die globale DB...
-            db->open(ProgramOptions::getInstance()->dbFilename.c_str());
+            dbA->open(ProgramOptions::getInstance()->dbFilename.c_str());
+            dbB->open(ProgramOptions::getInstance()->dbFilename.c_str());
             
             //Als Router nehmen wir erstmal Dijkstra.
-            router.reset(new DijkstraRouter(db, metric));
+            if (_parameterMap["algorithm"] == "multithreadeddijkstra")
+                router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
+            else if (_parameterMap["algorithm"] == "dijkstra")
+                router.reset(new DijkstraRouter(dbA, metric));
+            else if (_parameterMap["algorithm"] == "astar")
+                router.reset(new AStarRouter(dbA, metric));
+            else
+                router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
             
             //Route berechnen
             GPSRoute route = router->calculateShortestRoute(routePointList);
