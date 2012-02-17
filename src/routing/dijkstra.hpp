@@ -73,8 +73,26 @@ private:
     boost::shared_ptr<RoutingMetric> _metric;
     
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
-    GPSRoute calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList);
-    GPSRoute calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
+    /**
+     * @brief Berechnet eine Route vom Startpunkt aus in Richtung Ziel.
+     * 
+     * Das Ziel wird durch den anderen Thread festgelegt. Wenn sie sich treffen, ist das
+     * Routing abgeschlossen.
+     * 
+     * @return Die Vorgängerzeigerliste, die der Algorithmus bestimmt hat.
+     * @todo Implementieren
+     */
+    QHash<boost::uint64_t, boost::uint64_t> calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList);
+    /**
+     * @brief Berechnet eine Route vom Ziel aus in Richtung Startpunkt.
+     * 
+     * Der Start wird durch den anderen Thread festgelegt. Wenn sie sich treffen, ist das
+     * Routing abgeschlossen.
+     * 
+     * @return Die Nachfolgerzeigerliste, die der Algorithmus bestimmt hat.
+     * @todo Implementieren
+     */
+    QHash<boost::uint64_t, boost::uint64_t> calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
 public:
     /**
      * @brief Erstellt einen neuen Router, der den Algorithmus von Dijkstra

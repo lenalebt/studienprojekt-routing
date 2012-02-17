@@ -83,9 +83,6 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition
     }
 }
 
-/**
- * @todo: Implementieren
- */
 GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
 {
     if (!_db->isDBOpen())
@@ -231,13 +228,217 @@ MultithreadedDijkstraRouter::MultithreadedDijkstraRouter(boost::shared_ptr<Datab
     
 }
 
-GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList)
+QHash<boost::uint64_t, boost::uint64_t> MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList)
 {
-    return GPSRoute();
+    if (!_dbA->isDBOpen())
+    {
+        std::cerr << "database file A is closed." << std::endl;
+        return QHash<boost::uint64_t, boost::uint64_t>();
+    }
+    else
+    {
+        //Initialisiere Datenstrukturen
+        //std::cerr << "init data structures" << std::endl;
+        NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
+        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
+        QHash<boost::uint64_t, boost::uint64_t> predecessor;
+        QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
+        
+        //Startknoten: Kosten auf Null setzen, zum Heap und Puffer hinzufügen, Vorgänger auf Null setzen
+        boost::uint64_t activeNodeLongID = RoutingNode::convertIDToLongFormat(startNode.getID());
+        boost::uint64_t activeNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
+        
+        nodeCosts.setValue(activeNodeLongID, 0.0);
+        heap.add(activeNodeLongID);
+        nodeMap.insert(activeNodeShortID, _dbA->getNodeByID(startNode.getID()));
+        predecessor.insert(activeNodeLongID, 0);
+        
+        boost::shared_ptr<RoutingNode> activeNode;
+        
+        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
+        
+        //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
+        //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
+        
+        //std::cerr << "starting while loop" << std::endl;
+        while (!heap.isEmpty())
+        {
+            //std::cerr << ".";
+            //Aktuelles Element wird jetzt abschließend betrachtet.
+            activeNodeLongID = heap.removeMinimumCostElement();
+            activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
+            activeNode = nodeMap[activeNodeShortID];
+            closedList->addElement(activeNodeLongID, S_THREAD);
+            
+            //std::cerr << activeNodeLongID << ":" << activeNodeShortID;
+            
+            //Wenn jetzt ein überlappendes Element gefunden wurde: Fertig.
+            if (closedList->getOverlappingElement() != 0)
+            {
+                //std::cerr << "found endnode!";
+                break;
+            }
+            //Hole Liste von Kanten, die in abschließend betrachtetem
+            //Knoten beginnen und bearbeite sie.
+            QVector<boost::shared_ptr<RoutingEdge> > edgeList = 
+                _dbA->getEdgesByStartNodeID(activeNodeLongID);
+            for (QVector<boost::shared_ptr<RoutingEdge> >::iterator it =
+                edgeList.begin(); it < edgeList.end(); it++)
+            {
+                //ID zwischenspeichern, damit sie nicht immer neu berechnet werden muss
+                boost::uint64_t activeEdgeEndNodeLongID = (*it)->getEndNodeID();
+                //Wenn der Endknoten noch nicht abschließend betrachtet wurde (müsste immer wahr sein...)
+                if (!closedList->contains((*it)->getEndNodeID(), S_THREAD))
+                {
+                    //Erstmal Knoten aus der DB holen und puffern, wenn er noch nicht geladen wurde
+                    boost::uint64_t activeEdgeEndNodeShortID =
+                        RoutingNode::convertIDToShortFormat((*it)->getEndNodeID());
+                    boost::shared_ptr<RoutingNode> activeEdgeEndNode;
+                    if (!nodeMap.contains(activeEdgeEndNodeShortID))
+                    {
+                        activeEdgeEndNode = _dbA->getNodeByID(activeEdgeEndNodeShortID);
+                        nodeMap.insert(activeEdgeEndNodeShortID, activeEdgeEndNode);
+                    }
+                    else
+                    {
+                        activeEdgeEndNode = nodeMap[activeEdgeEndNodeShortID];
+                    }
+                    
+                    
+                    //Wurde der Knoten schon einmal betrachtet, oder nicht?
+                    if (!heap.contains(activeEdgeEndNodeLongID))
+                    {
+                        //Neuen Knoten zum Heap dazu, nachdem neue Kosten gesetzt wurden.
+                        nodeCosts.setValue(activeEdgeEndNodeLongID, nodeCosts.getValue(activeNodeLongID) + 
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode));
+                        heap.add(activeEdgeEndNodeLongID);
+                        //Vorgänger-Zeiger setzen
+                        predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
+                    }
+                    else
+                    {
+                        double newCosts = nodeCosts.getValue(activeNodeLongID) + 
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
+                        if (newCosts < nodeCosts.getValue(activeEdgeEndNodeLongID))
+                        {
+                            nodeCosts.setValue(activeEdgeEndNodeLongID, newCosts);
+                            heap.decreaseKey(activeEdgeEndNodeLongID);
+                            predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
+                        }
+                    }
+                }
+            }
+        }
+        
+        std::cerr << "finished, search space of thread A contains " << nodeMap.size() << " nodes." << std::endl;
+        return predecessor;
+    }
 }
-GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList)
+QHash<boost::uint64_t, boost::uint64_t> MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList)
 {
-    return GPSRoute();
+    if (!_dbB->isDBOpen())
+    {
+        std::cerr << "database file A is closed." << std::endl;
+        return QHash<boost::uint64_t, boost::uint64_t>();
+    }
+    else
+    {
+        //Initialisiere Datenstrukturen
+        //std::cerr << "init data structures" << std::endl;
+        NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
+        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
+        QHash<boost::uint64_t, boost::uint64_t> successor;
+        QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
+        
+        //Startknoten: Kosten auf Null setzen, zum Heap und Puffer hinzufügen, Vorgänger auf Null setzen
+        boost::uint64_t activeNodeLongID = RoutingNode::convertIDToLongFormat(endNode.getID());
+        boost::uint64_t activeNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
+        
+        nodeCosts.setValue(activeNodeLongID, 0.0);
+        heap.add(activeNodeLongID);
+        nodeMap.insert(activeNodeShortID, _dbB->getNodeByID(endNode.getID()));
+        successor.insert(activeNodeLongID, 0);
+        
+        boost::shared_ptr<RoutingNode> activeNode;
+        
+        boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
+        
+        //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
+        //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
+        
+        //std::cerr << "starting while loop" << std::endl;
+        while (!heap.isEmpty())
+        {
+            //std::cerr << ".";
+            //Aktuelles Element wird jetzt abschließend betrachtet.
+            activeNodeLongID = heap.removeMinimumCostElement();
+            activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
+            activeNode = nodeMap[activeNodeShortID];
+            closedList->addElement(activeNodeLongID, T_THREAD);
+            
+            //std::cerr << activeNodeLongID << ":" << activeNodeShortID;
+            
+            //Wenn jetzt ein überlappendes Element gefunden wurde: Fertig.
+            if (closedList->getOverlappingElement() != 0)
+            {
+                //std::cerr << "found endnode!";
+                break;
+            }
+            //Hole Liste von Kanten, die in abschließend betrachtetem
+            //Knoten beginnen und bearbeite sie.
+            QVector<boost::shared_ptr<RoutingEdge> > edgeList = 
+                _dbB->getEdgesByEndNodeID(activeNodeLongID);
+            for (QVector<boost::shared_ptr<RoutingEdge> >::iterator it =
+                edgeList.begin(); it < edgeList.end(); it++)
+            {
+                //ID zwischenspeichern, damit sie nicht immer neu berechnet werden muss
+                boost::uint64_t activeEdgeStartNodeLongID = (*it)->getStartNodeID();
+                //Wenn der Endknoten noch nicht abschließend betrachtet wurde (müsste immer wahr sein...)
+                if (!closedList->contains((*it)->getStartNodeID(), T_THREAD))
+                {
+                    //Erstmal Knoten aus der DB holen und puffern, wenn er noch nicht geladen wurde
+                    boost::uint64_t activeEdgeStartNodeShortID =
+                        RoutingNode::convertIDToShortFormat((*it)->getStartNodeID());
+                    boost::shared_ptr<RoutingNode> activeEdgeStartNode;
+                    if (!nodeMap.contains(activeEdgeStartNodeShortID))
+                    {
+                        activeEdgeStartNode = _dbB->getNodeByID(activeEdgeStartNodeShortID);
+                        nodeMap.insert(activeEdgeStartNodeShortID, activeEdgeStartNode);
+                    }
+                    else
+                    {
+                        activeEdgeStartNode = nodeMap[activeEdgeStartNodeShortID];
+                    }
+                    
+                    
+                    //Wurde der Knoten schon einmal betrachtet, oder nicht?
+                    if (!heap.contains(activeEdgeStartNodeLongID))
+                    {
+                        //Neuen Knoten zum Heap dazu, nachdem neue Kosten gesetzt wurden.
+                        nodeCosts.setValue(activeEdgeStartNodeLongID, nodeCosts.getValue(activeNodeLongID) + 
+                            _metric->rateEdge(**it, *activeEdgeStartNode, *activeNode));
+                        heap.add(activeEdgeStartNodeLongID);
+                        //Vorgänger-Zeiger setzen
+                        successor.insert(activeEdgeStartNodeLongID, activeNodeLongID);
+                    }
+                    else
+                    {
+                        double newCosts = nodeCosts.getValue(activeNodeLongID) + 
+                            _metric->rateEdge(**it, *activeEdgeStartNode, *activeNode);
+                        if (newCosts < nodeCosts.getValue(activeEdgeStartNodeLongID))
+                        {
+                            nodeCosts.setValue(activeEdgeStartNodeLongID, newCosts);
+                            heap.decreaseKey(activeEdgeStartNodeLongID);
+                            successor.insert(activeEdgeStartNodeLongID, activeNodeLongID);
+                        }
+                    }
+                }
+            }
+        }
+        
+        std::cerr << "finished, search space of thread A contains " << nodeMap.size() << " nodes." << std::endl;
+        return successor;
+    }
 }
 
 GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
@@ -326,6 +527,7 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const GPSPosition& 
 GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
 {
     //QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
+    MultiThreadedHashClosedList closedList;
     return GPSRoute();
 }
 
