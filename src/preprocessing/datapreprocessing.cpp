@@ -87,7 +87,7 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
     std::cerr << "Parsing Ways..." << std::endl;
     _finalDBConnection->beginTransaction();
     _tmpDBConnection.beginTransaction();
-    boost::uint64_t edgeID=0;
+    //boost::uint64_t edgeID=0;
     //TODO: nochmal ueberlegen, ob if-Abfrage nicht sinnvoller als while-loop
     while(_wayQueue.dequeue(_osmWay))
     {
@@ -103,7 +103,7 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
             {
                 std::cerr << "edge NOT saved" << std::endl;
             }
-            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
+            //routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
             
             //TODO: Bevor in finale Datenbank gespeichert wird, Hier die Kategorisierung starten
             //categorizeEdge(*routingEdge);
@@ -164,106 +164,102 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
 
     routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
 
+    //Flags
+    bool isArea = false;
+    bool isHighway = false;
+
 
     QVector<OSMProperty> properties = osmEdge.getProperties();
     for (QVector<OSMProperty>::const_iterator it = properties.constBegin(); it != properties.constEnd(); it++)
     {
-        QString osmKey = it.getKey();
-        QString osmValue = it.getValue();
+        QString osmKey = it->getKey();
+        QString osmValue = it->getValue();
 
         //TODO Keys to check: access = no; ahhhhh und so viel mehr!!!
 
         if(osmValue == "impassalbe"){
             streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
-            break; //if the edge can't be passed, there ist no need for further categorization
+            break; //if the edge can't be passed by bike, there ist no need for further categorization
         }
 
         else if(osmKey == "smoothness"){
-            switch(osmValue){
-                case "exellent":
+            if(osmValue == "exellent"){
                     streetSurfaceQuality = STREETSURFACEQUALITY_EXCELLENT;
-                    break;
-                case "good":
+            }
+            else if(osmValue == "good"){
                     streetSurfaceQuality = STREETSURFACEQUALITY_GOOD;
-                    break;
-                case "intermediate":
+            }
+            else if(osmValue == "intermediate"){
                     streetSurfaceQuality = STREETSURFACEQUALITY_INTERMEDIATE;
-                    break;
-                case "bad":
+            }
+            else if(osmValue == "bad"){
                     streetSurfaceQuality = STREETSURFACEQUALITY_BAD;
-                    break;
-                case "very_bad":
+            }
+            else if(osmValue == "very_bad"){
                     streetSurfaceQuality = STREETSURFACEQUALITY_VERYBAD;
-                    break;
-                case "horrible":
+            }
+            else if(osmValue == "horrible"){
                     streetSurfaceQuality = STREETSURFACEQUALITY_HORRIBLE;
-                    break;
-                case "very_horrible":
+            }
+            else if(osmValue == "very_horrible"){
                     streetSurfaceQuality = STREETSURFACEQUALITY_VERYHORRIBLE;
-                    break;
             }
         }
 
         else if(osmKey == "surface" && osmKey == "tracktype"){
-             switch(osmValue){
-                 case "paved":
-                 case "grade:1":
-                     streetSurfaceType = STREETSURFACETYPE_PAVED;
-                     break;
-                 case "asphalt":
-                     streetSurfaceType = STREETSURFACETYPE_ASPHALT;
-                     break;
-                 case "sett":
-                     streetSurfaceType = STREETSURFACETYPE_SETT;
-                     break;
-                 case "paving_stones":
-                     streetSurfaceType = STREETSURFACETYPE_PAVING_STONES;
-                     break;
-                 case "tartarn":
-                     streetSurfaceType = STREETSURFACETYPE_TARTAN;
-                     break;
-                 case "concrete":
-                     streetSurfaceType = STREETSURFACETYPE_CONCRETE;
-                     break;
-                 case "cobblestone":
-                     streetSurfaceType = STREETSURFACETYPE_COBBLESTONE;
-                     break;
-                 case "compacted":
-                     streetSurfaceType = STREETSURFACETYPE_COMPACTED;
-                     break;
-                 case "fine_gravel":
-                     streetSurfaceType = STREETSURFACETYPE_FINEGRAVEL;
-                     break;
-                 case "grass_paver":
-                     streetSurfaceType = STREETSURFACETYPE_GRASSPAVER;
-                     break;
-                 case "gravel":
-                 case "pebblestone":
-                     streetSurfaceType = STREETSURFACETYPE_GRAVEL;
-                     break;
-                 case "ground":
-                 case "dirt":
-                 case "mud":
-                 case "earth":
-                 case "clay":
-                 case "sand":
-                     streetSurfaceType = STREETSURFACETYPE_GROUND;
-                     break;
-                 case "grass":
-                 case "artificial_turf":
-                     streetSurfaceType = STREETSURFACETYPE_GRASS;
-                     break;
-                 case "metal":
-                     streetSurfaceType = STREETSURFACETYPE_METAL;
-                     break;
-                 default:
-                     streetSurfaceType = STREETSURFACETYPE_UNPAVED;
-             }
+            if(osmValue == "paved" && "grade:1"){
+                streetSurfaceType = STREETSURFACETYPE_PAVED;
+            }
+            else if(osmValue == "asphalt"){
+                    streetSurfaceType = STREETSURFACETYPE_ASPHALT;
+            }
+            else if(osmValue == "sett"){
+                    streetSurfaceType = STREETSURFACETYPE_SETT;
+            }
+            else if(osmValue == "paving_stones"){
+                    streetSurfaceType = STREETSURFACETYPE_PAVING_STONES;
+            }
+            else if(osmValue == "tartarn"){
+                    streetSurfaceType = STREETSURFACETYPE_TARTAN;
+            }
+            else if(osmValue == "concrete"){
+                    streetSurfaceType = STREETSURFACETYPE_CONCRETE;
+            }
+            else if(osmValue == "cobblestone"){
+                    streetSurfaceType = STREETSURFACETYPE_COBBLESTONE;
+            }
+            else if(osmValue == "compacted"){
+                    streetSurfaceType = STREETSURFACETYPE_COMPACTED;
+            }
+            else if(osmValue == "fine_gravel"){
+                    streetSurfaceType = STREETSURFACETYPE_FINEGRAVEL;
+            }
+            else if(osmValue == "grass_paver"){
+                    streetSurfaceType = STREETSURFACETYPE_GRASSPAVER;
+            }
+            else if(osmValue == "gravel" && "pebblestone"){
+                    streetSurfaceType = STREETSURFACETYPE_GRAVEL;
+            }
+            else if(osmValue == "ground" && "dirt" && "mud" && "earth" && "clay" && "sand"){
+                    streetSurfaceType = STREETSURFACETYPE_GROUND;
+            }
+            else if(osmValue == "grass" && "artificial_turf"){
+                    streetSurfaceType = STREETSURFACETYPE_GRASS;
+            }
+            else if(osmValue == "metal"){
+                    streetSurfaceType = STREETSURFACETYPE_METAL;
+            }
+            else{
+                    streetSurfaceType = STREETSURFACETYPE_UNPAVED;
+            }
          }
 
     }// END: osmEdge properties iterator
 
-
+    //Flagauswertung
+    if(isArea && !isHighway){
+        streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+    }
 
     routingEdge->setTrafficLights(hasTrafficLights);
     routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
