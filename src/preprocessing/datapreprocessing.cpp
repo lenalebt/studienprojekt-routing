@@ -99,6 +99,7 @@ bool DataPreprocessing::preprocess()
             for(int i = 0; i < edgeList.size(); i++)
             {
                 //TODO: kategorisieren
+                categorizeEdge(edgeList[i]);
                 RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
                 _finalDBConnection->saveEdge(routingEdge);
             }
@@ -153,35 +154,46 @@ bool DataPreprocessing::preprocess()
 //}
 
 //TODO kategorisierungsfunktionen implementieren
-//boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
-//{
-//    bool hasTrafficLights;
-//    bool hasTrafficCalmingBumps;
-//    bool hasStopSign;
-//    bool hasStairs;
-//    bool hasCycleBarrier;
-//    boost::uint8_t streetType;
-//    boost::uint8_t cyclewayType;
-//    boost::uint8_t streetSurfaceType;
-//    boost::uint8_t streetSurfaceQuality;
-//    boost::uint8_t turnType;
+boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
+{
+    bool hasTrafficLights;
+    bool hasTrafficCalmingBumps;
+    bool hasStopSign;
+    bool hasStairs;
+    bool hasCycleBarrier;
+    boost::uint8_t streetType;
+    boost::uint8_t cyclewayType;
+    boost::uint8_t streetSurfaceType;
+    boost::uint8_t streetSurfaceQuality;
+    boost::uint8_t turnType;
 
-//    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
+    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
 
-//    // Hier würden jetzt mit viel if und else, durch betrachtung der OSMPropertys der OSMEdge, die jeweiligen Werte der routingEdge gesetzt.
-//    routingEdge->setTrafficLights(hasTrafficLights);
-//    routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
-//    routingEdge->setStopSign(hasStopSign);
-//    routingEdge->setStairs(hasStairs);
-//    routingEdge->setCycleBarrier(hasCycleBarrier);
-//    routingEdge->setStreetType(streetType);
-//    routingEdge->setCyclewayType(cyclewayType);
-//    routingEdge->setStreetSurfaceType(streetSurfaceType);
-//    routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
-//    routingEdge->setTurnType(turnType);
+    // Hier würden jetzt mit viel if und else, durch betrachtung der OSMPropertys der OSMEdge, die jeweiligen Werte der routingEdge gesetzt.
+    QVector<OSMProperty> props = osmEdge.getProperties();
+    
+    for(int i = 0; i < props.size(); i++)
+    {
+        OSMProperty _osmProp = props[i];
+        if(_osmProp.getKey()=="highway" && _osmProp.getValue()=="yes")
+        {
+            std::cerr << "yeah fucker, its a highway..." << std::endl;
+        }
+    }
+    
+    routingEdge->setTrafficLights(hasTrafficLights);
+    routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
+    routingEdge->setStopSign(hasStopSign);
+    routingEdge->setStairs(hasStairs);
+    routingEdge->setCycleBarrier(hasCycleBarrier);
+    routingEdge->setStreetType(streetType);
+    routingEdge->setCyclewayType(cyclewayType);
+    routingEdge->setStreetSurfaceType(streetSurfaceType);
+    routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
+    routingEdge->setTurnType(turnType);
 
-//    return routingEdge;
-//}
+    return routingEdge;
+}
 
 //int DataPreprocessing::getStreetType();
 //int DataPreprocessing::getStreetSurfaceQuality();
