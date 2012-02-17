@@ -5,6 +5,7 @@
 #include "routingnode.hpp"
 #include "database.hpp"
 #include "routingmetric.hpp"
+#include "closedlist.hpp"
 
 template<typename K, typename V>
 class NodeCostLessAndQHashFunctor
@@ -67,14 +68,35 @@ public:
 class MultithreadedDijkstraRouter : public Router
 {
 private:
+    boost::shared_ptr<DatabaseConnection> _dbA;
+    boost::shared_ptr<DatabaseConnection> _dbB;
+    boost::shared_ptr<RoutingMetric> _metric;
     
+    GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
+    GPSRoute calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList);
+    GPSRoute calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
 public:
-    
+    /**
+     * @brief Erstellt einen neuen Router, der den Algorithmus von Dijkstra
+     *  in einer mehr-Thread-Version ausführt.
+     * 
+     * Es müssen 2 Datenbankverbindungen angegeben werden, weil SQLite nicht
+     * aus mehreren Threads aufgerufen werden kann. Diese Einschränkung haben
+     * wir bisher noch nicht schöner implementieren können, als einfach 2
+     * Datenbankobjekte zu übergeben.
+     * 
+     * @param dbA Die Datenbank für Thread A
+     * @param dbB Die Datenbank für Thread B
+     * @param metric Die Routingmetrik, die zum Bewerten von Kanten verwendet werden soll
+     */
+    MultithreadedDijkstraRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric);
+    GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
 namespace biker_tests
 {
     int testDijkstraRouter();
+    int testMultithreadedDijkstraRouter();
 }
 
 #endif //DIJKSTRA_HPP

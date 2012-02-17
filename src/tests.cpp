@@ -241,6 +241,8 @@ namespace biker_tests
             return biker_tests::testPotentialFunction();
         else if (testName == "dijkstrarouter")
             return biker_tests::testDijkstraRouter();
+        else if (testName == "multithreadeddijkstrarouter")
+            return biker_tests::testMultithreadedDijkstraRouter();
         else if (testName == "filedownloader")
             return biker_tests::testFileDownloader();
         else if (testName == "astarrouter")

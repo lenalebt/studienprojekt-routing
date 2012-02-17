@@ -357,6 +357,7 @@ ADD_TEST(datapreprocessing                "biker" "--test" "datapreprocessing")
 ADD_TEST(simpledatapreprocessing          "biker" "--test" "simpledatapreprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
+ADD_TEST(multithreadeddijkstrarouter      "biker" "--test" "multithreadeddijkstrarouter")
 ADD_TEST(astarrouter                      "biker" "--test" "astarrouter")
 
 SET_TESTS_PROPERTIES(dijkstrarouter PROPERTIES DEPENDS simpledatapreprocessing)

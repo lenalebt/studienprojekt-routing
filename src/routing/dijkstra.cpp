@@ -1,18 +1,10 @@
 #include "dijkstra.hpp"
 #include "tests.hpp"
 #include <limits>
-#include "closedlist.hpp"
 #include "heap.hpp"
 #include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
 
-/**
- * @todo Implementieren
- * @todo Testen
- * @bug Wenn der User eine Position aussucht, bei der ein Knoten, der nicht
- *      am Graphen beteiligt ist, am nächsten ist, wird dieser als Startpunkt
- *      ausgewählt. Fälschlicherweise wird dann keine Route berechnet!
- */
 GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
 {
     if (!_db->isDBOpen())
@@ -86,8 +78,6 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition
             }
         }
         //endNode ist der Knoten mit der kürzesten Entfernung zu endPosition.
-        
-        //TODO: Start- und Endknoten müssen Graphen-Knoten sein, sonst haut das mit den IDs nicht hin.
         
         return calculateShortestRoute(startNode, endNode);
     }
@@ -235,6 +225,111 @@ DijkstraRouter::DijkstraRouter(boost::shared_ptr<DatabaseConnection> db, boost::
     
 }
 
+MultithreadedDijkstraRouter::MultithreadedDijkstraRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric) :
+    _dbA(dbA), _dbB(dbB), _metric(metric)
+{
+    
+}
+
+GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList)
+{
+    return GPSRoute();
+}
+GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList)
+{
+    return GPSRoute();
+}
+
+GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
+{
+    if (!_dbA->isDBOpen())
+    {
+        std::cerr << "database file A is closed." << std::endl;
+        return GPSRoute();
+    }
+    else if (!_dbB->isDBOpen())
+    {
+        std::cerr << "database file B is closed." << std::endl;
+        return GPSRoute();
+    }
+    else
+    {
+        RoutingNode startNode, endNode;
+        QVector<boost::shared_ptr<RoutingNode> > nodeList;
+        
+        /* TODO: Fehlerhafte Annahme hier ist, dass alle Knoten auch Ways
+         *    haben, die bei ihnen losgehen. Soll erstmal reichen.
+         */
+        //Suche zuerst den Startknoten raus, dann den Endknoten. Umkreissuche.
+        nodeList = _dbA->getNodes(startPosition, 50.0);
+        if (nodeList.isEmpty())
+        {
+            nodeList = _dbA->getNodes(startPosition, 500.0);
+            if (nodeList.isEmpty())
+            {
+                nodeList = _dbA->getNodes(startPosition, 5000.0);
+                if (nodeList.isEmpty())
+                {
+                    std::cerr << "did not find a matching starting point." << std::endl;
+                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
+                    return GPSRoute();
+                }
+            }
+        }
+        //nodeList nach nächstem Knoten durchsuchen.
+        float minDistance = std::numeric_limits<float>::max();
+        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
+            it != nodeList.constEnd(); it++)
+        {
+            float distance = (*it)->calcDistance(startPosition);
+            if (distance < minDistance)
+            {
+                startNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
+                minDistance = distance;
+            }
+        }
+        //startNode ist der Knoten mit der kürzesten Entfernung zu startPosition.
+        
+        nodeList = _dbB->getNodes(endPosition, 50.0);
+        if (nodeList.isEmpty())
+        {
+            nodeList = _dbB->getNodes(endPosition, 500.0);
+            if (nodeList.isEmpty())
+            {
+                nodeList = _dbB->getNodes(endPosition, 5000.0);
+                if (nodeList.isEmpty())
+                {
+                    std::cerr << "did not find a matching end point" << std::endl;
+                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
+                    return GPSRoute();
+                }
+            }
+        }
+        //nodeList nach nächstem Knoten durchsuchen.
+        minDistance = std::numeric_limits<float>::max();
+        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
+            it != nodeList.constEnd(); it++)
+        {
+            float distance = (*it)->calcDistance(endPosition);
+            if (distance < minDistance)
+            {
+                endNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
+                minDistance = distance;
+            }
+        }
+        //endNode ist der Knoten mit der kürzesten Entfernung zu endPosition.
+        
+        return calculateShortestRoute(startNode, endNode);
+    }
+}
+
+GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
+{
+    //QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
+    return GPSRoute();
+}
+
+
 namespace biker_tests
 {
     int testDijkstraRouter()
@@ -261,5 +356,36 @@ namespace biker_tests
         route.exportJSON("dijkstra.js");
         
         return EXIT_SUCCESS;
+    }
+    
+    int testMultithreadedDijkstraRouter()
+    {
+        #ifdef SPATIALITE_FOUND
+            boost::shared_ptr<SpatialiteDatabaseConnection> dbA(new SpatialiteDatabaseConnection());
+            boost::shared_ptr<SpatialiteDatabaseConnection> dbB(new SpatialiteDatabaseConnection());
+        #else
+            boost::shared_ptr<SQLiteDatabaseConnection> dbA(new SQLiteDatabaseConnection());
+            boost::shared_ptr<SQLiteDatabaseConnection> dbB(new SQLiteDatabaseConnection());
+        #endif
+        boost::shared_ptr<RoutingMetric> metric(new EuclidianRoutingMetric());
+        dbA->open("rub.db");
+        dbB->open("rub.db");
+        
+        CHECK(dbA->isDBOpen());
+        CHECK(dbB->isDBOpen());
+        
+        GPSRoute route;
+        CHECK(route.isEmpty());
+        
+        MultithreadedDijkstraRouter router(dbA, dbB, metric);
+        std::cerr << "routing...." << std::endl;
+        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        
+        CHECK(!route.isEmpty());
+        route.exportGPX("multithreadeddijkstra.gpx");
+        route.exportJSON("multithreadeddijkstra.js");
+        
+        return EXIT_SUCCESS;
+
     }
 }
