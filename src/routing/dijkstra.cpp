@@ -4,6 +4,7 @@
 #include "heap.hpp"
 #include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
+#include <QtConcurrentRun>
 
 GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
 {
@@ -228,12 +229,12 @@ MultithreadedDijkstraRouter::MultithreadedDijkstraRouter(boost::shared_ptr<Datab
     
 }
 
-QHash<boost::uint64_t, boost::uint64_t> MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList)
+GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList)
 {
     if (!_dbA->isDBOpen())
     {
         std::cerr << "database file A is closed." << std::endl;
-        return QHash<boost::uint64_t, boost::uint64_t>();
+        return GPSRoute();
     }
     else
     {
@@ -331,15 +332,28 @@ QHash<boost::uint64_t, boost::uint64_t> MultithreadedDijkstraRouter::calculateSh
         }
         
         std::cerr << "finished, search space of thread A contains " << nodeMap.size() << " nodes." << std::endl;
-        return predecessor;
+        
+        if (closedList->getOverlappingElement() != 0)
+        {
+            boost::uint64_t activeNodeID = closedList->getOverlappingElement();
+            GPSRoute route;
+            while (activeNodeID != 0)
+            {
+                route.insertForward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
+                activeNodeID = predecessor[activeNodeID];
+            }
+            return route;
+        }
+        else
+            return GPSRoute();
     }
 }
-QHash<boost::uint64_t, boost::uint64_t> MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList)
+GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList)
 {
     if (!_dbB->isDBOpen())
     {
         std::cerr << "database file A is closed." << std::endl;
-        return QHash<boost::uint64_t, boost::uint64_t>();
+        return GPSRoute();
     }
     else
     {
@@ -436,8 +450,21 @@ QHash<boost::uint64_t, boost::uint64_t> MultithreadedDijkstraRouter::calculateSh
             }
         }
         
-        std::cerr << "finished, search space of thread A contains " << nodeMap.size() << " nodes." << std::endl;
-        return successor;
+        std::cerr << "finished, search space of thread B contains " << nodeMap.size() << " nodes." << std::endl;
+        
+        if (closedList->getOverlappingElement() != 0)
+        {
+            boost::uint64_t activeNodeID = closedList->getOverlappingElement();
+            GPSRoute route;
+            while (activeNodeID != 0)
+            {
+                route.insertBackward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
+                activeNodeID = successor[activeNodeID];
+            }
+            return route;
+        }
+        else
+            return GPSRoute();
     }
 }
 
@@ -528,6 +555,23 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const RoutingNode& 
 {
     //QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
     MultiThreadedHashClosedList closedList;
+    QFuture<GPSRoute> futureA = QtConcurrent::run(this, &MultithreadedDijkstraRouter::calculateShortestRouteThreadA, startNode, &closedList);
+    QFuture<GPSRoute> futureB = QtConcurrent::run(this, &MultithreadedDijkstraRouter::calculateShortestRouteThreadB, endNode, &closedList);
+    
+    futureA.waitForFinished();
+    futureB.waitForFinished();
+    
+    //TODO: Route ausrechnen
+    if (closedList.getOverlappingElement() == 0)
+    {
+        std::cerr << "no route found." << std::endl;
+        return GPSRoute();
+    }
+    else
+    {
+        std::cerr << "overlapping element: " << closedList.getOverlappingElement() << std::endl;
+        return (futureA.result() << futureB.result());
+    }
     return GPSRoute();
 }
 

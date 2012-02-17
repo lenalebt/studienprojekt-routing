@@ -79,20 +79,18 @@ private:
      * Das Ziel wird durch den anderen Thread festgelegt. Wenn sie sich treffen, ist das
      * Routing abgeschlossen.
      * 
-     * @return Die Vorgängerzeigerliste, die der Algorithmus bestimmt hat.
-     * @todo Implementieren
+     * @return Die Route vom Startpunkt zum gemeinsamen Punkt
      */
-    QHash<boost::uint64_t, boost::uint64_t> calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList);
+    GPSRoute calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList);
     /**
      * @brief Berechnet eine Route vom Ziel aus in Richtung Startpunkt.
      * 
      * Der Start wird durch den anderen Thread festgelegt. Wenn sie sich treffen, ist das
      * Routing abgeschlossen.
      * 
-     * @return Die Nachfolgerzeigerliste, die der Algorithmus bestimmt hat.
-     * @todo Implementieren
+     * @return Die Route vom gemeinsamen Punkt zum Endpunkt
      */
-    QHash<boost::uint64_t, boost::uint64_t> calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
+    GPSRoute calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
 public:
     /**
      * @brief Erstellt einen neuen Router, der den Algorithmus von Dijkstra
