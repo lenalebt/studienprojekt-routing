@@ -124,7 +124,13 @@ public:
 
 namespace biker_tests
 {
+    /**
+     * @ingroup tests
+     */
     int testDijkstraRouter();
+    /**
+     * @ingroup tests
+     */
     int testMultithreadedDijkstraRouter();
 }
 

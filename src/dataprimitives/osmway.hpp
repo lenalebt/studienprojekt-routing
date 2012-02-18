@@ -133,7 +133,6 @@ public:
 namespace biker_tests
 {
     /**
-     * @todo Implementieren, dieser Test ist noch leer.
      * @ingroup tests
      */
     int testOSMWay();

@@ -52,7 +52,6 @@ public:
     void open(QString dbConnectionString);
     bool isDBOpen();
     boost::shared_ptr<RoutingNode> getNodeByID(boost::uint64_t id);
-    /** @todo Implementieren! */
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& searchMidpoint, double radius);
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& ulCorner, const GPSPosition& brCorner);
     bool saveNode(const RoutingNode& node);
@@ -60,10 +59,8 @@ public:
     QVector<boost::shared_ptr<RoutingEdge> > getEdgesByEndNodeID(boost::uint64_t endNodeID);
     boost::shared_ptr<RoutingEdge> getEdgeByEdgeID(boost::uint64_t edgeID);
     bool saveEdge(const RoutingEdge& edge);
-    /** @todo Speichern von Straßen implementieren */
     bool saveEdge(const RoutingEdge& edge, const QString& name);
     bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
-    /** @todo implementieren */
     QString getStreetName(const RoutingEdge& edge);
 	~SQLiteDatabaseConnection();
     

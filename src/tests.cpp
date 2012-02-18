@@ -41,7 +41,6 @@
 /**
  * @file
  * @ingroup tests
- * @todo i18n/l10n
  * @attention Diese Testfunktionen können das Programm komplett in einen anderen
  *      Zustand überführen als es vor dem Aufruf der Funktion hatte
  */

@@ -32,8 +32,6 @@ using namespace std;
  * @param argc Anzahl Aufrufargumente
  * @param argv Werte der Aufrufparameter
  * @return
- * @bug Wenn man einen Parameter angibt, der nicht aufgeführt ist,
- *      stürzt das Programm ab (->Exception).
  */
 int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions> programOptions)
 {
@@ -178,7 +176,15 @@ int main ( int argc, char* argv[] )
     
     boost::shared_ptr<ProgramOptions> programOptions = ProgramOptions::getInstance();
     //parse commandline options
-    retVal = parseProgramOptions(argc, argv, programOptions);
+    try
+    {
+        retVal = parseProgramOptions(argc, argv, programOptions);
+    }
+    catch (boost::program_options::unknown_option e)
+    {
+        std::cerr << e.what() << ". See help for allowed options." << std::endl;
+        return 1;
+    }
     
     if (retVal == EXIT_FAILURE)
         return EXIT_FAILURE;
