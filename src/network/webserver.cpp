@@ -545,12 +545,14 @@ void BikerHttpRequestProcessor::processRequest()
             dbA->open(ProgramOptions::getInstance()->dbFilename.c_str());
             dbB->open(ProgramOptions::getInstance()->dbFilename.c_str());
             
-            //Als Router nehmen wir erstmal Dijkstra.
+            //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-Dijkstra.
             if (_parameterMap["algorithm"] == "multithreadeddijkstra")
                 router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
             else if (_parameterMap["algorithm"] == "dijkstra")
                 router.reset(new DijkstraRouter(dbA, metric));
             else if (_parameterMap["algorithm"] == "astar")
+                router.reset(new AStarRouter(dbA, metric));
+            else if (_parameterMap["algorithm"] == "multithreadedastar")
                 router.reset(new AStarRouter(dbA, metric));
             else
                 router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
