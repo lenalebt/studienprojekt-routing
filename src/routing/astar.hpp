@@ -5,6 +5,7 @@
 #include "routingnode.hpp"
 #include "database.hpp"
 #include "routingmetric.hpp"
+#include "closedlist.hpp"
 
 template<typename K, typename V>
 class NodeCostLessAndQHashFunctorStar
@@ -67,14 +68,51 @@ public:
 class MultithreadedAStarRouter : public Router
 {
 private:
+    boost::shared_ptr<DatabaseConnection> _dbA;
+    boost::shared_ptr<DatabaseConnection> _dbB;
+    boost::shared_ptr<RoutingMetric> _metric;
     
+    GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
+    /**
+     * @brief Berechnet eine Route vom Startpunkt aus in Richtung Ziel.
+     * 
+     * Das Ziel wird durch den anderen Thread festgelegt. Wenn sie sich treffen, ist das
+     * Routing abgeschlossen.
+     * 
+     * @return Die Route vom Startpunkt zum gemeinsamen Punkt
+     */
+    GPSRoute calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList);
+    /**
+     * @brief Berechnet eine Route vom Ziel aus in Richtung Startpunkt.
+     * 
+     * Der Start wird durch den anderen Thread festgelegt. Wenn sie sich treffen, ist das
+     * Routing abgeschlossen.
+     * 
+     * @return Die Route vom gemeinsamen Punkt zum Endpunkt
+     */
+    GPSRoute calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
 public:
-    
+    /**
+     * @brief Erstellt einen neuen Router, der den A*-Algorithmus
+     *  in einer mehr-Thread-Version ausführt.
+     * 
+     * Es müssen 2 Datenbankverbindungen angegeben werden, weil SQLite nicht
+     * aus mehreren Threads aufgerufen werden kann. Diese Einschränkung haben
+     * wir bisher noch nicht schöner implementieren können, als einfach 2
+     * Datenbankobjekte zu übergeben.
+     * 
+     * @param dbA Die Datenbank für Thread A
+     * @param dbB Die Datenbank für Thread B
+     * @param metric Die Routingmetrik, die zum Bewerten von Kanten verwendet werden soll
+     */
+    MultithreadedAStarRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric);
+    GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
 namespace biker_tests
 {
     int testAStarRouter();
+    int testMultithreadedAStarRouter();
 }
 
 #endif //ASTAR_HPP

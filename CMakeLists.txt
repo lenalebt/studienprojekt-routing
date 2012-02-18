@@ -359,8 +359,12 @@ ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
 ADD_TEST(multithreadeddijkstrarouter      "biker" "--test" "multithreadeddijkstrarouter")
 ADD_TEST(astarrouter                      "biker" "--test" "astarrouter")
+ADD_TEST(multithreadedastarrouter         "biker" "--test" "multithreadedastarrouter")
 
-SET_TESTS_PROPERTIES(dijkstrarouter PROPERTIES DEPENDS simpledatapreprocessing)
+SET_TESTS_PROPERTIES(dijkstrarouter              PROPERTIES DEPENDS simpledatapreprocessing)
+SET_TESTS_PROPERTIES(astarrouter                 PROPERTIES DEPENDS simpledatapreprocessing)
+SET_TESTS_PROPERTIES(multithreadeddijkstrarouter PROPERTIES DEPENDS simpledatapreprocessing)
+SET_TESTS_PROPERTIES(multithreadedastarrouter    PROPERTIES DEPENDS simpledatapreprocessing)
 
 
 #Zum Erstellen von automatischen Installationspaketen

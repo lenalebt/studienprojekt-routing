@@ -246,6 +246,8 @@ namespace biker_tests
             return biker_tests::testFileDownloader();
         else if (testName == "astarrouter")
             return biker_tests::testAStarRouter();
+        else if (testName == "multithreadedastarrouter")
+            return biker_tests::testMultithreadedAStarRouter();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;
