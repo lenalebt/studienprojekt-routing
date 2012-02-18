@@ -365,7 +365,6 @@ void HttpRequestProcessor::run()
 
 void BikerHttpRequestProcessor::processRequest()
 {
-    //TODO: Request bearbeiten
     std::cerr << "processing request..." << std::endl;
     
     QRegExp numberRegExp("(\\d+(?:.\\d+)?)");
@@ -493,7 +492,6 @@ void BikerHttpRequestProcessor::processRequest()
             return;
         }
         
-        //TODO: Routing starten
         //this->send102();
         
         if ((routeType == "bicycle") || (routeType == "bike"))

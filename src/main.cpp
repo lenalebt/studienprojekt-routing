@@ -32,7 +32,6 @@ using namespace std;
  * @param argc Anzahl Aufrufargumente
  * @param argv Werte der Aufrufparameter
  * @return
- * @todo Diese Funktion ist noch komplett unfertig.
  * @bug Wenn man einen Parameter angibt, der nicht aufgeführt ist,
  *      stürzt das Programm ab (->Exception).
  */

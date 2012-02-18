@@ -40,7 +40,6 @@ template class NodeCostLessAndQHashFunctor<boost::uint64_t, double>;
  * @author Lena Brüder
  * @date 2011-12-23
  * @copyright GNU GPL v3
- * @todo Implementieren!
  * @ingroup routing
  */
 class DijkstraRouter : public Router
@@ -59,10 +58,24 @@ public:
  * @brief Implementiert den Algorithmus von Dijkstra mit zwei Threads:
  *      Einen vom Start-, und einen vom Zielpunkt aus.
  * 
+ * Das Routing mit diesem Algorithmus ist theoretisch bis zu 4 Mal so schnell,
+ * wie die Variante mit einem Thread: Auf der einen Seite benutzt diese
+ * Implementierung 2 Threads zum Ausführen der Berechnung, die gleichwertig sind.
+ * Dadurch könnte auf einem mehrprozessorsystem doppelte Ausführungsgeschwindigkeit
+ * erreicht werden. Das Routing geschieht gleichtzeitig vom Start in Richtung
+ * Ziel, und vom Ziel in Richtung Start. Wenn beide Threads einen Punkt als
+ * endgültig betrachtet ansehen, ist die Ausführung beendet.
+ * 
+ * Betrachtet man den Suchraum des Algorithmus ergibt sich im Vergleich zum
+ * klassischen Algorithmus von Dijkstra statt eines etwa kreisförmigen
+ * Raumes mit Radius <code>r</code> der Entfernung vom Start zum Ziel
+ * ein Suchraum der Form zweier Kreise mit halbem Radius. Dadurch halbiert sich
+ * die Größe des Suchraumes. Selbst auf einem System mit nur einem Prozessor würde
+ * sich somit die Ausführungsgeschwindigkeit etwa verdoppeln.
+ * 
  * @author Lena Brüder
  * @date 2011-12-23
  * @copyright GNU GPL v3
- * @todo Implementieren!
  * @ingroup routing
  */
 class MultithreadedDijkstraRouter : public Router
