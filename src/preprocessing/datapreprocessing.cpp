@@ -93,8 +93,8 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
 {
     std::cerr << "Parsing Ways..." << std::endl;
     _finalDBConnection->beginTransaction();
-    //_tmpDBConnection.beginTransaction();
-    boost::uint64_t edgeID=0;
+    _tmpDBConnection.beginTransaction();
+    //boost::uint64_t edgeID=0;
     //TODO: nochmal ueberlegen, ob if-Abfrage nicht sinnvoller als while-loop
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
@@ -110,7 +110,7 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
             {
                 std::cerr << "edge NOT saved" << std::endl;
             }
-            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
+            //routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
             
             //TODO: Bevor in finale Datenbank gespeichert wird, Hier die Kategorisierung starten
             //categorizeEdge(*routingEdge);
@@ -162,50 +162,132 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
     }
 }
 
-//TODO kategorisierungsfunktion implementieren
-//void DataPreprocessing::categorizeEdge(const RoutingEdge &edge)
-//{
-//    if(edge.hasStairs)
-//    {
-//    }
-//    //...
-    
-//    //edge.getSurfaceQuality aufrufen und damit die Qualitaet festlegen
-    
-//    //noch zu klaeren, wie es im Detail läuft (wird ein laengerer if-else-zweig)
-//}
+
+boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
+{
+    bool hasTrafficLights = false;
+    bool hasTrafficCalmingBumps = false;
+    //bool hasStopSign = false;
+    bool hasStairs = false;
+    bool hasCycleBarrier = false;
+    boost::uint8_t streetType = STREETTYPE_UNKNOWN;
+    boost::uint8_t cyclewayType = CYCLEWAYTYPE_UNKNOWN;
+    boost::uint8_t streetSurfaceType = STREETSURFACETYPE_UNKNOWN;
+    boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;
+    //boost::uint8_t turnType = TURNTYPE_STRAIGHT; // TURNTYPE won't be categorized in this function
+
+    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
+
+    //Flags
+    bool isArea = false;
+    bool isHighway = false;
 
 
-//TODO kategorisierungsfunktionen implementieren
-//boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
-//{
-//    bool hasTrafficLights;
-//    bool hasTrafficCalmingBumps;
-//    bool hasStopSign;
-//    bool hasStairs;
-//    bool hasCycleBarrier;
-//    boost::uint8_t streetType;
-//    boost::uint8_t cyclewayType;
-//    boost::uint8_t streetSurfaceType;
-//    boost::uint8_t streetSurfaceQuality;
-//    boost::uint8_t turnType;
+    QVector<OSMProperty> properties = osmEdge.getProperties();
+    for (QVector<OSMProperty>::const_iterator it = properties.constBegin(); it != properties.constEnd(); it++)
+    {
+        QString osmKey = it->getKey();
+        QString osmValue = it->getValue();
 
-//    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
+        //TODO Keys to check: access = no; ahhhhh und so viel mehr!!!
 
-//    // Hier würden jetzt mit viel if und else, durch betrachtung der OSMPropertys der OSMEdge, die jeweiligen Werte der routingEdge gesetzt.
-//    routingEdge->setTrafficLights(hasTrafficLights);
-//    routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
-//    routingEdge->setStopSign(hasStopSign);
-//    routingEdge->setStairs(hasStairs);
-//    routingEdge->setCycleBarrier(hasCycleBarrier);
-//    routingEdge->setStreetType(streetType);
-//    routingEdge->setCyclewayType(cyclewayType);
-//    routingEdge->setStreetSurfaceType(streetSurfaceType);
-//    routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
-//    routingEdge->setTurnType(turnType);
+        if(osmValue == "impassalbe"){
+            streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+            break; //if the edge can't be passed by bike, there ist no need for further categorization
+        }
 
-//    return routingEdge;
-//}
+        else if(osmKey == "smoothness"){
+            if(osmValue == "exellent"){
+                    streetSurfaceQuality = STREETSURFACEQUALITY_EXCELLENT;
+            }
+            else if(osmValue == "good"){
+                    streetSurfaceQuality = STREETSURFACEQUALITY_GOOD;
+            }
+            else if(osmValue == "intermediate"){
+                    streetSurfaceQuality = STREETSURFACEQUALITY_INTERMEDIATE;
+            }
+            else if(osmValue == "bad"){
+                    streetSurfaceQuality = STREETSURFACEQUALITY_BAD;
+            }
+            else if(osmValue == "very_bad"){
+                    streetSurfaceQuality = STREETSURFACEQUALITY_VERYBAD;
+            }
+            else if(osmValue == "horrible"){
+                    streetSurfaceQuality = STREETSURFACEQUALITY_HORRIBLE;
+            }
+            else if(osmValue == "very_horrible"){
+                    streetSurfaceQuality = STREETSURFACEQUALITY_VERYHORRIBLE;
+            }
+        }
+
+        else if(osmKey == "surface" && osmKey == "tracktype"){
+            if(osmValue == "paved" && "grade:1"){
+                streetSurfaceType = STREETSURFACETYPE_PAVED;
+            }
+            else if(osmValue == "asphalt"){
+                    streetSurfaceType = STREETSURFACETYPE_ASPHALT;
+            }
+            else if(osmValue == "sett"){
+                    streetSurfaceType = STREETSURFACETYPE_SETT;
+            }
+            else if(osmValue == "paving_stones"){
+                    streetSurfaceType = STREETSURFACETYPE_PAVING_STONES;
+            }
+            else if(osmValue == "tartarn"){
+                    streetSurfaceType = STREETSURFACETYPE_TARTAN;
+            }
+            else if(osmValue == "concrete"){
+                    streetSurfaceType = STREETSURFACETYPE_CONCRETE;
+            }
+            else if(osmValue == "cobblestone"){
+                    streetSurfaceType = STREETSURFACETYPE_COBBLESTONE;
+            }
+            else if(osmValue == "compacted"){
+                    streetSurfaceType = STREETSURFACETYPE_COMPACTED;
+            }
+            else if(osmValue == "fine_gravel"){
+                    streetSurfaceType = STREETSURFACETYPE_FINEGRAVEL;
+            }
+            else if(osmValue == "grass_paver"){
+                    streetSurfaceType = STREETSURFACETYPE_GRASSPAVER;
+            }
+            else if(osmValue == "gravel" && "pebblestone"){
+                    streetSurfaceType = STREETSURFACETYPE_GRAVEL;
+            }
+            else if(osmValue == "ground" && "dirt" && "mud" && "earth" && "clay" && "sand"){
+                    streetSurfaceType = STREETSURFACETYPE_GROUND;
+            }
+            else if(osmValue == "grass" && "artificial_turf"){
+                    streetSurfaceType = STREETSURFACETYPE_GRASS;
+            }
+            else if(osmValue == "metal"){
+                    streetSurfaceType = STREETSURFACETYPE_METAL;
+            }
+            else{
+                    streetSurfaceType = STREETSURFACETYPE_UNPAVED;
+            }
+         }
+
+    }// END: osmEdge properties iterator
+
+    //Flagauswertung
+    if(isArea && !isHighway){
+        streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+    }
+
+    routingEdge->setTrafficLights(hasTrafficLights);
+    routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
+    //routingEdge->setStopSign(hasStopSign);
+    routingEdge->setStairs(hasStairs);
+    routingEdge->setCycleBarrier(hasCycleBarrier);
+    routingEdge->setStreetType(streetType);
+    routingEdge->setCyclewayType(cyclewayType);
+    routingEdge->setStreetSurfaceType(streetSurfaceType);
+    routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
+    //routingEdge->setTurnType(turnType);
+
+    return routingEdge;
+}
 
 //int DataPreprocessing::getStreetType();
 //int DataPreprocessing::getStreetSurfaceQuality();
