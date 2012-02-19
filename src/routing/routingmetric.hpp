@@ -153,6 +153,18 @@ public:
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
 };
 
+class SimpleHeightRoutingMetric : public RoutingMetric
+{
+private:
+    float _detourPerHeightMeter;
+public:
+    SimpleHeightRoutingMetric() : _detourPerHeightMeter(50.0) {}
+    SimpleHeightRoutingMetric(float detourPerHeightMeter) : _detourPerHeightMeter(detourPerHeightMeter) {}
+    SimpleHeightRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float detourPerHeightMeter) : RoutingMetric(provider), _detourPerHeightMeter(detourPerHeightMeter) {}
+    double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+    double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+};
+
 class SimplePowerRoutingMetric : public RoutingMetric
 {
 private:

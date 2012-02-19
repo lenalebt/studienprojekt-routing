@@ -82,6 +82,7 @@ private:
      * @return Ob es sich um eine Straße handelt.
      */
     bool isStreet(const OSMWay& way);
+    bool isPassable(const OSMWay& way);
     
 public:    
     SimpleDataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb);

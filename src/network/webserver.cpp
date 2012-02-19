@@ -500,10 +500,27 @@ void BikerHttpRequestProcessor::processRequest()
             boost::shared_ptr<Router> router;
             boost::shared_ptr<DatabaseConnection> dbA;
             boost::shared_ptr<DatabaseConnection> dbB;
+            boost::shared_ptr<AltitudeProvider> altitudeProvider;
+            
+            #ifdef ZZIP_FOUND
+                altitudeProvider.reset(new SRTMProvider());
+            #else
+                altitudeProvider.reset(new ZeroAltitudeProvider());
+            #endif
+            
             //Routingmetrik festlegen anhand der Benutzerwahl
             if (routeModifier == "euclidian")
             {
-                metric.reset(new EuclidianRoutingMetric());
+                metric.reset(new EuclidianRoutingMetric(altitudeProvider));
+            }
+            else if (routeModifier == "simpleheight")
+            {
+                float detourPerHeightMeter = 50.0f;
+                if (numberRegExp.indexIn(_parameterMap["detourperheightmeter"]) != -1)
+                {
+                    detourPerHeightMeter = numberRegExp.cap(1).toFloat();
+                }
+                metric.reset(new SimpleHeightRoutingMetric(altitudeProvider, detourPerHeightMeter));
             }
             else if (routeModifier == "simplepower")
             {
@@ -514,12 +531,7 @@ void BikerHttpRequestProcessor::processRequest()
                     weight = numberRegExp.cap(1).toDouble();
                 if (numberRegExp.indexIn(_parameterMap["efficiency"]) != -1)
                     efficiency = numberRegExp.cap(1).toDouble();
-                
-                #ifdef ZZIP_FOUND
-                    metric.reset(new SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider()), weight, efficiency));
-                #else
-                    metric.reset(new SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new ZeroAltitudeProvider()), weight, efficiency));
-                #endif
+                metric.reset(new SimplePowerRoutingMetric(altitudeProvider, weight, efficiency));
             }
             else
             {

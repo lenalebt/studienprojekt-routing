@@ -93,6 +93,9 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
     }
     else
     {
+        //Lesen in einer Transaktion soll helfen bei Geschwindigkeit
+        _db->beginTransaction();
+        
         //Initialisiere Datenstrukturen
         //std::cerr << "init data structures" << std::endl;
         HashClosedList closedList;
@@ -194,6 +197,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
                 }
             }
         }
+        _db->endTransaction();
         
         std::cerr << "finished, search space contains " << nodeMap.size() << " nodes." << std::endl;
         
@@ -243,6 +247,9 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const Routin
     }
     else
     {
+        //Transaktionen sollen auch beim Lesen helfen
+        _dbA->beginTransaction();
+        
         //Initialisiere Datenstrukturen
         //std::cerr << "init data structures" << std::endl;
         NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
@@ -341,6 +348,7 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const Routin
                 }
             }
         }
+        _dbA->endTransaction();
         
         std::cerr << "finished, search space of thread A contains " << nodeMap.size() << " nodes." << std::endl;
         
@@ -368,6 +376,9 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const Routin
     }
     else
     {
+        //Transaktionen sollen auch beim Lesen helfen
+        _dbB->beginTransaction();
+        
         //Initialisiere Datenstrukturen
         //std::cerr << "init data structures" << std::endl;
         NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
@@ -466,6 +477,7 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const Routin
                 }
             }
         }
+        _dbB->beginTransaction();
         
         std::cerr << "finished, search space of thread B contains " << nodeMap.size() << " nodes." << std::endl;
         
