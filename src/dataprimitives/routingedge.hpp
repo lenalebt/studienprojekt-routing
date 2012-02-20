@@ -5,6 +5,8 @@
 #include <iostream>
 #include "tests.hpp"
 
+
+#define STREETTYPE_HIGHWAY_PEDESTRIAN             11
 #define STREETTYPE_HIGHWAY_PRIMARY              0
 #define STREETTYPE_HIGHWAY_SECONDARY            1
 #define STREETTYPE_HIGHWAY_TERTIARY             2
@@ -14,7 +16,6 @@
 #define STREETTYPE_HIGHWAY_FOOTWAY              6
 #define STREETTYPE_HIGHWAY_LIVINGSTREET         7
 #define STREETTYPE_HIGHWAY_RESIDENTIAL          8
-#define STREETTYPE_HIGHWAY_UNKNOWN              9
 #define STREETTYPE_HIGHWAY_PEDESTRIAN           10
 #define STREETTYPE_HIGHWAY_SERVICE              11
 #define STREETTYPE_UNKNOWN                      (1<<BITLENGTH_STREETTYPE)-1 //last bit, highest possible value
