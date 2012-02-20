@@ -83,6 +83,7 @@ SET(
     src/programoptions.cpp
     
     #src/dataprimitives
+    src/dataprimitives/bloomfilter.cpp
     src/dataprimitives/gpsposition.cpp
     src/dataprimitives/gpsroute.cpp
     src/dataprimitives/routingedge.cpp
@@ -136,6 +137,7 @@ SET(
     src/programoptions.hpp
     
     #src/dataprimitives
+    src/dataprimitives/bloomfilter.hpp
     src/dataprimitives/gpsposition.hpp
     src/dataprimitives/gpsroute.hpp
     src/dataprimitives/osmproperty.hpp
