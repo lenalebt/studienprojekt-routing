@@ -30,10 +30,11 @@
 #define CYCLEWAYTYPE_TRACK                      7 //Cyclewaytrack
 #define CYCLEWAYTYPE_TRACK_SEGREGATED           8 //Cyclewaytrack, combined cycle- and footway
 #define CYCLEWAYTYPE_TRACK_SHARED_BUSWAY        9 //Cyclewaytrack, combined cycle- and footway
-#define CYCLEWAYTYPE_TRACK_SHARED_BUSWAY        9 //Cyclewaytrack, combined cycle- and footway
-#define CYCLEWAYTYPE_TRACK_SHARED_BUSWAY        9 //Cyclewaytrack, combined cycle- and footway
-#define CYCLEWAYTYPE_TRACK_SHARED_BUSWAY        9 //Cyclewaytrack, combined cycle- and footway
-
+#define CYCLEWAYTYPE_MTB_0                      10 //Mountainbiketrack, mtb:scale=0
+#define CYCLEWAYTYPE_MTB_1                      11 //Mountainbiketrack, mtb:scale=1
+#define CYCLEWAYTYPE_MTB_2                      12 //Mountainbiketrack, mtb:scale=2
+#define CYCLEWAYTYPE_MTB_3                      13 //Mountainbiketrack, mtb:scale=3
+#define CYCLEWAYTYPE_MTB_HIGH                   14 //Mountainbiketrack, mtb:scale>=4
 #define CYCLEWAYTYPE_UNKNOWN                    (1<<BITLENGTH_CYCLEWAYTYPE)-1 //last bit, highest possible value, there is a cycleway along this edge
 
 
