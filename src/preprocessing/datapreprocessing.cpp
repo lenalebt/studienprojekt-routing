@@ -91,6 +91,7 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
     //TODO: nochmal ueberlegen, ob if-Abfrage nicht sinnvoller als while-loop
     while(_wayQueue.dequeue(_osmWay))
     {
+        //TODO: in categorize verschieben
         //edges aus way extrahieren
         QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
         for(int i = 0; i < edgeList.size(); i++)
