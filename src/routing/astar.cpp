@@ -244,7 +244,7 @@ MultithreadedAStarRouter::MultithreadedAStarRouter(boost::shared_ptr<DatabaseCon
     
 }
 
-GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList)
+GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNode& startNode, const RoutingNode& endNode, MultiThreadedHashClosedList* closedList)
 {
     if (!_dbA->isDBOpen())
     {
@@ -255,7 +255,8 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
     {
         //Initialisiere Datenstrukturen
         //std::cerr << "init data structures" << std::endl;
-        NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
+        NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> estimatedCosts;
+        QHash<boost::uint64_t, boost::uint64_t> nodeCosts;
         BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
         QHash<boost::uint64_t, boost::uint64_t> predecessor;
         QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
@@ -331,19 +332,25 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
                     if (!heap.contains(activeEdgeEndNodeLongID))
                     {
                         //Neuen Knoten zum Heap dazu, nachdem neue Kosten gesetzt wurden.
-                        nodeCosts.setValue(activeEdgeEndNodeLongID, nodeCosts.getValue(activeNodeLongID) + 
-                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode));
+                        nodeCosts[activeEdgeEndNodeLongID] = nodeCosts[activeNodeLongID] +
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
+                        float distance = _metric->estimateDistance(*activeNode, endNode);
+                        estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance);
                         heap.add(activeEdgeEndNodeLongID);
                         //Vorgänger-Zeiger setzen
                         predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
                     }
                     else
                     {
-                        double newCosts = nodeCosts.getValue(activeNodeLongID) + 
+                        double newCosts = nodeCosts[activeNodeLongID] + 
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
                         if (newCosts < nodeCosts.getValue(activeEdgeEndNodeLongID))
                         {
-                            nodeCosts.setValue(activeEdgeEndNodeLongID, newCosts);
+                            nodeCosts[activeEdgeEndNodeLongID] = newCosts;
+                            float distance = _metric->estimateDistance(*activeNode, endNode);
+                            estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
+                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
                             heap.decreaseKey(activeEdgeEndNodeLongID);
                             predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
                         }
@@ -369,7 +376,7 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
             return GPSRoute();
     }
 }
-GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList)
+GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNode& startNode, const RoutingNode& endNode, MultiThreadedHashClosedList* closedList)
 {
     if (!_dbB->isDBOpen())
     {
