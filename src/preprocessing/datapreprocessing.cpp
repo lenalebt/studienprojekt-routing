@@ -177,7 +177,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
         OSMProperty _osmProp = props[i];
         if(_osmProp.getKey()=="highway" && _osmProp.getValue()=="yes")
         {
-            std::cerr << "yeah fucker, its a highway..." << std::endl;
+            std::cerr << "its a highway, und alle so: yeahh..." << std::endl;
         }
     }
     
