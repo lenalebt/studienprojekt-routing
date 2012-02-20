@@ -257,7 +257,7 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
         //std::cerr << "init data structures" << std::endl;
         NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> estimatedCosts;
         QHash<boost::uint64_t, boost::uint64_t> nodeCosts;
-        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(estimatedCosts);
+        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> > heap(estimatedCosts);
         QHash<boost::uint64_t, boost::uint64_t> predecessor;
         QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
         
@@ -390,7 +390,7 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNo
         //std::cerr << "init data structures" << std::endl;
         NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> estimatedCosts;
         QHash<boost::uint64_t, boost::uint64_t> nodeCosts;
-        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(estimatedCosts);
+        BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctorStar<boost::uint64_t, double> > heap(estimatedCosts);
         QHash<boost::uint64_t, boost::uint64_t> successor;
         QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
         
@@ -471,7 +471,7 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNo
                             _metric->rateEdge(**it, *activeEdgeStartNode, *activeNode);
                         float distance = _metric->estimateDistance(startNode, *activeNode);
                         estimatedCosts.setValue(activeEdgeStartNodeLongID, nodeCosts[activeNodeLongID] + 
-                            _metric->rateEdge(**it, *activeEdgeStartNode *activeNode) + distance);
+                            _metric->rateEdge(**it, *activeEdgeStartNode, *activeNode) + distance);
 
                         heap.add(activeEdgeStartNodeLongID);
                         //Vorgänger-Zeiger setzen
