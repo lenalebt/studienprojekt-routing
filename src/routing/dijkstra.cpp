@@ -477,7 +477,7 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const Routin
                 }
             }
         }
-        _dbB->beginTransaction();
+        _dbB->endTransaction();
         
         std::cerr << "finished, search space of thread B contains " << nodeMap.size() << " nodes." << std::endl;
         

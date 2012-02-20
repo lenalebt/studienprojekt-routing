@@ -74,6 +74,7 @@ bool SimpleDataPreprocessing::preprocess()
     //bearbeite dann alle Kanten.
     std::cerr << "parsing ways..." << std::endl;
     _finalDBConnection->beginTransaction();
+    _tmpDBConnection.beginTransaction();
     boost::uint64_t edgeID=0;
     QSet<boost::uint64_t> nodeIDSet;
     int wayCount=0;
@@ -114,6 +115,7 @@ bool SimpleDataPreprocessing::preprocess()
         }
     }
     _finalDBConnection->endTransaction();
+    _tmpDBConnection.endTransaction();
     
     //Abbiegebeschränkungen werden einfach überlesen.
     std::cerr << "parsing turn restrictions..." << std::endl;

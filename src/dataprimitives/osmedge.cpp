@@ -117,13 +117,13 @@ int OSMEdge::isOneway()
         it != onewayProperties().constEnd(); it++)
     {
         if (properties.contains(*it))
-            return 1;
+            return (forward ? 1 : -1);
     }
     for (QVector<OSMProperty>::const_iterator it = reverseOnewayProperties().constBegin();
         it != reverseOnewayProperties().constEnd(); it++)
     {
         if (properties.contains(*it))
-            return -1;
+            return (forward ? -1 : 1);
     }
     return false;
 }
@@ -139,14 +139,14 @@ int OSMEdge::isOneWayForBikes()
             it != bikeOnewayProperties().constEnd(); it++)
         {
             if (properties.contains(*it))
-                return 1;
+                return (forward ? 1 : -1);
         }
         //entgegengesetzt
         for (QVector<OSMProperty>::const_iterator it = bikeReverseOnewayProperties().constBegin();
             it != bikeReverseOnewayProperties().constEnd(); it++)
         {
             if (properties.contains(*it))
-                return -1;
+                return (forward ? -1 : 1);
         }
         return 0;
     }
