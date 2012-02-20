@@ -18,6 +18,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const GPSPosition& startPosition, c
 {
     if (!_db->isDBOpen())
     {
+        std::cerr << "database file is closed." << std::endl;
         return GPSRoute();
     }
     else
@@ -38,6 +39,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const GPSPosition& startPosition, c
                 nodeList = _db->getNodes(startPosition, 5000.0);
                 if (nodeList.isEmpty())
                 {
+                    std::cerr << "did not find a matching starting point." << std::endl;
                     //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
                     return GPSRoute();
                 }
@@ -66,6 +68,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const GPSPosition& startPosition, c
                 nodeList = _db->getNodes(endPosition, 5000.0);
                 if (nodeList.isEmpty())
                 {
+                    std::cerr << "did not find a matching end point" << std::endl;
                     //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
                     return GPSRoute();
                 }
@@ -84,8 +87,6 @@ GPSRoute AStarRouter::calculateShortestRoute(const GPSPosition& startPosition, c
             }
         }
         //endNode ist der Knoten mit der kürzesten Entfernung zu endPosition.
-        
-        //TODO: Start- und Endknoten müssen Graphen-Knoten sein, sonst haut das mit den IDs nicht hin.
         
         return calculateShortestRoute(startNode, endNode);
     }
