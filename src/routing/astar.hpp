@@ -62,7 +62,7 @@ public:
  * @author Lena Brüder
  * @date 2011-12-23
  * @copyright GNU GPL v3
- * @todo Implementieren!
+ * @todo Umbauen, atm ist das nur der Mehrthreaddijkstra.
  * @ingroup routing
  */
 class MultithreadedAStarRouter : public Router

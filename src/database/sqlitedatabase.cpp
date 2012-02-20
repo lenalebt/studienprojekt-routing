@@ -81,7 +81,23 @@ void SQLiteDatabaseConnection::open(QString dbConnectionString)
     if (!dbExisted)
         _dbOpen = createTables();
     else
+    {
         _dbOpen = true;
+        
+        //Geschwindigkeit der DB erhöhen
+        QStringList statements;
+        statements << "PRAGMA page_size = 4096;";
+        statements << "PRAGMA max_page_count = 2147483646;";
+        statements << "PRAGMA cache_size=500000;";
+        statements << "PRAGMA synchronous=OFF;";
+        statements << "PRAGMA journal_mode=MEMORY;";
+        statements << "PRAGMA temp_store = MEMORY;";
+        QStringList::const_iterator it;
+        for (it = statements.constBegin(); it != statements.constEnd(); it++)
+        {
+            execCreateTableStatement(it->toStdString());
+        }
+    }
 }
 
 bool SQLiteDatabaseConnection::createTables()
@@ -92,7 +108,7 @@ bool SQLiteDatabaseConnection::createTables()
 	QStringList statements;
     statements << "PRAGMA page_size = 4096;";
     statements << "PRAGMA max_page_count = 2147483646;";
-    statements << "PRAGMA cache_size=10000;";
+    statements << "PRAGMA cache_size=500000;";
     statements << "PRAGMA synchronous=OFF;";
     statements << "PRAGMA journal_mode=MEMORY;";
     statements << "PRAGMA temp_store = MEMORY;";

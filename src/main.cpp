@@ -102,11 +102,13 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
     if (vm.count("parse"))
     {
         programOptions->parseOsmFile = true;
+        programOptions->webserver_startWebserver = false;
         //Dateinamen wurden schon gesetzt vom Framework
     }
     if (vm.count("simple-parse"))
     {
         programOptions->simpleParseOsmFile = true;
+        programOptions->webserver_startWebserver = false;
         //Dateinamen wurden schon gesetzt vom Framework
     }
     

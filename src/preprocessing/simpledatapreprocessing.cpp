@@ -30,6 +30,27 @@ bool SimpleDataPreprocessing::isStreet(const OSMWay& way)
     return false;
 }
 
+bool SimpleDataPreprocessing::isPassable(const OSMWay& way)
+{
+    //Wenn ein "highway"-key gefunden wird, ist es eine Straße - sonst nicht.
+    QVector<OSMProperty> props = way.getProperties();
+    for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
+    {
+        if (it->getKey() == "highway")
+        {
+            if (it->getValue() == "motorway")
+                return false;
+            else if (it->getValue() == "motorway_link")
+                return false;
+            else if (it->getValue() == "trunk")
+                return false;
+            else if (it->getValue() == "trunk_link")
+                return false;
+        }
+    }
+    return true;
+}
+
 bool SimpleDataPreprocessing::preprocess()
 {
     //lege zuerst alle Knoten in die temporäre DB ab.
@@ -53,19 +74,23 @@ bool SimpleDataPreprocessing::preprocess()
     //bearbeite dann alle Kanten.
     std::cerr << "parsing ways..." << std::endl;
     _finalDBConnection->beginTransaction();
+    _tmpDBConnection.beginTransaction();
     boost::uint64_t edgeID=0;
     QSet<boost::uint64_t> nodeIDSet;
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
     {
         //edges aus way extrahieren
-        if (isStreet(*_osmWay))
+        if (isStreet(*_osmWay) && isPassable(*_osmWay))
         {
             QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
             for(int i = 0; i < edgeList.size(); i++)
             {
-                RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
-                _finalDBConnection->saveEdge(routingEdge);
+                if (edgeList[i].isOneWayForBikes() != -1)
+                {   //temporär, damit einbahnstraßen richtig gemacht werden
+                    RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
+                    _finalDBConnection->saveEdge(routingEdge);
+                }
             }
             //So werden nur die Knoten in die DB gelegt, die auch von Edges benutzt werden.
             QVector<boost::uint64_t> memberList = _osmWay->getMemberList();
@@ -90,6 +115,7 @@ bool SimpleDataPreprocessing::preprocess()
         }
     }
     _finalDBConnection->endTransaction();
+    _tmpDBConnection.endTransaction();
     
     //Abbiegebeschränkungen werden einfach überlesen.
     std::cerr << "parsing turn restrictions..." << std::endl;
