@@ -175,10 +175,14 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     for(int i = 0; i < props.size(); i++)
     {
         OSMProperty _osmProp = props[i];
-        if(_osmProp.getKey()=="highway" && _osmProp.getValue()=="yes")
-        {
-            std::cerr << "its a highway, und alle so: yeahh..." << std::endl;
-        }
+
+        //if(_osmProp.getKey()=="highway" && _osmProp.getValue()=="unclassified")
+        //{
+        //    std::cerr << "its a highway, und alle so: yeahh..." << std::endl;
+        //}
+
+        if()
+        {}
     }
     
     routingEdge->setTrafficLights(hasTrafficLights);
