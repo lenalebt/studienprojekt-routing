@@ -149,175 +149,174 @@ public:
      * @brief Gibt die ID der Kante zurück.
      * @return Die ID der Kante.
      */
-    virtual boost::uint64_t getID() const {return _id;}
+    boost::uint64_t getID() const {return _id;}
     
     /**
      * @brief Setzt die ID der Kante auf den entsprechenden Wert.
      * @param id Die neue ID der Kante.
      * @return 
      */
-    virtual void setID(const boost::uint64_t id) {this->_id = id;}
+    void setID(const boost::uint64_t id) {this->_id = id;}
     
     /**
      * @brief Gibt die ID des Startknotens zurück.
      * @return Die ID des Startknotens.
      */
-    virtual boost::uint64_t getStartNodeID() const {return _startNodeID;}
+    boost::uint64_t getStartNodeID() const {return _startNodeID;}
     
     /**
      * @brief Setzt die ID des Startknotens auf den entsprechenden Wert.
      * @param startNodeID Die neue ID des Startknotens.
      * @return 
      */
-    virtual void setStartNodeID(const boost::uint64_t startNodeID) {this->_startNodeID = startNodeID;}
+    void setStartNodeID(const boost::uint64_t startNodeID) {this->_startNodeID = startNodeID;}
     
     /**
      * @brief Gibt die ID des Endknotens zurück.
      * @return Die ID des Endknotens.
      */
-    virtual boost::uint64_t getEndNodeID() const {return _endNodeID;}
+    boost::uint64_t getEndNodeID() const {return _endNodeID;}
     
     /**
      * @brief Setzt die ID des Endknotens auf den entsprechenden Wert.
      * @param endNodeID Die neue ID des Endknotens.
      */
-    virtual void setEndNodeID(const boost::uint64_t endNodeID) {this->_endNodeID = endNodeID;}
+    void setEndNodeID(const boost::uint64_t endNodeID) {this->_endNodeID = endNodeID;}
     
     /**
      * @brief Gibt die Eigenschaften der Kante als 64Bit-Wert zurück.
      * @return Die Eigenschaften der Kante als 64Bit-Wert.
      */
-    virtual boost::uint64_t getProperties() const;
+    boost::uint64_t getProperties() const;
     
     /**
      * @brief Setzt die Eigenschaften der Kante auf den angegebenen 64Bit-Wert.
      * @param properties Die neuen Eigenschaften der Kante als 64Bit-Wert.
      */
-    virtual void setProperties(const boost::uint64_t properties);
+    void setProperties(const boost::uint64_t properties);
     
     /**
      * @brief Gibt an, ob an der entsprechenden Kante eine Ampel steht oder nicht.
      * @return Ob eine Ampel vorhanden ist
      */
-    virtual bool hasTrafficLights() const;
+    bool hasTrafficLights() const {return _properties.trafficLights;}
     /**
      * @brief Gibt an, ob an der entsprechenden Kante Bremsschwellen vorhanden sind
      * @return Ob Bremsschwellen vorhanden sind
      */
-    virtual bool hasTrafficCalmingBumps() const;
+    bool hasTrafficCalmingBumps() const {return _properties.trafficCalmingBumps;}
     /**
      * @brief Gibt an, ob an der entsprechenden Kante ein Stoppschild vorhanden ist
      * @return Ob ein Stoppschild vorhanden ist
      */
-    virtual bool hasStopSign() const;
+    bool hasStopSign() const {return _properties.stopSign;}
     /**
      * @brief Gibt an, ob an der entsprechenden Kante Treppen sind
      * @return Ob an der Kante Treppen sind
      * @todo Evtl. sind Treppen ein eigener Straßentyp?
      */
-    virtual bool hasStairs() const;
+    bool hasStairs() const {return _properties.stairs;}
     /**
      * @brief Gibt an, ob an der entsprechenden Kante ein Umlaufgitter o.Ä. vorhanden ist
      * @return Ob ein Umlaufgitter vorhanden ist
      */
-    virtual bool hasCycleBarrier() const;
+    bool hasCycleBarrier() const;
     /**
      * @brief Gibt an, ob die Nutzung eines vorhandenen Fahradweges verpflichtend ist.
      * @return Ob vorhandener Fahrredweg genutzt werden MUSS.
      */
-    virtual bool isCyclewayDesignated() const;
+    bool isCyclewayDesignated() const;
     
     /**
      * @brief Legt fest, ob an der entsprechenden Kante eine Ampel ist oder nicht.
      * @param value 
      */
-    virtual void setTrafficLights(const bool value);
+    void setTrafficLights(const bool value) {_properties.trafficLights = value;}
     
     /**
      * @brief Legt fest, ob an der entsprechenden Kante Bremsschwellen sind oder nicht.
      * @param value 
      */
-    virtual void setTrafficCalmingBumps(const bool value);
+    void setTrafficCalmingBumps(const bool value) {_properties.trafficCalmingBumps = value;}
     
     /**
      * @brief Legt fest, ob an der entsprechenden Kante ein Stoppschild ist oder nicht.
      * @param value 
      */
-    virtual void setStopSign(const bool value);
+    void setStopSign(const bool value) {_properties.stopSign = value;}
     
     /**
      * @brief Legt fest, ob an der entsprechenden Kante Treppen sind oder nicht.
      * @param value 
      */
-    virtual void setStairs(const bool value);
+    void setStairs(const bool value) {_properties.stairs = value;}
     
     /**
      * @brief Legt fest, ob an der entsprechenden Kante Umlaufgitter sind oder nicht.
      * @param value 
-     */
-    virtual void setCycleBarrier(const bool value);
+     */void setCycleBarrier(const bool value);
 
     /**
      * @brief Legt fest, ob die Nutzung eines vorhandenen Fahrradweges verpflichtend ist oder nicht.
      * @param value
      */
-    virtual void setCyclewayDesignated(const bool value);
+    void setCyclewayDesignated(const bool value);
     
     /**
      * @brief Gibt den Typ der Straße an der Kante an.
      * @return Den Typ der Straße
      * @todo Evtl einen Enum für den Straßentyp machen
      */
-    virtual boost::uint8_t getStreetType() const;
+    boost::uint8_t getStreetType() const {return _properties.streetType;}
     /**
      * @brief Gibt den Typ des Radwegs an der Kante an.
      * @return Den Typ des Radwegs
      * @todo Evtl einen Enum für den Radwegtyp machen
      */
-    virtual boost::uint8_t getCyclewayType() const;
+    boost::uint8_t getCyclewayType() const {return _properties.cyclewayType;}
     /**
      * @brief Gibt den Typ des Straßenbelags an
      * @return Den Typ des Straßenbelags
      * @todo Evtl einen Enum für den Belagstyp machen
      */
-    virtual boost::uint8_t getStreetSurfaceType() const;
+    boost::uint8_t getStreetSurfaceType() const {return _properties.streetSurfaceType;}
     /**
      * @brief Gibt die Qualität des Straßenbelags an.
      * @return Die Qualität des Straßenbelags der Kante
      */
-    virtual boost::uint8_t getStreetSurfaceQuality() const;
+    boost::uint8_t getStreetSurfaceQuality() const{return _properties.streetSurfaceQuality;}
     /**
      * @brief Gibt den Abbiegetyp der Kante an.
      * @return Den Abbiegetyp der Kante
      * @todo Evtl einen Enum für den Abbiegetyp machen. Geradeaus, links, rechts, umkehren. Evtl noch mehr?
      */
-    virtual boost::uint8_t getTurnType() const;
+    boost::uint8_t getTurnType() const {return _properties.turnType;}
     
     /**
      * @brief Setzt den Typ der Straße fest
      * @param streetType Der Typ der Straße
      */
-    virtual void setStreetType(const boost::uint8_t streetType);
+    void setStreetType(const boost::uint8_t streetType) {_properties.streetType = streetType;}
     /**
      * @brief Legt den Typ des Radwegs fest
      * @param cyclewayType Der Typ des Radwegs
      */
-    virtual void setCyclewayType(const boost::uint8_t cyclewayType);
+    void setCyclewayType(const boost::uint8_t cyclewayType) {_properties.cyclewayType = cyclewayType;}
     /**
      * @brief Legt den Typ des Straßenbelags fest
      * @param streetsurfaceType Der Typ des STraßenbelags
      */
-    virtual void setStreetSurfaceType(const boost::uint8_t streetSurfaceType);
+    void setStreetSurfaceType(const boost::uint8_t streetSurfaceType) {_properties.streetSurfaceType = streetSurfaceType;}
     /**
      * @brief Legt die Qualität des Straßenbelags fest.
      * @param streetSurfaceQuality Die Qualität des Straßenbelags
      */
-    virtual void setStreetSurfaceQuality(const boost::uint8_t streetSurfaceQuality);
+    void setStreetSurfaceQuality(const boost::uint8_t streetSurfaceQuality) {_properties.streetSurfaceQuality = streetSurfaceQuality;}
     /**
      * @brief Legt den Abbiegetyp der Kante fest
      * @param turnType Der Abbiegetyp der Kante
      */
-    virtual void setTurnType(const boost::uint8_t turnType);
+    void setTurnType(const boost::uint8_t turnType) {_properties.turnType = turnType;}
     
     /**
      * @brief Gibt zurück, auf welchem Level die Kante eingeordnet ist.

@@ -91,7 +91,6 @@ bool SRTMProvider::fillTile(int index, SRTMTile **tile){
         }
 
         tileFilled = (*tile)->fillTile(fileName);
-
     }
 
     return tileFilled;
@@ -100,22 +99,22 @@ bool SRTMProvider::fillTile(int index, SRTMTile **tile){
 void SRTMProvider::loadFileList()
 {
     QFile file(_cachedir + _srtmFileList);
-
+    
     if (!file.open(QIODevice::ReadOnly)) {   
 
         createFileList();
         return;
     }   
-
+    
     QDataStream stream(&file);
     stream >> fileList;
-    file.close();   
+    file.close();
+    
     return;
 }
 
 void SRTMProvider::createFileList()
 {
-
     QStringList continents;
     continents << "Africa" << "Australia" << "Eurasia" << "Islands" << "North_America" << "South_America";
 

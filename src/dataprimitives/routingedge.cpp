@@ -1,5 +1,6 @@
 #include "routingedge.hpp"
 
+
 bool RoutingEdge::hasTrafficLights() const
 {
     return _properties.trafficLights;
@@ -130,6 +131,7 @@ void RoutingEdge::setTurnType(const boost::uint8_t turnType)
 {
     _properties.turnType = turnType;
 }
+
 
 boost::uint64_t RoutingEdge::getProperties() const
 {

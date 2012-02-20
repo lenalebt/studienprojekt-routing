@@ -29,6 +29,12 @@ bool OSMParser::fatalError ( const QXmlParseException & exception )
 {
     std::cerr << "Fatal Error while parsing" << std::endl;
     std::cerr << exception.lineNumber() << " " << exception.columnNumber() << " " << exception.message().toStdString() << std::endl;
+    
+    //Es trat ein Fehler auf, dafür sorgen dass sich der, der den Parser benutzt, nicht aufhängt...
+    _nodeQueue->destroyQueue();
+    _wayQueue->destroyQueue();
+    _turnRestrictionQueue->destroyQueue();
+    
     return false;
 }
 
@@ -60,7 +66,7 @@ bool OSMParser::startElement ( const QString & /*namespaceURI*/, const QString &
                 else if (atts.qName(i) == "lat")
                     lat = atts.value(i).toDouble();
             }
-            node = boost::shared_ptr<OSMNode>(new OSMNode(id, GPSPosition(lon, lat), QVector<OSMProperty>()));
+            node = boost::shared_ptr<OSMNode>(new OSMNode(id, GPSPosition(lat, lon), QVector<OSMProperty>()));
 
         }
         else if (qName == "way")
