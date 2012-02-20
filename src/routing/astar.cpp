@@ -112,17 +112,19 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
         QHash<boost::uint64_t, boost::uint64_t> predecessor;
         QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
 
-        
-        
+        boost::uint64_t activeNodeLongID = RoutingNode::convertIDToLongFormat(startNode.getID());
+        boost::uint64_t activeNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
         
         //Startknoten: Kosten auf Null setzen, zum Heap und Puffer hinzufügen, Vorgänger auf Null setzen
-        nodeCosts[startNode.getID()] = 0.0;
-        heap.add(startNode.getID());
-        nodeMap.insert(RoutingNode::convertIDToShortFormat(startNode.getID()), _db->getNodeByID(startNode.getID()));
-        predecessor.insert(startNode.getID(), 0);
+        nodeCosts[activeNodeLongID] = 0.0;
+        heap.add(activeNodeLongID);
+        nodeMap.insert(activeNodeShortID, _db->getNodeByID(startNode.getID()));
+        predecessor.insert(activeNodeLongID, 0);
         
-        boost::uint64_t activeNodeLongID = 0;
         boost::shared_ptr<RoutingNode> activeNode;
+        
+        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
+        boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
         //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
         //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
@@ -131,11 +133,12 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
         {
             //Aktuelles Element wird jetzt abschließend betrachtet.
             activeNodeLongID = heap.removeMinimumCostElement();
-            activeNode = nodeMap[activeNodeLongID];
+            activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
+            activeNode = nodeMap[activeNodeShortID];
             closedList.addElement(activeNodeLongID);
             
             //Wenn der jetzt abschließend zu betrachtende Knoten der Endkonten ist: Fertig.
-            if (startNode.getID() == endNode.getID())
+            if (activeNodeShortID == endNodeShortID)
             {
                 break;
             }
@@ -143,7 +146,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
             //Hole Liste von Kanten, die in abschließend betrachtetem
             //Knoten beginnen und bearbeite sie.
             QVector<boost::shared_ptr<RoutingEdge> > edgeList = 
-                _db->getEdgesByStartNodeID(startNode.getID());
+                _db->getEdgesByStartNodeID(activeNodeLongID);
             for (QVector<boost::shared_ptr<RoutingEdge> >::iterator it =
                 edgeList.begin(); it < edgeList.end(); it++)
             {
@@ -174,7 +177,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
                         nodeCosts[activeEdgeEndNodeLongID] = nodeCosts[activeNodeLongID] +
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode);
                         //---------*activeNode oder *it benutzen??//
-                        float distance = (*activeNode).calcDistance(endNode);
+                        float distance = _metric->estimateDistance(*activeNode, endNode);
                         estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
                             _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance);
 
@@ -203,7 +206,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
         
         std::cerr << "finished, search space contains " << nodeMap.size() << " elements." << std::endl;
         
-        if (activeNodeLongID == endNode.getID())
+        if (activeNodeShortID == endNodeShortID)
         {
             boost::uint64_t activeNodeID = activeNodeLongID;
             GPSRoute route;
