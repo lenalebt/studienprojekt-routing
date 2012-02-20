@@ -111,10 +111,10 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
             {
                 std::cerr << "edge NOT saved" << std::endl;
             }
-            //routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
+            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
             
             //TODO: Bevor in finale Datenbank gespeichert wird, Hier die Kategorisierung starten
-            //categorizeEdge(*routingEdge);
+            categorizeEdge(*routingEdge);
             
             //speichert routingEdge in die finale Datenbank
             //_finalDBConnection->saveEdge(*routingEdge);
