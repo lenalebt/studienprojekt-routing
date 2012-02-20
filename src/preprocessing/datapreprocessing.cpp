@@ -156,6 +156,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     //bool hasStopSign = false;
     bool hasStairs = false;
     bool hasCycleBarrier = false;
+    bool isDesignated = false;
     boost::uint8_t streetType = STREETTYPE_UNKNOWN;
     boost::uint8_t cyclewayType = CYCLEWAYTYPE_UNKNOWN;
     boost::uint8_t streetSurfaceType = STREETSURFACETYPE_UNKNOWN;
@@ -165,6 +166,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
 
     //Flags
+    bool isForward = osmEdge.getForward();
     bool isArea = false;
     bool isHighway = false;
 
@@ -206,8 +208,8 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             }
         }
 
-        else if(osmKey == "surface" && osmKey == "tracktype"){
-            if(osmValue == "paved" && "grade:1"){
+        else if(osmKey == "surface" || osmKey.contains("tracktype"){
+            if(osmValue == "paved" || "grade:1"){
                 streetSurfaceType = STREETSURFACETYPE_PAVED;
             }
             else if(osmValue == "asphalt"){
@@ -222,7 +224,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             else if(osmValue == "tartarn"){
                     streetSurfaceType = STREETSURFACETYPE_TARTAN;
             }
-            else if(osmValue == "concrete"){
+            else if(osmValue.contains("concrete"){
                     streetSurfaceType = STREETSURFACETYPE_CONCRETE;
             }
             else if(osmValue == "cobblestone"){
@@ -237,13 +239,13 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             else if(osmValue == "grass_paver"){
                     streetSurfaceType = STREETSURFACETYPE_GRASSPAVER;
             }
-            else if(osmValue == "gravel" && "pebblestone"){
+            else if(osmValue == "gravel" || "pebblestone"){
                     streetSurfaceType = STREETSURFACETYPE_GRAVEL;
             }
-            else if(osmValue == "ground" && "dirt" && "mud" && "earth" && "clay" && "sand"){
+            else if(osmValue == "ground" || "dirt" || "mud" || "earth" || "clay" || "sand"){
                     streetSurfaceType = STREETSURFACETYPE_GROUND;
             }
-            else if(osmValue == "grass" && "artificial_turf"){
+            else if(osmValue == "grass" || "artificial_turf"){
                     streetSurfaceType = STREETSURFACETYPE_GRASS;
             }
             else if(osmValue == "metal"){
@@ -266,6 +268,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     //routingEdge->setStopSign(hasStopSign);
     routingEdge->setStairs(hasStairs);
     routingEdge->setCycleBarrier(hasCycleBarrier);
+    routingEdge->setCyclewayDesignated(isDesignated);
     routingEdge->setStreetType(streetType);
     routingEdge->setCyclewayType(cyclewayType);
     routingEdge->setStreetSurfaceType(streetSurfaceType);

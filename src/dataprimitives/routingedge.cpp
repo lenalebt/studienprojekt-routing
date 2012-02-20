@@ -30,6 +30,12 @@ bool RoutingEdge::hasCycleBarrier() const
 }
 
 
+bool RoutingEdge::isCyclewayDesignated() const
+{
+    return _properties.isDesignated;
+}
+
+
 void RoutingEdge::setTrafficLights(const bool value)
 {
     _properties.trafficLights = value;
@@ -57,6 +63,12 @@ void RoutingEdge::setStairs(const bool value)
 void RoutingEdge::setCycleBarrier(const bool value)
 {
     _properties.cycleBarrier = value;
+}
+
+
+void RoutingEdge::setCyclewayDesignated(const bool value)
+{
+    _properties.isDesignated = value;
 }
 
 
@@ -121,7 +133,8 @@ void RoutingEdge::setTurnType(const boost::uint8_t turnType)
 
 boost::uint64_t RoutingEdge::getProperties() const
 {
-    return (_properties.cycleBarrier             << BITPOS_CYCLEBARRIER) |
+    return (_properties.isDesignated             << BITPOS_CYCLEWAYDESIGNATED) |
+            (_properties.cycleBarrier            << BITPOS_CYCLEBARRIER) |
             (_properties.cyclewayType            << BITPOS_CYCLEWAYTYPE) |
             (_properties.stairs                  << BITPOS_STAIRS) |
             (_properties.stopSign                << BITPOS_STOPSIGN) |
@@ -139,6 +152,7 @@ boost::uint64_t RoutingEdge::getProperties() const
  */
 void RoutingEdge::setProperties(const boost::uint64_t properties)
 {
+    _properties.isDesignated         = (properties >> BITPOS_CYCLEWAYDESIGNATED)   & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
     _properties.cycleBarrier         = (properties >> BITPOS_CYCLEBARRIER)         & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
     _properties.cyclewayType         = (properties >> BITPOS_CYCLEWAYTYPE)         ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
     _properties.stairs               = (properties >> BITPOS_STAIRS)               & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
@@ -166,6 +180,7 @@ std::ostream& operator<<(std::ostream& os, const RoutingEdge& edge)
         "stopSign " << edge._properties.stopSign << std::endl <<
         "cycleBarrier " << edge._properties.cycleBarrier << std::endl <<
         "stairs " << edge._properties.stairs << std::endl <<
+        "isDesignated " << edge._properties.isDesignated << std::endl <<
         "properties " << edge.getProperties() << std::endl;
     
     return os;
@@ -174,6 +189,7 @@ std::ostream& operator<<(std::ostream& os, const RoutingEdge& edge)
 RoutingEdge::RoutingEdge() :
     _id(0), _startNodeID(0), _endNodeID(0)
 {
+    _properties.isDesignated                = false;
     _properties.cycleBarrier                = false;
     _properties.cyclewayType                = 0;
     _properties.stairs                      = false;
@@ -189,6 +205,7 @@ RoutingEdge::RoutingEdge() :
 RoutingEdge::RoutingEdge(boost::uint64_t id) :
     _id(id), _startNodeID(0), _endNodeID(0)
 {
+    _properties.isDesignated                = false;
     _properties.cycleBarrier                = false;
     _properties.cyclewayType                = 0;
     _properties.stairs                      = false;
@@ -204,6 +221,7 @@ RoutingEdge::RoutingEdge(boost::uint64_t id) :
 RoutingEdge::RoutingEdge(boost::uint64_t id, boost::uint64_t startNodeID, boost::uint64_t endNodeID) :
     _id(id), _startNodeID(startNodeID), _endNodeID(endNodeID)
 {
+    _properties.isDesignated                = false;
     _properties.cycleBarrier                = false;
     _properties.cyclewayType                = 0;
     _properties.stairs                      = false;
@@ -241,6 +259,7 @@ bool operator==(const RoutingEdge::PropertyType& a, const RoutingEdge::PropertyT
         (a.stopSign == b.stopSign) &&
         (a.cycleBarrier == b.cycleBarrier) &&
         (a.stairs == b.stairs);
+        (a.isDesignated == b.isDesignated);
 }
 
 namespace biker_tests
@@ -259,6 +278,9 @@ namespace biker_tests
         
         edge1.setStopSign(false);
         CHECK(!edge1.hasStopSign());
+
+        edge1.setCyclewayDesignated(true);
+        CHECK(edge1.isCyclewayDesignated());
         
         edge1.setStreetSurfaceQuality(5);
         CHECK_EQ_TYPE(edge1.getStreetSurfaceQuality(), 5, boost::uint8_t);

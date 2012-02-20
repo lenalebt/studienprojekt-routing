@@ -20,7 +20,21 @@
 #define STREETTYPE_UNKNOWN                      (1<<BITLENGTH_STREETTYPE)-1 //last bit, highest possible value
 
 
-#define CYCLEWAYTYPE_UNKNOWN                    (1<<BITLENGTH_CYCLEWAYTYPE)-1 //last bit, highest possible value
+#define CYCLEWAYTYPE_NO_CYCLEWAY                0 //No Cycleway
+#define CYCLEWAYTYPE_LANE                       1 //Cyclewaylane in direction of the road
+#define CYCLEWAYTYPE_LANE_OP                    2 //Cyclewaylane in opposite direction of the road
+#define CYCLEWAYTYPE_LANE_SEGREGAETD            3 //Cyclewaylane in direction of the road, combined cycle- and footlane
+#define CYCLEWAYTYPE_LANE_SEGREGAETD_OP         4 //Cyclewaylane in opposite direction of the road, combined cycle- and footlane
+#define CYCLEWAYTYPE_LANE_SHARED_BUSWAY         5 //Cyclewaylane in direction of the road, combined cycle- and buslane
+#define CYCLEWAYTYPE_LANE_SHARED_BUSWAY_OP      6 //Cyclewaylane in opposite direction of the road, combined cycle- and footlane
+#define CYCLEWAYTYPE_TRACK                      7 //Cyclewaytrack
+#define CYCLEWAYTYPE_TRACK_SEGREGATED           8 //Cyclewaytrack, combined cycle- and footway
+#define CYCLEWAYTYPE_TRACK_SHARED_BUSWAY        9 //Cyclewaytrack, combined cycle- and footway
+#define CYCLEWAYTYPE_TRACK_SHARED_BUSWAY        9 //Cyclewaytrack, combined cycle- and footway
+#define CYCLEWAYTYPE_TRACK_SHARED_BUSWAY        9 //Cyclewaytrack, combined cycle- and footway
+#define CYCLEWAYTYPE_TRACK_SHARED_BUSWAY        9 //Cyclewaytrack, combined cycle- and footway
+
+#define CYCLEWAYTYPE_UNKNOWN                    (1<<BITLENGTH_CYCLEWAYTYPE)-1 //last bit, highest possible value, there is a cycleway along this edge
 
 
 #define STREETSURFACEQUALITY_EXCELLENT    	0
@@ -75,6 +89,7 @@
 #define BITLENGTH_STOPSIGN              1ull
 #define BITLENGTH_CYCLEBARRIER          1ull
 #define BITLENGTH_STAIRS                1ull
+#define BITLENGTH_CYCLEWAYDESIGNATED    1ull
 
 #define BITPOS_STREETTYPE               (0)
 #define BITPOS_CYCLEWAYTYPE             (BITLENGTH_STREETTYPE)
@@ -86,6 +101,7 @@
 #define BITPOS_STOPSIGN                 (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS)
 #define BITPOS_CYCLEBARRIER             (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN)
 #define BITPOS_STAIRS                   (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN + BITLENGTH_CYCLEBARRIER)
+#define BITPOS_CYCLEWAYDESIGNATED       (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN + BITLENGTH_CYCLEBARRIER + BITLENGTH_STAIRS)
 
 /**
  * @brief Beschreibt eine Kante, der in der Datenbank abgelegt werden kann
@@ -121,6 +137,7 @@ public:
         bool stopSign                       : BITLENGTH_STOPSIGN;
         bool cycleBarrier                   : BITLENGTH_CYCLEBARRIER;
         bool stairs                         : BITLENGTH_STAIRS;
+        bool isDesignated                   : BITLENGTH_CYCLEWAYDESIGNATED;
     } PropertyType;
 private:
     PropertyType _properties;
@@ -203,6 +220,11 @@ public:
      * @return Ob ein Umlaufgitter vorhanden ist
      */
     virtual bool hasCycleBarrier() const;
+    /**
+     * @brief Gibt an, ob die Nutzung eines vorhandenen Fahradweges verpflichtend ist.
+     * @return Ob vorhandener Fahrredweg genutzt werden MUSS.
+     */
+    virtual bool isCyclewayDesignated() const;
     
     /**
      * @brief Legt fest, ob an der entsprechenden Kante eine Ampel ist oder nicht.
@@ -233,7 +255,12 @@ public:
      * @param value 
      */
     virtual void setCycleBarrier(const bool value);
-    
+
+    /**
+     * @brief Legt fest, ob die Nutzung eines vorhandenen Fahrradweges verpflichtend ist oder nicht.
+     * @param value
+     */
+    virtual void setCyclewayDesignated(const bool value);
     
     /**
      * @brief Gibt den Typ der Straße an der Kante an.
