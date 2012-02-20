@@ -49,12 +49,25 @@ private:
     BlockingQueue<boost::shared_ptr<OSMNode> > _nodeQueue;
     BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
+
+    /**
+     * @brief Wandelt eine <code>OSMEdge</code> Kante in eine <code>RoutingEdge</code> Kante um und kategorisiert diese.
+     *
+     * Wann immer eine Kante nicht von einem Fahrrad passiert werden kann, wird die Eigenschaft der Straßenoberfläche auf den Wert für "unpassierbar" gesetzt.
+     * Eigenschaften wie Ampeln beziehen sich immer auf des Ende einer Kante.
+     *
+     * @param osmEdge Die umzuwandelnde <code>OSMEdge</code> Kante.
+     * @return Ein Pointer auf die aus der <code>OSMEdge</code> Kante erstellte <code>RoutingEdge</code> Kante.
+     */
+    boost::shared_ptr<RoutingEdge> categorizeEdge(const OSMEdge& osmEdge);
+
     
     boost::shared_ptr<OSMParser> _osmParser;
     boost::shared_ptr<PBFParser> _pbfParser;
     
     TemporaryOSMDatabaseConnection _tmpDBConnection;
     boost::shared_ptr<DatabaseConnection> _finalDBConnection;
+    
 public:    
     DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb);
     ~DataPreprocessing();

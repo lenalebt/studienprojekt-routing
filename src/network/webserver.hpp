@@ -108,6 +108,7 @@ protected:
      * @param socket Das Socket, das verwendet werden soll
      * @param line[out] Hier wird die Zeile reingeschrieben, die gelesen wurde
      * @return Ob eine Zeile gelesen werden konnte
+     * @remarks Liest maximal 4KiB Daten in einer Zeile, alles danach wird abgeschnitten.
      */
     bool readLine(QTcpSocket* socket, QString& line);
     /**
@@ -128,6 +129,15 @@ protected:
     bool sendFile(QFile& file);
     
     /**
+     * @brief Sendet eine Datei über die Verbindung, inklusive der richtigen
+     *      Header usw.
+     * 
+     * @param content Inhalt der Datei, die gesendet werden soll.
+     * @return Ob das Senden erfolgreich war, oder nicht.
+     */
+    bool sendFile(const QString& content);
+    
+    /**
      * @brief Schickt eine 400 (Bad Request)-Nachricht mit kleiner
      *      Webseite an den Peer.
      * 
@@ -136,18 +146,32 @@ protected:
     void send400();
     
     /**
-     * @brief Schickt eine 404-Nachricht mit kleiner Webseite an den Peer.
+     * @brief Schickt eine 404-Nachricht mit kleiner Webseite an den Peer (404 not found).
      * 
      * Die Verbindung sollte nach dem Versenden geschlossen werden.
      */
     void send404();
     
     /**
-     * @brief Schickt eine 405-Nachricht mit kleiner Webseite an den Peer.
+     * @brief Schickt eine 405-Nachricht mit kleiner Webseite an den Peer (405 Method not allowed).
      * 
      * Die Verbindung sollte nach dem Versenden geschlossen werden.
      */
     void send405();
+    
+    /**
+     * @brief Schickt eine 102-Nachricht an den Peer (102 Processing).
+     * 
+     * Wird gesendet, wenn eine zeitintensive Anfrage gestartet wurde.
+     */
+    void send102();
+    
+    /**
+     * @brief Schickt eine 500-Nachricht an den Peer (500 Internal Server Error).
+     * 
+     * Die Verbindung sollte nach dem Versenden geschlossen werden.
+     */
+    void send500();
 public:
     HttpRequestProcessor(int socketDescriptor);
     void run();
@@ -173,6 +197,11 @@ public:
      *      <code>_parameterMap</code> abgerufen werden.
      *  - Der Pfad wurde in <code>_requestPath</code> abgelegt.
      *  - Der Typ des Requests wurde in <code>_requestType</code> abgelegt.
+     * 
+     * @remarks Es werden nicht mehr als 127 Header-Zeilen erlaubt
+     * @remarks Es werden nicht mehr als 4KiB Daten pro Zeile angenommen.
+     *      Bei 4095 Bytes Daten oder mehr in einer Zeile wird der Request abgelehnt.
+     * @todo Request ablehnen, wenn er größer als 4KiB wird.
      */
     virtual void processRequest()=0;
 };
@@ -223,7 +252,10 @@ public:
     BikerHttpRequestProcessor(int socketDescriptor) :
         HttpRequestProcessor(socketDescriptor) {}
     /**
-     * @todo Dynamische Requests bearbeiten, diese werden atm noch mit HTTP 404 beantwortet.
+     * @remarks Es werden nur GET-Anfragen beantwortet. Alle anderen werden mit
+     *      HTTP 405 beantwortet.
+     * @todo Dynamische Requests bearbeiten, diese werden atm noch mit HTTP 404
+     *      beantwortet.
      */
     void processRequest();
 };

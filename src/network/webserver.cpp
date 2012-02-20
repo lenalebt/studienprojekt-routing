@@ -3,6 +3,12 @@
 #include <QRegExp>
 #include <QUrl>
 #include <QDir>
+#include "filedownloader.hpp"
+#include "gpsposition.hpp"
+#include "router.hpp"
+#include "routingmetric.hpp"
+#include "database.hpp"
+#include "dijkstra.hpp"
 
 QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
 
@@ -96,6 +102,8 @@ void HttpServerThread<HttpRequestProcessorType>::startServer()
     //Server-Thread starten
     _running = true;
     this->start();
+    //TODO: Aufs Hochfahren warten, schöner als so.
+    this->wait(300);
 }
 
 template <typename HttpRequestProcessorType>
@@ -119,13 +127,13 @@ bool HttpRequestProcessor::readLine(QTcpSocket* socket, QString& line)
     bool didReadLine = false;
     int tries=0;
     int bytesRead=0;
-    char c[1024];
+    char c[4096];
     while (!didReadLine)
     {
         tries++;
         if (socket->canReadLine())
         {
-            if ((bytesRead = socket->readLine(c, 1023)))
+            if ((bytesRead = socket->readLine(c, 4095)))
             {
                 c[bytesRead] = '\0';
             }
@@ -156,6 +164,8 @@ bool HttpRequestProcessor::sendFile(QFile& file)
         writeString(_socket, " 200 OK\n");
         writeString(_socket, "Content-Length: ");
         writeString(_socket, QString::number(file.size()) + "\n");
+        writeString(_socket, "Pragma: no-cache\n");
+        writeString(_socket, "Cache-Control: no-store\n");
         writeString(_socket, "\n");
         _socket->flush();
         char data[66000];
@@ -172,10 +182,30 @@ bool HttpRequestProcessor::sendFile(QFile& file)
     }
     else
     {
-        //TODO: Fehler sagen. 403 oder so.
+        this->send500();
         _socket->flush();
         return false;
     }
+    //TODO: Header, die zum Dateiinhalt passen
+    //TODO: Dateiinhalt senden
+    //TODO: Bei Fehler false zurückgeben
+    //writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Bad request</title></head><body><p>400 Bad Request</p></body></html>");
+    _socket->flush();
+    
+    return true;
+}
+bool HttpRequestProcessor::sendFile(const QString& content)
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, _httpVersion);
+    writeString(_socket, " 200 OK\n");
+    writeString(_socket, "Content-Length: ");
+    writeString(_socket, QString::number(content.length()) + "\n");
+    writeString(_socket, "Pragma: no-cache\n");
+    writeString(_socket, "Cache-Control: no-store\n");
+    writeString(_socket, "\n");
+    _socket->flush();
+    _socket->write(content.toUtf8());
     //TODO: Header, die zum Dateiinhalt passen
     //TODO: Dateiinhalt senden
     //TODO: Bei Fehler false zurückgeben
@@ -208,6 +238,21 @@ void HttpRequestProcessor::send405()
     writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Method not allowed</title></head><body><p>405 Method not allowed</p></body></html>");
     _socket->flush();
 }
+void HttpRequestProcessor::send102()
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, _httpVersion);
+    writeString(_socket, " 102 Processing\n\n");
+    _socket->flush();
+}
+void HttpRequestProcessor::send500()
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, _httpVersion);
+    writeString(_socket, " 500 Internal Server Error\n\n");
+    writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Internal Server error</title></head><body><p>500 Internal Server Error</p></body></html>");
+    _socket->flush();
+}
 
 bool HttpRequestProcessor::preprocessRequest()
 {
@@ -224,11 +269,12 @@ bool HttpRequestProcessor::preprocessRequest()
         return false;
     
     //Erst beliebige Leerzeichen, dann GET oder PUT oder POST, dann Pfad, Evtl. Parameter, dann welche HTTP-Version.
-    QRegExp httpHelloRegExp("(GET|PUT|POST)\\s+([^\\?]+)(\\?\\S*)?\\s+HTTP/1.(0|1)");
+    QRegExp httpHelloRegExp("(GET|PUT|POST|DELETE)\\s+([^\\?]+)(\\?\\S*)?\\s+HTTP/1.(0|1)");
     //TODO: Vielleicht besser die RegExp einmal statisch erstellen statt immer wieder?
     
     if (httpHelloRegExp.indexIn(line) == -1)
     {
+        std::cerr << "not well-formed: \"" << line << "\"" << std::endl;
         return false;
     }
     
@@ -257,8 +303,13 @@ bool HttpRequestProcessor::preprocessRequest()
     
     //Header abfragen.
     QRegExp httpHeader("(\\S\\S*):\\s\\s*([^\\n]*)");
+    int httpHeaderCount=0;
     while (readLine(_socket, line))
     {
+        httpHeaderCount++;
+        //mehr als 127 Header-Zeilen wollen wir nicht verarbeiten: Da ist sicher jemand böses am Werk...
+        if (httpHeaderCount>127)
+            return false;
         if (httpHeader.indexIn(line) != -1)
         {
             _headerMap[httpHeader.cap(1)] = httpHeader.cap(2);
@@ -323,6 +374,7 @@ void BikerHttpRequestProcessor::processRequest()
     if (_requestPath.contains(".."))
     {
         //".." im Pfad ist ein falscher Request. Damit könnte man ins Dateisystem gelangen.
+        std::cerr << "\"..\" in request: not allowed." << std::endl;
         this->send400();
     }
     
@@ -364,8 +416,139 @@ void BikerHttpRequestProcessor::processRequest()
     }
     else
     {
-        std::cerr << "dynamic request. TODO." << std::endl;
-        this->send404();
+        /**
+         * @todo RegExp nur einmal erzeugen und dann wiederverwenden!
+         */
+        QRegExp cloudmadeApiKeyRegExp("^/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
+        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        QRegExp cloudmadeApiRouteTypeRegExp("^/([a-zA-Z0-9]{1,64})(?:/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)$");
+        
+        QString apiKey="";
+        int apiVersion=0;
+        QVector<GPSPosition> routePointList;
+        QString routeType="";
+        QString routeModifier="";
+        QString routeDataType="";
+        
+        int position=0;
+        if ((position=cloudmadeApiKeyRegExp.indexIn(_requestPath)) != -1)
+        {
+            apiKey = cloudmadeApiKeyRegExp.cap(1).toLower();
+            apiVersion = cloudmadeApiKeyRegExp.cap(2).toInt();
+            //API-Key gefunden. Falls uns der interessiert, hier was damit machen!
+            
+            if (apiVersion != 3)
+            {
+                std::cerr << "requested api version 0." << apiVersion << ", which is not supported." << std::endl;
+                this->send405();
+                return;
+            }
+            
+            position += cloudmadeApiKeyRegExp.cap(0).length();
+        }
+        else
+        {
+            this->send400();
+            return;
+        }
+        position+=cloudmadeApiPointListRegExp.indexIn(_requestPath.mid(position));
+        if (cloudmadeApiPointListRegExp.cap(0).length() != 0)
+        {
+            //Punktliste gefunden. Auswerten!
+            QString strLat, strLon;
+            routePointList.clear();
+            for (int i=1; i<=cloudmadeApiPointListRegExp.captureCount(); i+=2)
+            {
+                strLat = cloudmadeApiPointListRegExp.cap(i);
+                strLon = cloudmadeApiPointListRegExp.cap(i+1);
+                GPSPosition point(strLat.toDouble(), strLon.toDouble());
+                routePointList << point;
+            }
+            
+            position += cloudmadeApiPointListRegExp.cap(0).length();
+        }
+        else
+        {
+            this->send400();
+            return;
+        }
+        position+=cloudmadeApiRouteTypeRegExp.indexIn(_requestPath.mid(position));
+        if (cloudmadeApiRouteTypeRegExp.cap(0).length() != 0)
+        {
+            routeType = cloudmadeApiRouteTypeRegExp.cap(1).toLower();
+            routeModifier = cloudmadeApiRouteTypeRegExp.cap(2).toLower();
+            routeDataType = cloudmadeApiRouteTypeRegExp.cap(3).toLower();
+            //Routentyp gefunden. Auswerten!
+        }
+        else
+        {
+            this->send400();
+            return;
+        }
+        
+        //TODO: Routing starten
+        //this->send102();
+        
+        if ((routeType == "bicycle") || (routeType == "bike"))
+        {
+            boost::shared_ptr<RoutingMetric> metric;
+            boost::shared_ptr<Router> router;
+            boost::shared_ptr<DatabaseConnection> db;
+            //Routingmetrik festlegen anhand der Benutzerwahl
+            if (routeModifier == "euclidian")
+            {
+                metric.reset(new EuclidianRoutingMetric());
+            }
+            else if (routeModifier == "power")
+            {
+                //TODO: Gewicht etc aus der Anfrage herauslesen
+                metric.reset(new PowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider())));
+            }
+            else
+            {
+                std::cerr << "routeModifier \"" << routeModifier << "\" not supported." << std::endl;
+                this->send405();
+                return;
+            }
+            
+            //Datenbank ist die globale DB...
+            db = DatabaseConnection::getGlobalInstance();
+            
+            //Als Router nehmen wir erstmal Dijkstra.
+            router.reset(new DijkstraRouter(db, metric));
+            //TODO: Bei mehr als 2 Punkten richtig routen. atm werden Transitpunkte vernachlässigt.
+            //Start- und Endpunkt heraussuchen
+            GPSPosition startPosition = routePointList[0];
+            GPSPosition endPosition = routePointList.last();
+            
+            //Route berechnen
+            GPSRoute route = router->calculateShortestRoute(startPosition, endPosition);
+            //Keine Route gefunden? 404 senden.
+            if (route.isEmpty())
+            {
+                std::cerr << "no route found." << std::endl;
+                this->send404();
+                return;
+            }
+            
+            //Antwort entsprechend des Routentypen senden.
+            if (routeDataType == "gpx")
+                this->sendFile(route.exportGPXString());
+            else if (routeDataType == "js")
+                this->sendFile(route.exportJSONString());
+            else
+                std::cerr << "route datatype \"" << routeDataType  << 
+                    "\" not supported." << std::endl;
+            return;
+        }
+        else
+        {
+            std::cerr << "requested routeType=" << routeType << ", which is not supported." << std::endl;
+            this->send405();
+            return;
+        }
+        
+        return;
     }
 }
 
@@ -377,11 +560,39 @@ namespace biker_tests
     {
         std::cerr << "Testing Webserver..." << std::endl;
         
-        
+        BikerHttpRequestProcessor::publicHtmlDirectory = "./gui/";
         HttpServerThread<BikerHttpRequestProcessor> server(8081);
         server.startServer();
-        server.wait(10000);
+        //todo: aufs hochfahren warten toller lösen als so
         
-        return EXIT_FAILURE;
+        FileDownloader downloader;
+        QByteArray gui_html = downloader.downloadURL(QUrl("http://localhost:8081/files/gui.html"));
+        CHECK(gui_html.size()>0);
+        QByteArray marker_red_png = downloader.downloadURL(QUrl("http://localhost:8081/files/img/marker-red.png"));
+        CHECK(marker_red_png.size()>0);
+        QByteArray bad_request_404 = downloader.downloadURL(QUrl("http://localhost:8081/files/lalala"));
+        //QByteArray wird leer sein, wenn die Datei nicht heruntergeladen wurde
+        CHECK_EQ(bad_request_404.size(), 0);
+        
+        QRegExp cloudmadeApiKeyRegExp("/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
+        QRegExp cloudmadeApiPointListRegExp("/(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10})),(?:\\[(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))(?:,(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,10}),(\\d{1,3}.\\d{1,10}))");
+        QRegExp cloudmadeApiRouteTypeRegExp("/([a-zA-Z0-9]{1,64})(/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)");
+        
+        
+        //http://routes.cloudmade.com/8ee2a50541944fb9bcedded5165f09d9/api/0.3/51.22545,4.40730,%5B51.22,4.41,51.2,4.41%5D,51.23,4.42/car.js?lang=de&units=miles
+        //http://routes.cloudmade.com/8ee2a50541944fb9bcedded5165f09d9/api/0.3/47.25976,9.58423,47.26117,9.59882/bicycle.gpx
+        //http://routes.cloudmade.com/8ee2a50541944fb9bcedded5165f09d9/api/0.3/47.25976,9.58423,47.26117,9.59882/car/shortest.js
+        QString line = "http://routes.cloudmade.com/8ee2a50541944fb9bcedded5165f09d9/api/0.3/51.22545,4.40730,[51.22,4.41,51.2,4.41,51.22,4.41,51.2,4.41],51.23,4.42/car.js";
+        int i=0;
+        i=cloudmadeApiKeyRegExp.indexIn(line, i);
+        CHECK(i!=-1);
+        i=cloudmadeApiPointListRegExp.indexIn(line, i);
+        CHECK(i!=-1);
+        i=cloudmadeApiRouteTypeRegExp.indexIn(line, i);
+        CHECK(i!=-1);
+        
+        server.wait(100);
+        
+        return EXIT_SUCCESS;
     }
 }

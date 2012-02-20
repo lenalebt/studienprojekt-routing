@@ -4,6 +4,7 @@
 #include "gpsposition.hpp"
 #include "zip.hpp"
 #include "tests.hpp"
+#include "filedownloader.hpp"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -24,6 +25,84 @@
 #include <QFileInfo>
 
 #define SRTM_DATA_VOID -32768
+
+class SRTMTile
+{
+    public:
+        SRTMTile(int index): index(index), buffer(0), resolution(0), valid(false) {}
+        SRTMTile(int index, qint16 *buffer): index(index), buffer(buffer), resolution(0), valid(false) {}
+        SRTMTile(int index, qint16 *buffer, int resolution): index(index), buffer(buffer), resolution(resolution), valid(false) {}
+        SRTMTile(int index, qint16 *buffer, int resolution, bool valid): index(index), buffer(buffer), resolution(resolution), valid(valid) {}
+        ~SRTMTile();
+
+        void setIndex(const int index) {this->index = index;} //should be lat * 1000 + lon
+        int getIndex() const {return index;}
+
+        void setBuffer(qint16 *buffer) {this->buffer = buffer;}
+        qint16* getBuffer() {return buffer;}
+
+        void setResolution(const int resolution) {this->resolution = resolution;}
+        int getResolution() const {return resolution;}
+
+        void setValid(const bool valid) {this->valid = valid;}
+        bool getValid() const {return valid;}
+
+        /**
+         * @brief Versucht die Daten aus der angegeben Zipdatei unkomprimiert im <code>SRTMTile</code> abzulegen.
+         *
+         *
+         * @param fileName Der Dateiname (inkl. Pfad) der zu betrachtenden Zipdatei.
+         * @return Gibt <code>true</code> zurück, falls die Datei ins <code>SRTMTile</code> geladen werden konnte, sonst <code>false</code>.
+         */
+        bool fillTile(QString fileName);
+
+        /**
+         * @brief Holt die Höhe in Metern, für eine übergebene Koordinate.
+         *
+         *
+         * @param lat Der Breitengrad
+         * @param lon Der Längengrad
+         * @return Den Höhenwert an dieser Stelle
+         */
+        double getAltitudeFromLatLon(double lat, double lon);
+
+
+    private:
+
+        int index; //should be lat * 1000 + lon
+        qint16 *buffer;
+        int resolution;
+        bool valid;
+
+        /**
+         * @brief Holt aus den unter buffer abgelegten Daten den Höhenwert des übergebenen Pixels.
+         *
+         * Dabei wird der Pixel über seine beiden Koordinaten angegeben. Das
+         * verwendete Koordinatensystems startet in der oberen linken Ecke
+         * und wächst zur rechten unteren Ecke.
+         *
+         * @param x X-Wert (aus Nachkommastelle des Längengrads).
+         * @param y Y-Wert (aus Nachkommastelle das Breitengrads).
+         * @return Den Höhenwert an dieser Stelle
+         */
+        int getPixelValue(int x, int y);
+
+        /**
+         * @brief Ermittelt den gewichteten Durchschnitt von <code>a</code> und <code>b</code>.
+         *
+         * @param weight Die Gewichtung von <code>a</code> und <code>b</code>; ist <code>0</code>, falls nur <code>a</code> oder <code>1</code>, falls nur <code>b</code>.
+         * @param a
+         * @param b
+         * @return Der gewichtete Durchschnitt von <code>a</code> und <code>b</code>.
+         */
+        float avg(float a, float b, float weight){
+            if (a == SRTM_DATA_VOID) return b;
+            if (b == SRTM_DATA_VOID) return a;
+            return b*weight + a*(1-weight);
+        }
+};
+
+
 /**
  * @brief Ein AltitudeProvider kann für jeden Punkt auf der Erde einen
  *      Höhenwert zurückgeben.
@@ -87,49 +166,20 @@ class SRTMProvider : public AltitudeProvider
 private:
     
     QMap<int, QString> fileList;
-    bool valid;
-    int resolution;
-    int intlat;
-    int intlon;
     QString _cachedir;
     QString _srtmFileList;
     QUrl _url;
-    qint16 *buffer;
-    // QCache<int, SRTMTile> tileCache;
+    int index;
+    QCache<int, SRTMTile> tileCache;
     
     void loadFileList();
     void createFileList();
-    /**
-     * @brief Holt die Höhe in Metern, für eine übergebene Koordinate.
-     * 
-     * 
-     * @param lat Der Breitengrad
-     * @param lon Der Längengrad
-     * @return Den Höhenwert an dieser Stelle
-     */
-    double getAltitudeFromLatLon(double lat, double lon);
-    
-    /**
-     * @brief Holt aus den unter buffer abgelegten Daten den Höhenwert des übergebenen Pixels.
-     * 
-     * Dabei wird der Pixel über seine beiden Koordinaten angegeben. Das 
-     * verwendete Koordinatensystems startet in der oberen linken Ecke 
-     * und wächst zur rechten unteren Ecke.
-     * 
-     * @param x X-Wert (aus Nachkommastelle des Längengrads).
-     * @param y Y-Wert (aus Nachkommastelle das Breitengrads).
-     * @return Den Höhenwert an dieser Stelle
-     */
-    int getPixelValue(int x, int y);
+    bool fillTile(int index, SRTMTile **tile);
+    bool downloadZipFile(QString fileName, QFile &ZipFile);
+
     
     int latLonToIndex(int lat, int lon){ 
         return lat * 1000 + lon; 
-    }
-    
-    float avg(float a, float b, float weight){
-        if (a == SRTM_DATA_VOID) return b;
-        if (b == SRTM_DATA_VOID) return a;
-        return b*weight + a*(1-weight);
     }
     
 public:
@@ -158,91 +208,33 @@ public:
      * 
      * @param url URL als QUrl die aufgerufen werden soll
      * @param data QString in den der Inhalt der der NetworkReply gespeichert weden soll
-     * @return enum QNetworkReply::NetworkError (Ist NoError wenn kein Fehler aufgetreten ist.)
      */
     void downloadUrl(QUrl &url, QString &data);
+    /**
+     * @brief Läd Antwort für die übergebe URL in data.
+     *
+     *
+     * @param url URL als QUrl die aufgerufen werden soll
+     * @param data QByteArray in das der Inhalt der der NetworkReply gespeichert weden soll
+     */
     void downloadUrl(QUrl &dUrl, QByteArray &data);
     
-    SRTMProvider() : _cachedir(""), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/"), buffer(0)
+    SRTMProvider() : _cachedir(""), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/")
     {
         _cachedir = QDir::homePath() + "/.biker/srtm/";
     }
     
-    SRTMProvider(QString cachedir) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/"), buffer(0)  {}
+    SRTMProvider(QString cachedir) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/") {}
     
-    SRTMProvider(QUrl url) : _cachedir(""), _srtmFileList("srtmfile"), _url(url), buffer(0)  
+    SRTMProvider(QUrl url) : _cachedir(""), _srtmFileList("srtmfile"), _url(url)
     {
         _cachedir = QDir::homePath() + "/.biker/srtm/";
     }
     
-    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url(url), buffer(0)  {}
+    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url(url) {}
     
     ~SRTMProvider();
 };
-
-class FileDownloader: public QObject
-{
-private:
-public:
-    FileDownloader();
-    ~FileDownloader();
-    //void run();
-    QByteArray downloadURL(QUrl &url);
-    //QByteArray downloadURL(QUrl url, QNetworkReply::NetworkError *error); // vll TODO
-};
-
-
-//Klasse SRTMTile wird nun doch nicht verwendet
-/**
- * @brief 
- * 
- * 
- * 
- * @author Lena Brüder
- * @date 2011-11-28
- * @copyright GNU GPL v3
- * @todo Doxygen, Implementieren, Definieren, blablabla
- */
- /*
-class SRTMTile
-{
-private:
-    int _lat;
-    int _lon;
-    int _size;
-    
-    boost::uint16_t* _data;
-    
-    bool _valid;
-    QFile _file;
-    QDir _cacheDirectory;
-    */
-    /**
-     * @brief Lädt Daten aus der zip-Datei, die mit <code>file</code> bezeichnet ist
-            und speichert sie in <code>data</code>.
-     * 
-     * @todo implementieren
-     */
-    //void getData();
-    
-    /**
-     * @brief 
-     * 
-     * @return 
-     * @todo 
-     */
-    //void downloadData();
-    /*
-public:
-    double getAltitude(double lat, double lon);
-    
-    SRTMTile(double lat, double lon, QDir cacheDirectory) : _lat(lat), _lon(lon), _cacheDirectory(cacheDirectory)
-    {
-        
-    }
-};
-*/
-
 
 
 

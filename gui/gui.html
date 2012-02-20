@@ -5,13 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Biker - a bike route planner</title>
-    <link rel="stylesheet" href="../theme/default/style.css" type="text/css">
+    <link rel="stylesheet" href="openlayers/theme/default/style.css" type="text/css">
     <link rel="stylesheet" href="style.css" type="text/css">
 
-    <script src="http://openlayers.org/api/OpenLayers.js"></script>
-    <script src="http://www.openstreetmap.org/openlayers/OpenStreetMap.js"></script>
+    <!--<script src="openlayers/OpenLayers.js"></script>-->
+    <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
-        var map, layer;
+        var pointlist = [];
+        
+        OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
+                defaultHandlerOptions: {
+                    'single': true,
+                    'double': false,
+                    'pixelTolerance': 0,
+                    'stopSingle': false,
+                    'stopDouble': false
+                },
+
+                initialize: function(options) {
+                    this.handlerOptions = OpenLayers.Util.extend(
+                        {}, this.defaultHandlerOptions
+                    );
+                    OpenLayers.Control.prototype.initialize.apply(
+                        this, arguments
+                    ); 
+                    this.handler = new OpenLayers.Handler.Click(
+                        this, {
+                            'click': this.trigger
+                        }, this.handlerOptions
+                    );
+                }, 
+
+                trigger: function(e) {
+                    var lonlat = map.getLonLatFromViewPortPx(e.xy);
+                    lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
+                    pointlist.push(lonlat);
+                    calcRoute();
+                }
+
+            });
+        
+        var map, layer, gpxlayer;
         function init(){
             map = new OpenLayers.Map('map',
                 {controls:[new OpenLayers.Control.ArgParser,
@@ -27,8 +61,16 @@
                 numZoomLevels:20,
                 displayProjection:new OpenLayers.Projection("EPSG:4326")
                 });
-            var osm=new OpenLayers.Layer.OSM.Mapnik(
+            var osmdeutsch = new OpenLayers.Layer.OSM("OSM deutscher Stil", [
+               "http://a.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
+               "http://b.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
+               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],{attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>'});
+            map.addLayer(osmdeutsch);
+            var osm=new OpenLayers.Layer.OSM(
                 "OSM Mapnik",
+                ["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                 "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                 "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"],
                 {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a>",
                 keyid:"mapnik",
                 displayOutsideMaxExtent:true,
@@ -43,22 +85,41 @@
                  buffer:0}
                 );
             map.addLayer(oepnv);
-            var transport=new OpenLayers.Layer.OSM.TransportMap(
+            var transport=new OpenLayers.Layer.OSM(
                 "OSM Transport",
+                ["http://a.tile2.opencyclemap.org/transport/${z}/${x}/${y}.png",
+                 "http://b.tile2.opencyclemap.org/transport/${z}/${x}/${y}.png",
+                 "http://c.tile2.opencyclemap.org/transport/${z}/${x}/${y}.png"],
                 {attribution: "Tiles courtesy of <a href='http://www.opencyclemap.org/' target='_blank'>Andy Allan</a>",
                 keyid:"transportmap",
                 displayOutsideMaxExtent:!0,
                 wrapDateLine:true,
                 layerCode:"T"});
             map.addLayer(transport);
-            var cyclemap=new OpenLayers.Layer.OSM.CycleMap(
+            var cyclemap=new OpenLayers.Layer.OSM(
                 "OSM Radfahrerkarte",
+                ["http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
+                 "http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
+                 "http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png"],
                 {attribution:"Tiles courtesy of <a href='http://www.opencyclemap.org/' target='_blank'>Andy Allan</a>",
                 keyid:"cyclemap",
                 displayOutsideMaxExtent:true,
                 wrapDateLine:true,
                 layerCode:"C"});
             map.addLayer(cyclemap);
+            /*var mapquestaerial=new OpenLayers.Layer.OSM(
+                "Mapquest Aerial",
+                ["http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
+                "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
+                "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
+                "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png"],
+                {attribution:"Tiles courtesy of <a href='http://www.mapquest.com/' target='_blank'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>",
+                keyid:"mapquest",
+                displayOutsideMaxExtent:!0,
+                wrapDateLine:!0,
+                numZoomLevels:19,
+                layerCode:"Q"});
+            map.addLayer(mapquestaerial);*/   //MapQuest kann vielleicht benutzt werden. Rechte klären!
             /*var mapquest=new OpenLayers.Layer.OSM(
                 "Mapquest",
                 ["http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
@@ -112,7 +173,45 @@
                     new OpenLayers.Projection("EPSG:4326"),
                     map.getProjectionObject()
                 ), 11
-            );    
+            );
+            
+            gpxlayer = null;
+            
+            displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/euclidian.gpx");
+            //displayGPX("route.gpx");
+            
+            var click = new OpenLayers.Control.Click();
+            map.addControl(click);
+            click.activate();
+        }
+        
+        function displayGPX(gpxfile)
+        {
+            //alert("displaygpx");
+            if (gpxlayer != null)
+                map.removeLayer(gpxlayer);
+            // Add the Layer with the GPX Track
+			gpxlayer = new OpenLayers.Layer.GML("Route", gpxfile, {
+				format: OpenLayers.Format.GPX,
+				style: {strokeColor: "#0000FF", strokeWidth: 5, strokeOpacity: 0.5},
+				projection: new OpenLayers.Projection("EPSG:4326"),
+                displayInLayerSwitcher:false
+			});
+			map.addLayer(gpxlayer);
+        }
+        
+        function calcRoute()
+        {
+            //alert("pointlist has " + pointlist.length + " items");
+            var urlstart = "../1341253652/api/0.3/";
+            var urlend = "/bike/euclidian.gpx";
+            if (pointlist.length > 1)
+            {
+                //alert("call displaygpx");
+                var url = urlstart + pointlist[0].lat + "," + pointlist[0].lon + "," + pointlist[pointlist.length-1].lat + "," + pointlist[pointlist.length-1].lon + urlend;
+                //alert(url);
+                displayGPX(url);
+            }
         }
     </script>
   </head>
