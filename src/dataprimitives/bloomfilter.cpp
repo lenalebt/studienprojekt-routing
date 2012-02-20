@@ -40,3 +40,14 @@ template int hashElement(const boost::uint64_t& element, int size, int number);
 template class Bloomfilter<boost::uint64_t>;
 template int hashElement(const boost::int64_t& element, int size, int number);
 template class Bloomfilter<boost::int64_t>;
+
+namespace biker_tests
+{
+    /**
+     * @todo Bloomfiltertest ist noch leer
+     */
+    int testBloomfilter()
+    {
+        return EXIT_FAILURE;
+    }
+}

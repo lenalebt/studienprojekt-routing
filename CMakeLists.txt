@@ -326,6 +326,7 @@ ADD_EXECUTABLE(
 # veranlassen.
 ENABLE_TESTING()
 ADD_TEST(uint64_t2string                  "biker" "--test" "uint64_t2string")
+ADD_TEST(bloomfilter                      "biker" "--test" "bloomfilter")
 ADD_TEST(basename                         "biker" "--test" "basename")
 ADD_TEST(routingedge                      "biker" "--test" "routingedge")
 ADD_TEST(gpsposition                      "biker" "--test" "gpsposition")
