@@ -1,11 +1,12 @@
 #include "bloomfilter.hpp"
+#include <boost/cstdint.hpp>
 
 template<typename T>
 void Bloomfilter<T>::add(const T& element)
 {
     for (int i=0; i<_degree; i++)
     {
-        _bitarray[hashElement(element, i)] = true;
+        _bitarray[hashElement(element, _size, i)] = true;
     }
 }
 
@@ -14,7 +15,7 @@ bool Bloomfilter<T>::contains(const T& element)
 {
     for (int i=0; i<_degree; i++)
     {
-        if (!_bitarray[hashElement(element, i)])
+        if (!_bitarray[hashElement(element, _size, i)])
             return false;
     }
     return true;
@@ -30,6 +31,12 @@ Bloomfilter<T>::Bloomfilter(int size, int degree)
 template<typename T>
 int hashElement(const T& element, int size, int number)
 {
-    //TODO
-    return 0;
+    return (element + number) % size;
 }
+
+template int hashElement(const int& element, int size, int number);
+template class Bloomfilter<int>;
+template int hashElement(const boost::uint64_t& element, int size, int number);
+template class Bloomfilter<boost::uint64_t>;
+template int hashElement(const boost::int64_t& element, int size, int number);
+template class Bloomfilter<boost::int64_t>;
