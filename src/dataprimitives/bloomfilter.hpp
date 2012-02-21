@@ -33,14 +33,14 @@ class Bloomfilter
 {
 private:
     QBitArray _bitarray;
-    int _size;
+    boost::uint64_t _size;
     int _degree;
 public:
     /**
      * @brief Erstellt einen neuen Bloomfilter mit <code>size</code> bits
      *      Breite und <code>degree</code> bits in der Hashfunktion.
      */
-    Bloomfilter(int size, int degree);
+    Bloomfilter(boost::uint64_t size, int degree);
     /**
      * @brief Stellt fest, ob sich ein Element in dem Bloomfilter befindet.
      * 
@@ -55,12 +55,14 @@ public:
     bool contains(const T& element);
     /**
      * @brief Fügt ein Element zum Bloomfilter hinzu.
+     * 
+     * @return Ob eine Kollision beim Einfügen auftrat, oder nicht
      */
-    void add(const T& element);
+    bool add(const T& element);
 };
 
 template <typename T>
-int hashElement(const T& element, int size, int number);
+int hashElement(const T& element, boost::uint64_t size, int number);
 
 namespace biker_tests
 {

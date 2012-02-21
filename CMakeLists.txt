@@ -18,10 +18,14 @@ IF (CMAKE_BUILD_TYPE STREQUAL Debug)
     MESSAGE("CMAKE_BUILD_TYPE set to Debug.")
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
     MESSAGE("CMAKE_BUILD_TYPE set to Release.")
+    #für assert.h
+    ADD_DEFINITIONS(-DNDEBUG)
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Profiling)
     MESSAGE("CMAKE_BUILD_TYPE set to Profiling.")
     SET(CMAKE_CXX_FLAGS_PROFILING "-pg")
 #    SET(CMAKE_EXE_LINKER_FLAGS_PROFILING "-pg")
+    #für assert.h
+    ADD_DEFINITIONS(-DNDEBUG)
 ENDIF ()
 
 #Evtl muss man mal für die Compiler verschiedene Einstellungen machen: Wenn, dann hier.
@@ -84,6 +88,8 @@ SET(
     
     #src/dataprimitives
     src/dataprimitives/bloomfilter.cpp
+    src/dataprimitives/bintrie.cpp
+    src/dataprimitives/rangetree.cpp
     src/dataprimitives/gpsposition.cpp
     src/dataprimitives/gpsroute.cpp
     src/dataprimitives/routingedge.cpp
@@ -138,6 +144,8 @@ SET(
     
     #src/dataprimitives
     src/dataprimitives/bloomfilter.hpp
+    src/dataprimitives/bintrie.hpp
+    src/dataprimitives/rangetree.hpp
     src/dataprimitives/gpsposition.hpp
     src/dataprimitives/gpsroute.hpp
     src/dataprimitives/osmproperty.hpp
@@ -327,6 +335,8 @@ ADD_EXECUTABLE(
 ENABLE_TESTING()
 ADD_TEST(uint64_t2string                  "biker" "--test" "uint64_t2string")
 ADD_TEST(bloomfilter                      "biker" "--test" "bloomfilter")
+ADD_TEST(bintrie                          "biker" "--test" "bintrie")
+ADD_TEST(rangetree                        "biker" "--test" "rangetree")
 ADD_TEST(basename                         "biker" "--test" "basename")
 ADD_TEST(routingedge                      "biker" "--test" "routingedge")
 ADD_TEST(gpsposition                      "biker" "--test" "gpsposition")

@@ -34,6 +34,8 @@
 #include "sqlitedatabase.hpp"
 #include "filedownloader.hpp"
 #include "bloomfilter.hpp"
+#include "bintrie.hpp"
+#include "rangetree.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -251,6 +253,10 @@ namespace biker_tests
             return biker_tests::testMultithreadedAStarRouter();
         else if (testName == "bloomfilter")
             return biker_tests::testBloomfilter();
+        else if (testName == "bintrie")
+            return biker_tests::testBinTrie();
+        else if (testName == "rangetree")
+            return biker_tests::testRangeTree();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;
