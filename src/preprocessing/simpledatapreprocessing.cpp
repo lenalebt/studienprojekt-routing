@@ -77,7 +77,8 @@ bool SimpleDataPreprocessing::preprocess()
     _tmpDBConnection.beginTransaction();
     boost::uint64_t edgeID=0;
     //QSet<boost::uint64_t> nodeIDSet;
-    RangeTree<boost::uint64_t> nodeIDSet;
+    //RangeTree<boost::uint64_t> nodeIDSet;
+    AdvancedRangeTree<boost::uint64_t> nodeIDSet;
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
     {

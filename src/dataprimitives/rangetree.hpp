@@ -275,7 +275,7 @@ private:
     AdvancedRangeTree<T>* lTree;
     AdvancedRangeTree<T>* rTree;
     
-    AdvancedRangeTree<T>* cutLargestIfNecessary(T barrier)
+    AdvancedRangeTree<T>* cutLargestIfNecessary(const T& barrier)
     {
         if (rTree)
         {
@@ -283,6 +283,7 @@ private:
             if (returnTree == rTree)
             {
                 rTree = returnTree->lTree;
+                returnTree->lTree = 0;
             }
             return returnTree;
         }
@@ -296,7 +297,7 @@ private:
                 return 0;
         }
     }
-    AdvancedRangeTree<T>* cutSmallestIfNecessary(T barrier)
+    AdvancedRangeTree<T>* cutSmallestIfNecessary(const T& barrier)
     {
         if (lTree)
         {
@@ -304,6 +305,7 @@ private:
             if (returnTree == lTree)
             {
                 lTree = returnTree->rTree;
+                returnTree->rTree = 0;
             }
             return returnTree;
         }
@@ -320,13 +322,19 @@ private:
     
 public:
     AdvancedRangeTree(const AdvancedRangeTree<T>& other)
-        : lBound(other.lBound), uBound(other.uBound),
-            lTree(other.lTree), rTree(other.rTree)
+        : lBound(other.lBound), uBound(other.uBound)
     {
-        
+        if (other.lTree)
+            lTree = new AdvancedRangeTree<T>(*(other.lTree));
+        else
+            lTree = 0;
+        if (other.rTree)
+            rTree = new AdvancedRangeTree<T>(*(other.rTree));
+        else
+            rTree=0;
     }
     AdvancedRangeTree() :
-        lBound(1), uBound(-1), lTree(0), rTree(0)
+        lBound(2), uBound(1), lTree(0), rTree(0)
     {
         
     }
@@ -349,13 +357,18 @@ public:
         else if (lBound == element + 1)
         {
             lBound = element;
-            //TODO: Ausgleichen. Unterhalb.
+            //Ausgleichen.
             if (lTree)
             {
                 AdvancedRangeTree<T>* cuttedTree = lTree->cutLargestIfNecessary(element-1);
                 if (cuttedTree)
                 {   //hat was gefunden...
                     lBound = cuttedTree->lBound;
+                    if (cuttedTree == lTree)
+                    {
+                        lTree=cuttedTree->lTree;
+                        cuttedTree->lTree=0;
+                    }
                     delete cuttedTree;
                 }
             }
@@ -363,13 +376,18 @@ public:
         else if (uBound == element - 1)
         {
             uBound = element;
-            //TODO: Ausgleichen. Unterhalb.
+            //Ausgleichen.
             if (rTree)
             {
-                AdvancedRangeTree<T>* cuttedTree = rTree->cutSmallestIfNecessary(element-1);
+                AdvancedRangeTree<T>* cuttedTree = rTree->cutSmallestIfNecessary(element+1);
                 if (cuttedTree)
                 {   //hat was gefunden...
                     uBound = cuttedTree->uBound;
+                    if (cuttedTree == rTree)
+                    {
+                        rTree=cuttedTree->rTree;
+                        cuttedTree->rTree=0;
+                    }
                     delete cuttedTree;
                 }
             }
@@ -381,20 +399,46 @@ public:
                 if (!lTree)
                     lTree = new AdvancedRangeTree<T>();
                 lTree->insert(element);
-                //TODO: Ausgleichen.
+                
+                //Ausgleichen...
+                AdvancedRangeTree<T>* cuttedTree = lTree->cutLargestIfNecessary(element-1);
+                if (cuttedTree)
+                {   //hat was gefunden...
+                    lBound = cuttedTree->lBound;
+                    if (cuttedTree == lTree)
+                    {
+                        lTree=cuttedTree->lTree;
+                        cuttedTree->lTree=0;
+                    }
+                    delete cuttedTree;
+                }
             }
             else if (uBound < element)
             {   //Element rechts einfügen.
                 if (!rTree)
                     rTree = new AdvancedRangeTree<T>();
                 rTree->insert(element);
-                //TODO: Ausgleichen.
+                
+                //Ausgleichen...
+                AdvancedRangeTree<T>* cuttedTree = rTree->cutSmallestIfNecessary(element+1);
+                if (cuttedTree)
+                {   //hat was gefunden...
+                    uBound = cuttedTree->uBound;
+                    if (cuttedTree == rTree)
+                    {
+                        rTree=cuttedTree->rTree;
+                        cuttedTree->rTree=0;
+                    }
+                    delete cuttedTree;
+                }
             }
             else
             {   //Knoten ist schon drin. Prima, nix zu tun.
+                assert(this->contains(element));
                 return;
             }
         }
+        assert(this->contains(element));
     }
     
     bool contains(const T& element) const
@@ -438,6 +482,22 @@ public:
     
     template <typename U>
     friend std::ostream& operator<<(std::ostream& os, const AdvancedRangeTree<U>& tree);
+    
+    AdvancedRangeTree<T>& operator=(const AdvancedRangeTree<T>& other)
+    {
+        lBound = other.lBound;
+        uBound = other.uBound;
+        if (other.lTree)
+            lTree = new AdvancedRangeTree<T>(*(other.lTree));
+        else
+            lTree = 0;
+        if (other.rTree)
+            rTree = new AdvancedRangeTree<T>(*(other.rTree));
+        else
+            rTree=0;
+        
+        return *this;
+    }
 };
 
 template <typename T>

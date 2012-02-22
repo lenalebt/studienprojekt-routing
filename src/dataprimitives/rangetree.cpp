@@ -94,11 +94,17 @@ namespace biker_tests
     }
     int testAdvancedRangeTree()
     {
-        AdvancedRangeTree<int> tree;
+        AdvancedRangeTree<boost::uint64_t> tree;
         
+        std::cerr << tree << std::endl;
+        CHECK(!tree.contains(1));
+        CHECK(!tree.contains(2));
         CHECK(!tree.contains(5));
+        std::cerr << tree << std::endl;
         tree.insert(5);
+        std::cerr << tree << std::endl;
         CHECK(tree.contains(5));
+        std::cerr << tree << std::endl;
         tree.insert(5);
         std::cerr << tree << std::endl;
         CHECK(tree.contains(5));
@@ -148,28 +154,61 @@ namespace biker_tests
         CHECK(tree.contains(10));
         CHECK(tree.contains(3));
         CHECK(tree.contains(2));
+        tree.insert(500);
+        tree.insert(499);
+        tree.insert(498);
+        tree.insert(494);
+        tree.insert(496);
+        tree.insert(495);
+        tree.insert(497);
+        CHECK(tree.contains(496));
+        CHECK(!tree.contains(400));
+        CHECK(!tree.contains(501));
+        CHECK(!tree.contains(493));
         
         std::cerr << tree << std::endl;
         
-        AdvancedRangeTree<int> tree2;
+        /*AdvancedRangeTree<int> tree2;
         for (int i=0; i<5000000; i++)
             tree2.insert(i);
-        std::cerr << tree2 << std::endl;
+        std::cerr << tree2 << std::endl;*/
         
         AdvancedRangeTree<int> tree3;
+        AdvancedRangeTree<int> tree4;
         boost::minstd_rand generator(static_cast<unsigned int>(std::time(0)));
         typedef boost::variate_generator<boost::minstd_rand&, boost::uniform_int<> > gen_type;
-        gen_type dist(generator, boost::uniform_int<>(1, 20));
+        gen_type dist(generator, boost::uniform_int<>(1, 3000));
         
         QSet<int> set;
-        for (int i=0; i<50000; i++)
+        for (int i=0; i<5000; i++)
         {
-            std::cerr << tree3 << std::endl;
             int k = dist();
+            std::cerr << "insert " << k << std::endl;
+            tree4 = tree3;
             tree3.insert(k);
             set.insert(k);
+            for (QSet<int>::const_iterator it = set.constBegin(); it != set.constEnd(); it++)
+            {
+                if(!tree3.contains(*it))
+                {
+                    std::cerr << "ouch, did not contain " << *it << std::endl;
+                    std::cerr << tree4 << std::endl << std::endl << tree3 << std::endl;
+                    return EXIT_FAILURE;
+                }
+            }
         }
-        //std::cerr << tree3 << std::endl;
+        std::cerr << tree3 << std::endl;
+        for (QSet<int>::const_iterator it = set.constBegin(); it != set.constEnd(); it++)
+        {
+            if(!tree3.contains(*it))
+            {
+                std::cerr << "ouch, did not contain " << *it << std::endl;
+                tree3.insert(*it);
+                if(!tree3.contains(*it))
+                    std::cerr << "tried to reinsert, but failed." << std::endl;
+            }
+        }
+        std::cerr << tree3 << std::endl;
         std::cerr << "size for 50000 numbers: " << tree3.sizeInBytes()
             << " instead of " << set.size()*sizeof(int) << std::endl;
         return EXIT_FAILURE;
