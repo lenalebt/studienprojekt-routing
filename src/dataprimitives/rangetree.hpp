@@ -267,6 +267,119 @@ public:
 };
 
 template <typename T>
+class AdvancedRangeTree
+{
+private:
+    T lBound;
+    T uBound;
+    AdvancedRangeTree<T>* lTree;
+    AdvancedRangeTree<T>* rTree;
+    
+public:
+    AdvancedRangeTree(const AdvancedRangeTree<T>& other)
+        : lBound(other.lBound), uBound(other.uBound),
+            lTree(other.lTree), rTree(other.rTree)
+    {
+        
+    }
+    AdvancedRangeTree() :
+        lBound(1), uBound(-1), lTree(0), rTree(0)
+    {
+        
+    }
+    ~AdvancedRangeTree()
+    {
+        if (lTree)
+            delete lTree;
+        if (rTree)
+            delete rTree;
+    }
+    
+    void insert(const T& element)
+    {
+        //untere Grenze größer obere Grenze bedeutet: ungültiger Wert drin.
+        if (lBound > uBound)
+        {
+            lBound = element;
+            uBound = element;
+        }
+        else if (lBound == element + 1)
+        {
+            lBound = element;
+            //TODO: Ausgleichen.
+        }
+        else if (uBound == element - 1)
+        {
+            uBound = element;
+            //TODO: Ausgleichen
+        }
+        else //Neuen Unterknoten aufmachen, bzw an Kinder weiterleiten
+        {
+            if (element < lBound)
+            {   //Element links einfügen.
+                if (!lTree)
+                    lTree = new AdvancedRangeTree<T>();
+                lTree->insert(element);
+                //TODO: Ausgleichen.
+            }
+            else if (uBound < element)
+            {   //Element rechts einfügen.
+                if (!rTree)
+                    rTree = new AdvancedRangeTree<T>();
+                rTree->insert(element);
+                //TODO: Ausgleichen.
+            }
+            else
+            {   //Knoten ist schon drin. Prima, nix zu tun.
+                return;
+            }
+        }
+    }
+    
+    bool contains(const T& element) const
+    {
+        if (uBound < lBound)
+        {
+            return false;
+        }
+        else
+        {
+            if ((lBound <= element) && (element <= uBound))
+                return true;
+            else if (element < lBound)
+            {
+                if (lTree)
+                    return lTree->contains(element);
+                else
+                    return false;
+            }
+            else if (uBound < element)
+            {
+                if (rTree)
+                    return rTree->contains(element);
+                else
+                    return false;
+            }
+            else
+                return false;
+        }
+    }
+    
+    /*void remove(const T& element)
+    {
+        
+    }*/
+    
+    size_t sizeInBytes()
+    {
+        return (lTree!=0 ? lTree->sizeInBytes() : 0) + (rTree!=0 ? rTree->sizeInBytes() : 0) + sizeof(RangeTree);
+    }
+    
+    template <typename U>
+    friend std::ostream& operator<<(std::ostream& os, const RangeTree<U>& tree);
+};
+
+template <typename T>
 std::ostream& operator<<(std::ostream& os, const RangeTree<T>& tree)
 {
     if (tree.lBound == 0)
@@ -288,9 +401,31 @@ std::ostream& operator<<(std::ostream& os, const RangeTree<T>& tree)
     return os;
 }
 
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const AdvancedRangeTree<T>& tree)
+{
+    os << "(";
+    if (tree.lTree != 0)
+        os << *(tree.lTree);
+    else
+        os << " x ";
+    os << " [" << tree.lBound << "-" << tree.uBound << "] ";
+    if (tree.rTree != 0)
+        os << *(tree.rTree);
+    else
+        os << " x ";
+    os << ")";
+    else
+    {
+        
+    }
+    return os;
+}
+
 namespace biker_tests
 {
     int testRangeTree();
+    int testAdvancedRangeTree();
 }
 
 #endif //RANGETREE_HPP

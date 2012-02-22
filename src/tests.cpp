@@ -257,6 +257,8 @@ namespace biker_tests
             return biker_tests::testBinTrie();
         else if (testName == "rangetree")
             return biker_tests::testRangeTree();
+        else if (testName == "advancedrangetree")
+            return biker_tests::testAdvancedRangeTree();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;
