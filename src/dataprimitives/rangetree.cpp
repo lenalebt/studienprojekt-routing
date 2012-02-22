@@ -159,11 +159,12 @@ namespace biker_tests
         AdvancedRangeTree<int> tree3;
         boost::minstd_rand generator(static_cast<unsigned int>(std::time(0)));
         typedef boost::variate_generator<boost::minstd_rand&, boost::uniform_int<> > gen_type;
-        gen_type dist(generator, boost::uniform_int<>(1, 20000));
+        gen_type dist(generator, boost::uniform_int<>(1, 20));
         
         QSet<int> set;
         for (int i=0; i<50000; i++)
         {
+            std::cerr << tree3 << std::endl;
             int k = dist();
             tree3.insert(k);
             set.insert(k);

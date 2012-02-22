@@ -275,15 +275,14 @@ private:
     AdvancedRangeTree<T>* lTree;
     AdvancedRangeTree<T>* rTree;
     
-    AdvancedRangeTree<T>* cutLargestIfNecessary(const T& barrier)
+    AdvancedRangeTree<T>* cutLargestIfNecessary(T barrier)
     {
         if (rTree)
         {
             AdvancedRangeTree<T>* returnTree = rTree->cutLargestIfNecessary(barrier);
             if (returnTree == rTree)
             {
-                rTree = 0;
-                //TODO: Kinder hier noch anhängen.
+                rTree = returnTree->lTree;
             }
             return returnTree;
         }
@@ -293,17 +292,18 @@ private:
             {
                 return this;
             }
+            else
+                return 0;
         }
     }
-    AdvancedRangeTree<T>* cutSmallestIfNecessary(const T& barrier)
+    AdvancedRangeTree<T>* cutSmallestIfNecessary(T barrier)
     {
         if (lTree)
         {
             AdvancedRangeTree<T>* returnTree = lTree->cutSmallestIfNecessary(barrier);
             if (returnTree == lTree)
             {
-                lTree = 0;
-                //TODO: Kinder hier noch anhängen.
+                lTree = returnTree->rTree;
             }
             return returnTree;
         }
@@ -313,6 +313,8 @@ private:
             {
                 return this;
             }
+            else
+                return 0;
         }
     }
     
@@ -348,22 +350,28 @@ public:
         {
             lBound = element;
             //TODO: Ausgleichen. Unterhalb.
-            AdvancedRangeTree<T>* cuttedTree = lTree->cutLargestIfNecessary(element-1);
-            if (cuttedTree)
-            {   //hat was gefunden...
-                lBound = cuttedTree->lBound;
-                delete cuttedTree;
+            if (lTree)
+            {
+                AdvancedRangeTree<T>* cuttedTree = lTree->cutLargestIfNecessary(element-1);
+                if (cuttedTree)
+                {   //hat was gefunden...
+                    lBound = cuttedTree->lBound;
+                    delete cuttedTree;
+                }
             }
         }
         else if (uBound == element - 1)
         {
             uBound = element;
             //TODO: Ausgleichen. Unterhalb.
-            AdvancedRangeTree<T>* cuttedTree = rTree->cutSmallestIfNecessary(element-1);
-            if (cuttedTree)
-            {   //hat was gefunden...
-                uBound = cuttedTree->uBound;
-                delete cuttedTree;
+            if (rTree)
+            {
+                AdvancedRangeTree<T>* cuttedTree = rTree->cutSmallestIfNecessary(element-1);
+                if (cuttedTree)
+                {   //hat was gefunden...
+                    uBound = cuttedTree->uBound;
+                    delete cuttedTree;
+                }
             }
         }
         else //Neuen Unterknoten aufmachen, bzw an Kinder weiterleiten
