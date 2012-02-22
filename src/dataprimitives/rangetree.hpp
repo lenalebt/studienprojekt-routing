@@ -252,10 +252,10 @@ public:
         }
     }
     
-    void remove(const T& element)
+    /*void remove(const T& element)
     {
         
-    }
+    }*/
     
     size_t sizeInBytes()
     {
