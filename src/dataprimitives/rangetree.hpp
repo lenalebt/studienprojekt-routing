@@ -275,6 +275,47 @@ private:
     AdvancedRangeTree<T>* lTree;
     AdvancedRangeTree<T>* rTree;
     
+    AdvancedRangeTree<T>* cutLargestIfNecessary(const T& barrier)
+    {
+        if (rTree)
+        {
+            AdvancedRangeTree<T>* returnTree = rTree->cutLargestIfNecessary(barrier);
+            if (returnTree == rTree)
+            {
+                rTree = 0;
+                //TODO: Kinder hier noch anhängen.
+            }
+            return returnTree;
+        }
+        else
+        {
+            if (barrier == uBound)
+            {
+                return this;
+            }
+        }
+    }
+    AdvancedRangeTree<T>* cutSmallestIfNecessary(const T& barrier)
+    {
+        if (lTree)
+        {
+            AdvancedRangeTree<T>* returnTree = lTree->cutSmallestIfNecessary(barrier);
+            if (returnTree == lTree)
+            {
+                lTree = 0;
+                //TODO: Kinder hier noch anhängen.
+            }
+            return returnTree;
+        }
+        else
+        {
+            if (barrier == lBound)
+            {
+                return this;
+            }
+        }
+    }
+    
 public:
     AdvancedRangeTree(const AdvancedRangeTree<T>& other)
         : lBound(other.lBound), uBound(other.uBound),
@@ -306,12 +347,24 @@ public:
         else if (lBound == element + 1)
         {
             lBound = element;
-            //TODO: Ausgleichen.
+            //TODO: Ausgleichen. Unterhalb.
+            AdvancedRangeTree<T>* cuttedTree = lTree->cutLargestIfNecessary(element-1);
+            if (cuttedTree)
+            {   //hat was gefunden...
+                lBound = cuttedTree->lBound;
+                delete cuttedTree;
+            }
         }
         else if (uBound == element - 1)
         {
             uBound = element;
-            //TODO: Ausgleichen
+            //TODO: Ausgleichen. Unterhalb.
+            AdvancedRangeTree<T>* cuttedTree = rTree->cutSmallestIfNecessary(element-1);
+            if (cuttedTree)
+            {   //hat was gefunden...
+                uBound = cuttedTree->uBound;
+                delete cuttedTree;
+            }
         }
         else //Neuen Unterknoten aufmachen, bzw an Kinder weiterleiten
         {
@@ -372,11 +425,11 @@ public:
     
     size_t sizeInBytes()
     {
-        return (lTree!=0 ? lTree->sizeInBytes() : 0) + (rTree!=0 ? rTree->sizeInBytes() : 0) + sizeof(RangeTree);
+        return (lTree!=0 ? lTree->sizeInBytes() : 0) + (rTree!=0 ? rTree->sizeInBytes() : 0) + sizeof(AdvancedRangeTree);
     }
     
     template <typename U>
-    friend std::ostream& operator<<(std::ostream& os, const RangeTree<U>& tree);
+    friend std::ostream& operator<<(std::ostream& os, const AdvancedRangeTree<U>& tree);
 };
 
 template <typename T>
@@ -409,16 +462,14 @@ std::ostream& operator<<(std::ostream& os, const AdvancedRangeTree<T>& tree)
         os << *(tree.lTree);
     else
         os << " x ";
+    
     os << " [" << tree.lBound << "-" << tree.uBound << "] ";
+    
     if (tree.rTree != 0)
         os << *(tree.rTree);
     else
         os << " x ";
     os << ")";
-    else
-    {
-        
-    }
     return os;
 }
 
