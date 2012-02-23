@@ -45,6 +45,11 @@ QString GPSRoute::exportGPXString()
         wptPoint = doc.createElement("wpt");
         wptPoint.setAttribute("lat", locale.toString(route[i].getLat(), 'f', 9));
         wptPoint.setAttribute("lon", locale.toString(route[i].getLon(), 'f', 9));
+        //TODO: Höhe vom Provider holen.
+        QDomElement elevation = doc.createElement("ele");
+        QDomText elevationText = doc.createTextNode(locale.toString(0.0, 'f', 6));
+        elevation.appendChild(elevationText);
+        wptPoint.appendChild(elevation);
         root.appendChild(wptPoint);
     }
     //Routepunkte einfügen
@@ -64,6 +69,11 @@ QString GPSRoute::exportGPXString()
         QDomText distanceElementText = doc.createTextNode(locale.toString(route[i].calcDistance(help), 'f', 9));
         distance.appendChild(distanceElementText);
         extensions.appendChild(distance);
+        //TODO: Höhe vom Provider holen.
+        QDomElement elevation = doc.createElement("ele");
+        QDomText elevationText = doc.createTextNode(locale.toString(0.0, 'f', 6));
+        elevation.appendChild(elevationText);
+        rtePoint.appendChild(elevation);
         // AUSKOMMENTIERT: eventuel zur späteren Verwendung 
         //QDomElement time = doc.createElement("time");
         //extensions.appendChild(time);
