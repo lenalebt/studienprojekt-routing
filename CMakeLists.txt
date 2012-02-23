@@ -88,7 +88,6 @@ SET(
     
     #src/dataprimitives
     src/dataprimitives/bloomfilter.cpp
-    src/dataprimitives/bintrie.cpp
     src/dataprimitives/rangetree.cpp
     src/dataprimitives/gpsposition.cpp
     src/dataprimitives/gpsroute.cpp
@@ -144,7 +143,6 @@ SET(
     
     #src/dataprimitives
     src/dataprimitives/bloomfilter.hpp
-    src/dataprimitives/bintrie.hpp
     src/dataprimitives/rangetree.hpp
     src/dataprimitives/gpsposition.hpp
     src/dataprimitives/gpsroute.hpp
@@ -335,7 +333,6 @@ ADD_EXECUTABLE(
 ENABLE_TESTING()
 ADD_TEST(uint64_t2string                  "biker" "--test" "uint64_t2string")
 ADD_TEST(bloomfilter                      "biker" "--test" "bloomfilter")
-ADD_TEST(bintrie                          "biker" "--test" "bintrie")
 ADD_TEST(advancedrangetree                "biker" "--test" "advancedrangetree")
 ADD_TEST(rangetree                        "biker" "--test" "rangetree")
 ADD_TEST(basename                         "biker" "--test" "basename")
