@@ -9,7 +9,7 @@
 
 
 
-QString GPSRoute::exportGPXString()
+QString GPSRoute::exportGPXString(boost::shared_ptr<AltitudeProvider> provider)
 {
     GPSRoute route = *this;
     QDomDocument doc;
@@ -47,7 +47,7 @@ QString GPSRoute::exportGPXString()
         wptPoint.setAttribute("lon", locale.toString(route[i].getLon(), 'f', 9));
         //TODO: Höhe vom Provider holen.
         QDomElement elevation = doc.createElement("ele");
-        QDomText elevationText = doc.createTextNode(locale.toString(0.0, 'f', 6));
+        QDomText elevationText = doc.createTextNode(locale.toString(provider->getAltitude(route[i]), 'f', 6));
         elevation.appendChild(elevationText);
         wptPoint.appendChild(elevation);
         root.appendChild(wptPoint);
@@ -71,7 +71,7 @@ QString GPSRoute::exportGPXString()
         extensions.appendChild(distance);
         //TODO: Höhe vom Provider holen.
         QDomElement elevation = doc.createElement("ele");
-        QDomText elevationText = doc.createTextNode(locale.toString(0.0, 'f', 6));
+        QDomText elevationText = doc.createTextNode(locale.toString(provider->getAltitude(route[i]), 'f', 6));
         elevation.appendChild(elevationText);
         rtePoint.appendChild(elevation);
         // AUSKOMMENTIERT: eventuel zur späteren Verwendung 
@@ -87,7 +87,7 @@ QString GPSRoute::exportGPXString()
     return text;
 }
 
-void GPSRoute::exportGPX(QString filename)
+void GPSRoute::exportGPX(QString filename, boost::shared_ptr<AltitudeProvider> provider)
 {
     // Text-String erstellen
     QString text = this->exportGPXString();
