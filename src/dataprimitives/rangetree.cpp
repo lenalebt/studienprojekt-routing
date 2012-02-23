@@ -90,7 +90,7 @@ namespace biker_tests
         //std::cerr << tree3 << std::endl;
         std::cerr << "size for 50000 numbers: " << tree3.sizeInBytes()
             << " instead of " << set.size()*sizeof(int) << std::endl;
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
     int testAdvancedRangeTree()
     {
@@ -206,11 +206,12 @@ namespace biker_tests
                 tree3.insert(*it);
                 if(!tree3.contains(*it))
                     std::cerr << "tried to reinsert, but failed." << std::endl;
+                return EXIT_FAILURE;
             }
         }
         std::cerr << tree3 << std::endl;
         std::cerr << "size for 50000 numbers: " << tree3.sizeInBytes()
             << " instead of " << set.size()*sizeof(int) << std::endl;
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
 }

@@ -73,14 +73,20 @@ namespace biker_tests
         int collisions=0;
         for (int i=0; i<50000; i++)
         {
-            if (filter.add(dist()))
+            int k = dist();
+            if (filter.add(k))
             {
                 std::cerr << i << ", ";
                 collisions++;
             }
+            if (!filter.contains(k))
+            {
+                std::cerr << "failed while trying to insert " << k << std::endl;
+                return EXIT_FAILURE;
+            }
         }
         std::cerr << std::endl << collisions << " collisions." << std::endl;
         
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
 }
