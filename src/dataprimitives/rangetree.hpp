@@ -4,6 +4,19 @@
 #include <assert.h>
 #include <iostream>
 
+/**
+ * @brief Diese Klasse implementiert einen binären Suchbaum, der Bereiche von Zahlen speichert.
+ * 
+ * 
+ * 
+ * @see AdvancedRangeTree
+ * @ingroup name
+ * @author Lena Brueder
+ * @date 2012-02-23
+ * @copyright GNU GPL v3
+ * @ingroup dataprimitives
+ * @todo Doxygen!
+ */
 template <typename T>
 class RangeTree
 {
@@ -266,6 +279,21 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const RangeTree<U>& tree);
 };
 
+
+/**
+ * @brief Diese Klasse implementiert einen binären Suchbaum, der Bereiche von Zahlen speichert.
+ *      Dabei ist diese Version schneller als die andere, und verbraucht weniger Speicher.
+ * 
+ * 
+ * 
+ * @see RangeTree
+ * @ingroup name
+ * @author Lena Brueder
+ * @date 2012-02-23
+ * @copyright GNU GPL v3
+ * @ingroup dataprimitives
+ * @todo Doxygen!
+ */
 template <typename T>
 class AdvancedRangeTree
 {

@@ -27,6 +27,7 @@
  * @author Lena Brüder
  * @date 2012-02-20
  * @copyright GNU GPL v3
+ * @ingroup dataprimitives
  */
 template<typename T>
 class Bloomfilter
