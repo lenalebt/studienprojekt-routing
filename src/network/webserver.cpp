@@ -581,7 +581,7 @@ void BikerHttpRequestProcessor::processRequest()
             
             //Antwort entsprechend des Routentypen senden.
             if (routeDataType == "gpx")
-                this->sendFile(route.exportGPXString());
+                this->sendFile(route.exportGPXString(altitudeProvider));
             else if (routeDataType == "js")
                 this->sendFile(route.exportJSONString());
             else
