@@ -15,7 +15,13 @@
         var markerlist = [];
         var iconSize = new OpenLayers.Size(20, 20);
         var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
-        var marker = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
+        var markerRed = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
+        var markerBlue = new OpenLayers.Icon("img/marker-blue.png", iconSize, iconOffset);
+        var markerCyan = new OpenLayers.Icon("img/marker-cyan.png", iconSize, iconOffset);
+        var markerGreen = new OpenLayers.Icon("img/marker-green.png", iconSize, iconOffset);
+        var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
+        var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
+        var iconlist = [markerGreen, markerCyan, markerBlue, markerPurple, markerRed, markerYellow];
         var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
@@ -174,7 +180,7 @@
                     new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
                     map.getProjectionObject() // to Spherical Mercator Projection
                   );
-            markers.addMarker(new OpenLayers.Marker(lonLat, marker));
+            //markers.addMarker(new OpenLayers.Marker(lonLat, markerCyan));
             
             map.setCenter(
                 new OpenLayers.LonLat(7.2662, 51.447).transform(
@@ -206,17 +212,24 @@
                 displayInLayerSwitcher:false
 			});
 			map.addLayer(gpxlayer);
-            //map.removeLayer(markers);
-            //markers = new OpenLayers.Layer.Markers( "Markers" );
             {
+                var iconindex;
+                var help = 0.0;
                 for(var index = 0; index < markerlist.length; index ++)
                 {
-                    //var help = new OpenLayers.Marker(markerlist[index].lat, markerlist[index].lon, marker.clone());
-                    markers.addMarker(new OpenLayers.Marker(markerlist[index], marker.clone()));
-                    //markers.addMarker(new OpenLayers.Marker(pointlist[index].lat, pointlist[index].lon, marker.clone()));
+                    iconindex = index % iconlist.length;
+                    help = index / iconlist.length;
+                    if(help < 1.0)
+                    {
+                        markers.addMarker(new OpenLayers.Marker(markerlist[index], iconlist[iconindex]));
+                    }
+                    else
+                    {
+                        markers.addMarker(new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone()));
+                    }
+                    //alert(iconindex);
                     //alert(index);
                     //alert(pointlist[index]);
-                    //alert(pointlist[index].lat + ", " + pointlist[index].lon);
                     //alert(help.isDrawn());
                 }
             }
