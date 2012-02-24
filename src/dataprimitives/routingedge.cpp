@@ -1,136 +1,137 @@
 #include "routingedge.hpp"
 
-
-bool RoutingEdge::hasTrafficLights() const
-{
-    return _properties.trafficLights;
-}
-
-
-bool RoutingEdge::hasTrafficCalmingBumps() const
-{
-    return _properties.trafficCalmingBumps;
-}
+// Die folgenden, auskommentierten Funktionen werden alle schon in der routingedge.hpp definiert.
+//bool RoutingEdge::hasTrafficLights() const
+//{
+//    return _properties.trafficLights;
+//}
 
 
-bool RoutingEdge::hasStopSign() const
-{
-    return _properties.stopSign;
-}
+//bool RoutingEdge::hasTrafficCalmingBumps() const
+//{
+//    return _properties.trafficCalmingBumps;
+//}
 
 
-bool RoutingEdge::hasStairs() const
-{
-    return _properties.stairs;
-}
+//bool RoutingEdge::hasStopSign() const
+//{
+//    return _properties.stopSign;
+//}
 
 
-bool RoutingEdge::hasCycleBarrier() const
-{
-    return _properties.cycleBarrier;
-}
+//bool RoutingEdge::hasStairs() const
+//{
+//    return _properties.stairs;
+//}
 
 
-bool RoutingEdge::isCyclewayDesignated() const
-{
-    return _properties.isDesignated;
-}
+//bool RoutingEdge::hasCycleBarrier() const
+//{
+//    return _properties.cycleBarrier;
+//}
 
 
-void RoutingEdge::setTrafficLights(const bool value)
-{
-    _properties.trafficLights = value;
-}
+//bool RoutingEdge::isCyclewayDesignated() const
+//{
+//    return _properties.isDesignated;
+//}
 
 
-void RoutingEdge::setTrafficCalmingBumps(const bool value)
-{
-    _properties.trafficCalmingBumps = value;
-}
+//void RoutingEdge::setTrafficLights(const bool value)
+//{
+//    _properties.trafficLights = value;
+//}
 
 
-void RoutingEdge::setStopSign(const bool value)
-{
-    _properties.stopSign = value;
-}
+//void RoutingEdge::setTrafficCalmingBumps(const bool value)
+//{
+//    _properties.trafficCalmingBumps = value;
+//}
 
 
-void RoutingEdge::setStairs(const bool value)
-{
-    _properties.stairs = value;
-}
+//void RoutingEdge::setStopSign(const bool value)
+//{
+//    _properties.stopSign = value;
+//}
 
 
-void RoutingEdge::setCycleBarrier(const bool value)
-{
-    _properties.cycleBarrier = value;
-}
+//void RoutingEdge::setStairs(const bool value)
+//{
+//    _properties.stairs = value;
+//}
 
 
-void RoutingEdge::setCyclewayDesignated(const bool value)
-{
-    _properties.isDesignated = value;
-}
+//void RoutingEdge::setCycleBarrier(const bool value)
+//{
+//    _properties.cycleBarrier = value;
+//}
 
 
-boost::uint8_t RoutingEdge::getStreetType() const
-{
-    return _properties.streetType;
-}
+//void RoutingEdge::setCyclewayDesignated(const bool value)
+//{
+//    _properties.isDesignated = value;
+//}
 
 
-boost::uint8_t RoutingEdge::getCyclewayType() const
-{
-    return _properties.cyclewayType;
-}
+//boost::uint8_t RoutingEdge::getStreetType() const
+//{
+//    return _properties.streetType;
+//}
 
 
-boost::uint8_t RoutingEdge::getStreetSurfaceType() const
-{
-    return _properties.streetSurfaceType;
-}
+//boost::uint8_t RoutingEdge::getCyclewayType() const
+//{
+//    return _properties.cyclewayType;
+//}
 
 
-boost::uint8_t RoutingEdge::getStreetSurfaceQuality() const
-{
-    return _properties.streetSurfaceQuality;
-}
+//boost::uint8_t RoutingEdge::getStreetSurfaceType() const
+//{
+//    return _properties.streetSurfaceType;
+//}
 
 
-boost::uint8_t RoutingEdge::getTurnType() const
-{
-    return _properties.turnType;
-}
+//boost::uint8_t RoutingEdge::getStreetSurfaceQuality() const
+//{
+//    return _properties.streetSurfaceQuality;
+//}
 
 
-void RoutingEdge::setStreetType(const boost::uint8_t streetType)
-{
-    _properties.streetType = streetType;
-}
+//boost::uint8_t RoutingEdge::getTurnType() const
+//{
+//    return _properties.turnType;
+//}
 
 
-void RoutingEdge::setCyclewayType(const boost::uint8_t cyclewayType)
-{
-    _properties.cyclewayType = cyclewayType;
-}
+//void RoutingEdge::setStreetType(const boost::uint8_t streetType)
+//{
+//    _properties.streetType = streetType;
+//}
 
 
-void RoutingEdge::setStreetSurfaceType(const boost::uint8_t streetSurfaceType)
-{
-    _properties.streetSurfaceType = streetSurfaceType;
-}
+//void RoutingEdge::setCyclewayType(const boost::uint8_t cyclewayType)
+//{
+//    _properties.cyclewayType = cyclewayType;
+//}
 
 
-void RoutingEdge::setStreetSurfaceQuality(const boost::uint8_t streetSurfaceQuality)
-{
-    _properties.streetSurfaceQuality = streetSurfaceQuality;
-}
+//void RoutingEdge::setStreetSurfaceType(const boost::uint8_t streetSurfaceType)
+//{
+//    _properties.streetSurfaceType = streetSurfaceType;
+//}
 
 
-void RoutingEdge::setTurnType(const boost::uint8_t turnType)
-{
-    _properties.turnType = turnType;
-}
+//void RoutingEdge::setStreetSurfaceQuality(const boost::uint8_t streetSurfaceQuality)
+//{
+//    _properties.streetSurfaceQuality = streetSurfaceQuality;
+//}
+
+
+//void RoutingEdge::setTurnType(const boost::uint8_t turnType)
+//{
+//    _properties.turnType = turnType;
+//}
+// Die obigen, auskommentierten Funktionen werden alle schon in der routingedge.hpp definiert.
 
 
 boost::uint64_t RoutingEdge::getProperties() const

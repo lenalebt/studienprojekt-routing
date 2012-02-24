@@ -6,18 +6,18 @@
 #include "tests.hpp"
 
 
-#define STREETTYPE_HIGHWAY_PEDESTRIAN             11
-#define STREETTYPE_HIGHWAY_PRIMARY              0
-#define STREETTYPE_HIGHWAY_SECONDARY            1
-#define STREETTYPE_HIGHWAY_TERTIARY             2
-#define STREETTYPE_HIGHWAY_TRACK                3
-#define STREETTYPE_HIGHWAY_PATH                 4
-#define STREETTYPE_HIGHWAY_CYCLEWAY             5
-#define STREETTYPE_HIGHWAY_FOOTWAY              6
-#define STREETTYPE_HIGHWAY_LIVINGSTREET         7
-#define STREETTYPE_HIGHWAY_RESIDENTIAL          8
-#define STREETTYPE_HIGHWAY_PEDESTRIAN           10
-#define STREETTYPE_HIGHWAY_SERVICE              11
+#define STREETTYPE_HIGHWAY_PEDESTRIAN           0
+#define STREETTYPE_HIGHWAY_PRIMARY              1
+#define STREETTYPE_HIGHWAY_SECONDARY            2
+#define STREETTYPE_HIGHWAY_TERTIARY             3
+#define STREETTYPE_HIGHWAY_TRACK                4
+#define STREETTYPE_HIGHWAY_PATH                 5
+#define STREETTYPE_HIGHWAY_LIVINGSTREET         6
+#define STREETTYPE_HIGHWAY_RESIDENTIAL          7
+#define STREETTYPE_HIGHWAY_SERVICE              8
+#define STREETTYPE_HIGHWAY_FORD                 9
+#define STREETTYPE_HIGHWAY_JUNCTION             10
+//#define STREETTYPE_HIGHWAY_                     11
 #define STREETTYPE_UNKNOWN                      (1<<BITLENGTH_STREETTYPE)-1 //last bit, highest possible value
 
 
@@ -221,12 +221,12 @@ public:
      * @brief Gibt an, ob an der entsprechenden Kante ein Umlaufgitter o.Ä. vorhanden ist
      * @return Ob ein Umlaufgitter vorhanden ist
      */
-    bool hasCycleBarrier() const;
+    bool hasCycleBarrier() const {return _properties.cycleBarrier;};
     /**
      * @brief Gibt an, ob die Nutzung eines vorhandenen Fahradweges verpflichtend ist.
      * @return Ob vorhandener Fahrredweg genutzt werden MUSS.
      */
-    bool isCyclewayDesignated() const;
+    bool isCyclewayDesignated() const {return _properties.isDesignated;}
     
     /**
      * @brief Legt fest, ob an der entsprechenden Kante eine Ampel ist oder nicht.
@@ -255,13 +255,14 @@ public:
     /**
      * @brief Legt fest, ob an der entsprechenden Kante Umlaufgitter sind oder nicht.
      * @param value 
-     */void setCycleBarrier(const bool value);
+     */
+    void setCycleBarrier(const bool value) {_properties.cycleBarrier = value;}
 
     /**
      * @brief Legt fest, ob die Nutzung eines vorhandenen Fahrradweges verpflichtend ist oder nicht.
      * @param value
      */
-    void setCyclewayDesignated(const bool value);
+    void setCyclewayDesignated(const bool value) {_properties.isDesignated = value;}
     
     /**
      * @brief Gibt den Typ der Straße an der Kante an.

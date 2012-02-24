@@ -68,7 +68,7 @@ void DataPreprocessing::saveNodeToTmpDatabase()
     std::cerr << "Parsing Nodes..." << std::endl;
     _finalDBConnection->beginTransaction();
     //_tmpDBConnection.beginTransaction();
-    int nodeCount=0;
+    //int nodeCount=0;
     while(_nodeQueue.dequeue(_osmNode))
     {
         if(/*_tmpDBConnection.saveOSMNode(*_osmNode) == */true)
@@ -222,7 +222,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             }
         }
 
-        else if(osmKey == "surface" || osmKey.contains("tracktype"){
+        else if(osmKey == "surface" || osmKey.contains("tracktype")){
             if(osmValue == "paved" || osmValue == "grade:1"){
                 streetSurfaceType = STREETSURFACETYPE_PAVED;
             }
@@ -238,7 +238,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             else if(osmValue == "tartarn"){
                     streetSurfaceType = STREETSURFACETYPE_TARTAN;
             }
-            else if(osmValue.contains("concrete"){
+            else if(osmValue.contains("concrete")){
                     streetSurfaceType = STREETSURFACETYPE_CONCRETE;
             }
             else if(osmValue == "cobblestone"){
