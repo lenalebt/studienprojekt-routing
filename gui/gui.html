@@ -12,6 +12,7 @@
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
         var pointlist = [];
+        var markerlist = [];
         var iconSize = new OpenLayers.Size(20, 20);
         var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
         var marker = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
@@ -43,6 +44,8 @@
                     var lonlat = map.getLonLatFromViewPortPx(e.xy);
                     lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
                     pointlist[pointlist.length] = lonlat;
+                    var lonlatSimple = map.getLonLatFromViewPortPx(e.xy);
+                    markerlist[markerlist.length] = lonlatSimple;
                     calcRoute();
                 }
 
@@ -206,10 +209,10 @@
             //map.removeLayer(markers);
             //markers = new OpenLayers.Layer.Markers( "Markers" );
             {
-                for(var index = 0; index < pointlist.length; index ++)
+                for(var index = 0; index < markerlist.length; index ++)
                 {
-                    var help = new OpenLayers.Marker(pointlist[index].lat, pointlist[index].lon, marker.clone());
-                    markers.addMarker(new OpenLayers.Marker(pointlist[index], marker.clone()));
+                    //var help = new OpenLayers.Marker(markerlist[index].lat, markerlist[index].lon, marker.clone());
+                    markers.addMarker(new OpenLayers.Marker(markerlist[index], marker.clone()));
                     //markers.addMarker(new OpenLayers.Marker(pointlist[index].lat, pointlist[index].lon, marker.clone()));
                     //alert(index);
                     //alert(pointlist[index]);
