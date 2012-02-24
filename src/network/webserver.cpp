@@ -465,18 +465,12 @@ void BikerHttpRequestProcessor::processRequest()
             cloudmadeApiPointListExtractor.indexIn(cloudmadeApiPointListRegExp.cap(0));
             QString strLat, strLon;
             routePointList.clear();
-            std::cerr << cloudmadeApiPointListExtractor.cap(0) << std::endl
-                << "capturecount: " << cloudmadeApiPointListExtractor.captureCount()
-                << std::endl;
             for (int pos=0; pos>=0; pos=cloudmadeApiPointListExtractor.indexIn(cloudmadeApiPointListRegExp.cap(0), cloudmadeApiPointListExtractor.cap(0).length()+pos))
             {
                 strLat = cloudmadeApiPointListExtractor.cap(1);
                 strLon = cloudmadeApiPointListExtractor.cap(2);
                 GPSPosition point(strLat.toDouble(), strLon.toDouble());
-                //Workaround für (0/0)-Punkte. Warum ist das so?
-                std::cerr << "point: " << point << std::endl;
-                if (point.isInitialized())
-                    routePointList << point;
+                routePointList << point;
             }
             
             position += cloudmadeApiPointListRegExp.cap(0).length();
