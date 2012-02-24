@@ -183,6 +183,8 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     bool isForward = osmEdge.getForward();
     bool isArea = false;
     bool isHighway = false;
+    bool isOfficial = false;
+    bool hasDesignation = false;
 
 
     QVector<OSMProperty> properties = osmEdge.getProperties();
@@ -191,11 +193,51 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
         QString osmKey = it->getKey();
         QString osmValue = it->getValue();
 
-        //TODO Keys to check: access = no; ahhhhh und so viel mehr!!!
+        //DONE:
+        // Key: smoothness, surface, tracktype(only grade1)
+        //TODO:
+        // mtb:scale, highway, stop, traffic_signal, cycleway, oneway, bicycle
 
         if(osmValue == "impassalbe"){
             streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
             break; //if the edge can't be passed by bike, there ist no need for further categorization
+        }
+
+        else if(osmKey == "access"){
+            if(osmValue == "no"){
+                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+                break; //if the edge can't be passed by bike, there ist no need for further categorization
+            }
+            if(osmValue == "private"){
+                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+                break; //if the edge can't be passed by bike, there ist no need for further categorization
+            }
+            if(osmValue == "delivery"){
+                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+                break; //if the edge can't be passed by bike, there ist no need for further categorization
+            }
+            if(osmValue == "destination"){
+                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+                break; //if the edge can't be passed by bike, there ist no need for further categorization
+            }
+            if(osmValue == "customer"){
+                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+                break; //if the edge can't be passed by bike, there ist no need for further categorization
+            }
+            if(osmValue == "agricultural"){
+                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+                break; //if the edge can't be passed by bike, there ist no need for further categorization
+            }
+            if(osmValue == "forestry"){
+                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+                break; //if the edge can't be passed by bike, there ist no need for further categorization
+            }
+            if(osmValue == "designated"){
+                hasDesignation = true;
+            }
+            if(osmValue == "official"){
+                isOfficial = true;
+            }
         }
 
         else if(osmKey == "smoothness"){
