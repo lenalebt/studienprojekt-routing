@@ -175,14 +175,104 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     for(int i = 0; i < props.size(); i++)
     {
         OSMProperty _osmProp = props[i];
+        QString _key = _osmProp.getKey();
+        QString _value = _osmProp.getValue();
 
         //if(_osmProp.getKey()=="highway" && _osmProp.getValue()=="unclassified")
         //{
         //    std::cerr << "its a highway, und alle so: yeahh..." << std::endl;
         //}
 
-        if()
-        {}
+        if(_value == "impassable")
+        {
+            streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+            break;
+        }
+        else if(_key == "smoothness")
+        {
+            if(_value == "excellent")
+            {
+                streetSurfaceQuality = STREETSURFACEQUALITY_EXCELLENT;
+            }
+            else if(_value == "good")
+            {
+                streetSurfaceQuality = STREETSURFACEQUALITY_GOOD;
+            }
+            else if(_value == "intermediate")
+            {
+                streetSurfaceQuality = STREETSURFACEQUALITY_INTERMEDIATE;
+            }
+            else if(_value == "bad")
+            {
+                streetSurfaceQuality = STREETSURFACEQUALITY_BAD;
+            }
+            else if(_value == "very_bad")
+            {
+                streetSurfaceQuality = STREETSURFACEQUALITY_VERYBAD;
+            }
+            else if(_value == "horrible")
+            {
+                streetSurfaceQuality = STREETSURFACEQUALITY_HORRIBLE;
+            }
+            else if(_value == "very_horrible")
+            {
+                streetSurfaceQuality = STREETSURFACEQUALITY_VERYHORRIBLE;
+            }
+        }//End if key == smoothness
+        else if (_key == "surface" || _key == "tracktype")
+        {
+            if(_value == "artificial_turf")
+            {
+                streetSurfaceType = STREETSURFACETYPE_GRASS;
+            }
+            else if (_value == "asphalt")
+            {
+                streetSurfaceType = STREETSURFACETYPE_ASPHALT;
+            }
+            else if (_value == "cobblestone")
+            {
+                streetSurfaceType = STREETSURFACETYPE_COBBLESTONE;
+            }
+            else if (_value == "compacted")
+            {
+                streetSurfaceType = STREETSURFACETYPE_COMPACTED;
+            }
+            else if (_value.contains("concrete"))
+            {
+                streetSurfaceType = STREETSURFACETYPE_CONCRETE;
+            }
+            else if (_value == "dirt")
+            {
+                streetSurfaceType = STREETSURFACETYPE_GROUND;
+            }
+            else if (_value == "earth")
+            {
+                streetSurfaceType = STREETSURFACETYPE_GROUND;
+            }
+            else if (_value == "fine_gravel")
+            {
+                streetSurfaceType = STREETSURFACETYPE_FINEGRAVEL;
+            }
+            else if (_value == "grass")
+            {
+                streetSurfaceType = STREETSURFACETYPE_GRASS;
+            }
+            else if (_value == "grass_paver")
+            {
+                streetSurfaceType = STREETSURFACETYPE_GRASSPAVER;
+            }
+            else if (_value == "gravel")
+            {
+                streetSurfaceType = STREETSURFACETYPE_GRAVEL;
+            }
+            else if (_value == "ground" || _value == "dirt" || _value == "mud" || _value == "earth" || _value == "clay" || _value == "sand")
+            {
+                streetSurfaceType = STREETSURFACETYPE_GROUND;
+            }
+            else if (_value ==)
+            {
+            }
+        }
     }
     
     routingEdge->setTrafficLights(hasTrafficLights);
