@@ -12,7 +12,11 @@
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
         var pointlist = [];
-        
+        var markerlist = [];
+        var iconSize = new OpenLayers.Size(20, 20);
+        var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
+        var marker = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
+        var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
                     'single': true,
@@ -39,13 +43,16 @@
                 trigger: function(e) {
                     var lonlat = map.getLonLatFromViewPortPx(e.xy);
                     lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
-                    pointlist.push(lonlat);
+                    pointlist[pointlist.length] = lonlat;
+                    var lonlatSimple = map.getLonLatFromViewPortPx(e.xy);
+                    markerlist[markerlist.length] = lonlatSimple;
                     calcRoute();
                 }
 
             });
         
         var map, layer, gpxlayer;
+        
         function init(){
             map = new OpenLayers.Map('map',
                 {controls:[new OpenLayers.Control.ArgParser,
@@ -157,8 +164,9 @@
                 // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
             );
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
+        
+                
             
-            var markers = new OpenLayers.Layer.Markers( "Markers" );
             map.addLayer(markers);
             
             var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
@@ -166,7 +174,7 @@
                     new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
                     map.getProjectionObject() // to Spherical Mercator Projection
                   );
-            markers.addMarker(new OpenLayers.Marker(lonLat, new OpenLayers.Icon("img/marker-red.png")));
+            markers.addMarker(new OpenLayers.Marker(lonLat, marker));
             
             map.setCenter(
                 new OpenLayers.LonLat(7.2662, 51.447).transform(
@@ -177,7 +185,7 @@
             
             gpxlayer = null;
             
-            displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/simpleheight.gpx?detourperheightmeter=100.0");
+            //displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/euclidian.gpx");
             //displayGPX("route.gpx");
             
             var click = new OpenLayers.Control.Click();
@@ -198,17 +206,58 @@
                 displayInLayerSwitcher:false
 			});
 			map.addLayer(gpxlayer);
+            //map.removeLayer(markers);
+            //markers = new OpenLayers.Layer.Markers( "Markers" );
+            {
+                for(var index = 0; index < markerlist.length; index ++)
+                {
+                    //var help = new OpenLayers.Marker(markerlist[index].lat, markerlist[index].lon, marker.clone());
+                    markers.addMarker(new OpenLayers.Marker(markerlist[index], marker.clone()));
+                    //markers.addMarker(new OpenLayers.Marker(pointlist[index].lat, pointlist[index].lon, marker.clone()));
+                    //alert(index);
+                    //alert(pointlist[index]);
+                    //alert(pointlist[index].lat + ", " + pointlist[index].lon);
+                    //alert(help.isDrawn());
+                }
+            }
+            //map.addLayer(markers);
         }
         
         function calcRoute()
         {
             //alert("pointlist has " + pointlist.length + " items");
             var urlstart = "../1341253652/api/0.3/";
-            var urlend = "/bike/simpleheight.gpx?detourperheightmeter=100.0";
+            var urlend = "/bike/euclidian.gpx";
+            var url;
             if (pointlist.length > 1)
             {
-                //alert("call displaygpx");
-                var url = urlstart + pointlist[0].lat + "," + pointlist[0].lon + "," + pointlist[pointlist.length-1].lat + "," + pointlist[pointlist.length-1].lon + urlend;
+                if(pointlist.length == 2)
+                {
+                     url = urlstart + pointlist[0].lat + "," + pointlist[0].lon + "," + pointlist[1].lat + "," + pointlist[1].lon + urlend;
+                }
+                else
+                {
+                    //alert("call displaygpx");
+                    url = urlstart;
+                    for (var index = 0; index <= pointlist.length - 1; index++)
+                        {
+                            url = url + pointlist[index].lat + "," + pointlist[index].lon;
+                            if(index == pointlist.length - 2)
+                            {
+                                url =  url + "]";
+                            }
+                            if(index != pointlist.length - 1)
+                            {
+                                url = url  + ",";
+                            }
+                            if(index == 0)
+                            {
+                                url = url + "[";
+                            }
+                            
+                        }
+                        url = url + urlend;
+                }
                 //alert(url);
                 displayGPX(url);
             }
