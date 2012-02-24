@@ -1,6 +1,6 @@
 #include "simpledatapreprocessing.hpp"
 #include <QSet>
-
+#include "rangetree.hpp"
 
 SimpleDataPreprocessing::SimpleDataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
     : _nodeQueue(10000), _wayQueue(10000), _turnRestrictionQueue(10000),
@@ -76,7 +76,9 @@ bool SimpleDataPreprocessing::preprocess()
     _finalDBConnection->beginTransaction();
     _tmpDBConnection.beginTransaction();
     boost::uint64_t edgeID=0;
-    QSet<boost::uint64_t> nodeIDSet;
+    //QSet<boost::uint64_t> nodeIDSet;
+    //RangeTree<boost::uint64_t> nodeIDSet;
+    AdvancedRangeTree<boost::uint64_t> nodeIDSet;
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
     {

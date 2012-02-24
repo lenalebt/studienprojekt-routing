@@ -81,7 +81,7 @@ private:
      * 
      * @return Die Route vom Startpunkt zum gemeinsamen Punkt
      */
-    GPSRoute calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList);
+    GPSRoute calculateShortestRouteThreadA(const RoutingNode& startNode, const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
     /**
      * @brief Berechnet eine Route vom Ziel aus in Richtung Startpunkt.
      * 
@@ -90,7 +90,7 @@ private:
      * 
      * @return Die Route vom gemeinsamen Punkt zum Endpunkt
      */
-    GPSRoute calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
+    GPSRoute calculateShortestRouteThreadB(const RoutingNode& startNode, const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
 public:
     /**
      * @brief Erstellt einen neuen Router, der den A*-Algorithmus

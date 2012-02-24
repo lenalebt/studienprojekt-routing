@@ -103,7 +103,7 @@ void TemporaryOSMDatabaseConnection::open(QString dbConnectionString)
         QStringList statements;
         statements << "PRAGMA page_size = 4096;";
         statements << "PRAGMA max_page_count = 2147483646;";
-        statements << "PRAGMA cache_size=500000;";
+        statements << "PRAGMA cache_size=50000;";
         statements << "PRAGMA synchronous=OFF;";
         statements << "PRAGMA journal_mode=MEMORY;";
         statements << "PRAGMA temp_store = MEMORY;";
@@ -129,7 +129,7 @@ bool TemporaryOSMDatabaseConnection::createTables()
 	QStringList statements;
     statements << "PRAGMA page_size = 4096;";
     statements << "PRAGMA max_page_count = 2147483646;";
-    statements << "PRAGMA cache_size=500000;";
+    statements << "PRAGMA cache_size=50000;";
     statements << "PRAGMA synchronous=OFF;";
     statements << "PRAGMA journal_mode=MEMORY;";
     statements << "PRAGMA temp_store = MEMORY;";

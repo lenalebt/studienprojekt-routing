@@ -565,9 +565,9 @@ void BikerHttpRequestProcessor::processRequest()
             else if (_parameterMap["algorithm"] == "astar")
                 router.reset(new AStarRouter(dbA, metric));
             else if (_parameterMap["algorithm"] == "multithreadedastar")
-                router.reset(new AStarRouter(dbA, metric));
+                router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
             else
-                router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
+                router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
             
             //Route berechnen
             GPSRoute route = router->calculateShortestRoute(routePointList);
