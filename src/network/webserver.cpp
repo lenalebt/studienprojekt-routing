@@ -424,7 +424,9 @@ void BikerHttpRequestProcessor::processRequest()
          * @todo RegExp nur einmal erzeugen und dann wiederverwenden!
          */
         QRegExp cloudmadeApiKeyRegExp("^/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
-        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        //QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})){0,40}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        QRegExp cloudmadeApiPointListExtractor("(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
         QRegExp cloudmadeApiRouteTypeRegExp("^/([a-zA-Z0-9]{1,64})(?:/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)$");
         
         QString apiKey="";
@@ -459,14 +461,20 @@ void BikerHttpRequestProcessor::processRequest()
         if (cloudmadeApiPointListRegExp.cap(0).length() != 0)
         {
             //Punktliste gefunden. Auswerten!
+            //Neue RegExp zum Punkte herausholen...
+            cloudmadeApiPointListExtractor.indexIn(cloudmadeApiPointListRegExp.cap(0));
             QString strLat, strLon;
             routePointList.clear();
-            for (int i=1; i<=cloudmadeApiPointListRegExp.captureCount(); i+=2)
+            std::cerr << cloudmadeApiPointListExtractor.cap(0) << std::endl
+                << "capturecount: " << cloudmadeApiPointListExtractor.captureCount()
+                << std::endl;
+            for (int pos=0; pos>=0; pos=cloudmadeApiPointListExtractor.indexIn(cloudmadeApiPointListRegExp.cap(0), cloudmadeApiPointListExtractor.cap(0).length()+pos))
             {
-                strLat = cloudmadeApiPointListRegExp.cap(i);
-                strLon = cloudmadeApiPointListRegExp.cap(i+1);
+                strLat = cloudmadeApiPointListExtractor.cap(1);
+                strLon = cloudmadeApiPointListExtractor.cap(2);
                 GPSPosition point(strLat.toDouble(), strLon.toDouble());
                 //Workaround für (0/0)-Punkte. Warum ist das so?
+                std::cerr << "point: " << point << std::endl;
                 if (point.isInitialized())
                     routePointList << point;
             }
