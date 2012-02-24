@@ -139,22 +139,8 @@ bool DataPreprocessing::preprocess()
     return true;
 }
 
-
-//TODO kategorisierungsfunktion implementieren
-//void DataPreprocessing::categorizeEdge(const RoutingEdge &edge)
-//{
-//    if(edge.hasStairs)
-//    {
-//    }
-//    //...
-    
-//    //edge.getSurfaceQuality aufrufen und damit die Qualitaet festlegen
-    
-//    //noch zu klaeren, wie es im Detail läuft (wird ein laengerer if-else-zweig)
-//}
-
 //TODO kategorisierungsfunktionen implementieren
-boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
+boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge)
 {
     bool hasTrafficLights;
     bool hasTrafficCalmingBumps;
@@ -269,9 +255,9 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             {
                 streetSurfaceType = STREETSURFACETYPE_GROUND;
             }
-            else if (_value ==)
-            {
-            }
+            //else if (_value == )
+            //{
+            //}
         }
     }
     
