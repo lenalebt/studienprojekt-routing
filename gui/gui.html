@@ -1,241 +1,269 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <!-- Formt, Titel und Stylesheets -->
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <title>Biker - a bike route planner</title>
-        <link rel="stylesheet" href="openlayers/theme/default/style.css" type="text/css">
-        <link rel="stylesheet" href="style.css" type="text/css">
-        <!--<script src="openlayers/OpenLayers.js"></script>-->
-        <!-- verwendete Java-Skript Datei und beginn des Java-Skipt-Codes -->
-        <script src="http://openlayers.org/api/OpenLayers.js"></script> 
-        <script type="text/javascript">
-            // Liste  der Wegpunkte
-            var pointlist = new Array(); //[];
-            // 
-            OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
-                    defaultHandlerOptions: {
-                        'single': true,
-                        'double': false,
-                        'pixelTolerance': 0,
-                        'stopSingle': false,
-                        'stopDouble': false
-                    },
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Biker - a bike route planner</title>
+    <link rel="stylesheet" href="openlayers/theme/default/style.css" type="text/css">
+    <link rel="stylesheet" href="style.css" type="text/css">
 
-                    initialize: function(options) {
-                        this.handlerOptions = OpenLayers.Util.extend(
-                            {}, this.defaultHandlerOptions
-                        );
-                        OpenLayers.Control.prototype.initialize.apply(
-                            this, arguments
-                        ); 
-                        this.handler = new OpenLayers.Handler.Click(
-                            this, {
-                                'click': this.trigger
-                            }, this.handlerOptions
-                        );
-                    }, 
+    <!--<script src="openlayers/OpenLayers.js"></script>-->
+    <script src="http://openlayers.org/api/OpenLayers.js"></script> 
+    <script type="text/javascript">
+        var pointlist = [];
+        var iconSize = new OpenLayers.Size(20, 20);
+        var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
+        var marker = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
+        var markers = new OpenLayers.Layer.Markers( "Markers" );
+        OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
+                defaultHandlerOptions: {
+                    'single': true,
+                    'double': false,
+                    'pixelTolerance': 0,
+                    'stopSingle': false,
+                    'stopDouble': false
+                },
 
-                    trigger: function(e) {
-                        var lonlat = map.getLonLatFromViewPortPx(e.xy);
-                        lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
-                        pointlist.push(lonlat);
-                        calcRoute();
-                    }
-
-                });
-            // Erstellung der Karte mit Menüs als Ebene
-            var map, layer, gpxlayer;
-            function init(){
-                map = new OpenLayers.Map('map',
-                    {controls:[
-                        new OpenLayers.Control.ArgParser,
-                        new OpenLayers.Control.Attribution,
-                        new OpenLayers.Control.LayerSwitcher,
-                        new OpenLayers.Control.Navigation,
-                        new OpenLayers.Control.MousePosition,
-                        //new OpenLayers.Control.PanZoom,   //Einkommentieren bringt das Problem mit den doppelten Zoombuttons
-                        new OpenLayers.Control.PanZoomBar,
-                        new OpenLayers.Control.ScaleLine({geodesic:true})],
-                        units:"m",
-                        maxResolution:156543.0339,
-                        numZoomLevels:20,
-                        displayProjection:new OpenLayers.Projection("EPSG:4326")
-                });
-                // verschiedene Kartenarten, aus verschiedener Herkunft, die der Kartenebene Hinzugefügt werden
-                var osmdeutsch = new OpenLayers.Layer.OSM("OSM deutscher Stil", [
-                    "http://a.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
-                    "http://b.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
-                    "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],
-                    {attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>'});
-                map.addLayer(osmdeutsch);
-                var osm=new OpenLayers.Layer.OSM(
-                    "OSM Mapnik",
-                    ["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
-                    "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
-                    "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"],
-                    {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a>",
-                    keyid:"mapnik",
-                    displayOutsideMaxExtent:true,
-                    wrapDateLine:true,
-                    layerCode:"M"});
-                map.addLayer(osm);
-                oepnv = new OpenLayers.Layer.OSM("&Ouml;pnvkarte",
-                    "http://tile.memomaps.de/tilegen/${z}/${x}/${y}.png",
-                    {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a><br>Original map can be seen at <a href=http://www.xn--pnvkarte-m4a.de>www.&ouml;pnvkarte.de</a>",
-                    numZoomLevels: 19,
-                    displayInLayerSwitcher:true,
-                    buffer:0}
+                initialize: function(options) {
+                    this.handlerOptions = OpenLayers.Util.extend(
+                        {}, this.defaultHandlerOptions
                     );
-                map.addLayer(oepnv);
-                var transport=new OpenLayers.Layer.OSM(
-                    "OSM Transport",
-                    ["http://a.tile2.opencyclemap.org/transport/${z}/${x}/${y}.png",
-                    "http://b.tile2.opencyclemap.org/transport/${z}/${x}/${y}.png",
-                    "http://c.tile2.opencyclemap.org/transport/${z}/${x}/${y}.png"],
-                    {attribution: "Tiles courtesy of <a href='http://www.opencyclemap.org/' target='_blank'>Andy Allan</a>",
-                    keyid:"transportmap",
-                    displayOutsideMaxExtent:!0,
-                    wrapDateLine:true,
-                    layerCode:"T"});
-                map.addLayer(transport);
-                var cyclemap=new OpenLayers.Layer.OSM(
-                    "OSM Radfahrerkarte",
-                    ["http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
-                    "http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
-                    "http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png"],
-                    {attribution:"Tiles courtesy of <a href='http://www.opencyclemap.org/' target='_blank'>Andy Allan</a>",
-                    keyid:"cyclemap",
-                    displayOutsideMaxExtent:true,
-                    wrapDateLine:true,
-                    layerCode:"C"});
-                map.addLayer(cyclemap);
-                /*var mapquestaerial=new OpenLayers.Layer.OSM(
-                    "Mapquest Aerial",
-                    ["http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
-                    "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
-                    "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
-                    "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png"],
-                    {attribution:"Tiles courtesy of <a href='http://www.mapquest.com/' target='_blank'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>",
-                    keyid:"mapquest",
-                    displayOutsideMaxExtent:!0,
-                    wrapDateLine:!0,
-                    numZoomLevels:19,
-                    layerCode:"Q"});
-                map.addLayer(mapquestaerial);*/   //MapQuest kann vielleicht benutzt werden. Rechte klären!
-                /*var mapquest=new OpenLayers.Layer.OSM(
-                    "Mapquest",
-                    ["http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
-                    "http://otile2.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
-                    "http://otile3.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
-                    "http://otile4.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png"],
-                    {attribution:"Tiles courtesy of <a href='http://www.mapquest.com/' target='_blank'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>",
-                    keyid:"mapquest",
-                    displayOutsideMaxExtent:!0,
-                    wrapDateLine:!0,
-                    numZoomLevels:19,
-                    layerCode:"Q"});
-                map.addLayer(mapquest);*/   //MapQuest kann vielleicht benutzt werden. Rechte klären!
-                /*var gphy = new OpenLayers.Layer.Google(
-                    "Google Physical",
-                    {type: google.maps.MapTypeId.TERRAIN}
-                    // used to be {type: G_PHYSICAL_MAP}
-                );
-                map.addLayer(gphy);
-                var gmap = new OpenLayers.Layer.Google.V3(
-                    "Google Streets", // the default
-                    {numZoomLevels: 20}
-                    // default type, no change needed here
-                );
-                map.addLayer(gmap);
-                var ghyb = new OpenLayers.Layer.Google.V3(
-                    "Google Hybrid",
-                    {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
-                    // used to be {type: G_HYBRID_MAP, numZoomLevels: 20}
-                );
-                map.addLayer(ghyb);
-                var gsat = new OpenLayers.Layer.Google.V3(
-                    "Google Satellite",
-                    {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22}
-                    // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
-                );
-                map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
-                // Marker wird hinzugefügt und (?)
-                var markers = new OpenLayers.Layer.Markers( "Markers" );
-                map.addLayer(markers);
-                var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 ).transform(
-                        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-                        map.getProjectionObject() // to Spherical Mercator Projection
+                    OpenLayers.Control.prototype.initialize.apply(
+                        this, arguments
+                    ); 
+                    this.handler = new OpenLayers.Handler.Click(
+                        this, {
+                            'click': this.trigger
+                        }, this.handlerOptions
                     );
-                markers.addMarker(new OpenLayers.Marker(lonLat, new OpenLayers.Icon("img/marker-red.png")));
-                //  das Zentrum des Bildausschnittes wird gesetzt
-                map.setCenter(
-                    new OpenLayers.LonLat(7.2662, 51.447)
-                    .transform(
-                        new OpenLayers.Projection("EPSG:4326"),
-                        map.getProjectionObject()
-                    ), 11
-                );
-                // (?)
-                gpxlayer = null;
-                // (??)
-                displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/euclidian.gpx");
-                //displayGPX("route.gpx");
-                // 
-                var click = new OpenLayers.Control.Click();
-                map.addControl(click);
-                click.activate();
-            }
-            // 
-            function displayGPX(gpxfile)
-            {
-                //alert("displaygpx");
-                if (gpxlayer != null)
-                    map.removeLayer(gpxlayer);
-                // Add the Layer with the GPX Track
-                gpxlayer = new OpenLayers.Layer.GML("Route", gpxfile, {
-                    format: OpenLayers.Format.GPX,
-                    style: {strokeColor: "#0000FF", strokeWidth: 5, strokeOpacity: 0.5},
-                    projection: new OpenLayers.Projection("EPSG:4326"),
-                    displayInLayerSwitcher:false
+                }, 
+
+                trigger: function(e) {
+                    var lonlat = map.getLonLatFromViewPortPx(e.xy);
+                    lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
+                    pointlist[pointlist.length] = lonlat;
+                    calcRoute();
+                }
+
+            });
+        
+        var map, layer, gpxlayer;
+        
+        function init(){
+            map = new OpenLayers.Map('map',
+                {controls:[new OpenLayers.Control.ArgParser,
+                new OpenLayers.Control.Attribution,
+                new OpenLayers.Control.LayerSwitcher,
+                new OpenLayers.Control.Navigation,
+                new OpenLayers.Control.MousePosition,
+                //new OpenLayers.Control.PanZoom,   //Einkommentieren bringt das Problem mit den doppelten Zoombuttons
+                new OpenLayers.Control.PanZoomBar,
+                new OpenLayers.Control.ScaleLine({geodesic:true})],
+                units:"m",
+                maxResolution:156543.0339,
+                numZoomLevels:20,
+                displayProjection:new OpenLayers.Projection("EPSG:4326")
                 });
-                map.addLayer(gpxlayer);
-            }
-            // 
-            function calcRoute()
+            var osmdeutsch = new OpenLayers.Layer.OSM("OSM deutscher Stil", [
+               "http://a.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
+               "http://b.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
+               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],{attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>'});
+            map.addLayer(osmdeutsch);
+            var osm=new OpenLayers.Layer.OSM(
+                "OSM Mapnik",
+                ["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                 "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                 "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"],
+                {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a>",
+                keyid:"mapnik",
+                displayOutsideMaxExtent:true,
+                wrapDateLine:true,
+                layerCode:"M"});
+            map.addLayer(osm);
+            oepnv = new OpenLayers.Layer.OSM("&Ouml;pnvkarte",
+                "http://tile.memomaps.de/tilegen/${z}/${x}/${y}.png",
+                {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a><br>Original map can be seen at <a href=http://www.xn--pnvkarte-m4a.de>www.&ouml;pnvkarte.de</a>",
+                 numZoomLevels: 19,
+                 displayInLayerSwitcher:true,
+                 buffer:0}
+                );
+            map.addLayer(oepnv);
+            var transport=new OpenLayers.Layer.OSM(
+                "OSM Transport",
+                ["http://a.tile2.opencyclemap.org/transport/${z}/${x}/${y}.png",
+                 "http://b.tile2.opencyclemap.org/transport/${z}/${x}/${y}.png",
+                 "http://c.tile2.opencyclemap.org/transport/${z}/${x}/${y}.png"],
+                {attribution: "Tiles courtesy of <a href='http://www.opencyclemap.org/' target='_blank'>Andy Allan</a>",
+                keyid:"transportmap",
+                displayOutsideMaxExtent:!0,
+                wrapDateLine:true,
+                layerCode:"T"});
+            map.addLayer(transport);
+            var cyclemap=new OpenLayers.Layer.OSM(
+                "OSM Radfahrerkarte",
+                ["http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
+                 "http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png",
+                 "http://a.tile.opencyclemap.org/cycle/${z}/${x}/${y}.png"],
+                {attribution:"Tiles courtesy of <a href='http://www.opencyclemap.org/' target='_blank'>Andy Allan</a>",
+                keyid:"cyclemap",
+                displayOutsideMaxExtent:true,
+                wrapDateLine:true,
+                layerCode:"C"});
+            map.addLayer(cyclemap);
+            /*var mapquestaerial=new OpenLayers.Layer.OSM(
+                "Mapquest Aerial",
+                ["http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
+                "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
+                "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
+                "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png"],
+                {attribution:"Tiles courtesy of <a href='http://www.mapquest.com/' target='_blank'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>",
+                keyid:"mapquest",
+                displayOutsideMaxExtent:!0,
+                wrapDateLine:!0,
+                numZoomLevels:19,
+                layerCode:"Q"});
+            map.addLayer(mapquestaerial);*/   //MapQuest kann vielleicht benutzt werden. Rechte klären!
+            /*var mapquest=new OpenLayers.Layer.OSM(
+                "Mapquest",
+                ["http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                "http://otile2.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                "http://otile3.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
+                "http://otile4.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png"],
+                {attribution:"Tiles courtesy of <a href='http://www.mapquest.com/' target='_blank'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>",
+                keyid:"mapquest",
+                displayOutsideMaxExtent:!0,
+                wrapDateLine:!0,
+                numZoomLevels:19,
+                layerCode:"Q"});
+            map.addLayer(mapquest);*/   //MapQuest kann vielleicht benutzt werden. Rechte klären!
+            /*var gphy = new OpenLayers.Layer.Google(
+                "Google Physical",
+                {type: google.maps.MapTypeId.TERRAIN}
+                // used to be {type: G_PHYSICAL_MAP}
+            );
+            map.addLayer(gphy);
+            var gmap = new OpenLayers.Layer.Google.V3(
+                "Google Streets", // the default
+                {numZoomLevels: 20}
+                // default type, no change needed here
+            );
+            map.addLayer(gmap);
+            var ghyb = new OpenLayers.Layer.Google.V3(
+                "Google Hybrid",
+                {type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
+                // used to be {type: G_HYBRID_MAP, numZoomLevels: 20}
+            );
+            map.addLayer(ghyb);
+            var gsat = new OpenLayers.Layer.Google.V3(
+                "Google Satellite",
+                {type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22}
+                // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
+            );
+            map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
+        
+                
+            
+            map.addLayer(markers);
+            
+            var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
+                  .transform(
+                    new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                    map.getProjectionObject() // to Spherical Mercator Projection
+                  );
+            markers.addMarker(new OpenLayers.Marker(lonLat, marker));
+            
+            map.setCenter(
+                new OpenLayers.LonLat(7.2662, 51.447).transform(
+                    new OpenLayers.Projection("EPSG:4326"),
+                    map.getProjectionObject()
+                ), 11
+            );
+            
+            gpxlayer = null;
+            
+            //displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/euclidian.gpx");
+            //displayGPX("route.gpx");
+            
+            var click = new OpenLayers.Control.Click();
+            map.addControl(click);
+            click.activate();
+        }
+        
+        function displayGPX(gpxfile)
+        {
+            //alert("displaygpx");
+            if (gpxlayer != null)
+                map.removeLayer(gpxlayer);
+            // Add the Layer with the GPX Track
+			gpxlayer = new OpenLayers.Layer.GML("Route", gpxfile, {
+				format: OpenLayers.Format.GPX,
+				style: {strokeColor: "#0000FF", strokeWidth: 5, strokeOpacity: 0.5},
+				projection: new OpenLayers.Projection("EPSG:4326"),
+                displayInLayerSwitcher:false
+			});
+			map.addLayer(gpxlayer);
+            //map.removeLayer(markers);
+            //markers = new OpenLayers.Layer.Markers( "Markers" );
             {
-                //alert("pointlist has " + pointlist.length + " items");
-                var urlstart = "../1341253652/api/0.3/";
-                var urlend = "/bike/euclidian.gpx";
-                if (pointlist.length > 1)
+                for(var index = 0; index < pointlist.length; index ++)
                 {
-                    //alert("call displaygpx");
-                    var size = pointlst.length;
-                    var url = urlstart;
-                    for (var index = 0; index < size; index++)
-                    {
-                        url = url + pointlist[index].lat + "," + pointlist[index].lon + "," ;
-                    }
-                    url = url + urlend;
-                    //alert(url);
-                    displayGPX(url);
+                    var help = new OpenLayers.Marker(pointlist[index].lat, pointlist[index].lon, marker.clone());
+                    markers.addMarker(new OpenLayers.Marker(pointlist[index], marker.clone()));
+                    //markers.addMarker(new OpenLayers.Marker(pointlist[index].lat, pointlist[index].lon, marker.clone()));
+                    //alert(index);
+                    //alert(pointlist[index]);
+                    //alert(pointlist[index].lat + ", " + pointlist[index].lon);
+                    //alert(help.isDrawn());
                 }
             }
-            // 
-            function getUser()
+            //map.addLayer(markers);
+        }
+        
+        function calcRoute()
+        {
+            //alert("pointlist has " + pointlist.length + " items");
+            var urlstart = "../1341253652/api/0.3/";
+            var urlend = "/bike/euclidian.gpx";
+            var url;
+            if (pointlist.length > 1)
             {
-                var position = client.getLocation;
-                var lat = position.coords[0];
-                var lon = position.coords[1];
+                if(pointlist.length == 2)
+                {
+                     url = urlstart + pointlist[0].lat + "," + pointlist[0].lon + "," + pointlist[1].lat + "," + pointlist[1].lon + urlend;
+                }
+                else
+                {
+                    //alert("call displaygpx");
+                    url = urlstart;
+                    for (var index = 0; index <= pointlist.length - 1; index++)
+                        {
+                            url = url + pointlist[index].lat + "," + pointlist[index].lon;
+                            if(index == pointlist.length - 2)
+                            {
+                                url =  url + "]";
+                            }
+                            if(index != pointlist.length - 1)
+                            {
+                                url = url  + ",";
+                            }
+                            if(index == 0)
+                            {
+                                url = url + "[";
+                            }
+                            
+                        }
+                        url = url + urlend;
+                }
+                //alert(url);
+                displayGPX(url);
             }
-        </script>
-    </head>
-    <body onload="init()">
-    <!--  -->
+        }
+    </script>
+  </head>
+  <body onload="init()">
     <div id="map" class="smallmap"></div>
-    <!--  -->
+    
     Erklärung hier hin vielleicht?
     
     Google-Karten kann man evtl nutzen, steht <a href="http://code.google.com/intl/de-DE/apis/maps/documentation/javascript/">hier</a><br>
