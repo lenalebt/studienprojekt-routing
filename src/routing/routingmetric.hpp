@@ -165,6 +165,90 @@ public:
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
 };
 
+class PowerRoutingMetric : public RoutingMetric
+{
+private:
+    float maxPower;     //maximale Gesamtleistung des Systems
+    float weight;       //Gesamtgewicht des Systems
+    float minSpeed;     //gewünschte Minimalgeschwindigkeit des Systems
+    float haltungskorrekturfaktor;  //Bestimmt, wie aufrecht man sitzt auf dem Rad, realistische Werte:    Oberlenker: 0,5    Bremsgriff: 0.4    Unterlenker: 0.3    Triathlon: 0.25 
+    
+    inline float calcInclinationPower(float heightDifference, float time)
+    {
+        return (weight * heightDifference * 9.81f) / time;
+    }
+    inline float calcAerodynamicResistancePower(float speed)
+    {
+        //0.5 * Anpassung * Höhen/Druckkorrektur(20°/150m))
+        return 0.5f * 1.311f  * 0.9f * haltungskorrekturfaktor * (speed*speed*speed);
+    }
+    /**
+     * @brief Berechnet die Rollwiderstandsleistung auf dem Boden.
+     * @param speed Die Geschwindigkeit über dem Boden
+     * @param surfaceFactor Der Faktor für den Bodenwiderstand. Standardwert: 1 (normaler Asphalt). Schotterweg: 1.8. Guter Schotterweg: 1.47. Rauer Asphalt: 1.15, glatter Asphalt: 0.82
+     * @return Den Rollwiderstand
+     */
+    inline float calcRollingResistancePower(float speed, float surfaceFactor)
+    {
+        return 0.008f * surfaceFactor * weight * 9.81f * speed;
+    }
+    
+    inline float calcInclinationTime(float heightDifference, float power)
+    {
+        return (weight * heightDifference * 9.81f) / power;
+    }
+    inline float calcAerodynamicResistanceSpeed(float power)
+    {
+        //0.5 * Anpassung * Höhen/Druckkorrektur(20°/150m))
+        return pow(power/(0.5f * 1.311f  * 0.9f * haltungskorrekturfaktor), 0.3333333);
+    }
+    inline float calcRollingResistanceSpeed(float power, float surfaceFactor)
+    {
+        return power/(0.008f * surfaceFactor * weight * 9.81f);
+    }
+    
+public:
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
+        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(15.0), haltungskorrekturfaktor(0.5) {}
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float weight, float maxPower, float minSpeed)
+        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(0.5) {}
+    double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
+    {
+        float heightDifference = _altitudeProvider->getAltitude(endNode) - _altitudeProvider->getAltitude(startNode);
+        float distance = startNode.calcDistance(endNode);
+        
+        //TODO: Faktor anpassen je nach Eigenschaften der Kante
+        float surfaceFactor = 1;
+        float power = calcInclinationPower(heightDifference, distance/minSpeed)
+                        + calcAerodynamicResistancePower(minSpeed)
+                        + calcRollingResistancePower(minSpeed, surfaceFactor);
+        
+        float speed;
+        if (power > maxPower)
+        {
+            //okay, zu viel leistung: Schiiieben.
+            speed = 1.111f;  //4km/h = 1.111m/s
+        }
+        else
+        {
+            speed = distance / calcInclinationTime(heightDifference, maxPower)
+                    - calcAerodynamicResistanceSpeed(maxPower)
+                    - calcRollingResistanceSpeed(maxPower, surfaceFactor);
+        }
+        
+        //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
+        return distance / speed;
+        
+        //TODO: Vorlieben bei Kanten nach Radweg etc anpassen und hinzufügen
+        
+    }
+    double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
+    {
+        return rateEdge(edge, startNode, endNode);
+    }
+    MeasurementUnit getMeasurementUnit() {return SECONDS;}
+};
+
 class SimplePowerRoutingMetric : public RoutingMetric
 {
 private:

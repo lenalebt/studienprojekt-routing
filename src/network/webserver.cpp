@@ -535,6 +535,20 @@ void BikerHttpRequestProcessor::processRequest()
                     efficiency = numberRegExp.cap(1).toDouble();
                 metric.reset(new SimplePowerRoutingMetric(altitudeProvider, weight, efficiency));
             }
+            else if (routeModifier == "power")
+            {
+                double weight = 90.0;
+                double maxPower = 200.0;
+                double minSpeed = 15.0;
+                
+                if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
+                    weight = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["maxpower"]) != -1)
+                    maxPower = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["minspeed"]) != -1)
+                    minSpeed = numberRegExp.cap(1).toDouble();
+                metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed));
+            }
             else
             {
                 std::cerr << "routeModifier \"" << routeModifier << "\" not supported." << std::endl;
@@ -559,7 +573,7 @@ void BikerHttpRequestProcessor::processRequest()
             dbA->open(ProgramOptions::getInstance()->dbFilename.c_str());
             dbB->open(ProgramOptions::getInstance()->dbFilename.c_str());
             
-            //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-Dijkstra.
+            //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-A* oder Mehrthread-Dijkstra - je nach Metrik.
             if (_parameterMap["algorithm"] == "multithreadeddijkstra")
                 router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
             else if (_parameterMap["algorithm"] == "dijkstra")
@@ -569,7 +583,12 @@ void BikerHttpRequestProcessor::processRequest()
             else if (_parameterMap["algorithm"] == "multithreadedastar")
                 router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
             else
-                router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
+            {
+                if (metric->getMeasurementUnit() == DISTANCE)
+                    router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
+                else
+                    router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
+            }
             
             //Route berechnen
             GPSRoute route = router->calculateShortestRoute(routePointList);
