@@ -539,7 +539,7 @@ void BikerHttpRequestProcessor::processRequest()
             {
                 double weight = 90.0;
                 double maxPower = 200.0;
-                double minSpeed = 15.0;
+                double minSpeed = 20.0;
                 
                 if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
                     weight = numberRegExp.cap(1).toDouble();
