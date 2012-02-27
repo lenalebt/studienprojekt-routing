@@ -524,6 +524,20 @@ void BikerHttpRequestProcessor::processRequest()
                 }
                 metric.reset(new SimpleHeightRoutingMetric(altitudeProvider, detourPerHeightMeter));
             }
+            else if (routeModifier == "advancedheight")
+            {
+                float punishment = 2.0f;
+                float detourPerHeightMeter = 100.0f;
+                if (numberRegExp.indexIn(_parameterMap["punishment"]) != -1)
+                {
+                    punishment = numberRegExp.cap(1).toFloat();
+                }
+                if (numberRegExp.indexIn(_parameterMap["detourperheightmeter"]) != -1)
+                {
+                    detourPerHeightMeter = numberRegExp.cap(1).toFloat();
+                }
+                metric.reset(new AdvancedHeightRoutingMetric(altitudeProvider, detourPerHeightMeter, punishment));
+            }
             else if (routeModifier == "simplepower")
             {
                 double weight = 90.0;
@@ -539,7 +553,7 @@ void BikerHttpRequestProcessor::processRequest()
             {
                 double weight = 90.0;
                 double maxPower = 200.0;
-                double minSpeed = 15.0;
+                double minSpeed = 4.0;
                 
                 if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
                     weight = numberRegExp.cap(1).toDouble();

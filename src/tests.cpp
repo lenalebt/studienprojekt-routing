@@ -35,6 +35,7 @@
 #include "filedownloader.hpp"
 #include "bloomfilter.hpp"
 #include "rangetree.hpp"
+#include "routingmetric.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -256,6 +257,8 @@ namespace biker_tests
             return biker_tests::testRangeTree();
         else if (testName == "advancedrangetree")
             return biker_tests::testAdvancedRangeTree();
+        else if (testName == "routingmetrics")
+            return biker_tests::testRoutingMetrics();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;

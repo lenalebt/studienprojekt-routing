@@ -371,6 +371,7 @@ ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
 ADD_TEST(multithreadeddijkstrarouter      "biker" "--test" "multithreadeddijkstrarouter")
 ADD_TEST(astarrouter                      "biker" "--test" "astarrouter")
 ADD_TEST(multithreadedastarrouter         "biker" "--test" "multithreadedastarrouter")
+ADD_TEST(routingmetrics                   "biker" "--test" "routingmetrics")
 
 SET_TESTS_PROPERTIES(dijkstrarouter              PROPERTIES DEPENDS simpledatapreprocessing)
 SET_TESTS_PROPERTIES(astarrouter                 PROPERTIES DEPENDS simpledatapreprocessing)
