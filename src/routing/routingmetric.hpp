@@ -158,9 +158,22 @@ class SimpleHeightRoutingMetric : public RoutingMetric
 private:
     float _detourPerHeightMeter;
 public:
-    SimpleHeightRoutingMetric() : _detourPerHeightMeter(50.0) {}
-    SimpleHeightRoutingMetric(float detourPerHeightMeter) : _detourPerHeightMeter(detourPerHeightMeter) {}
+    //SimpleHeightRoutingMetric() : _detourPerHeightMeter(50.0) {}
+    //SimpleHeightRoutingMetric(float detourPerHeightMeter) : _detourPerHeightMeter(detourPerHeightMeter) {}
     SimpleHeightRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float detourPerHeightMeter) : RoutingMetric(provider), _detourPerHeightMeter(detourPerHeightMeter) {}
+    double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+    double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+};
+
+class AdvancedHeightRoutingMetric : public RoutingMetric
+{
+private:
+    float _extrapunishment;
+    float _detourPerHeightMeter;
+public:
+    //SimpleHeightRoutingMetric() : _detourPerHeightMeter(50.0) {}
+    //SimpleHeightRoutingMetric(float detourPerHeightMeter) : _detourPerHeightMeter(detourPerHeightMeter) {}
+    AdvancedHeightRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float detourPerHeightMeter, float extrapunishment) : RoutingMetric(provider), _extrapunishment(extrapunishment), _detourPerHeightMeter(detourPerHeightMeter) {}
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
 };
@@ -206,35 +219,70 @@ private:
     {
         return power/(0.008f * surfaceFactor * weight * 9.81f);
     }
+    inline double min(double a, double b) {return (a<b) ? a : b;}
+    inline double max(double a, double b) {return (a<b) ? b : a;}
+    inline float rollResistancePowerFactor(float speed)
+    {
+        if (speed < 2)
+            return 0.1;
+        if (speed < 4)
+            return 0.05;
+        if (speed < 5)
+            return 0.01;
+        else
+            return 0.005;
+    }
+    inline float inclinationPowerFactor(float speed)
+    {
+        if (speed < 2)
+            return 0.8;
+        if (speed < 4)
+            return 0.7;
+        if (speed < 5)
+            return 0.5;
+        else
+            return 0.3;
+    }
     
 public:
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
-        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(15.0), haltungskorrekturfaktor(0.5) {}
+        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5) {}
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float weight, float maxPower, float minSpeed)
         : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(0.5) {}
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
     {
         float heightDifference = _altitudeProvider->getAltitude(endNode) - _altitudeProvider->getAltitude(startNode);
+        if (heightDifference < 0)
+            heightDifference = 0;
         float distance = startNode.calcDistance(endNode);
         
         //TODO: Faktor anpassen je nach Eigenschaften der Kante
         float surfaceFactor = 1;
+        
         float power = calcInclinationPower(heightDifference, distance/minSpeed)
-                        + calcAerodynamicResistancePower(minSpeed)
+                        //+ calcAerodynamicResistancePower(minSpeed)
                         + calcRollingResistancePower(minSpeed, surfaceFactor);
+        std::cerr << "power: " << power << std::endl;
+        std::cerr << "incPower: " << calcInclinationPower(heightDifference, distance/minSpeed)
+                //<< " aeroPower: " << calcAerodynamicResistancePower(minSpeed)
+                << " rollPower: " << calcRollingResistancePower(minSpeed, surfaceFactor)
+                << std::endl;
         
         float speed;
         if (power > maxPower)
         {
             //okay, zu viel leistung: Schiiieben.
-            speed = 1.111f;  //4km/h = 1.111m/s
+            speed = 1.0f;  //ca. 4km/h
         }
         else
         {
-            speed = distance / calcInclinationTime(heightDifference, maxPower)
-                    - calcAerodynamicResistanceSpeed(maxPower)
-                    - calcRollingResistanceSpeed(maxPower, surfaceFactor);
+            speed = min(distance / calcInclinationTime(heightDifference, maxPower), minSpeed*2) +
+                    //calcAerodynamicResistanceSpeed(maxPower*0.2)),
+                    calcRollingResistanceSpeed(maxPower*0.2, surfaceFactor);
+            
+            //speed = minSpeed;
         }
+        std::cerr << "speed: " << speed << std::endl;
         
         //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
         return distance / speed;
@@ -330,4 +378,8 @@ public:
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode) {return 0.0;}
  };
 
+namespace biker_tests
+{
+    int testRoutingMetrics();
+}
 #endif //ROUTINGMETRIC_HPP
