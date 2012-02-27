@@ -195,17 +195,17 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
         QString osmValue = it->getValue();
 
         //DONE:
-        // Key: smoothness, surface, tracktype(only grade1)
+        // Key: smoothness, surface, tracktype(only grade1), mtb:scale,
         //TODO:
-        // mtb:scale, highway, stop, traffic_signal, cycleway, oneway, bicycle, compulsory und designation zusammenstellen
+        // highway, stop, traffic_signal, cycleway, oneway, bicycle, compulsory und designation zusammenstellen
 
         if(osmValue == "impassalbe"){
             streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
             access = ACCESS_NOT_USABLE_FOR_BIKES;
-            break; //if the edge can't be passed by bike, there ist no need for further categorization
+            break; //if the edge can't be passed by bike, there is no need for further categorization
         }
 
-        if(osmKey == "mtb:scale"){
+        else if(osmKey == "mtb:scale"){
             if(osmValue == "0"){
                 cyclewayType = CYCLEWAYTYPE_MTB_0;
             }
@@ -223,10 +223,39 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             }
         }
 
+        else if(osmKey == "highway"){
+            if(osmValue == "bus_guideway" ||
+                    osmValue == "construction" ||
+                    osmValue == "motorway" ||
+                    osmValue == "motorway_link" ||
+                    osmValue == "proposed" ||
+                    osmValue == "raceway"){
+                access = ACCESS_NOT_USABLE_FOR_BIKES;
+                break; //if the edge can't be passed by bike, there is no need for further categorization
+            }
+            else if(osmValue == ""){
+
+            }
+
+            //#define STREETTYPE_HIGHWAY_PEDESTRIAN           0
+            //#define STREETTYPE_HIGHWAY_PRIMARY              1
+            //#define STREETTYPE_HIGHWAY_SECONDARY            2
+            //#define STREETTYPE_HIGHWAY_TERTIARY             3
+            //#define STREETTYPE_HIGHWAY_TRACK                4
+            //#define STREETTYPE_HIGHWAY_PATH                 5
+            //#define STREETTYPE_HIGHWAY_LIVINGSTREET         6
+            //#define STREETTYPE_HIGHWAY_RESIDENTIAL          7
+            //#define STREETTYPE_HIGHWAY_SERVICE              8
+            //#define STREETTYPE_HIGHWAY_FORD                 9
+            //#define STREETTYPE_HIGHWAY_JUNCTION             10
+            ////#define STREETTYPE_HIGHWAY_                     11
+            //#define STREETTYPE_UNKNOWN
+        }
+
         else if(osmKey == "access"){
             if(osmValue == "no"){
                 access = ACCESS_NOT_USABLE_FOR_BIKES;
-                break; //if the edge can't be passed by bike, there ist no need for further categorization
+                break; //if the edge can't be passed by bike, there is no need for further categorization
             }
             else if(osmValue == "private"){
                 access = ACCESS_PRIVATE;
