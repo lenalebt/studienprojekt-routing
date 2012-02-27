@@ -205,36 +205,54 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             break; //if the edge can't be passed by bike, there ist no need for further categorization
         }
 
+        if(osmKey == "mtb:scale"){
+            if(osmValue == "0"){
+                cyclewayType = CYCLEWAYTYPE_MTB_0;
+            }
+            else if(osmValue == "1"){
+                cyclewayType = CYCLEWAYTYPE_MTB_1;
+            }
+            else if(osmValue == "2"){
+                cyclewayType = CYCLEWAYTYPE_MTB_2;
+            }
+            else if(osmValue == "3"){
+                cyclewayType = CYCLEWAYTYPE_MTB_3;
+            }
+            else{
+                cyclewayType = CYCLEWAYTYPE_MTB_HIGH;
+            }
+        }
+
         else if(osmKey == "access"){
             if(osmValue == "no"){
                 access = ACCESS_NOT_USABLE_FOR_BIKES;
                 break; //if the edge can't be passed by bike, there ist no need for further categorization
             }
-            if(osmValue == "private"){
+            else if(osmValue == "private"){
                 access = ACCESS_PRIVATE;
             }
-            if(osmValue == "delivery"){
+            else if(osmValue == "delivery"){
                 access = ACCESS_DELIVERY;
             }
-            if(osmValue == "destination"){
+            else if(osmValue == "destination"){
                 access = ACCESS_DESTINATOIN;
             }
-            if(osmValue == "customer"){
+            else if(osmValue == "customer"){
                 access = ACCESS_CUSTOMER;
             }
-            if(osmValue == "agricultural"){
+            else if(osmValue == "agricultural"){
                 access = ACCESS_AGRICULTURAL;
             }
-            if(osmValue == "forestry"){
+            else if(osmValue == "forestry"){
                 access = ACCESS_FORESTRY;
             }
-            if(osmValue == "permissive"){
+            else if(osmValue == "permissive"){
                 access = ACCESS_PERMISSIVE;
             }
-            if(osmValue == "designated"){
+            else if(osmValue == "designated"){
                 hasDesignation = true;
             }
-            if(osmValue == "official"){
+            else if(osmValue == "official"){
                 isOfficial = true;
             }
         }
