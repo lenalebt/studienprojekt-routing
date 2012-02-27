@@ -136,8 +136,7 @@
 
 boost::uint64_t RoutingEdge::getProperties() const
 {
-    return (_properties.isDesignated             << BITPOS_CYCLEWAYDESIGNATED) |
-            (_properties.cycleBarrier            << BITPOS_CYCLEBARRIER) |
+    return  (_properties.cycleBarrier            << BITPOS_CYCLEBARRIER) |
             (_properties.cyclewayType            << BITPOS_CYCLEWAYTYPE) |
             (_properties.stairs                  << BITPOS_STAIRS) |
             (_properties.stopSign                << BITPOS_STOPSIGN) |
@@ -146,7 +145,8 @@ boost::uint64_t RoutingEdge::getProperties() const
             (_properties.streetType              << BITPOS_STREETTYPE) |
             (_properties.trafficCalmingBumps     << BITPOS_TRAFFICCALMINGBUMPS) |
             (_properties.trafficLights           << BITPOS_TRAFFICLIGHTS) |
-            (_properties.turnType                << BITPOS_TURNTYPE);
+            (_properties.turnType                << BITPOS_TURNTYPE) |
+            (_properties.access                  << BITPOS_ACCESS);
             
 }
 
@@ -155,7 +155,6 @@ boost::uint64_t RoutingEdge::getProperties() const
  */
 void RoutingEdge::setProperties(const boost::uint64_t properties)
 {
-    _properties.isDesignated         = (properties >> BITPOS_CYCLEWAYDESIGNATED)   & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
     _properties.cycleBarrier         = (properties >> BITPOS_CYCLEBARRIER)         & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
     _properties.cyclewayType         = (properties >> BITPOS_CYCLEWAYTYPE)         ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
     _properties.stairs               = (properties >> BITPOS_STAIRS)               & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
@@ -166,6 +165,7 @@ void RoutingEdge::setProperties(const boost::uint64_t properties)
     _properties.trafficCalmingBumps  = (properties >> BITPOS_TRAFFICCALMINGBUMPS)  & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
     _properties.trafficLights        = (properties >> BITPOS_TRAFFICLIGHTS)        & ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
     _properties.turnType             = (properties >> BITPOS_TURNTYPE)             ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
+    _properties.access               = (properties >> BITPOS_ACCESS)               ;//& ((1ull << BITLENGTH_CYCLEBARRIER) - 1ull);
 }
 
 
@@ -183,7 +183,7 @@ std::ostream& operator<<(std::ostream& os, const RoutingEdge& edge)
         "stopSign " << edge._properties.stopSign << std::endl <<
         "cycleBarrier " << edge._properties.cycleBarrier << std::endl <<
         "stairs " << edge._properties.stairs << std::endl <<
-        "isDesignated " << edge._properties.isDesignated << std::endl <<
+        "access " << edge._properties.access << std::endl <<
         "properties " << edge.getProperties() << std::endl;
     
     return os;
@@ -192,7 +192,6 @@ std::ostream& operator<<(std::ostream& os, const RoutingEdge& edge)
 RoutingEdge::RoutingEdge() :
     _id(0), _startNodeID(0), _endNodeID(0)
 {
-    _properties.isDesignated                = false;
     _properties.cycleBarrier                = false;
     _properties.cyclewayType                = 0;
     _properties.stairs                      = false;
@@ -203,12 +202,12 @@ RoutingEdge::RoutingEdge() :
     _properties.trafficCalmingBumps         = false;
     _properties.trafficLights               = false;
     _properties.turnType                    = 0;
+    _properties.access                      = 0;
 }
 
 RoutingEdge::RoutingEdge(boost::uint64_t id) :
     _id(id), _startNodeID(0), _endNodeID(0)
 {
-    _properties.isDesignated                = false;
     _properties.cycleBarrier                = false;
     _properties.cyclewayType                = 0;
     _properties.stairs                      = false;
@@ -219,12 +218,12 @@ RoutingEdge::RoutingEdge(boost::uint64_t id) :
     _properties.trafficCalmingBumps         = false;
     _properties.trafficLights               = false;
     _properties.turnType                    = 0;
+    _properties.access                      = 0;
 }
 
 RoutingEdge::RoutingEdge(boost::uint64_t id, boost::uint64_t startNodeID, boost::uint64_t endNodeID) :
     _id(id), _startNodeID(startNodeID), _endNodeID(endNodeID)
 {
-    _properties.isDesignated                = false;
     _properties.cycleBarrier                = false;
     _properties.cyclewayType                = 0;
     _properties.stairs                      = false;
@@ -235,6 +234,7 @@ RoutingEdge::RoutingEdge(boost::uint64_t id, boost::uint64_t startNodeID, boost:
     _properties.trafficCalmingBumps         = false;
     _properties.trafficLights               = false;
     _properties.turnType                    = 0;
+    _properties.access                      = 0;
 }
 RoutingEdge::RoutingEdge(boost::uint64_t id, boost::uint64_t startNodeID, boost::uint64_t endNodeID, boost::uint64_t properties) :
     _id(id), _startNodeID(startNodeID), _endNodeID(endNodeID)
@@ -262,7 +262,7 @@ bool operator==(const RoutingEdge::PropertyType& a, const RoutingEdge::PropertyT
         (a.stopSign == b.stopSign) &&
         (a.cycleBarrier == b.cycleBarrier) &&
         (a.stairs == b.stairs);
-        (a.isDesignated == b.isDesignated);
+        (a.access == b.access);
 }
 
 namespace biker_tests
@@ -281,9 +281,6 @@ namespace biker_tests
         
         edge1.setStopSign(false);
         CHECK(!edge1.hasStopSign());
-
-        edge1.setCyclewayDesignated(true);
-        CHECK(edge1.isCyclewayDesignated());
         
         edge1.setStreetSurfaceQuality(5);
         CHECK_EQ_TYPE(edge1.getStreetSurfaceQuality(), 5, boost::uint8_t);
@@ -293,6 +290,9 @@ namespace biker_tests
         
         edge1.setStreetType(15);
         CHECK_EQ_TYPE(edge1.getStreetType(), 15, boost::uint8_t);
+
+        edge1.setAccess(1);
+        CHECK_EQ_TYPE(edge1.getAccess(), 1, boost::uint8_t);
         
         edge2.setProperties(edge1.getProperties());
         CHECK_EQ(edge1, edge2);

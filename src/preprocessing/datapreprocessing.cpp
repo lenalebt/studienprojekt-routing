@@ -174,7 +174,8 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     boost::uint8_t streetType = STREETTYPE_UNKNOWN;
     boost::uint8_t cyclewayType = CYCLEWAYTYPE_UNKNOWN;
     boost::uint8_t streetSurfaceType = STREETSURFACETYPE_UNKNOWN;
-    boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;
+    boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;    
+    boost::uint8_t access = ACCESS_YES;
     //boost::uint8_t turnType = TURNTYPE_STRAIGHT; // TURNTYPE won't be categorized in this function
 
     routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
@@ -196,41 +197,39 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
         //DONE:
         // Key: smoothness, surface, tracktype(only grade1)
         //TODO:
-        // mtb:scale, highway, stop, traffic_signal, cycleway, oneway, bicycle
+        // mtb:scale, highway, stop, traffic_signal, cycleway, oneway, bicycle, compulsory und designation zusammenstellen
 
         if(osmValue == "impassalbe"){
             streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+            access = ACCESS_NOT_USABLE_FOR_BIKES;
             break; //if the edge can't be passed by bike, there ist no need for further categorization
         }
 
         else if(osmKey == "access"){
             if(osmValue == "no"){
-                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+                access = ACCESS_NOT_USABLE_FOR_BIKES;
                 break; //if the edge can't be passed by bike, there ist no need for further categorization
             }
             if(osmValue == "private"){
-                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
-                break; //if the edge can't be passed by bike, there ist no need for further categorization
+                access = ACCESS_PRIVATE;
             }
             if(osmValue == "delivery"){
-                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
-                break; //if the edge can't be passed by bike, there ist no need for further categorization
+                access = ACCESS_DELIVERY;
             }
             if(osmValue == "destination"){
-                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
-                break; //if the edge can't be passed by bike, there ist no need for further categorization
+                access = ACCESS_DESTINATOIN;
             }
             if(osmValue == "customer"){
-                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
-                break; //if the edge can't be passed by bike, there ist no need for further categorization
+                access = ACCESS_CUSTOMER;
             }
             if(osmValue == "agricultural"){
-                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
-                break; //if the edge can't be passed by bike, there ist no need for further categorization
+                access = ACCESS_AGRICULTURAL;
             }
             if(osmValue == "forestry"){
-                streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
-                break; //if the edge can't be passed by bike, there ist no need for further categorization
+                access = ACCESS_FORESTRY;
+            }
+            if(osmValue == "permissive"){
+                access = ACCESS_PERMISSIVE;
             }
             if(osmValue == "designated"){
                 hasDesignation = true;
@@ -316,7 +315,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
 
     //Flagauswertung
     if(isArea && !isHighway){
-        streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+        access = ACCESS_NOT_USABLE_FOR_BIKES;
     }
 
     routingEdge->setTrafficLights(hasTrafficLights);
@@ -324,7 +323,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     //routingEdge->setStopSign(hasStopSign);
     routingEdge->setStairs(hasStairs);
     routingEdge->setCycleBarrier(hasCycleBarrier);
-    routingEdge->setCyclewayDesignated(isDesignated);
+    routingEdge->setAccess(access);
     routingEdge->setStreetType(streetType);
     routingEdge->setCyclewayType(cyclewayType);
     routingEdge->setStreetSurfaceType(streetSurfaceType);

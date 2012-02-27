@@ -53,7 +53,7 @@ private:
     /**
      * @brief Wandelt eine <code>OSMEdge</code> Kante in eine <code>RoutingEdge</code> Kante um und kategorisiert diese.
      *
-     * Wann immer eine Kante nicht von einem Fahrrad passiert werden kann, wird die Eigenschaft der Straßenoberfläche auf den Wert für "unpassierbar" gesetzt.
+     * Wann immer eine Kante nicht von einem Fahrrad passiert werden kann, wird die Eigenschaft der Zugangsbeschränkung auf den Wert für <code>ACCESS_NOT_USABLE_FOR_BIKES</code> gesetzt.
      * Eigenschaften wie Ampeln beziehen sich immer auf des Ende einer Kante.
      *
      * @param osmEdge Die umzuwandelnde <code>OSMEdge</code> Kante.

@@ -80,30 +80,44 @@
 #define TURNTYPE_LEFTCROSS		3
 #define TURNTYPE_UTURNCROSS		4
 
+#define ACCESS_YES			0
+#define ACCESS_PERMISSIVE		1
+#define ACCESS_COMPULSORY		2 // if compulsory for bike
+#define ACCESS_DESIGNATED		3 // if designated for bike
+#define ACCESS_FORESTRY			4
+#define ACCESS_AGRICULTURAL		5
+#define ACCESS_CUSTOMER			6 // open for customers
+#define ACCESS_DESTINATOIN              7 // access only to reach a certain destination
+#define ACCESS_DELIVERY			8 // open for delivery
+#define ACCESS_PRIVATE			9
+#define ACCESS_NOT_PERMITTED		10
+#define ACCESS_NOT_USABLE_FOR_BIKES	11 // like motorways, impassable surfaces
+#define ACCESS_UNKNOWN			(1<<BITLENGTH_ACCESS)-1 //last bit, highest possible value
+
 
 #define BITLENGTH_STREETTYPE            4ull
 #define BITLENGTH_CYCLEWAYTYPE          4ull
 #define BITLENGTH_STREETSURFACETYPE     4ull
 #define BITLENGTH_STREETSURFACEQUALITY  4ull
 #define BITLENGTH_TURNTYPE              4ull
+#define BITLENGTH_ACCESS                4ull
 #define BITLENGTH_TRAFFICLIGHTS         1ull
 #define BITLENGTH_TRAFFICCALMINGBUMPS   1ull
 #define BITLENGTH_STOPSIGN              1ull
 #define BITLENGTH_CYCLEBARRIER          1ull
 #define BITLENGTH_STAIRS                1ull
-#define BITLENGTH_CYCLEWAYDESIGNATED    1ull
 
 #define BITPOS_STREETTYPE               (0)
 #define BITPOS_CYCLEWAYTYPE             (BITLENGTH_STREETTYPE)
 #define BITPOS_STREETSURFACETYPE        (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE)
 #define BITPOS_STREETSURFACEQUALITY     (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE)
 #define BITPOS_TURNTYPE                 (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY)
-#define BITPOS_TRAFFICLIGHTS            (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE)
-#define BITPOS_TRAFFICCALMINGBUMPS      (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS)
-#define BITPOS_STOPSIGN                 (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS)
-#define BITPOS_CYCLEBARRIER             (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN)
-#define BITPOS_STAIRS                   (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN + BITLENGTH_CYCLEBARRIER)
-#define BITPOS_CYCLEWAYDESIGNATED       (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN + BITLENGTH_CYCLEBARRIER + BITLENGTH_STAIRS)
+#define BITPOS_ACCESS                   (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE)
+#define BITPOS_TRAFFICLIGHTS            (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_ACCESS)
+#define BITPOS_TRAFFICCALMINGBUMPS      (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_ACCESS + BITLENGTH_TRAFFICLIGHTS)
+#define BITPOS_STOPSIGN                 (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_ACCESS + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS)
+#define BITPOS_CYCLEBARRIER             (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_ACCESS + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN)
+#define BITPOS_STAIRS                   (BITLENGTH_STREETTYPE + BITLENGTH_CYCLEWAYTYPE + BITLENGTH_STREETSURFACETYPE + BITLENGTH_STREETSURFACEQUALITY + BITLENGTH_TURNTYPE + BITLENGTH_ACCESS + BITLENGTH_TRAFFICLIGHTS + BITLENGTH_TRAFFICCALMINGBUMPS + BITLENGTH_STOPSIGN + BITLENGTH_CYCLEBARRIER)
 
 /**
  * @brief Beschreibt eine Kante, der in der Datenbank abgelegt werden kann
@@ -134,12 +148,12 @@ public:
         unsigned int streetSurfaceType      : BITLENGTH_STREETSURFACETYPE;
         unsigned int streetSurfaceQuality   : BITLENGTH_STREETSURFACEQUALITY;
         unsigned int turnType               : BITLENGTH_TURNTYPE;
+        unsigned int access                 : BITLENGTH_ACCESS;
         bool trafficLights                  : BITLENGTH_TRAFFICLIGHTS;
         bool trafficCalmingBumps            : BITLENGTH_TRAFFICCALMINGBUMPS;
         bool stopSign                       : BITLENGTH_STOPSIGN;
         bool cycleBarrier                   : BITLENGTH_CYCLEBARRIER;
         bool stairs                         : BITLENGTH_STAIRS;
-        bool isDesignated                   : BITLENGTH_CYCLEWAYDESIGNATED;
     } PropertyType;
 private:
     PropertyType _properties;
@@ -222,11 +236,6 @@ public:
      * @return Ob ein Umlaufgitter vorhanden ist
      */
     bool hasCycleBarrier() const {return _properties.cycleBarrier;};
-    /**
-     * @brief Gibt an, ob die Nutzung eines vorhandenen Fahradweges verpflichtend ist.
-     * @return Ob vorhandener Fahrredweg genutzt werden MUSS.
-     */
-    bool isCyclewayDesignated() const {return _properties.isDesignated;}
     
     /**
      * @brief Legt fest, ob an der entsprechenden Kante eine Ampel ist oder nicht.
@@ -257,12 +266,6 @@ public:
      * @param value 
      */
     void setCycleBarrier(const bool value) {_properties.cycleBarrier = value;}
-
-    /**
-     * @brief Legt fest, ob die Nutzung eines vorhandenen Fahrradweges verpflichtend ist oder nicht.
-     * @param value
-     */
-    void setCyclewayDesignated(const bool value) {_properties.isDesignated = value;}
     
     /**
      * @brief Gibt den Typ der Straße an der Kante an.
@@ -290,10 +293,14 @@ public:
     /**
      * @brief Gibt den Abbiegetyp der Kante an.
      * @return Den Abbiegetyp der Kante
-     * @todo Evtl einen Enum für den Abbiegetyp machen. Geradeaus, links, rechts, umkehren. Evtl noch mehr?
      */
     boost::uint8_t getTurnType() const {return _properties.turnType;}
-    
+    /**
+     * @brief Gibt die Zugangsberechtigung für eine Kante an.
+     * @return Zugangsberechtigung einer Kante
+     */
+    boost::uint8_t getAccess() const {return _properties.access;}
+
     /**
      * @brief Setzt den Typ der Straße fest
      * @param streetType Der Typ der Straße
@@ -319,6 +326,11 @@ public:
      * @param turnType Der Abbiegetyp der Kante
      */
     void setTurnType(const boost::uint8_t turnType) {_properties.turnType = turnType;}
+    /**
+     * @brief Legt die Zugangsberechitngung der Kante fest
+     * @param access Die Zugangsberechtigung der Kante
+     */
+    void setAccess(const boost::uint8_t access) {_properties.access = access;}
     
     /**
      * @brief Gibt zurück, auf welchem Level die Kante eingeordnet ist.
