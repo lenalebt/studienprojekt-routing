@@ -186,11 +186,16 @@ private:
     float minSpeed;     //gewünschte Minimalgeschwindigkeit des Systems
     float haltungskorrekturfaktor;  //Bestimmt, wie aufrecht man sitzt auf dem Rad, realistische Werte:    Oberlenker: 0,5    Bremsgriff: 0.4    Unterlenker: 0.3    Triathlon: 0.25 
     
+    inline float calcInclinationPower(float speed, float inclination, float weight)
+    {
+        return weight * sin(atan(inclination)) * 9.81 * speed;
+        //return (weight * heightDifference * 9.81f) / time;
+    }
     inline float calcInclinationPower(float heightDifference, float time)
     {
         return (weight * heightDifference * 9.81f) / time;
     }
-    inline float calcAerodynamicResistancePower(float speed)
+    inline float calcAerodynamicResistancePower(float speed, float haltungskorrekturfaktor)
     {
         //0.5 * Anpassung * Höhen/Druckkorrektur(20°/150m))
         return 0.5f * 1.311f  * 0.9f * haltungskorrekturfaktor * (speed*speed*speed);
@@ -201,7 +206,7 @@ private:
      * @param surfaceFactor Der Faktor für den Bodenwiderstand. Standardwert: 1 (normaler Asphalt). Schotterweg: 1.8. Guter Schotterweg: 1.47. Rauer Asphalt: 1.15, glatter Asphalt: 0.82
      * @return Den Rollwiderstand
      */
-    inline float calcRollingResistancePower(float speed, float surfaceFactor)
+    inline float calcRollingResistancePower(float speed, float surfaceFactor, float weight)
     {
         return 0.008f * surfaceFactor * weight * 9.81f * speed;
     }
@@ -243,6 +248,8 @@ private:
         else
             return 0.3;
     }
+    double getPower(float speed, float inclination, float surfaceFactor, float haltungskorrekturfaktor, float weight);
+    double getSpeed(float power, float inclination, float surfaceFactor, float haltungskorrekturfaktor, float weight);
     
 public:
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
@@ -251,6 +258,7 @@ public:
         : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(0.5) {}
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
     {
+        /*
         float heightDifference = _altitudeProvider->getAltitude(endNode) - _altitudeProvider->getAltitude(startNode);
         if (heightDifference < 0)
             heightDifference = 0;
@@ -288,6 +296,7 @@ public:
         return distance / speed;
         
         //TODO: Vorlieben bei Kanten nach Radweg etc anpassen und hinzufügen
+        * */
         
     }
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
@@ -295,6 +304,7 @@ public:
         return rateEdge(edge, startNode, endNode);
     }
     MeasurementUnit getMeasurementUnit() {return SECONDS;}
+    void test();
 };
 
 class SimplePowerRoutingMetric : public RoutingMetric

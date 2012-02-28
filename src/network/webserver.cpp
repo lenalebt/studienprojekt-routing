@@ -517,7 +517,7 @@ void BikerHttpRequestProcessor::processRequest()
             }
             else if (routeModifier == "simpleheight")
             {
-                float detourPerHeightMeter = 50.0f;
+                float detourPerHeightMeter = 100.0f;
                 if (numberRegExp.indexIn(_parameterMap["detourperheightmeter"]) != -1)
                 {
                     detourPerHeightMeter = numberRegExp.cap(1).toFloat();
@@ -526,8 +526,8 @@ void BikerHttpRequestProcessor::processRequest()
             }
             else if (routeModifier == "advancedheight")
             {
-                float punishment = 2.0f;
-                float detourPerHeightMeter = 100.0f;
+                float punishment = 1.0f;
+                float detourPerHeightMeter = 200.0f;
                 if (numberRegExp.indexIn(_parameterMap["punishment"]) != -1)
                 {
                     punishment = numberRegExp.cap(1).toFloat();
