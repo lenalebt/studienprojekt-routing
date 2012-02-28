@@ -186,14 +186,13 @@ private:
     float minSpeed;     //gewünschte Minimalgeschwindigkeit des Systems
     float haltungskorrekturfaktor;  //Bestimmt, wie aufrecht man sitzt auf dem Rad, realistische Werte:    Oberlenker: 0,5    Bremsgriff: 0.4    Unterlenker: 0.3    Triathlon: 0.25 
     
+    float*** powerarray;
+    float*** speedarray;
+    
     inline float calcInclinationPower(float speed, float inclination, float weight)
     {
         return weight * sin(atan(inclination)) * 9.81 * speed;
         //return (weight * heightDifference * 9.81f) / time;
-    }
-    inline float calcInclinationPower(float heightDifference, float time)
-    {
-        return (weight * heightDifference * 9.81f) / time;
     }
     inline float calcAerodynamicResistancePower(float speed, float haltungskorrekturfaktor)
     {
@@ -211,82 +210,47 @@ private:
         return 0.008f * surfaceFactor * weight * 9.81f * speed;
     }
     
-    inline float calcInclinationTime(float heightDifference, float power)
-    {
-        return (weight * heightDifference * 9.81f) / power;
-    }
-    inline float calcAerodynamicResistanceSpeed(float power)
-    {
-        //0.5 * Anpassung * Höhen/Druckkorrektur(20°/150m))
-        return pow(power/(0.5f * 1.311f  * 0.9f * haltungskorrekturfaktor), 0.3333333);
-    }
-    inline float calcRollingResistanceSpeed(float power, float surfaceFactor)
-    {
-        return power/(0.008f * surfaceFactor * weight * 9.81f);
-    }
     inline double min(double a, double b) {return (a<b) ? a : b;}
     inline double max(double a, double b) {return (a<b) ? b : a;}
-    inline float rollResistancePowerFactor(float speed)
-    {
-        if (speed < 2)
-            return 0.1;
-        if (speed < 4)
-            return 0.05;
-        if (speed < 5)
-            return 0.01;
-        else
-            return 0.005;
-    }
-    inline float inclinationPowerFactor(float speed)
-    {
-        if (speed < 2)
-            return 0.8;
-        if (speed < 4)
-            return 0.7;
-        if (speed < 5)
-            return 0.5;
-        else
-            return 0.3;
-    }
+    
     double getPower(float speed, float inclination, float surfaceFactor, float haltungskorrekturfaktor, float weight);
     double getSpeed(float power, float inclination, float surfaceFactor, float haltungskorrekturfaktor, float weight);
+    void init();
     
 public:
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
-        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5) {}
+        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5)
+    {
+        init();
+    }
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float weight, float maxPower, float minSpeed)
-        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(0.5) {}
+        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(0.5)
+    {
+        init();
+    }
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
     {
-        /*
         float heightDifference = _altitudeProvider->getAltitude(endNode) - _altitudeProvider->getAltitude(startNode);
         if (heightDifference < 0)
             heightDifference = 0;
         float distance = startNode.calcDistance(endNode);
+        float inclination = heightDifference / distance;
         
         //TODO: Faktor anpassen je nach Eigenschaften der Kante
         float surfaceFactor = 1;
         
-        float power = calcInclinationPower(heightDifference, distance/minSpeed)
-                        //+ calcAerodynamicResistancePower(minSpeed)
-                        + calcRollingResistancePower(minSpeed, surfaceFactor);
+        float power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
         std::cerr << "power: " << power << std::endl;
-        std::cerr << "incPower: " << calcInclinationPower(heightDifference, distance/minSpeed)
-                //<< " aeroPower: " << calcAerodynamicResistancePower(minSpeed)
-                << " rollPower: " << calcRollingResistancePower(minSpeed, surfaceFactor)
-                << std::endl;
         
         float speed;
         if (power > maxPower)
         {
-            //okay, zu viel leistung: Schiiieben.
+            //okay, zu viel Leistung: Schiiieben.
             speed = 1.0f;  //ca. 4km/h
         }
         else
         {
-            speed = min(distance / calcInclinationTime(heightDifference, maxPower), minSpeed*2) +
-                    //calcAerodynamicResistanceSpeed(maxPower*0.2)),
-                    calcRollingResistanceSpeed(maxPower*0.2, surfaceFactor);
+            speed = getSpeed(maxPower, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
             
             //speed = minSpeed;
         }
@@ -296,7 +260,6 @@ public:
         return distance / speed;
         
         //TODO: Vorlieben bei Kanten nach Radweg etc anpassen und hinzufügen
-        * */
         
     }
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)

@@ -101,21 +101,74 @@ double PowerRoutingMetric::getPower(float speed, float inclination, float surfac
 }
 double PowerRoutingMetric::getSpeed(float power, float inclination, float surfaceFactor, float haltungskorrekturfaktor, float weight)
 {
-    for (int i=0; i<500; i++)
+    double a=0;
+    double b=30;
+    double mid=(b-a)/2+a;
+    double pwra = getPower(a, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
+    double pwrb = getPower(b, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
+    double pwrmid = getPower(mid, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
+    for (int i=0; i<20; i++)
     {
-        double speed = 0.03*i;
-        double pwr = getPower(speed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
-        if (pwr >= power)
-            return speed;
+        if (pwrmid > power)
+        {
+            pwrb = pwrmid;
+            b=mid;
+        }
+        else
+        {
+            pwra=pwrmid;
+            a=mid;
+        }
+        mid=(b-a)/2+a;
+        pwrmid = getPower(mid, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
     }
-    return 0.0;
+    return mid;
+}
+
+void PowerRoutingMetric::init()
+{
+    /*
+     * Abhängig von
+     *  - Gewicht (fest)
+     *  - Haltungskorrekturfaktor (fest)
+     *  - Steigung (0% - +15%, evtl 0.5%-Schritte)
+     *  - Oberflächenfaktor (0.1 - 3, 0.1-Schritte)
+     *  - Geschwindigkeit (0-25m/s, 0.25m/s-Schritte) oder Leistung (0-1000W, 10W-Schritte)
+     */
+    powerarray = new float**[30];
+    speedarray = new float**[30];
+    for (int i = 0; i < 30; i++)
+    {
+        powerarray[i] = new float*[30];
+        speedarray[i] = new float*[30];
+        
+        double inclination = 0.5 * i;
+        for (int s = 0; s < 30; s++)
+        {
+            powerarray[i][s] = new float[100];
+            speedarray[i][s] = new float[100];
+        
+            double surfaceFactor = 0.1 * s;
+            for (int p = 0; p < 100; p++)
+            {
+                double power = 10 * p;
+                double speed = 0.25 * p;
+                
+                powerarray[i][s][p] = getPower(speed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
+                speedarray[i][s][p] = getSpeed(power, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
+            }
+        }
+    }
+    
 }
 
 void PowerRoutingMetric::test()
 {
     std::cerr << "Test für PowerRoutingMetric" << std::endl;
     
-    std::cerr << "getSpeed(250, 0.01, 1, 0.5, 100)=" << getSpeed(250, 0.01, 1, 0.5, 100) << std::endl;
+    std::cerr << "getSpeed(150, 0.01, 1, 0.5, 100)=" << getSpeed(150, 0.01, 1, 0.5, 100) << std::endl;
+    std::cerr << "getSpeed(150, 0.0, 1, 0.5, 100)=" << getSpeed(150, 0.0, 1, 0.5, 100) << std::endl;
+    std::cerr << "getSpeed(150, -0.01, 1, 0.5, 100)=" << getSpeed(150, -0.01, 1, 0.5, 100) << std::endl;
     
     /*
     float***** powerArray;
