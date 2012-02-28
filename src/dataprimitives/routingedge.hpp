@@ -5,6 +5,7 @@
 #include <iostream>
 #include "tests.hpp"
 
+//Streettypes
 #define STREETTYPE_HIGHWAY_PRIMARY              0
 #define STREETTYPE_HIGHWAY_SECONDARY            1
 #define STREETTYPE_HIGHWAY_TERTIARY             2
@@ -22,7 +23,7 @@
 
 #define CYCLEWAYTYPE_UNKNOWN                    (1<<BITLENGTH_CYCLEWAYTYPE)-1 //last bit, highest possible value
 
-
+//Smoothness
 #define STREETSURFACEQUALITY_EXCELLENT    	0
 #define STREETSURFACEQUALITY_GOOD  		1
 #define STREETSURFACEQUALITY_INTERMEDIATE	2

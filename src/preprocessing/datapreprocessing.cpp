@@ -45,6 +45,9 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);        
         preprocess();        
         future.waitForFinished();
+
+        //TODO: Graphen aus kategorisierten Daten erstellen
+
         _finalDBConnection->close();
         _tmpDBConnection.close();
         tmpFile.remove();
@@ -56,6 +59,9 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
         preprocess();
         future.waitForFinished();
+
+        //TODO: Graphen aus kategorisierten Daten erstellen
+
         _finalDBConnection->close();
         _tmpDBConnection.close();
         tmpFile.remove();
@@ -86,7 +92,7 @@ bool DataPreprocessing::preprocess()
     _tmpDBConnection.endTransaction();
 
     //alle Edges bearbeiten
-    _finalDBConnection->beginTransaction();
+    //_finalDBConnection->beginTransaction(); ist hier noch nicht noetig
     boost::uint64_t edgeID=0;
     QSet<boost::uint64_t> nodeIDSet;
     int wayCount=0;
@@ -97,11 +103,10 @@ bool DataPreprocessing::preprocess()
         {
             QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
             for(int i = 0; i < edgeList.size(); i++)
-            {
-                //TODO: kategorisieren
+            {                
                 categorizeEdge(edgeList[i]);
                 RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
-                _finalDBConnection->saveEdge(routingEdge);
+               // _finalDBConnection->saveEdge(routingEdge); ist hier noch nicht noetig
             }
             //So werden nur die Knoten in die DB gelegt, die auch von Edges benutzt werden.
             QVector<boost::uint64_t> memberList = _osmWay->getMemberList();
@@ -112,7 +117,7 @@ bool DataPreprocessing::preprocess()
                 {
                     _osmNode = _tmpDBConnection.getOSMNodeByID(memberList[i]);
                     RoutingNode routingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon());
-                    _finalDBConnection->saveNode(routingNode);
+                    //_finalDBConnection->saveNode(routingNode); ist hier noch nicht noetig
                     nodeIDSet.insert(_osmNode->getID());
                 }
             }
@@ -155,7 +160,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
 
     routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
 
-    // Hier würden jetzt mit viel if und else, durch betrachtung der OSMPropertys der OSMEdge, die jeweiligen Werte der routingEdge gesetzt.
+    // Hier würden jetzt mit viel if und else, durch Betrachtung der OSMPropertys der OSMEdge, die jeweiligen Werte der routingEdge gesetzt.
     QVector<OSMProperty> props = osmEdge.getProperties();
     
     for(int i = 0; i < props.size(); i++)
@@ -169,11 +174,24 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
         //    std::cerr << "its a highway, und alle so: yeahh..." << std::endl;
         //}
 
-        if(_value == "impassable")
+        //if(_value == "impassable")
+        //{
+        //    streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
+        //    break;
+        //}
+        if(_key == "restriction")
         {
-            streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
-            break;
+            std::cerr << "---------------------------- restriction" << std::endl;
+            if(_value == "no_right_turn")
+            {
+
+            }
         }
+        else if(_key != "restriction")
+        {
+            std::cerr << "no restriction" << std::endl;
+        }
+
         else if(_key == "smoothness")
         {
             if(_value == "excellent")
@@ -204,7 +222,12 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             {
                 streetSurfaceQuality = STREETSURFACEQUALITY_VERYHORRIBLE;
             }
+            else if(_value == "unknown")
+            {
+                streetSurfaceType = STREETSURFACEQUALITY_UNKNOWN;
+            }
         }//End if key == smoothness
+
         else if (_key == "surface" || _key == "tracktype")
         {
             if(_value == "artificial_turf")
@@ -215,7 +238,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             {
                 streetSurfaceType = STREETSURFACETYPE_ASPHALT;
             }
-            else if (_value == "cobblestone")
+            else if (_value.contains("cobblestone"))
             {
                 streetSurfaceType = STREETSURFACETYPE_COBBLESTONE;
             }
@@ -247,10 +270,15 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             {
                 streetSurfaceType = STREETSURFACETYPE_GRASSPAVER;
             }
+            else if (_value.contains("paving_stones"))
+            {
+                streetSurfaceType = STREETSURFACETYPE_PAVING_STONES;
+            }
             else if (_value == "gravel")
             {
                 streetSurfaceType = STREETSURFACETYPE_GRAVEL;
             }
+
             else if (_value == "ground" || _value == "dirt" || _value == "mud" || _value == "earth" || _value == "clay" || _value == "sand")
             {
                 streetSurfaceType = STREETSURFACETYPE_GROUND;
