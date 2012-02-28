@@ -13,6 +13,7 @@
     <script type="text/javascript">
         var pointlist = [];
         var markerlist = [];
+        var lastmarker = [];
         var iconSize = new OpenLayers.Size(20, 20);
         var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
         var markerRed = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
@@ -21,6 +22,7 @@
         var markerGreen = new OpenLayers.Icon("img/marker-green.png", iconSize, iconOffset);
         var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
         var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
+        var markerNone = new OpenLayers.Icon("", iconSize, iconOffset);
         var iconlist = [markerGreen, markerCyan, markerBlue, markerPurple, markerRed, markerYellow];
         var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
@@ -170,8 +172,6 @@
                 // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
             );
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
-        
-                
             
             map.addLayer(markers);
             
@@ -221,11 +221,13 @@
                     help = index / iconlist.length;
                     if(help < 1.0)
                     {
-                        markers.addMarker(new OpenLayers.Marker(markerlist[index], iconlist[iconindex]));
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
+                        markers.addMarker(lastmarker[index]);
                     }
                     else
                     {
-                        markers.addMarker(new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone()));
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        markers.addMarker(lastmarker[index]);
                     }
                     //alert(iconindex);
                     //alert(index);
@@ -233,7 +235,6 @@
                     //alert(help.isDrawn());
                 }
             }
-            //map.addLayer(markers);
         }
         
         function calcRoute()
@@ -242,7 +243,11 @@
             var urlstart = "../1341253652/api/0.3/";
             var urlend = "/bike/advancedheight.gpx";
             var url;
-            if (pointlist.length > 1)
+            if (pointlist.length == 1)
+            {
+                markers.addMarker(new OpenLayers.Marker(markerlist[0], iconlist[0]));
+            }
+            else if (pointlist.length > 1)
             {
                 if(pointlist.length == 2)
                 {
@@ -275,11 +280,50 @@
                 displayGPX(url);
             }
         }
+        function resetRoute()
+        {
+            //map.removeLayer(markers);
+            lastmarker = [];
+            markerlist = [];
+            pointlist = [];
+            //markers = new OpenLayers.Layer.Markers( "Markers" );
+            markers.redraw();
+            //map.addLayer(markers);
+            calcRoute();
+        }
+        function removeLastElement()
+        {
+            if(pointlist.length >= 1)
+            {
+                //map.removeLayer(markers);
+                //lastmarker[lastmarker.length - 1].destroy();
+                //var copy = [];
+                //for (var index = 0; index <= lastmarker.length -1; index ++)
+                //{
+                 //   copy[index] = lastmarker[index];
+                //}
+                //lastmarker = "";
+                //lastmarker = copy;
+                //map.addLayer(markers);
+                lastmarker.splice(lastmarker.length - 1, 1);
+                markerlist.splice(markerlist.length - 1 , 1);
+                pointlist.splice(pointlist.length -1, 1);
+                //markers.redraw();
+                calcRoute();
+            } else
+            {
+                resetRoute();
+            }
+        }
     </script>
   </head>
   <body onload="init()">
     <div id="map" class="smallmap"></div>
-    
+    <div>
+        <button id="b1" type="reset" onclick="resetRoute()">Reset</button>
+        <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
+    </div>
+    <div>
     Erklärung hier hin vielleicht?
     
     Google-Karten kann man evtl nutzen, steht <a href="http://code.google.com/intl/de-DE/apis/maps/documentation/javascript/">hier</a><br>
@@ -287,5 +331,6 @@
     MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="http://www.mapquest.com/">guckst du</a>)<br>
     
     Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>
+    </div>
   </body>
 </html>
