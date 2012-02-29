@@ -52,6 +52,15 @@ private:
     BlockingQueue<boost::shared_ptr<OSMWay> > _wayQueue;
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
 
+    /**
+     * @brief Wandelt eine <code>OSMEdge</code> Kante in eine <code>RoutingEdge</code> Kante um und kategorisiert diese.
+     *
+     * Wann immer eine Kante nicht von einem Fahrrad passiert werden kann, wird die Eigenschaft der Zugangsbeschränkung auf den Wert für <code>ACCESS_NOT_USABLE_FOR_BIKES</code> gesetzt.
+     * Eigenschaften wie Ampeln beziehen sich immer auf des Ende einer Kante.
+     *
+     * @param osmEdge Die umzuwandelnde <code>OSMEdge</code> Kante.
+     * @return Ein Pointer auf die aus der <code>OSMEdge</code> Kante erstellte <code>RoutingEdge</code> Kante.
+     */
     boost::shared_ptr<RoutingEdge> categorizeEdge(const OSMEdge& osmEdge);
 
     
