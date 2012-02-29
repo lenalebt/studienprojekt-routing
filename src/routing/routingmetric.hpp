@@ -238,6 +238,100 @@ public:
         
         //TODO: Faktor anpassen je nach Eigenschaften der Kante
         float surfaceFactor = 1;
+        float streetTypeFactor = 1;
+        float timePunishment = 0;
+        switch (edge.getAccess())
+        {
+            case ACCESS_DESTINATION:
+            case ACCESS_YES:
+            case ACCESS_UNKNOWN:
+                switch (edge.getStreetType())
+                {
+                    case STREETTYPE_HIGHWAY_FORD:           streetTypeFactor = 1.0; break;
+                    case STREETTYPE_HIGHWAY_JUNCTION:       streetTypeFactor = 1.0; break;
+                    case STREETTYPE_HIGHWAY_LIVINGSTREET:   streetTypeFactor = 1.0; break;
+                    case STREETTYPE_HIGHWAY_PATH:           streetTypeFactor = 1.0; break;
+                    case STREETTYPE_HIGHWAY_PEDESTRIAN:     streetTypeFactor = 1.0; break;
+                    case STREETTYPE_HIGHWAY_PRIMARY:        streetTypeFactor = 1.2; break;
+                    case STREETTYPE_HIGHWAY_RESIDENTIAL:    streetTypeFactor = 1.0; break;
+                    case STREETTYPE_HIGHWAY_SECONDARY:      streetTypeFactor = 1.1; break;
+                    case STREETTYPE_HIGHWAY_SERVICE:        streetTypeFactor = 1.0; break;
+                    case STREETTYPE_HIGHWAY_TERTIARY:       streetTypeFactor = 1.0; break;
+                    case STREETTYPE_HIGHWAY_TRACK:          streetTypeFactor = 1.5; break;
+                    case STREETTYPE_UNKNOWN:
+                    default:                                streetTypeFactor = 1.0; break;
+                }
+            default:        streetTypeFactor = -1;
+                            break;
+        }
+        /*switch (edge.getCyclewayType())
+        {
+            
+        }*/
+        switch (edge.getStreetSurfaceQuality())
+        {
+            case STREETSURFACEQUALITY_EXCELLENT:     surfaceFactor *= 0.82; break;
+            case STREETSURFACEQUALITY_GOOD:          surfaceFactor *= 1.0; break;
+            case STREETSURFACEQUALITY_INTERMEDIATE:  surfaceFactor *= 1.15; break;
+            case STREETSURFACEQUALITY_BAD:           surfaceFactor *= 1.4; break;
+            case STREETSURFACEQUALITY_VERYBAD:       surfaceFactor *= 1.8; break;
+            case STREETSURFACEQUALITY_HORRIBLE:      surfaceFactor *= 2.2; break;
+            case STREETSURFACEQUALITY_VERYHORRIBLE:  surfaceFactor *= 2.5; break;
+            case STREETSURFACEQUALITY_IMPASSABLE:    surfaceFactor *= 5.0; break;
+            case STREETSURFACEQUALITY_UNKNOWN:
+            default:                                 surfaceFactor *= 1.0; break;
+        }
+        switch (edge.getStreetSurfaceType())
+        {
+            case STREETSURFACETYPE_ASPHALT:         surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_COBBLESTONE:     surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_COMPACTED:       surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_CONCRETE:        surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_FINEGRAVEL:      surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_GRASS:           surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_GRASSPAVER:      surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_GRAVEL:          surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_GROUND:          surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_METAL:           surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_PAVED:           surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_PAVING_STONES:   surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_SETT:            surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_TARTAN:          surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_UNPAVED:         surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_UNKNOWN:
+            default:                                surfaceFactor *= 1.0; break;
+            
+        }
+        switch (edge.getTurnType())
+        {
+            case TURNTYPE_LEFTCROSS:        timePunishment += 5.0; break;
+            case TURNTYPE_RIGHTCROSS:       timePunishment += 2.0; break;
+            case TURNTYPE_STRAIGHTCROSS:    timePunishment += 0.0; break;
+            case TURNTYPE_UTURNCROSS:       timePunishment += 5.0; break;
+            case TURNTYPE_STRAIGHT:
+            default:                        timePunishment += 0.0; break;
+        }
+        if (edge.hasStairs())
+        {
+            //Bestrafung für eine Treppe: Länge * 2 in Sekunden + 5 Sekunden
+            timePunishment += distance * 2.0 + 5.0;
+        }
+        if (edge.hasCycleBarrier())
+        {
+            timePunishment += 10.0;
+        }
+        if (edge.hasTrafficCalmingBumps())
+        {
+            timePunishment += 8.0;
+        }
+        if (edge.hasStopSign())
+        {
+            timePunishment += 8.0;
+        }
+        if (edge.hasTrafficLights())
+        {
+            timePunishment += 10.0;
+        }
         
         float power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
         //std::cerr << "power: " << power << std::endl;
@@ -257,7 +351,7 @@ public:
         //std::cerr << "speed: " << speed << std::endl;
         
         //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
-        return distance / speed;
+        return streetTypeFactor * (distance / speed) + timePunishment;
         
         //TODO: Vorlieben bei Kanten nach Radweg etc anpassen und hinzufügen
         

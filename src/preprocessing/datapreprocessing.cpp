@@ -313,7 +313,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
                 access = ACCESS_DELIVERY;
             }
             else if(osmValue == "destination"){
-                access = ACCESS_DESTINATOIN;
+                access = ACCESS_DESTINATION;
             }
             else if(osmValue == "customer"){
                 access = ACCESS_CUSTOMER;

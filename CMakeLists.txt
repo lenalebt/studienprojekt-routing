@@ -102,6 +102,7 @@ SET(
     #src/preprocessing
     src/preprocessing/datapreprocessing.cpp
     src/preprocessing/simpledatapreprocessing.cpp
+    src/preprocessing/edgecategorizer.cpp
 
     #src/database/
     src/database/altitudeprovider.cpp
@@ -157,6 +158,7 @@ SET(
     #src/preprocessing
     src/preprocessing/datapreprocessing.hpp
     src/preprocessing/simpledatapreprocessing.hpp
+    src/preprocessing/edgecategorizer.hpp
 
     #src/database/
     src/database/altitudeprovider.hpp

@@ -84,6 +84,8 @@ private:
     bool isStreet(const OSMWay& way);
     bool isPassable(const OSMWay& way);
     
+    boost::shared_ptr<RoutingEdge> categorizeEdge(const OSMEdge &osmEdge);
+    
 public:    
     SimpleDataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb);
     ~SimpleDataPreprocessing();

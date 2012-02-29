@@ -17,7 +17,7 @@ double EuclidianRoutingMetric::rateEdge(const RoutingEdge &edge, const RoutingNo
 double EuclidianRoutingMetric::timeEdge(const RoutingEdge &edge, const RoutingNode &startNode, const RoutingNode &endNode)
 {
     //Rechne mit 5m/s Fahrgeschwindigkeit
-    return this->rateEdge(edge, startNode, endNode) / 5;
+    return this->rateEdge(edge, startNode, endNode) / 5.0;
 }
 
 double SimpleHeightRoutingMetric::rateEdge(const RoutingEdge &edge, const RoutingNode &startNode, const RoutingNode &endNode)

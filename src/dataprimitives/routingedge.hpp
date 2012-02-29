@@ -87,7 +87,7 @@
 #define ACCESS_FORESTRY			4
 #define ACCESS_AGRICULTURAL		5
 #define ACCESS_CUSTOMER			6 // open for customers
-#define ACCESS_DESTINATOIN              7 // access only to reach a certain destination
+#define ACCESS_DESTINATION              7 // access only to reach a certain destination
 #define ACCESS_DELIVERY			8 // open for delivery
 #define ACCESS_PRIVATE			9
 #define ACCESS_NOT_PERMITTED		10

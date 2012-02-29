@@ -76,7 +76,7 @@ namespace biker_tests
             int k = dist();
             if (filter.add(k))
             {
-                std::cerr << i << ", ";
+                //std::cerr << i << ", ";
                 collisions++;
             }
             if (!filter.contains(k))
