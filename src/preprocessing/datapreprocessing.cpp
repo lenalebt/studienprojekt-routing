@@ -205,6 +205,13 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             break; //if the edge can't be passed by bike, there is no need for further categorization
         }
 
+        else if(osmKey == "ice_road" || osmKey == "motorroad" || osmKey == "winterroad"){
+            if(osmValue == "yes"){
+                access = ACCESS_NOT_USABLE_FOR_BIKES;
+                break; //if the edge can't be passed by bike, there is no need for further categorization
+            }
+        }
+
         else if(osmKey == "mtb:scale"){
             if(osmValue == "0"){
                 cyclewayType = CYCLEWAYTYPE_MTB_0;
@@ -224,6 +231,8 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
         }
 
         else if(osmKey == "highway"){
+            isHighway = true;
+
             if(osmValue == "bus_guideway" ||
                     osmValue == "construction" ||
                     osmValue == "motorway" ||
@@ -233,23 +242,59 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
                 access = ACCESS_NOT_USABLE_FOR_BIKES;
                 break; //if the edge can't be passed by bike, there is no need for further categorization
             }
-            else if(osmValue == ""){
+            else if(osmValue == "pedestrian"){
+                streetType = STREETTYPE_HIGHWAY_PEDESTRIAN;
+
+            }
+            else if(osmValue == "primary" || osmValue == "primary_link" || osmValue == "trunk" || osmValue == "trunk_link"){
+                streetType = STREETTYPE_HIGHWAY_PRIMARY;
+
+            }
+            else if(osmValue == "secondary" || osmValue == "secondary_link"){
+                streetType = STREETTYPE_HIGHWAY_SECONDARY;
+
+            }
+            else if(osmValue == "tertiary" || osmValue == "tertiary_link"){
+                streetType = STREETTYPE_HIGHWAY_TERTIARY;
+
+            }
+            else if(osmValue == "track" || osmValue == "byway"){
+                streetType = STREETTYPE_HIGHWAY_TRACK;
+
+            }
+            else if(osmValue == "path"){
+                streetType = STREETTYPE_HIGHWAY_PATH;
+
+            }
+            else if(osmValue == "living_street"){
+                streetType = STREETTYPE_HIGHWAY_LIVINGSTREET;
+
+            }
+            else if(osmValue == "residential"){
+                streetType = STREETTYPE_HIGHWAY_RESIDENTIAL;
+
+            }
+            else if(osmValue == "junction"){
+                streetType = STREETTYPE_HIGHWAY_JUNCTION;
+
+            }
+            else if(osmValue == "service"){
+                streetType = STREETTYPE_HIGHWAY_SERVICE;
+
+            }
+            else if(osmValue == "ford"){
+                streetType = STREETTYPE_HIGHWAY_FORD;
+
+            }
+            else{
+                streetType = STREETTYPE_HIGHWAY_UNKNOWN;
 
             }
 
-            //#define STREETTYPE_HIGHWAY_PEDESTRIAN           0
-            //#define STREETTYPE_HIGHWAY_PRIMARY              1
-            //#define STREETTYPE_HIGHWAY_SECONDARY            2
-            //#define STREETTYPE_HIGHWAY_TERTIARY             3
-            //#define STREETTYPE_HIGHWAY_TRACK                4
-            //#define STREETTYPE_HIGHWAY_PATH                 5
-            //#define STREETTYPE_HIGHWAY_LIVINGSTREET         6
-            //#define STREETTYPE_HIGHWAY_RESIDENTIAL          7
-            //#define STREETTYPE_HIGHWAY_SERVICE              8
-            //#define STREETTYPE_HIGHWAY_FORD                 9
-            //#define STREETTYPE_HIGHWAY_JUNCTION             10
-            ////#define STREETTYPE_HIGHWAY_                     11
-            //#define STREETTYPE_UNKNOWN
+            if(osmValue == "steps"){
+                hasStairs = true;
+
+            }
         }
 
         else if(osmKey == "access"){
@@ -360,10 +405,11 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
 
     }// END: osmEdge properties iterator
 
-    //Flagauswertung
+    //Flagauswertung//////////////////////////////////////
     if(isArea && !isHighway){
         access = ACCESS_NOT_USABLE_FOR_BIKES;
     }
+    //Flagauswertung//END/////////////////////////////////
 
     routingEdge->setTrafficLights(hasTrafficLights);
     routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
