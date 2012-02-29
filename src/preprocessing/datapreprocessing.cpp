@@ -287,7 +287,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
 
             }
             else{
-                streetType = STREETTYPE_HIGHWAY_UNKNOWN;
+                streetType = STREETTYPE_UNKNOWN;
 
             }
 
