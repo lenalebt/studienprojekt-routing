@@ -552,8 +552,8 @@ void BikerHttpRequestProcessor::processRequest()
             else if (routeModifier == "power")
             {
                 double weight = 90.0;
-                double maxPower = 200.0;
-                double minSpeed = 4.0;
+                double maxPower = 140.0;
+                double minSpeed = 2.5;
                 
                 if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
                     weight = numberRegExp.cap(1).toDouble();

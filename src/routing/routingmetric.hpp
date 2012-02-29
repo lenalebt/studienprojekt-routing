@@ -240,13 +240,13 @@ public:
         float surfaceFactor = 1;
         
         float power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
-        std::cerr << "power: " << power << std::endl;
+        //std::cerr << "power: " << power << std::endl;
         
         float speed;
         if (power > maxPower)
         {
             //okay, zu viel Leistung: Schiiieben.
-            speed = 1.0f;  //ca. 4km/h
+            speed = 0.5f;  //ca. 4km/h
         }
         else
         {
@@ -254,7 +254,7 @@ public:
             
             //speed = minSpeed;
         }
-        std::cerr << "speed: " << speed << std::endl;
+        //std::cerr << "speed: " << speed << std::endl;
         
         //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
         return distance / speed;
