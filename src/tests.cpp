@@ -160,6 +160,7 @@ namespace biker_tests
     template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
     template bool check_equality(std::string message, OSMProperty a,     OSMProperty b);
     template bool check_equality(std::string message, OSMNode a,         OSMNode b);
+    template bool check_equality(std::string message, OSMEdge a,         OSMEdge b);
     template bool check_equality(std::string message, GPSPosition a,     GPSPosition b);
     template bool check_equality(std::string message, OSMTurnRestriction a, OSMTurnRestriction b);
   

@@ -42,13 +42,13 @@ public:
      * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörigen Knoten. Richtugn ist per default vorwärts (true).
      * @param id Die ID des Weges zu dem die Edge gehört.
      */
-    OSMEdge(boost::uint64_t id) : id(id), forward(true), startNode(0), endNode(0) {};
+    OSMEdge(boost::uint64_t id) : id(id), forward(true), startNode(0), endNode(0), properties() {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
      * @param forward Die Richtung der Kante in Bezug auf den zugehörigen Weg.
      */
-    OSMEdge(boost::uint64_t id, bool forward) : id(id), forward(forward), startNode(0), endNode(0) {};
+    OSMEdge(boost::uint64_t id, bool forward) : id(id), forward(forward), startNode(0), endNode(0), properties() {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID und Eigenschaften, ohne zugehörige Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
@@ -63,6 +63,14 @@ public:
      * @param propList Die zugehörigen Eigenschaften der Edge.
      */
     OSMEdge(boost::uint64_t id, boost::uint64_t startNode, boost::uint64_t endNode, QVector<OSMProperty> propList) : id(id), forward(true), startNode(startNode), endNode(endNode), properties(propList) {};
+    /**
+     * @brief Erstellt eine Edge mit angegebener ID, Eigenschaften und zugehörigen Knoten.
+     * @param id Die ID des Weges zu dem die Edge gehört.
+     * @param forward Die Richtung der Kante in Bezug auf den zugehörigen Weg.
+     * @param startNode Startknoten der Edge.
+     * @param endNode Endknoten der Edge.
+     */
+    OSMEdge(boost::uint64_t id, bool forward, boost::uint64_t startNode, boost::uint64_t endNode) : id(id), forward(forward), startNode(startNode), endNode(endNode), properties() {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
@@ -98,6 +106,18 @@ public:
      * @param endNode Endknoten der Edge.
      */
     void setNodes(const boost::uint64_t startNode, const boost::uint64_t endNode) {this->startNode = startNode; this->endNode = endNode;}
+    
+    /**
+     * @brief Setzt den Startknoten der OSMEdge auf einen Wert.
+     * @param startNodeID Die ID des Startknotens
+     */
+    void setStartNodeID(boost::uint64_t startNodeID) {this->startNode = startNodeID;}
+    /**
+     * @brief Setzt den Endknoten der OSMEdge auf einen Wert.
+     * @param startNodeID Die ID des Endknotens
+     */
+    void setEndNodeID(boost::uint64_t endNodeID) {this->endNode = endNodeID;}
+    
     /**
      * @brief Gibt den zugehörigen Startknoten zurück.
      * @return Startknoten.
