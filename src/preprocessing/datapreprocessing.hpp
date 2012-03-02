@@ -2,6 +2,7 @@
 #define DATAPREPROCESSING_HPP
 
 #include <boost/cstdint.hpp>
+#include <boost/logic/tribool.hpp>
 #include "gpsposition.hpp"
 #include "database.hpp"
 #include "temporarydatabase.hpp"

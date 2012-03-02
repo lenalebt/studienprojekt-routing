@@ -163,42 +163,61 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 }
 
 
-boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &osmEdge) //sollte ich das hier als boost::shared_ptr<OSMEdge> bekommen?
+void DataPreprocessing::categorize(const QVector<OSMProperty> properties, const bool isForward, boost::uint64_t& propForward,boost::uint64_t& propBackward)
 {
     bool hasTrafficLights = false;
     bool hasTrafficCalmingBumps = false;
-    //bool hasStopSign = false;
+    bool hasStopSign = false;
     bool hasStairs = false;
     bool hasCycleBarrier = false;
-    bool isDesignated = false;
     boost::uint8_t streetType = STREETTYPE_UNKNOWN;
-    boost::uint8_t cyclewayType = CYCLEWAYTYPE_UNKNOWN;
+    boost::uint8_t cyclewayType = CYCLEWAYTYPE_NO_CYCLEWAY;
     boost::uint8_t streetSurfaceType = STREETSURFACETYPE_UNKNOWN;
     boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;    
-    boost::uint8_t access = ACCESS_YES;
-    //boost::uint8_t turnType = TURNTYPE_STRAIGHT; // TURNTYPE won't be categorized in this function
+    boost::uint8_t access = ACCESS_UNKNOWN;
 
-    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
 
-    //Flags
-    bool isForward = osmEdge.getForward();
-    bool isArea = false;
-    bool isHighway = false;
+    //////////////////////////////////////////////////////
+    //Flags///////////////////////////////////////////////
+    bool isWay = false;
+    bool isCycleway = false;
+    bool isFootway = false;
+
     bool isOfficial = false;
     bool hasDesignation = false;
 
+    boost::logic::tribool isOneway = boost::logic::indeterminate; // false means oneway in opposite direction
+    boost::logic::tribool isOnewayBicycle = boost::logic::indeterminate; // false means bicycles may go both ways
+    boost::logic::tribool isBicycleForward = boost::logic::indeterminate;
+    boost::logic::tribool isBicycleBackward = boost::logic::indeterminate;
 
-    QVector<OSMProperty> properties = osmEdge.getProperties();
+    bool isLane = false;
+    bool isTrack = false;
+    bool isShared = false;
+    bool isOpposite = false;
+    bool isBusway = false;
+    bool isSegregated = false;
+
+    boost::logic::tribool isExplicitlyBicycle = boost::logic::indeterminate; // false means no access for bikes
+    boost::logic::tribool isExplicitlyFoot = boost::logic::indeterminate; // false means no access for pedestrians
+    //Flags//END//////////////////////////////////////////
+
+
+    //DONE:
+    // Key: smoothness, surface, tracktype(only grade1), mtb:scale, bicycle, compulsory und designation zusammenstellen
+    //TODO:
+    // highway, stop, traffic_signal, cycleway, oneway
+
+
+    //////////////////////////////////////////////////////
+    //Keys/und/Values/betrachten//////////////////////////
     for (QVector<OSMProperty>::const_iterator it = properties.constBegin(); it != properties.constEnd(); it++)
     {
         QString osmKey = it->getKey();
         QString osmValue = it->getValue();
 
-        //DONE:
-        // Key: smoothness, surface, tracktype(only grade1), mtb:scale,
-        //TODO:
-        // highway, stop, traffic_signal, cycleway, oneway, bicycle, compulsory und designation zusammenstellen
 
+        //Einige K.O.-Argumente///////////////////////////////////
         if(osmValue == "impassalbe"){
             streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
             access = ACCESS_NOT_USABLE_FOR_BIKES;
@@ -211,8 +230,120 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
                 break; //if the edge can't be passed by bike, there is no need for further categorization
             }
         }
+        //Einige K.O.-Argumente//END//////////////////////////////
+
+
+        else if(osmKey == "bicycle"){
+            isWay = true;
+            if(osmValue == "yes"){
+                isExplicitlyBicycle = true;
+            }
+            else if(osmValue == "designated"){
+                hasDesignation = true;
+                isExplicitlyBicycle = true;
+            }
+            else if(osmValue == "no"){
+                isExplicitlyBicycle = false;
+                break; //if the edge can't be passed by bike, there is no need for further categorization
+            }
+        }
+        else if(osmKey == "foot"){
+            isWay = true;
+            if(osmValue == "yes"){
+                isExplicitlyFoot = true;
+            }
+            else if(osmValue == "designated"){
+                hasDesignation = true;
+                isExplicitlyFoot = true;
+            }
+            else if(osmValue == "no"){
+                isExplicitlyFoot = false;
+            }
+        }
+
+        else if(osmKey == "oneway"){
+            isWay = true;
+            if(osmValue == "yes" || osmValue == "1"){
+                isOneway = true;
+            }
+            else if(osmValue == "-1"){
+                isOneway = false;
+            }
+        }
+        else if(osmKey == "vehicle:backward"){
+            isWay = true;
+            if(osmValue == "no"){
+                isOneway = true;
+            }
+        }
+        else if(osmKey == "vehicle:forward"){
+            isWay = true;
+            if(osmValue == "no"){
+                isOneway = false;
+            }
+        }
+        else if(osmKey == "junction"){
+            isWay = true;
+            if(osmValue == "roundabout"){
+                isOneway = true;
+            }
+        }
+
+        else if(osmKey == "oneway:bicycle"){
+            isWay = true;
+            if(osmValue == "no"){
+                isOnewayBicycle = false;
+            }
+            if(osmValue == "yes"){
+                isOnewayBicycle = true;
+            }
+        }
+        else if(osmKey == "bicycle:backward"){
+            isWay = true;
+            if(osmValue == "yes"){
+                isBicycleBackward = true;
+            }
+            else if(osmValue == "no"){
+                isBicycleBackward = false;
+            }
+        }
+        else if(osmKey == "bicycle:forward"){
+            isWay = true;
+            if(osmValue == "yes"){
+                isBicycleForward = true;
+            }
+            else if(osmValue == "no"){
+                isBicycleForward = false;
+            }
+        }
+
+        else if(osmKey == "cycleway"){
+            isWay = true;
+            isCycleway = true;
+            if(osmValue.contains("lane")){
+                isLane = true;
+            }
+            else if(osmValue.contains("track")){
+                isTrack = true;
+            }
+            if(osmValue.contains("opposite")){
+                isOpposite = true;
+            }
+            if(osmValue.contains("share_busway")){
+                isBusway = true;
+            }
+            if(osmValue.contains("shared") || osmValue == "sharrow"){
+                isShared = true;
+            }
+        }
+        else if(osmKey == "segregated"){
+            if(osmValue == "yes"){
+                isSegregated = true;
+            }
+        }
 
         else if(osmKey == "mtb:scale"){
+            isWay = true;
             if(osmValue == "0"){
                 cyclewayType = CYCLEWAYTYPE_MTB_0;
             }
@@ -231,7 +362,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
         }
 
         else if(osmKey == "highway"){
-            isHighway = true;
+            isWay = true;
 
             if(osmValue == "bus_guideway" ||
                     osmValue == "construction" ||
@@ -242,8 +373,9 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
                 access = ACCESS_NOT_USABLE_FOR_BIKES;
                 break; //if the edge can't be passed by bike, there is no need for further categorization
             }
-            else if(osmValue == "pedestrian"){
+            else if(osmValue == "pedestrian" || osmValue == "footway"){
                 streetType = STREETTYPE_HIGHWAY_PEDESTRIAN;
+                isFootway = true;
 
             }
             else if(osmValue == "primary" || osmValue == "primary_link" || osmValue == "trunk" || osmValue == "trunk_link"){
@@ -286,6 +418,10 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
                 streetType = STREETTYPE_HIGHWAY_FORD;
 
             }
+            else if(osmValue == "cycleway"){
+                isCycleway = true;
+
+            }
             else{
                 streetType = STREETTYPE_UNKNOWN;
 
@@ -295,6 +431,13 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
                 hasStairs = true;
 
             }
+        }
+        else if(osmKey == "ford"){
+            isWay = true;
+            if(osmValue != "no"){
+                streetType = STREETTYPE_HIGHWAY_FORD;
+            }
+
         }
 
         else if(osmKey == "access"){
@@ -309,7 +452,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
                 access = ACCESS_DELIVERY;
             }
             else if(osmValue == "destination"){
-                access = ACCESS_DESTINATOIN;
+                access = ACCESS_DESTINATION;
             }
             else if(osmValue == "customer"){
                 access = ACCESS_CUSTOMER;
@@ -368,7 +511,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             else if(osmValue == "paving_stones"){
                     streetSurfaceType = STREETSURFACETYPE_PAVING_STONES;
             }
-            else if(osmValue == "tartarn"){
+            else if(osmValue == "tartan"){
                     streetSurfaceType = STREETSURFACETYPE_TARTAN;
             }
             else if(osmValue.contains("concrete")){
@@ -403,17 +546,77 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
             }
          }
 
-    }// END: osmEdge properties iterator
+    }
+    //Keys/und/Values/betrachten//END/////////////////////
 
+
+    //////////////////////////////////////////////////////
     //Flagauswertung//////////////////////////////////////
-    if(isArea && !isHighway){
+    if(isWay){
+        if(access == ACCESS_UNKNOWN){
+            access = ACCESS_YES;
+        }
+
+        if(isCycleway){
+            cyclewayType = CYCLEWAYTYPE_TRACK;
+
+        }
+
+        if(isExplicitlyBicycle){
+            access = ACCESS_YES;
+
+            if(hasDesignation){
+                access = ACCESS_DESIGNATED;
+            }
+            else if(isOfficial){
+                access = ACCESS_COMPULSORY;
+            }
+        }
+        else if(!isExplicitlyBicycle){ //should stay last condtition to overwrite lesser conditions
+            access = ACCESS_NOT_USABLE_FOR_BIKES;
+        }
+    }
+    else{
         access = ACCESS_NOT_USABLE_FOR_BIKES;
     }
     //Flagauswertung//END/////////////////////////////////
+    bool isCycleway = false;
+    bool isFootway = false;
 
+    bool isOfficial = false;
+    bool hasDesignation = false;
+
+    boost::logic::tribool isOneway = boost::logic::indeterminate; // false means oneway in opposite direction
+    boost::logic::tribool isOnewayBicycle = boost::logic::indeterminate; // false means bicycles may go both ways
+    boost::logic::tribool isBicycleForward = boost::logic::indeterminate;
+    boost::logic::tribool isBicycleBackward = boost::logic::indeterminate;
+
+    bool isLane = false;
+    bool isTrack = false;
+    bool isShared = false;
+    bool isOpposite = false;
+    bool isBusway = false;
+    bool isSegregated = false;
+
+    boost::logic::tribool isExplicitlyBicycle = boost::logic::indeterminate; // false means no access for bikes
+    boost::logic::tribool isExplicitlyFoot = boost::logic::indeterminate; // false means no access for pedestrians
+
+    CYCLEWAYTYPE_NO_CYCLEWAY
+    CYCLEWAYTYPE_LANE
+    CYCLEWAYTYPE_LANE_OP
+    CYCLEWAYTYPE_LANE_SEGREGAETD
+    CYCLEWAYTYPE_LANE_SEGREGAETD_OP
+    CYCLEWAYTYPE_LANE_SHARED_BUSWAY
+    CYCLEWAYTYPE_LANE_SHARED_BUSWAY_OP
+    CYCLEWAYTYPE_TRACK
+    CYCLEWAYTYPE_TRACK_SEGREGATED
+    CYCLEWAYTYPE_TRACK_SHARED_BUSWAY
+
+    //////////////////////////////////////////////////////
+    //Rückgabeparameter/setzen////////////////////////////
     routingEdge->setTrafficLights(hasTrafficLights);
     routingEdge->setTrafficCalmingBumps(hasTrafficCalmingBumps);
-    //routingEdge->setStopSign(hasStopSign);
+    routingEdge->setStopSign(hasStopSign);
     routingEdge->setStairs(hasStairs);
     routingEdge->setCycleBarrier(hasCycleBarrier);
     routingEdge->setAccess(access);
@@ -422,13 +625,10 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     routingEdge->setStreetSurfaceType(streetSurfaceType);
     routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
     //routingEdge->setTurnType(turnType);
+    //Rückgabeparameter/setzen//END///////////////////////
 
-    return routingEdge;
+    return;
 }
-
-//int DataPreprocessing::getStreetType();
-//int DataPreprocessing::getStreetSurfaceQuality();
-//int DataPreprocessing::getStreetSurfaceType();
 
 namespace biker_tests
 {    
