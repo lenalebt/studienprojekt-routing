@@ -61,6 +61,8 @@ private:
     sqlite3_stmt* _saveOSMEdgePropertyStatement;
     sqlite3_stmt* _getOSMEdgePropertyStatement;
     
+    sqlite3_stmt* _getWayIDsStatement;
+    
     sqlite3_stmt* _saveOSMTurnRestrictionStatement;
     sqlite3_stmt* _getOSMTurnRestrictionByViaIDStatement;
     

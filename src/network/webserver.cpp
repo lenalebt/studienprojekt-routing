@@ -208,7 +208,9 @@ bool HttpRequestProcessor::sendFile(const QString& content)
     writeString(_socket, "Cache-Control: no-store\n");
     writeString(_socket, "\n");
     _socket->flush();
-    _socket->write(content.toUtf8());
+    QByteArray data = content.toUtf8();
+    //std::cerr << "content length: " << data.size() << std::endl;
+    _socket->write(data);
     //TODO: Header, die zum Dateiinhalt passen
     //TODO: Dateiinhalt senden
     //TODO: Bei Fehler false zurückgeben

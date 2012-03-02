@@ -17,6 +17,7 @@ TemporaryOSMDatabaseConnection::TemporaryOSMDatabaseConnection() :
     _getOSMEdgeByStartNodeIDStatement(NULL),
     _getOSMEdgeByEndNodeIDStatement(NULL), _getManyOSMEdgesByWayIDStatement(NULL),
     _saveOSMEdgePropertyStatement(NULL), _getOSMEdgePropertyStatement(NULL),
+    _getWayIDsStatement(NULL),
     _saveOSMTurnRestrictionStatement(NULL), _getOSMTurnRestrictionByViaIDStatement(NULL)
 {
     
@@ -62,6 +63,9 @@ TemporaryOSMDatabaseConnection::~TemporaryOSMDatabaseConnection()
 		sqlite3_finalize(_saveOSMEdgePropertyStatement);
     if(_getOSMEdgePropertyStatement != NULL)
 		sqlite3_finalize(_getOSMEdgePropertyStatement);
+    
+    if(_getWayIDsStatement != NULL)
+		sqlite3_finalize(_getWayIDsStatement);
     
     if(_saveOSMTurnRestrictionStatement != NULL)
 		sqlite3_finalize(_saveOSMTurnRestrictionStatement);
@@ -1147,9 +1151,51 @@ QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdges
     return edgeList;
 }
 
-QVector<boost::uint64_t> TemporaryOSMDatabaseConnection::getWayIDsInRange(boost::uint64_t fromWayID, boost::uint64_t toWayID, int maxCount=1000)
+QVector<boost::uint64_t> TemporaryOSMDatabaseConnection::getWayIDsInRange(boost::uint64_t fromWayID, boost::uint64_t toWayID, int maxCount)
 {
+    QVector<boost::uint64_t> wayIDList;
+      
+    int rc;
+    if(_getWayIDsStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT DISTINCT WAYID FROM EDGES WHERE WAYID>=@MINWAYID AND WAYID<=@MAXWAYID LIMIT @MAXCOUNT;",
+            -1, &_getWayIDsStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create _getWayIDsStatement." << " Resultcode: " << rc << std::endl;
+            return QVector<boost::uint64_t>();
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_getWayIDsStatement, 1, fromWayID);
+    sqlite3_bind_int64(_getWayIDsStatement, 2, toWayID);
+    sqlite3_bind_int64(_getWayIDsStatement, 3, maxCount);
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getWayIDsStatement)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+        
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        wayIDList << sqlite3_column_int64(_getWayIDsStatement, 0);
+    }
     
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Failed to execute getWayIDsStatement." << " Resultcode: " << rc << std::endl;
+        return QVector<boost::uint64_t>();
+    }
+
+    rc = sqlite3_reset(_getWayIDsStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset _getWayIDsStatement." << " Resultcode: " << rc << std::endl;
+    }
+    
+    return wayIDList;
 }
 
 QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByEndNodeID(boost::uint64_t endNodeID)

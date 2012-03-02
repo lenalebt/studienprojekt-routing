@@ -7,6 +7,7 @@
 #include "potentialfunction.hpp"
 #include <QVector>
 #include <boost/shared_ptr.hpp>
+#include <limits>
 
 /**
  * @brief Gibt an, in welcher Einheit eine RoutingMetric die übergebenen
@@ -138,7 +139,10 @@ public:
      */
     virtual double estimateDistance(const GPSPosition& p1, const GPSPosition& p2)
     {
-        return p1.calcDistance(p2);
+        if (getMeasurementUnit() == DISTANCE)
+            return p1.calcDistance(p2);
+        else if (getMeasurementUnit() == SECONDS)
+            return p1.calcDistance(p2) * 2;   //in m/s, schieben mit etwa 2km/h
     }
 }; 
 
@@ -243,6 +247,7 @@ public:
         switch (edge.getAccess())
         {
             case ACCESS_DESTINATION:
+            case ACCESS_PERMISSIVE:
             case ACCESS_YES:
             case ACCESS_UNKNOWN:
                 switch (edge.getStreetType())
@@ -261,13 +266,14 @@ public:
                     case STREETTYPE_UNKNOWN:
                     default:                                streetTypeFactor = 1.0; break;
                 }
-            default:        streetTypeFactor = -1;
+                break;
+            default:        streetTypeFactor = std::numeric_limits<float>::max();
                             break;
         }
-        /*switch (edge.getCyclewayType())
-        {
-            
-        }*/
+        //switch (edge.getCyclewayType())
+        //{
+        //    
+        //}
         switch (edge.getStreetSurfaceQuality())
         {
             case STREETSURFACEQUALITY_EXCELLENT:     surfaceFactor *= 0.82; break;
