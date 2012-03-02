@@ -6,6 +6,7 @@
 #include "osmedge.hpp"
 #include "osmway.hpp"
 #include "routingedge.hpp"
+#include "routingnode.hpp"
 
 class EdgeCategorizer
 {
