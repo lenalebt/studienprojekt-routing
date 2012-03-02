@@ -1147,6 +1147,10 @@ QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdges
     return edgeList;
 }
 
+QVector<boost::uint64_t> TemporaryOSMDatabaseConnection::getWayIDsInRange(boost::uint64_t fromWayID, boost::uint64_t toWayID, int maxCount=1000)
+{
+    
+}
 
 QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByEndNodeID(boost::uint64_t endNodeID)
 {
