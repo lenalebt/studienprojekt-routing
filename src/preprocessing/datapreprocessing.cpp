@@ -47,6 +47,7 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         future.waitForFinished();
 
         //TODO: Graphen aus kategorisierten Daten erstellen
+        //createNewGraph();
 
         _finalDBConnection->close();
         _tmpDBConnection.close();
@@ -72,6 +73,46 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         return false;
     }
 }
+
+/*bool DataPreprocessing::createRoutingGraph()
+{
+    for( all OSMNODES, aufsteigend nach ID (tmpDB-funktion))
+    {
+        erzeuge Liste aller eingehenden OSMEdges
+        erzeuge Liste aller ausgehenden OSMEdges
+        if(# eingehende Kante > 2) && (# ausgehende Kante > 2)//Kreuzung
+        {
+            -ordne allen Kanten, abhaengig der Himmelsrichung, die neuen, langen IDs zu //Funktion noch in der Mache
+             //bei ausgehender Kante ersetze die StartID und bei eingehenden Kanten die EndID durch die langen IDs
+            -update die betrachteten Kanten in tmpDB
+            - Hier Abbiegebeschraenkung beachten
+            for(alle eingehenden Kanten)
+            {
+                erstelle neue innere Kanten zu allen ausgehenden Kanten
+                //Dabei: Fuege Datentypen zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
+            }
+            -lege OSMNode als RoutingNode in finalDB ab
+        }
+        else if(# eingehende & #ausgehende Kanten >= 1) //Keine Kreuzung
+        {
+            for(all wayIDs aufsteigend)
+            {
+                -hole alle OSMEdges mit gleicher WayID aus tmpDB;
+                -(fuer wayID) erstelle Vorwaertseigenschaften;
+                -(fuer wayID) erstelle Rueckwaertseigenschaften;
+                if(Strasse kann vorwaerts befahren werden)
+                {
+                    lege vorwaertsKanten mit Vorwaertseigenschaft als RoutingEdge in finalDB ab;
+                }
+                if(Strasse kann rueckwaerts befahren werden)
+                {
+                    lege rueckwaertsKanten mit Rueckwaertseigenschaft als RoutingEdge in finalDB ab;
+                }
+            }
+        }
+    }
+}
+*/
 
 bool DataPreprocessing::preprocess()
 {
