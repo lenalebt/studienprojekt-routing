@@ -136,7 +136,13 @@ void DataPreprocessing::createRoutingGraph()
     for(int i = o ; i < wayIDs.size(); i++)
     {
         OSMEdge osmEdge = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(i);
-        //
+        //TODO: fuer alle wayIDs vorwaerts- und rueckwaertseigenschaften erstellen
+        if()
+        {
+        }
+        if()
+        {
+        }
     }
 
     /*for( all OSMNODES, aufsteigend nach ID (tmpDB-funktion))
@@ -182,7 +188,6 @@ void DataPreprocessing::createRoutingGraph()
     }
 */
 }
-
 
 bool DataPreprocessing::preprocess()
 {

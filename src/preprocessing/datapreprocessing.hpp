@@ -99,7 +99,7 @@ public:
     int getStreetSurfaceQuality(const RoutingEdge& edge);
     int getStreetSurfaceType(const RoutingEdge& edge);
     void categorizeEdge(const RoutingEdge& edge);
-    void createRouingGraph();
+    void createRoutingGraph();
 };
 
 namespace biker_tests
