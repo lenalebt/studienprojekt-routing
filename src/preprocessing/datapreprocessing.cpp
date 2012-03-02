@@ -129,13 +129,14 @@ void DataPreprocessing::createRoutingGraph()
                 //ersetze aktuelle KnotenID durch lange KnotenID
                 _tmpDBConnection.updateOSMEdgeStartNode(OSMEdgesOutgoing[i]);
             }
-            //TODO
+            routingNode rNode = OSMNodes[i];
         }
     }
-    QVector< boost::shared_ptr< OSMEdge > > OSMEdges = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(1, 10000);
-    for(int i = o ; i < OSMEdges.size(); i++)
+    QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);
+    for(int i = o ; i < wayIDs.size(); i++)
     {
-
+        OSMEdge osmEdge = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(i);
+        //
     }
 
     /*for( all OSMNODES, aufsteigend nach ID (tmpDB-funktion))
@@ -682,7 +683,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
 //int DataPreprocessing::getStreetType();
 //int DataPreprocessing::getStreetSurfaceQuality();
 //int DataPreprocessing::getStreetSurfaceType();
-
+}
 namespace biker_tests
 {    
     int testDataPreprocessing()
