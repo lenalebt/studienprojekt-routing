@@ -1096,14 +1096,14 @@ QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdges
     return edgeList;
 }
 
-QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByWayIDWithoutProperties(boost::uint64_t fromWayID, boost::uint64_t toWayID, int maxCount)
+QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByWayIDWithoutProperties(boost::uint64_t wayID)
 {
     QVector<boost::shared_ptr<OSMEdge> > edgeList;
       
     int rc;
     if(_getManyOSMEdgesByWayIDStatement == NULL)
     {		
-        rc = sqlite3_prepare_v2(_db, "SELECT WAYID, STARTNODEID, ENDNODEID, FORWARD FROM EDGES WHERE WAYID>=@MINID AND WAYID<=@MAXID ORDER BY ID LIMIT @MAXCOUNT;",
+        rc = sqlite3_prepare_v2(_db, "SELECT WAYID, STARTNODEID, ENDNODEID, FORWARD FROM EDGES WHERE WAYID=@WAYID;",
             -1, &_getManyOSMEdgesByWayIDStatement, NULL);
         if (rc != SQLITE_OK)
         {	
@@ -1113,13 +1113,7 @@ QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdges
     }
 
     // Parameter an das Statement binden
-    sqlite3_bind_int64(_getManyOSMEdgesByWayIDStatement, 1, fromWayID);
-    sqlite3_bind_int64(_getManyOSMEdgesByWayIDStatement, 2, toWayID);
-    //Maximale Anzahl an Ergebnissen. Bei maxCount=0 wird unendlich angenommen.
-    if (maxCount >= 0)
-        sqlite3_bind_int(_getManyOSMEdgesByWayIDStatement, 3, maxCount);
-    else
-        sqlite3_bind_int(_getManyOSMEdgesByWayIDStatement, 3, -1);
+    sqlite3_bind_int64(_getManyOSMEdgesByWayIDStatement, 1, wayID);
 
     // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
     while ((rc = sqlite3_step(_getManyOSMEdgesByWayIDStatement)) != SQLITE_DONE)

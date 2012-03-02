@@ -257,10 +257,18 @@ public:
     
     /**
      * @brief Lädt eine Liste von Kanten nach Angabe der zugehörigen WayID. Eigenschaften werden dabei nicht mitgeladen.
-     * @param endNodeID Die ID des Endknotens.
+     * @param wayID Die wayID der Kanten.
      * @return Eine Liste mit entsprechenden Kanten
      */
-    QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByWayIDWithoutProperties(boost::uint64_t fromWayID, boost::uint64_t toWayID, int maxCount=1000);
+    QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByWayIDWithoutProperties(boost::uint64_t wayID);
+    
+    /**
+     * @brief Lädt eine Liste mit existierenden WayIDs aus der Datenbank
+     * @param fromWayID
+     * @param toWayID
+     * @param maxCount
+     */
+    QVector<boost::uint64_t> getWayIDsInRange(boost::uint64_t fromWayID, boost::uint64_t toWayID, int maxCount=1000);
     
     /**
      * @brief Lädt eine Liste von OSMPropertys, die zu einem OSMWay gehören, aus der Datenbank.
