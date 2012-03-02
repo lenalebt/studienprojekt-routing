@@ -51,6 +51,6 @@ namespace biker_tests
 {
 	int testFileDownloader()
 	{
-		return EXIT_SUCCESS;
+		return EXIT_FAILURE;
 	}
 }

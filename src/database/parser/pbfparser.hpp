@@ -1,3 +1,4 @@
+#ifdef PROTOBUF_FOUND
 /*
     Biker wants to be a routing software, intended to be useful for planning bike tours.
     Copyright (C) 2011  Lena Brueder
@@ -62,7 +63,7 @@ private:
     int nodeCount;
     int wayCount;
     int relationCount;
-    
+    int errorCount;
     
 	enum Mode {
 		ModeNode, ModeWay, ModeRelation, ModeDense
@@ -169,4 +170,5 @@ namespace biker_tests
     int testPBFParser();
 }
 
-#endif // PBFPARSER_HPP
+#endif //PBFPARSER_HPP
+#endif //PROTOBUF_FOUND

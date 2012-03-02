@@ -1,3 +1,4 @@
+#ifdef PROTOBUF_FOUND
 /*
     Biker wants to be a routing software, intended to be useful for planning bike tours.
     Copyright (C) 2011  Lena Brueder
@@ -43,25 +44,47 @@ bool PBFParser::parse(QString filename)
     nodeCount = 0;
     wayCount = 0;
     relationCount = 0;
-    
+    errorCount= 0;
     m_file.setFileName( filename );
 
     if ( !openQFile( &m_file, QIODevice::ReadOnly ) )
+    {
+        std::cerr << "could not open file \"" << filename << "\"." << std::endl;
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
+    }
 
     if ( !readBlockHeader() )
+    {
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
+    }
 
     if ( m_blockHeader.type() != "OSMHeader" ) {
         qCritical() << "OSMHeader missing, found" << m_blockHeader.type().data() << "instead";
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
     }
 
     if ( !readBlob() )
+    {
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
+    }
 
     if ( !m_headerBlock.ParseFromArray( m_buffer.data(), m_buffer.size() ) ) {
         qCritical() << "failed to parse HeaderBlock";
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
         return false;
     }
     for ( int i = 0; i < m_headerBlock.required_features_size(); i++ ) {
@@ -74,6 +97,9 @@ bool PBFParser::parse(QString filename)
 
         if ( !supported ) {
             qCritical() << "required feature not supported:" << feature.data();
+            _nodeQueue->destroyQueue();
+            _wayQueue->destroyQueue();
+            _turnRestrictionQueue->destroyQueue();
             return false;
         }
     }
@@ -91,7 +117,6 @@ bool PBFParser::parse(QString filename)
 
         if ( type == EntityNode ) {
             this->nodeCount++;
-            //TODO: dbWriter.addNode(inputNode);
             _nodeQueue->enqueue(inputNode);
             inputNode = boost::shared_ptr<OSMNode>(new OSMNode());
             
@@ -101,8 +126,11 @@ bool PBFParser::parse(QString filename)
         if ( type == EntityWay ) {
             this->wayCount++;
             if (this->wayCount == 1)
+            {
+                errorCount++;
                 _nodeQueue->destroyQueue();
-            //TODO: dbWriter.addWay(inputWay);
+                //std::cerr<<errorCount<<std::endl;
+            }
             _wayQueue->enqueue(inputWay);
             inputWay = boost::shared_ptr<OSMWay>(new OSMWay());
 
@@ -111,8 +139,12 @@ bool PBFParser::parse(QString filename)
 
         if ( type == EntityRelation ) {
             this->relationCount++;
-            if (this->wayCount == 1)
+            if (this->relationCount == 1)
+            {
+                errorCount++;
                 _wayQueue->destroyQueue();
+                //std::cerr<<errorCount<<std::endl;
+            }
             bool ready = false;
             bool invalidRestriction = false;
             std::vector< RelationMember >  C = inputRelation.members;
@@ -215,9 +247,17 @@ bool PBFParser::parse(QString filename)
         }
     }
     
-    _nodeQueue->destroyQueue();
-    _wayQueue->destroyQueue();
+    if (wayCount < 1)
+    {
+        _nodeQueue->destroyQueue();
+    }
+    if (relationCount < 1)
+    {
+        _wayQueue->destroyQueue();
+    }
     _turnRestrictionQueue->destroyQueue();
+    //std::cerr<<++errorCount<<std::endl;
+    errorCount = 0;
     return true;
 }
 
@@ -659,3 +699,5 @@ namespace biker_tests
         return EXIT_SUCCESS;
     }
 }
+
+#endif //PROTOBUF_FOUND

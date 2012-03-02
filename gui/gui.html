@@ -12,7 +12,19 @@
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
         var pointlist = [];
-        
+        var markerlist = [];
+        var lastmarker = [];
+        var iconSize = new OpenLayers.Size(20, 20);
+        var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
+        var markerRed = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
+        var markerBlue = new OpenLayers.Icon("img/marker-blue.png", iconSize, iconOffset);
+        var markerCyan = new OpenLayers.Icon("img/marker-cyan.png", iconSize, iconOffset);
+        var markerGreen = new OpenLayers.Icon("img/marker-green.png", iconSize, iconOffset);
+        var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
+        var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
+        var markerNone = new OpenLayers.Icon("", iconSize, iconOffset);
+        var iconlist = [markerGreen, markerCyan, markerBlue, markerPurple, markerRed, markerYellow];
+        var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
                     'single': true,
@@ -39,13 +51,16 @@
                 trigger: function(e) {
                     var lonlat = map.getLonLatFromViewPortPx(e.xy);
                     lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
-                    pointlist.push(lonlat);
+                    pointlist[pointlist.length] = lonlat;
+                    var lonlatSimple = map.getLonLatFromViewPortPx(e.xy);
+                    markerlist[markerlist.length] = lonlatSimple;
                     calcRoute();
                 }
 
             });
         
         var map, layer, gpxlayer;
+        
         function init(){
             map = new OpenLayers.Map('map',
                 {controls:[new OpenLayers.Control.ArgParser,
@@ -158,7 +173,6 @@
             );
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
             
-            var markers = new OpenLayers.Layer.Markers( "Markers" );
             map.addLayer(markers);
             
             var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
@@ -166,7 +180,7 @@
                     new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
                     map.getProjectionObject() // to Spherical Mercator Projection
                   );
-            markers.addMarker(new OpenLayers.Marker(lonLat, new OpenLayers.Icon("img/marker-red.png")));
+            //markers.addMarker(new OpenLayers.Marker(lonLat, markerCyan));
             
             map.setCenter(
                 new OpenLayers.LonLat(7.2662, 51.447).transform(
@@ -177,7 +191,7 @@
             
             gpxlayer = null;
             
-            displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/euclidian.gpx");
+            //displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/euclidian.gpx");
             //displayGPX("route.gpx");
             
             var click = new OpenLayers.Control.Click();
@@ -198,26 +212,118 @@
                 displayInLayerSwitcher:false
 			});
 			map.addLayer(gpxlayer);
+            {
+                var iconindex;
+                var help = 0.0;
+                for(var index = 0; index < markerlist.length; index ++)
+                {
+                    iconindex = index % iconlist.length;
+                    help = index / iconlist.length;
+                    if(help < 1.0)
+                    {
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
+                        markers.addMarker(lastmarker[index]);
+                    }
+                    else
+                    {
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        markers.addMarker(lastmarker[index]);
+                    }
+                    //alert(iconindex);
+                    //alert(index);
+                    //alert(pointlist[index]);
+                    //alert(help.isDrawn());
+                }
+            }
         }
         
         function calcRoute()
         {
             //alert("pointlist has " + pointlist.length + " items");
             var urlstart = "../1341253652/api/0.3/";
-            var urlend = "/bike/euclidian.gpx";
-            if (pointlist.length > 1)
+            var urlend = "/bike/power.gpx";
+            var url;
+            if (pointlist.length == 1)
             {
-                //alert("call displaygpx");
-                var url = urlstart + pointlist[0].lat + "," + pointlist[0].lon + "," + pointlist[pointlist.length-1].lat + "," + pointlist[pointlist.length-1].lon + urlend;
+                markers.addMarker(new OpenLayers.Marker(markerlist[0], iconlist[0]));
+            }
+            else if (pointlist.length > 1)
+            {
+                if(pointlist.length == 2)
+                {
+                     url = urlstart + pointlist[0].lat + "," + pointlist[0].lon + "," + pointlist[1].lat + "," + pointlist[1].lon + urlend;
+                }
+                else
+                {
+                    //alert("call displaygpx");
+                    url = urlstart;
+                    for (var index = 0; index <= pointlist.length - 1; index++)
+                        {
+                            url = url + pointlist[index].lat + "," + pointlist[index].lon;
+                            if(index == pointlist.length - 2)
+                            {
+                                url =  url + "]";
+                            }
+                            if(index != pointlist.length - 1)
+                            {
+                                url = url  + ",";
+                            }
+                            if(index == 0)
+                            {
+                                url = url + "[";
+                            }
+                            
+                        }
+                        url = url + urlend;
+                }
                 //alert(url);
                 displayGPX(url);
+            }
+        }
+        function resetRoute()
+        {
+            //map.removeLayer(markers);
+            lastmarker = [];
+            markerlist = [];
+            pointlist = [];
+            //markers = new OpenLayers.Layer.Markers( "Markers" );
+            markers.redraw();
+            //map.addLayer(markers);
+            calcRoute();
+        }
+        function removeLastElement()
+        {
+            if(pointlist.length >= 1)
+            {
+                //map.removeLayer(markers);
+                //lastmarker[lastmarker.length - 1].destroy();
+                //var copy = [];
+                //for (var index = 0; index <= lastmarker.length -1; index ++)
+                //{
+                 //   copy[index] = lastmarker[index];
+                //}
+                //lastmarker = "";
+                //lastmarker = copy;
+                //map.addLayer(markers);
+                lastmarker.splice(lastmarker.length - 1, 1);
+                markerlist.splice(markerlist.length - 1 , 1);
+                pointlist.splice(pointlist.length -1, 1);
+                //markers.redraw();
+                calcRoute();
+            } else
+            {
+                resetRoute();
             }
         }
     </script>
   </head>
   <body onload="init()">
     <div id="map" class="smallmap"></div>
-    
+    <div>
+        <button id="b1" type="reset" onclick="resetRoute()">Reset</button>
+        <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
+    </div>
+    <div>
     Erklärung hier hin vielleicht?
     
     Google-Karten kann man evtl nutzen, steht <a href="http://code.google.com/intl/de-DE/apis/maps/documentation/javascript/">hier</a><br>
@@ -225,5 +331,6 @@
     MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="http://www.mapquest.com/">guckst du</a>)<br>
     
     Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>
+    </div>
   </body>
 </html>

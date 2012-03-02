@@ -39,7 +39,7 @@ public:
     QVector<boost::shared_ptr<RoutingEdge> > getEdgesByEndNodeID(boost::uint64_t endNodeID);
     boost::shared_ptr<RoutingEdge> getEdgeByEdgeID(boost::uint64_t edgeID);
     bool saveEdge(const RoutingEdge& edge);
-    bool saveEdge(const RoutingEdge& edge, QString name);
+    bool saveEdge(const RoutingEdge& edge, const QString& name);
     QString getStreetName(const RoutingEdge& edge);
     bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
     bool beginTransaction();

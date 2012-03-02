@@ -3,6 +3,7 @@
 
 #include <QFile>
 #include <QStringList>
+#include "routingnode.hpp"
 
 TemporaryOSMDatabaseConnection::TemporaryOSMDatabaseConnection() :
     _dbOpen(false), _db(NULL), _getLastInsertRowIDStatement(NULL),
@@ -11,9 +12,10 @@ TemporaryOSMDatabaseConnection::TemporaryOSMDatabaseConnection() :
     _saveOSMNodeStatement(NULL), _getOSMNodeByIDStatement(NULL),
     _getManyOSMNodesByIDStatement(NULL),
     _saveOSMNodePropertyStatement(NULL), _getOSMNodePropertyStatement(NULL),
-    _saveOSMEdgeStatement(NULL),
+    _saveOSMEdgeStatement(NULL), _updateOSMEdgeStartNodeStatement(NULL),
+    _updateOSMEdgeEndNodeStatement(NULL),
     _getOSMEdgeByStartNodeIDStatement(NULL),
-    _getOSMEdgeByEndNodeIDStatement(NULL),
+    _getOSMEdgeByEndNodeIDStatement(NULL), _getManyOSMEdgesByWayIDStatement(NULL),
     _saveOSMEdgePropertyStatement(NULL), _getOSMEdgePropertyStatement(NULL),
     _saveOSMTurnRestrictionStatement(NULL), _getOSMTurnRestrictionByViaIDStatement(NULL)
 {
@@ -46,10 +48,16 @@ TemporaryOSMDatabaseConnection::~TemporaryOSMDatabaseConnection()
     
     if(_saveOSMEdgeStatement != NULL)
 		sqlite3_finalize(_saveOSMEdgeStatement);
+    if(_updateOSMEdgeStartNodeStatement != NULL)
+		sqlite3_finalize(_updateOSMEdgeStartNodeStatement);
+    if(_updateOSMEdgeEndNodeStatement != NULL)
+		sqlite3_finalize(_updateOSMEdgeEndNodeStatement);
     if(_getOSMEdgeByStartNodeIDStatement != NULL)
 		sqlite3_finalize(_getOSMEdgeByStartNodeIDStatement);
     if(_getOSMEdgeByEndNodeIDStatement != NULL)
 		sqlite3_finalize(_getOSMEdgeByEndNodeIDStatement);
+    if(_getManyOSMEdgesByWayIDStatement != NULL)
+		sqlite3_finalize(_getManyOSMEdgesByWayIDStatement);
     if(_saveOSMEdgePropertyStatement != NULL)
 		sqlite3_finalize(_saveOSMEdgePropertyStatement);
     if(_getOSMEdgePropertyStatement != NULL)
@@ -92,53 +100,28 @@ void TemporaryOSMDatabaseConnection::open(QString dbConnectionString)
         return;
     }
     
-    //Zeiger auf die Fehlernachricht von SQLite. Speicher wird von Sqlite
-    //selbst geholt und verwaltet, nur wieder freigeben ist nötig.
-    char* errorMessage;
-    
-    //Bekommt den Dateinamen von Spatialite direkt von CMake :).
-    std::string spatialiteFilename;
-    spatialiteFilename = QUOTEME(SPATIALITE_LIB);
-    
-    //Erlaube das Laden von Erweiterungen
-    rc = sqlite3_enable_load_extension(_db, 1);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to enable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
-    //Lade die Erweiterung
-    rc = sqlite3_load_extension(_db, spatialiteFilename.c_str(), 0, &errorMessage);
-    
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to load spatialite. Filename: \"" << spatialiteFilename
-            << ", Error message: \"" << errorMessage << "\"" << std::endl;
-        sqlite3_free(errorMessage);
-        return;
-    }
-    
-    //Verbiete das laden von Erweiterungen wieder (Sicherheitsfeature?)
-    rc = sqlite3_enable_load_extension(_db, 0);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to disable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
     //Erstelle Tabellen nur, wenn die Datei vorher nicht existierte.
     //Grund: IF NOT EXISTS gibt es nicht für virtuelle Tabellen.
     if (!dbExisted)
         _dbOpen = createTables();
     else
+    {
         _dbOpen = true;
+        
+        QStringList statements;
+        statements << "PRAGMA page_size = 4096;";
+        statements << "PRAGMA max_page_count = 2147483646;";
+        statements << "PRAGMA cache_size=50000;";
+        statements << "PRAGMA synchronous=OFF;";
+        statements << "PRAGMA journal_mode=MEMORY;";
+        statements << "PRAGMA temp_store = MEMORY;";
+        
+        QStringList::const_iterator it;
+        for (it = statements.constBegin(); it != statements.constEnd(); it++)
+        {
+            execCreateTableStatement(it->toStdString());
+        }
+    }
 }
 
 bool TemporaryOSMDatabaseConnection::isDBOpen()
@@ -152,24 +135,32 @@ bool TemporaryOSMDatabaseConnection::createTables()
 	
     //Liste von auszuführenden Statements erstellen
 	QStringList statements;
+    statements << "PRAGMA page_size = 4096;";
+    statements << "PRAGMA max_page_count = 2147483646;";
+    statements << "PRAGMA cache_size=50000;";
+    statements << "PRAGMA synchronous=OFF;";
+    statements << "PRAGMA journal_mode=MEMORY;";
+    statements << "PRAGMA temp_store = MEMORY;";
+    
 	statements << "CREATE TABLE IF NOT EXISTS PROPERTIES(PROPERTYID INTEGER PRIMARY KEY, KEY VARCHAR, VALUE VARCHAR);";
     
     statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER PRIMARY KEY, LAT DOUBLE NOT NULL, LON DOUBLE NOT NULL);";
     statements << "CREATE TABLE IF NOT EXISTS NODEPROPERTYID(NODEID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(NODEID, PROPERTYID));";
     
     statements << "CREATE TABLE IF NOT EXISTS EDGES(WAYID INTEGER NOT NULL, STARTNODEID INTEGER NOT NULL, ENDNODEID INTEGER NOT NULL, FORWARD BOOLEAN, PRIMARY KEY(WAYID, STARTNODEID, ENDNODEID, FORWARD));";
+    //statements << "CREATE TABLE IF NOT EXISTS EDGES(WAYID INTEGER NOT NULL, STARTNODEID INTEGER NOT NULL, ENDNODEID INTEGER NOT NULL, FORWARD BOOLEAN);";
     statements << "CREATE TABLE IF NOT EXISTS WAYPROPERTYID(WAYID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(WAYID, PROPERTYID));";
     
     statements << "CREATE TABLE IF NOT EXISTS TURNRESTRICTIONS(FROMID INTEGER NOT NULL, VIAID INTEGER NOT NULL, TOID INTEGER NOT NULL, LEFT BOOLEAN, RIGHT BOOLEAN, STRAIGHT BOOLEAN, UTURN BOOLEAN, PRIMARY KEY(FROMID, VIAID, TOID));";
     
     //Alle Statements der Liste ausführen in einer Transaktion
-    retVal = this->beginTransaction();
+    //retVal = this->beginTransaction();
 	QStringList::const_iterator it;
 	for (it = statements.constBegin(); it != statements.constEnd(); it++)
 	{
 		retVal &= execCreateTableStatement(it->toStdString());
 	}
-	retVal &= this->endTransaction();
+	//retVal &= this->endTransaction();
     
 	return retVal;
 }
@@ -294,6 +285,62 @@ boost::uint64_t TemporaryOSMDatabaseConnection::saveOSMProperty(const OSMPropert
     }
     
     return getLastInsertRowID();
+}
+
+QVector<OSMProperty> TemporaryOSMDatabaseConnection::getOSMPropertyListByWayID(boost::uint64_t wayID)
+{
+    int rc;
+    QVector<OSMProperty> properties;
+    
+    //Properties laden
+    if(_getOSMEdgePropertyStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT PROPERTYID FROM WAYPROPERTYID WHERE WAYID=?;",
+            -1, &_getOSMEdgePropertyStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getOSMEdgePropertyStatement." << " Resultcode: " << rc << std::endl;
+            return QVector<OSMProperty>();
+        }
+    }
+    
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_getOSMEdgePropertyStatement, 1, wayID);
+    
+    QVector<boost::uint64_t> propertyIDs;
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getOSMEdgePropertyStatement)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+        break;
+        
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        boost::uint64_t propertyID = sqlite3_column_int64(_getOSMEdgePropertyStatement, 0);
+        propertyIDs << propertyID;
+    }
+
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Failed to execute getOSMEdgePropertyStatement." << " Resultcode: " << rc << std::endl;
+        return QVector<OSMProperty>();
+    }
+
+    rc = sqlite3_reset(_getOSMEdgePropertyStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset getOSMEdgePropertyStatement." << " Resultcode: " << rc << std::endl;
+    }
+    //Bis hier: Liste mit Eigenschaften-IDs laden.
+    
+    //Eigenschaften selbst laden
+    for (QVector<boost::uint64_t>::const_iterator itProperty = propertyIDs.constBegin(); itProperty != propertyIDs.constEnd(); itProperty++)
+    {
+        properties << *getOSMPropertyByID(*itProperty);
+    }
+    
+    return properties;
 }
 
 boost::shared_ptr<OSMProperty> TemporaryOSMDatabaseConnection::getOSMPropertyByID(boost::uint64_t propertyID)
@@ -915,8 +962,89 @@ bool TemporaryOSMDatabaseConnection::saveOSMEdge(const OSMEdge& edge)
     }
     return true;
 }
+bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge)
+{
+    int rc;
+    if(_updateOSMEdgeStartNodeStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET STARTNODEID=@STARTNODEID WHERE (WAYID=@WAYID AND ENDNODEID=@ENDNODEID AND FORWARD=@FORWARD);", -1, &_updateOSMEdgeStartNodeStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create updateOSMEdgeStartNodeStatement." << " Resultcode: " << rc << std::endl;
+            return false;
+        }
+    }
+
+    // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 1, edge.getStartNode());
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 2, edge.getID());
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 3, edge.getEndNode());
+    sqlite3_bind_int(_updateOSMEdgeStartNodeStatement, 4, edge.getForward());
+    
+    // Statement ausfuehren
+    rc = sqlite3_step(_updateOSMEdgeStartNodeStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute updateOSMEdgeStartNodeStatement." << " Resultcode: " << rc << std::endl;
+        return false;
+    }
+
+    rc = sqlite3_reset(_updateOSMEdgeStartNodeStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset updateOSMEdgeStartNodeStatement." << " Resultcode: " << rc << std::endl;
+    }
+    
+    return true;
+}
+bool TemporaryOSMDatabaseConnection::updateOSMEdgeEndNode(const OSMEdge& edge)
+{
+    int rc;
+    if(_updateOSMEdgeEndNodeStatement == NULL)
+    {
+        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET ENDNODEID=@ENDNODEID WHERE WAYID=@WAYID AND STARTNODEID=@STARTNODEID AND FORWARD=@FORWARD;", -1, &_updateOSMEdgeEndNodeStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create updateOSMEdgeEndNodeStatement." << " Resultcode: " << rc << std::endl;
+            return false;
+        }
+    }
+
+    // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
+    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 1, edge.getEndNode());
+    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 2, edge.getID());
+    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 3, edge.getStartNode());
+    sqlite3_bind_int(_updateOSMEdgeEndNodeStatement, 4, edge.getForward());
+    
+    // Statement ausfuehren
+    rc = sqlite3_step(_updateOSMEdgeEndNodeStatement);
+    if (rc != SQLITE_DONE)
+    {	
+        std::cerr << "Failed to execute updateOSMEdgeEndNodeStatement." << " Resultcode: " << rc << std::endl;
+        return false;
+    }
+
+    rc = sqlite3_reset(_updateOSMEdgeEndNodeStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset updateOSMEdgeEndNodeStatement." << " Resultcode: " << rc << std::endl;
+    }
+    
+    return true;
+}
 
 QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByStartNodeID(boost::uint64_t startNodeID)
+{
+    QVector<boost::shared_ptr<OSMEdge> > edgeList = getOSMEdgesByStartNodeIDWithoutProperties(startNodeID);
+    
+    //Bis hier sind die Grundeigenschaften der Kanten geladen. Es fehlen die Attribute.
+    if (!getOSMEdgeListProperties(edgeList))
+        return QVector<boost::shared_ptr<OSMEdge> >();
+    
+    return edgeList;
+}
+
+QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByStartNodeIDWithoutProperties(boost::uint64_t startNodeID)
 {
     QVector<boost::shared_ptr<OSMEdge> > edgeList;
       
@@ -945,7 +1073,7 @@ QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdges
         //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
         OSMEdge* newEdge = new OSMEdge(
                         sqlite3_column_int64(_getOSMEdgeByStartNodeIDStatement, 0),
-                        (bool)sqlite3_column_int(_getOSMEdgeByEndNodeIDStatement, 3),
+                        (bool)sqlite3_column_int(_getOSMEdgeByStartNodeIDStatement, 3),
                         sqlite3_column_int64(_getOSMEdgeByStartNodeIDStatement, 1),
                         sqlite3_column_int64(_getOSMEdgeByStartNodeIDStatement, 2),
                         QVector<OSMProperty>()
@@ -965,14 +1093,78 @@ QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdges
         std::cerr << "Failed to reset getOSMEdgeByStartNodeIDStatement." << " Resultcode: " << rc << std::endl;
     }
     
+    return edgeList;
+}
+
+QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByWayIDWithoutProperties(boost::uint64_t fromWayID, boost::uint64_t toWayID, int maxCount)
+{
+    QVector<boost::shared_ptr<OSMEdge> > edgeList;
+      
+    int rc;
+    if(_getManyOSMEdgesByWayIDStatement == NULL)
+    {		
+        rc = sqlite3_prepare_v2(_db, "SELECT WAYID, STARTNODEID, ENDNODEID, FORWARD FROM EDGES WHERE WAYID>=@MINID AND WAYID<=@MAXID ORDER BY ID LIMIT @MAXCOUNT;",
+            -1, &_getManyOSMEdgesByWayIDStatement, NULL);
+        if (rc != SQLITE_OK)
+        {	
+            std::cerr << "Failed to create getManyOSMEdgesByWayIDStatement." << " Resultcode: " << rc << std::endl;
+            return QVector<boost::shared_ptr<OSMEdge> >();
+        }
+    }
+
+    // Parameter an das Statement binden
+    sqlite3_bind_int64(_getManyOSMEdgesByWayIDStatement, 1, fromWayID);
+    sqlite3_bind_int64(_getManyOSMEdgesByWayIDStatement, 2, toWayID);
+    //Maximale Anzahl an Ergebnissen. Bei maxCount=0 wird unendlich angenommen.
+    if (maxCount >= 0)
+        sqlite3_bind_int(_getManyOSMEdgesByWayIDStatement, 3, maxCount);
+    else
+        sqlite3_bind_int(_getManyOSMEdgesByWayIDStatement, 3, -1);
+
+    // Statement ausfuehren, in einer Schleife immer neue Zeilen holen
+    while ((rc = sqlite3_step(_getManyOSMEdgesByWayIDStatement)) != SQLITE_DONE)
+    {
+        //Es können verschiedene Fehler aufgetreten sein.
+        if (!sqlite_functions::handleSQLiteResultcode(rc))
+            break;
+        
+        //Verwirrend: Hier ist der erste Parameter mit Index 0 und nicht 1 (!!).
+        OSMEdge* newEdge = new OSMEdge(
+                        sqlite3_column_int64(_getManyOSMEdgesByWayIDStatement, 0),
+                        sqlite3_column_int(_getManyOSMEdgesByWayIDStatement, 3),
+                        sqlite3_column_int64(_getManyOSMEdgesByWayIDStatement, 1),
+                        sqlite3_column_int64(_getManyOSMEdgesByWayIDStatement, 2)
+                        );
+        edgeList << boost::shared_ptr<OSMEdge>(newEdge);
+    }
+    
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Failed to execute getManyOSMEdgesByWayIDStatement." << " Resultcode: " << rc << std::endl;
+        return QVector<boost::shared_ptr<OSMEdge> >();
+    }
+
+    rc = sqlite3_reset(_getManyOSMEdgesByWayIDStatement);
+    if(rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to reset getManyOSMEdgesByWayIDStatement." << " Resultcode: " << rc << std::endl;
+    }
+    
+    return edgeList;
+}
+
+
+QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByEndNodeID(boost::uint64_t endNodeID)
+{
+    QVector<boost::shared_ptr<OSMEdge> > edgeList = getOSMEdgesByEndNodeIDWithoutProperties(endNodeID);
+    
     //Bis hier sind die Grundeigenschaften der Kanten geladen. Es fehlen die Attribute.
     if (!getOSMEdgeListProperties(edgeList))
         return QVector<boost::shared_ptr<OSMEdge> >();
     
     return edgeList;
 }
-
-QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByEndNodeID(boost::uint64_t endNodeID)
+QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdgesByEndNodeIDWithoutProperties(boost::uint64_t endNodeID)
 {
     QVector<boost::shared_ptr<OSMEdge> > edgeList;
       
@@ -1020,10 +1212,6 @@ QVector<boost::shared_ptr<OSMEdge> > TemporaryOSMDatabaseConnection::getOSMEdges
     {
         std::cerr << "Failed to reset getOSMEdgeByEndNodeIDStatement." << " Resultcode: " << rc << std::endl;
     }
-    
-    //Bis hier sind die Grundeigenschaften der Kanten geladen. Es fehlen die Attribute.
-    if (!getOSMEdgeListProperties(edgeList))
-        return QVector<boost::shared_ptr<OSMEdge> >();
     
     return edgeList;
 }
@@ -1197,6 +1385,17 @@ namespace biker_tests
         edge2.addProperty(OSMProperty("oneway:bicycle", "no"));
         edge2.addProperty(OSMProperty("cycleway", "opposite"));
         CHECK(connection.saveOSMEdge(edge2));
+        CHECK(connection.endTransaction());
+        
+        CHECK(connection.beginTransaction());
+        OSMEdge edge3(12, true, 15, 16);
+        edge3.setStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNode()));
+        CHECK(connection.saveOSMEdge(edge3));
+        CHECK(connection.updateOSMEdgeStartNode(edge3));
+        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNode()))[0] ));
+        edge3.setEndNodeID(RoutingNode::convertIDToLongFormat(edge3.getEndNode()));
+        CHECK(connection.updateOSMEdgeEndNode(edge3));
+        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNode()))[0] ));
         CHECK(connection.endTransaction());
         
         QVector<boost::shared_ptr<OSMEdge> > edgeList = connection.getOSMEdgesByStartNodeID(12);

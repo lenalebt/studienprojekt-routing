@@ -18,6 +18,7 @@
 #include "osmparser.hpp"
 #include "pbfparser.hpp"
 #include "altitudeprovider.hpp"
+#include "srtmprovider.hpp"
 #include <QString>
 #include <QVector>
 #include "blockingqueue.hpp"
@@ -30,6 +31,11 @@
 #include "dijkstra.hpp"
 #include "filedownloader.hpp"
 #include "astar.hpp"
+#include "sqlitedatabase.hpp"
+#include "filedownloader.hpp"
+#include "bloomfilter.hpp"
+#include "rangetree.hpp"
+#include "routingmetric.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -38,7 +44,6 @@
 /**
  * @file
  * @ingroup tests
- * @todo i18n/l10n
  * @attention Diese Testfunktionen können das Programm komplett in einen anderen
  *      Zustand überführen als es vor dem Aufruf der Funktion hatte
  */
@@ -155,6 +160,7 @@ namespace biker_tests
     template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
     template bool check_equality(std::string message, OSMProperty a,     OSMProperty b);
     template bool check_equality(std::string message, OSMNode a,         OSMNode b);
+    template bool check_equality(std::string message, OSMEdge a,         OSMEdge b);
     template bool check_equality(std::string message, GPSPosition a,     GPSPosition b);
     template bool check_equality(std::string message, OSMTurnRestriction a, OSMTurnRestriction b);
   
@@ -184,8 +190,12 @@ namespace biker_tests
             return biker_tests::testRoutingNode();
         else if (testName == "basename")
             return biker_tests::testBasename();
-        else if (testName == "spatialitedatabaseconnection")
-            return biker_tests::testSpatialiteDatabaseConnection();
+        #ifdef SPATIALITE_FOUND
+            else if (testName == "spatialitedatabaseconnection")
+                return biker_tests::testSpatialiteDatabaseConnection();
+        #endif
+        else if (testName == "sqlitedatabaseconnection")
+            return biker_tests::testSQLiteDatabaseConnection();
         else if (testName == "temporaryosmdatabaseconnection")
             return biker_tests::testTemporaryOSMDatabaseConnection();
         else if (testName == "databaseramcache")
@@ -204,8 +214,10 @@ namespace biker_tests
             return biker_tests::testOSMTurnRestriction();
         else if (testName == "osmparser")
             return biker_tests::testOSMParser();
-        else if (testName == "pbfparser")
-            return biker_tests::testPBFParser();
+        #ifdef PROTOBUF_FOUND
+            else if (testName == "pbfparser")
+                return biker_tests::testPBFParser();
+        #endif
         else if (testName == "blockingqueue")
             return biker_tests::testBlockingQueue();
         else if (testName == "binaryheap")
@@ -220,18 +232,34 @@ namespace biker_tests
             return biker_tests::testDataPreprocessing();
         else if(testName == "simpledatapreprocessing")
             return biker_tests::testSimpleDataPreprocessing();
-        else if (testName == "srtmprovider")
-            return biker_tests::testSRTMProvider();
+        #ifdef ZZIP_FOUND
+            else if (testName == "srtmprovider")
+                return biker_tests::testSRTMProvider();
+        #endif
+        else if (testName == "filedownloader")
+            return biker_tests::testFileDownloader();
         else if (testName == "webserver")
             return biker_tests::testWebServer();
         else if (testName == "potentialfunction")
             return biker_tests::testPotentialFunction();
         else if (testName == "dijkstrarouter")
             return biker_tests::testDijkstraRouter();
+        else if (testName == "multithreadeddijkstrarouter")
+            return biker_tests::testMultithreadedDijkstraRouter();
         else if (testName == "filedownloader")
             return biker_tests::testFileDownloader();
         else if (testName == "astarrouter")
             return biker_tests::testAStarRouter();
+        else if (testName == "multithreadedastarrouter")
+            return biker_tests::testMultithreadedAStarRouter();
+        else if (testName == "bloomfilter")
+            return biker_tests::testBloomfilter();
+        else if (testName == "rangetree")
+            return biker_tests::testRangeTree();
+        else if (testName == "advancedrangetree")
+            return biker_tests::testAdvancedRangeTree();
+        else if (testName == "routingmetrics")
+            return biker_tests::testRoutingMetrics();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;

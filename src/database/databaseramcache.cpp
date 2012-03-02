@@ -1,5 +1,6 @@
 #include "databaseramcache.hpp"
 #include "spatialitedatabase.hpp"
+#include "sqlitedatabase.hpp"
 #include <QFile>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random/uniform_int.hpp>
@@ -93,7 +94,7 @@ bool DatabaseRAMCache::saveEdge(const RoutingEdge &edge)
 }
 
 
-bool DatabaseRAMCache::saveEdge(const RoutingEdge &edge, QString name)
+bool DatabaseRAMCache::saveEdge(const RoutingEdge &edge, const QString& name)
 {
     return _connection->saveEdge(edge, name);
 }
@@ -127,7 +128,11 @@ namespace biker_tests
 {
     int testDatabaseRAMCache()
     {
-        boost::shared_ptr<DatabaseConnection> connection(new SpatialiteDatabaseConnection());
+        #ifdef SPATIALITE_FOUND
+            boost::shared_ptr<SpatialiteDatabaseConnection> connection(new SpatialiteDatabaseConnection());
+        #else
+            boost::shared_ptr<SQLiteDatabaseConnection> connection(new SQLiteDatabaseConnection());
+        #endif
         DatabaseRAMCache cache(connection);
         QFile file("cache.db");
         

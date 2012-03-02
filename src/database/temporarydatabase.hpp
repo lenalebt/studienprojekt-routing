@@ -53,8 +53,11 @@ private:
     sqlite3_stmt* _getOSMNodePropertyStatement;
     
     sqlite3_stmt* _saveOSMEdgeStatement;
+    sqlite3_stmt* _updateOSMEdgeStartNodeStatement;
+    sqlite3_stmt* _updateOSMEdgeEndNodeStatement;
     sqlite3_stmt* _getOSMEdgeByStartNodeIDStatement;
     sqlite3_stmt* _getOSMEdgeByEndNodeIDStatement;
+    sqlite3_stmt* _getManyOSMEdgesByWayIDStatement;
     sqlite3_stmt* _saveOSMEdgePropertyStatement;
     sqlite3_stmt* _getOSMEdgePropertyStatement;
     
@@ -181,9 +184,22 @@ public:
      * @brief Legt eine OSMEdge in der temporären Datenbank ab.
      * @param edge Die OSMEdge, die abgelegt wird.
      * @return Ob das Ablegen in der Datenbank erfolgreich war, oder nicht
-     * @todo testen
      */
     bool saveOSMEdge(const OSMEdge& edge);
+    /**
+     * @brief Ändert Daten einer OSMEdge in der temporären Datenbank: StartNode ändert sich.
+     * @param edge Die OSMEdge, die verändert wird.
+     * @return Ob das Verändern in der Datenbank erfolgreich war, oder nicht
+     * @remarks Eigenschaften der Kante werden nicht mit gespeichert.
+     */
+    bool updateOSMEdgeStartNode(const OSMEdge& edge);
+    /**
+     * @brief Ändert Daten einer OSMEdge in der temporären Datenbank: EndNode ändert sich.
+     * @param edge Die OSMEdge, die verändert wird.
+     * @return Ob das Verändern in der Datenbank erfolgreich war, oder nicht
+     * @remarks Eigenschaften der Kante werden nicht mit gespeichert.
+     */
+    bool updateOSMEdgeEndNode(const OSMEdge& edge);
     /**
      * @brief Legt eine OSMTurnRestriction in der temporären Datenbank ab.
      * @param turnResriction Die OSMTurnRestriction, die abgelegt wird.
@@ -221,11 +237,37 @@ public:
      */
     QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByStartNodeID(boost::uint64_t startNodeID);
     /**
+     * @brief Lädt eine Liste von Kanten nach Angabe des Startknotens, lädt die Eigenschaften der Kante aber nicht mit.
+     * @param startNodeID Die ID des Startknotens.
+     * @return Eine Liste mit entsprechenden Kanten
+     */
+    QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByStartNodeIDWithoutProperties(boost::uint64_t startNodeID);
+    /**
      * @brief Lädt eine Liste von Kanten nach Angabe des Endknotens
      * @param endNodeID Die ID des Endknotens.
      * @return Eine Liste mit entsprechenden Kanten
      */
     QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByEndNodeID(boost::uint64_t endNodeID);
+    /**
+     * @brief Lädt eine Liste von Kanten nach Angabe des Endknotens, lädt die Eigenschaften der Kante aber nicht mit.
+     * @param endNodeID Die ID des Endknotens.
+     * @return Eine Liste mit entsprechenden Kanten
+     */
+    QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByEndNodeIDWithoutProperties(boost::uint64_t endNodeID);
+    
+    /**
+     * @brief Lädt eine Liste von Kanten nach Angabe der zugehörigen WayID. Eigenschaften werden dabei nicht mitgeladen.
+     * @param endNodeID Die ID des Endknotens.
+     * @return Eine Liste mit entsprechenden Kanten
+     */
+    QVector<boost::shared_ptr<OSMEdge> > getOSMEdgesByWayIDWithoutProperties(boost::uint64_t fromWayID, boost::uint64_t toWayID, int maxCount=1000);
+    
+    /**
+     * @brief Lädt eine Liste von OSMPropertys, die zu einem OSMWay gehören, aus der Datenbank.
+     * @param wayID Die ID des Ways, zu dem die EIgenschaften gehören.
+     * @return Die entsprechende Liste von Eigenschaften als OSMProperty-Objekte
+     */
+    QVector<OSMProperty> getOSMPropertyListByWayID(boost::uint64_t wayID);
     
     /**
      * @brief Lädt eine OSMTurnRestriction aus der DB über die Angabe der via-ID (Knoten).

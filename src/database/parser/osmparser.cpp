@@ -18,6 +18,14 @@ OSMParser::~OSMParser()
 bool OSMParser::parse(QString filename)
 {
     QFile file(filename);
+    if (!file.exists())
+    {
+        std::cerr << "file not found: \"" << filename << "\"." << std::endl;
+        _nodeQueue->destroyQueue();
+        _wayQueue->destroyQueue();
+        _turnRestrictionQueue->destroyQueue();
+        return false;
+    }
     QXmlInputSource inputSource(&file);
     QXmlSimpleReader reader;
     reader.setContentHandler(this);

@@ -1,23 +1,23 @@
-#ifdef SPATIALITE_FOUND
-
-#ifndef SPATIALITEDATABASE_HPP
-#define SPATIALITEDATABASE_HPP
+#ifndef SQLITEDATABASE_HPP
+#define SQLITEDATABASE_HPP
 
 #include "database.hpp"
 #include <sqlite3.h>
+#include "spacefillingcurves.hpp"
 
 /**
  * @brief Implementierung einer DatabaseConnection mit einer
- *  Spatialite-Datenbank (sqlite3-Abkömmling).
+ *  SQLite3-Datenbank.
  * 
- * 
+ * Diese Datenbank ist für die Systeme vorgesehen, auf denen
+ * Spatialite nicht verfügbar ist.
  * 
  * @author Lena Brüder
  * @date 2011-12-23
  * @copyright GNU GPL v3
  * @ingroup database
  */
-class SpatialiteDatabaseConnection : public DatabaseConnection
+class SQLiteDatabaseConnection : public DatabaseConnection
 {
 private:
     bool _dbOpen;
@@ -44,13 +44,14 @@ private:
      * @return Ob die Ausführung erfolgreich war, oder nicht
      */
     bool execCreateTableStatement(std::string);
+    
+    boost::shared_ptr<SpaceFillingCurve> spc;
 public:
-    SpatialiteDatabaseConnection();
+    SQLiteDatabaseConnection();
     void close();
     void open(QString dbConnectionString);
     bool isDBOpen();
     boost::shared_ptr<RoutingNode> getNodeByID(boost::uint64_t id);
-    /** @todo Implementieren! */
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& searchMidpoint, double radius);
     QVector<boost::shared_ptr<RoutingNode> > getNodes(const GPSPosition& ulCorner, const GPSPosition& brCorner);
     bool saveNode(const RoutingNode& node);
@@ -58,12 +59,10 @@ public:
     QVector<boost::shared_ptr<RoutingEdge> > getEdgesByEndNodeID(boost::uint64_t endNodeID);
     boost::shared_ptr<RoutingEdge> getEdgeByEdgeID(boost::uint64_t edgeID);
     bool saveEdge(const RoutingEdge& edge);
-    /** @todo Speichern von Straßen implementieren */
     bool saveEdge(const RoutingEdge& edge, const QString& name);
     bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
-    /** @todo implementieren */
     QString getStreetName(const RoutingEdge& edge);
-	~SpatialiteDatabaseConnection();
+	~SQLiteDatabaseConnection();
     
     bool beginTransaction();
     bool endTransaction();
@@ -76,8 +75,7 @@ namespace biker_tests
     /**
      * @ingroup tests
      */
-    int testSpatialiteDatabaseConnection();
+    int testSQLiteDatabaseConnection();
 }
 
-#endif  //SPATIALITEDATABASE_HPP
-#endif  //SPATIALITE_FOUND
+#endif //SQLITEDATABASE_HPP

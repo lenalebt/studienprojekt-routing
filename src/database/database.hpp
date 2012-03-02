@@ -25,18 +25,7 @@
  */
 class DatabaseConnection
 {
-private:
-    static boost::shared_ptr<DatabaseConnection> _globalInstance;
 public:
-    static void setGlobalInstance(boost::shared_ptr<DatabaseConnection> instance)
-    {
-        _globalInstance = instance;
-    }
-    static boost::shared_ptr<DatabaseConnection> getGlobalInstance()
-    {
-        return _globalInstance;
-    }
-    
     /**
      * @brief Schließt eine Verbindung zur Datenbank
      */
@@ -144,7 +133,7 @@ public:
      * @param name Der Name der Straße, zu der diese Kante gehört.
      * @return Ob Speichern erfolgreich war.
      */
-    virtual bool saveEdge(const RoutingEdge& edge, QString name)=0;
+    virtual bool saveEdge(const RoutingEdge& edge, const QString& name)=0;
     
     /**
      * @brief Gibt zu einer angegebenen Kante den Namen der Straße zurück, sofern es einen gibt.

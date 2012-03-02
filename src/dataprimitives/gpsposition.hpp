@@ -145,7 +145,7 @@ public:
     
     /**
      * @brief Gibt zurück, ob die Position noch auf (0.0/0.0) gesetzt ist.
-     * @return <code>true</code>, wenn <code>lon==lat==0.0</code>, <code>false</code> sonst.
+     * @return <code>false</code>, wenn <code>lon==lat==0.0</code>, <code>true</code> sonst.
      */
     virtual bool isInitialized() const;
     

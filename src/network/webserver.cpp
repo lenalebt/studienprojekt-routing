@@ -9,8 +9,11 @@
 #include "routingmetric.hpp"
 #include "database.hpp"
 #include "dijkstra.hpp"
-
-QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
+#include "astar.hpp"
+#include "programoptions.hpp"
+#include "spatialitedatabase.hpp"
+#include "sqlitedatabase.hpp"
+#include "srtmprovider.hpp"
 
 template <typename HttpRequestProcessorType>
 void HttpServerThread<HttpRequestProcessorType>::run()
@@ -362,8 +365,9 @@ void HttpRequestProcessor::run()
 
 void BikerHttpRequestProcessor::processRequest()
 {
-    //TODO: Request bearbeiten
     std::cerr << "processing request..." << std::endl;
+    
+    QRegExp numberRegExp("(\\d+(?:.\\d+)?)");
     
     //Es wird nur GET unterstützt, der Rest nicht. Bei was anderem: Grantig sein und 405 antworten.
     if (_requestType != "GET")
@@ -384,14 +388,14 @@ void BikerHttpRequestProcessor::processRequest()
     {
         //"/files/" entfernen!
         QString _myRequestPath = _requestPath.remove(0, 7);
-        QDir mainDir(publicHtmlDirectory);
-        if ((publicHtmlDirectory == "") || !mainDir.exists())
+        QDir mainDir((ProgramOptions::getInstance()->webserver_public_html_folder).c_str());
+        if ((ProgramOptions::getInstance()->webserver_public_html_folder == "") || !mainDir.exists())
         {
             this->send404();
             return;
         }
-        QFile file(publicHtmlDirectory + "/" + _myRequestPath);
-        QDir dir(publicHtmlDirectory + "/" + _myRequestPath);
+        QFile file(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
+        QDir dir(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
         
         //Wenn die Datei existiert, und alle sie lesen dürfen (nicht nur
         //    Benutzer oder Gruppe): Datei senden. Sonst: 404 Not found.
@@ -420,7 +424,9 @@ void BikerHttpRequestProcessor::processRequest()
          * @todo RegExp nur einmal erzeugen und dann wiederverwenden!
          */
         QRegExp cloudmadeApiKeyRegExp("^/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
-        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        //QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})){0,40}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        QRegExp cloudmadeApiPointListExtractor("(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
         QRegExp cloudmadeApiRouteTypeRegExp("^/([a-zA-Z0-9]{1,64})(?:/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)$");
         
         QString apiKey="";
@@ -455,12 +461,14 @@ void BikerHttpRequestProcessor::processRequest()
         if (cloudmadeApiPointListRegExp.cap(0).length() != 0)
         {
             //Punktliste gefunden. Auswerten!
+            //Neue RegExp zum Punkte herausholen...
+            cloudmadeApiPointListExtractor.indexIn(cloudmadeApiPointListRegExp.cap(0));
             QString strLat, strLon;
             routePointList.clear();
-            for (int i=1; i<=cloudmadeApiPointListRegExp.captureCount(); i+=2)
+            for (int pos=0; pos>=0; pos=cloudmadeApiPointListExtractor.indexIn(cloudmadeApiPointListRegExp.cap(0), cloudmadeApiPointListExtractor.cap(0).length()+pos))
             {
-                strLat = cloudmadeApiPointListRegExp.cap(i);
-                strLon = cloudmadeApiPointListRegExp.cap(i+1);
+                strLat = cloudmadeApiPointListExtractor.cap(1);
+                strLon = cloudmadeApiPointListExtractor.cap(2);
                 GPSPosition point(strLat.toDouble(), strLon.toDouble());
                 routePointList << point;
             }
@@ -486,23 +494,74 @@ void BikerHttpRequestProcessor::processRequest()
             return;
         }
         
-        //TODO: Routing starten
         //this->send102();
         
         if ((routeType == "bicycle") || (routeType == "bike"))
         {
             boost::shared_ptr<RoutingMetric> metric;
             boost::shared_ptr<Router> router;
-            boost::shared_ptr<DatabaseConnection> db;
+            boost::shared_ptr<DatabaseConnection> dbA;
+            boost::shared_ptr<DatabaseConnection> dbB;
+            boost::shared_ptr<AltitudeProvider> altitudeProvider;
+            
+            #ifdef ZZIP_FOUND
+                altitudeProvider.reset(new SRTMProvider());
+            #else
+                altitudeProvider.reset(new ZeroAltitudeProvider());
+            #endif
+            
             //Routingmetrik festlegen anhand der Benutzerwahl
             if (routeModifier == "euclidian")
             {
-                metric.reset(new EuclidianRoutingMetric());
+                metric.reset(new EuclidianRoutingMetric(altitudeProvider));
+            }
+            else if (routeModifier == "simpleheight")
+            {
+                float detourPerHeightMeter = 100.0f;
+                if (numberRegExp.indexIn(_parameterMap["detourperheightmeter"]) != -1)
+                {
+                    detourPerHeightMeter = numberRegExp.cap(1).toFloat();
+                }
+                metric.reset(new SimpleHeightRoutingMetric(altitudeProvider, detourPerHeightMeter));
+            }
+            else if (routeModifier == "advancedheight")
+            {
+                float punishment = 1.0f;
+                float detourPerHeightMeter = 200.0f;
+                if (numberRegExp.indexIn(_parameterMap["punishment"]) != -1)
+                {
+                    punishment = numberRegExp.cap(1).toFloat();
+                }
+                if (numberRegExp.indexIn(_parameterMap["detourperheightmeter"]) != -1)
+                {
+                    detourPerHeightMeter = numberRegExp.cap(1).toFloat();
+                }
+                metric.reset(new AdvancedHeightRoutingMetric(altitudeProvider, detourPerHeightMeter, punishment));
+            }
+            else if (routeModifier == "simplepower")
+            {
+                double weight = 90.0;
+                double efficiency = 3 * weight;
+                
+                if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
+                    weight = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["efficiency"]) != -1)
+                    efficiency = numberRegExp.cap(1).toDouble();
+                metric.reset(new SimplePowerRoutingMetric(altitudeProvider, weight, efficiency));
             }
             else if (routeModifier == "power")
             {
-                //TODO: Gewicht etc aus der Anfrage herauslesen
-                metric.reset(new PowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider())));
+                double weight = 90.0;
+                double maxPower = 140.0;
+                double minSpeed = 2.5;
+                
+                if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
+                    weight = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["maxpower"]) != -1)
+                    maxPower = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["minspeed"]) != -1)
+                    minSpeed = numberRegExp.cap(1).toDouble();
+                metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed));
             }
             else
             {
@@ -511,18 +570,42 @@ void BikerHttpRequestProcessor::processRequest()
                 return;
             }
             
+            #ifdef SPATIALITE_FOUND
+                if (ProgramOptions::getInstance()->dbBackend == "spatialite")
+                {
+                    dbA.reset(new SpatialiteDatabaseConnection());
+                    dbB.reset(new SpatialiteDatabaseConnection());
+                }
+                else 
+            #endif
+            if (ProgramOptions::getInstance()->dbBackend == "sqlite")
+            {
+                dbA.reset(new SQLiteDatabaseConnection());
+                dbB.reset(new SQLiteDatabaseConnection());
+            }
             //Datenbank ist die globale DB...
-            db = DatabaseConnection::getGlobalInstance();
+            dbA->open(ProgramOptions::getInstance()->dbFilename.c_str());
+            dbB->open(ProgramOptions::getInstance()->dbFilename.c_str());
             
-            //Als Router nehmen wir erstmal Dijkstra.
-            router.reset(new DijkstraRouter(db, metric));
-            //TODO: Bei mehr als 2 Punkten richtig routen. atm werden Transitpunkte vernachlässigt.
-            //Start- und Endpunkt heraussuchen
-            GPSPosition startPosition = routePointList[0];
-            GPSPosition endPosition = routePointList.last();
+            //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-A* oder Mehrthread-Dijkstra - je nach Metrik.
+            if (_parameterMap["algorithm"] == "multithreadeddijkstra")
+                router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
+            else if (_parameterMap["algorithm"] == "dijkstra")
+                router.reset(new DijkstraRouter(dbA, metric));
+            else if (_parameterMap["algorithm"] == "astar")
+                router.reset(new AStarRouter(dbA, metric));
+            else if (_parameterMap["algorithm"] == "multithreadedastar")
+                router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
+            else
+            {
+                if (metric->getMeasurementUnit() == DISTANCE)
+                    router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
+                else
+                    router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
+            }
             
             //Route berechnen
-            GPSRoute route = router->calculateShortestRoute(startPosition, endPosition);
+            GPSRoute route = router->calculateShortestRoute(routePointList);
             //Keine Route gefunden? 404 senden.
             if (route.isEmpty())
             {
@@ -533,7 +616,7 @@ void BikerHttpRequestProcessor::processRequest()
             
             //Antwort entsprechend des Routentypen senden.
             if (routeDataType == "gpx")
-                this->sendFile(route.exportGPXString());
+                this->sendFile(route.exportGPXString(altitudeProvider));
             else if (routeDataType == "js")
                 this->sendFile(route.exportJSONString());
             else
@@ -560,7 +643,7 @@ namespace biker_tests
     {
         std::cerr << "Testing Webserver..." << std::endl;
         
-        BikerHttpRequestProcessor::publicHtmlDirectory = "./gui/";
+        ProgramOptions::getInstance()->webserver_public_html_folder = "./gui/";
         HttpServerThread<BikerHttpRequestProcessor> server(8081);
         server.startServer();
         //todo: aufs hochfahren warten toller lösen als so
