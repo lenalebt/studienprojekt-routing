@@ -18,9 +18,6 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition
         RoutingNode startNode, endNode;
         QVector<boost::shared_ptr<RoutingNode> > nodeList;
         
-        /* TODO: Fehlerhafte Annahme hier ist, dass alle Knoten auch Ways
-         *    haben, die bei ihnen losgehen. Soll erstmal reichen.
-         */
         //Suche zuerst den Startknoten raus, dann den Endknoten. Umkreissuche.
         nodeList = _db->getNodes(startPosition, 50.0);
         if (nodeList.isEmpty())
@@ -116,7 +113,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         
         boost::shared_ptr<RoutingNode> activeNode;
         
-        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
+        //boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
         boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
         QVector<boost::shared_ptr<RoutingNode> > nodes = _db->getNodes(startNode, startNode.calcDistance(endNode)/1.5);
@@ -268,7 +265,7 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const Routin
         
         boost::shared_ptr<RoutingNode> activeNode;
         
-        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
+        //boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
         
         /*QVector<boost::shared_ptr<RoutingNode> > nodes = _dbA->getNodes(startNode, startNode.calcDistance(endNode)/2.5);
         for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodes.constBegin(); it != nodes.constEnd(); it++)
@@ -397,7 +394,7 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const Routin
         
         boost::shared_ptr<RoutingNode> activeNode;
         
-        boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
+        //boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
         /*QVector<boost::shared_ptr<RoutingNode> > nodes = _dbB->getNodes(startNode, startNode.calcDistance(endNode)/2.5);
         for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodes.constBegin(); it != nodes.constEnd(); it++)
@@ -514,9 +511,6 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const GPSPosition& 
         RoutingNode startNode, endNode;
         QVector<boost::shared_ptr<RoutingNode> > nodeList;
         
-        /* TODO: Fehlerhafte Annahme hier ist, dass alle Knoten auch Ways
-         *    haben, die bei ihnen losgehen. Soll erstmal reichen.
-         */
         //Suche zuerst den Startknoten raus, dann den Endknoten. Umkreissuche.
         nodeList = _dbA->getNodes(startPosition, 50.0);
         if (nodeList.isEmpty())

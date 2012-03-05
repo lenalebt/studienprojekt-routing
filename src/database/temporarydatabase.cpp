@@ -1445,11 +1445,11 @@ namespace biker_tests
         QVector<boost::shared_ptr<OSMEdge> > edgeList = connection.getOSMEdgesByStartNodeID(12);
         CHECK_EQ(edgeList.size(), 1);
         //TODO: Ausgabe- und Vergleichsoperator fehlen.
-        //CHECK_EQ(*edgeList[0], edge2);
+        CHECK_EQ(*edgeList[0], edge2);
         edgeList = connection.getOSMEdgesByEndNodeID(14);
         CHECK_EQ(edgeList.size(), 1);
         //TODO: Ausgabe- und Vergleichsoperator fehlen.
-        //CHECK_EQ(*edgeList[0], edge);
+        CHECK_EQ(*edgeList[0], edge);
         
         std::cerr << "Checking OSMTurnRestriction..." << std::endl;
         CHECK(connection.beginTransaction());

@@ -7,13 +7,6 @@
 #include <QtConcurrentRun>
 #include "dijkstra.hpp"
 
-/**
- * @todo Implementieren
- * @todo Testen
- * @bug Wenn der User eine Position aussucht, bei der ein Knoten, der nicht
- *      am Graphen beteiligt ist, am nächsten ist, wird dieser als Startpunkt
- *      ausgewählt. Fälschlicherweise wird dann keine Route berechnet!
- */
 GPSRoute AStarRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
 {
     if (!_db->isDBOpen())
@@ -92,9 +85,6 @@ GPSRoute AStarRouter::calculateShortestRoute(const GPSPosition& startPosition, c
     }
 }
 
-/**
- * @todo: Implementieren
- */
 GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
 {
     if (!_db->isDBOpen())
@@ -123,7 +113,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
         
         boost::shared_ptr<RoutingNode> activeNode;
         
-        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
+        //boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
         boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
         //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
@@ -272,8 +262,8 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
         
         boost::shared_ptr<RoutingNode> activeNode;
         
-        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
-        boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
+        //boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
+        //boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
         /*QVector<boost::shared_ptr<RoutingNode> > nodes = _dbA->getNodes(startNode, startNode.calcDistance(endNode)/2.5);
         for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodes.constBegin(); it != nodes.constEnd(); it++)
@@ -405,8 +395,8 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNo
         
         boost::shared_ptr<RoutingNode> activeNode;
         
-        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
-        boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
+        //boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
+        //boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
         /*QVector<boost::shared_ptr<RoutingNode> > nodes = _dbB->getNodes(startNode, startNode.calcDistance(endNode)/2.5);
         for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodes.constBegin(); it != nodes.constEnd(); it++)

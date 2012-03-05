@@ -143,6 +143,8 @@ public:
             return p1.calcDistance(p2);
         else if (getMeasurementUnit() == SECONDS)
             return p1.calcDistance(p2) * 2;   //in m/s, schieben mit etwa 2km/h
+        else
+            return p1.calcDistance(p2);
     }
 }; 
 
