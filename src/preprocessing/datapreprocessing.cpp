@@ -1,4 +1,4 @@
-#include "datapreprocessing.hpp" 
+#include "datapreprocessing.hpp"
 #include <QSet>
 
 
@@ -106,13 +106,19 @@ void DataPreprocessing::createRoutingGraph()
 
         if(OSMEdgesIncome.size() > 2 && OSMEdgesOutgoing.size() > 2)
         {
-            //sort all edges
+            //sort-all-edges (still in progress)
             _tmpDBConnection.updateOSMEdgeStartNode(OSMEdgesOutgoing);
             _tmpDBConnection.updateOSMEdgeEndNode(OSMEdgeIncome);
             //handle turnRestrictions here
 
             for(int j = 0; j < OSMEdgesIncome.size(); j++)
             {
+                //erstelle neue innere Kanten zu allen ausgehenden Kanten
+                //Dabei: Fuege Datentypen zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
+                RoutingEdge rEdge = new RoutingEdge();
+                OSMNode tmpOSMNode = OSMEdgesIncome[j]->getEndNode();
+                rEdge.setSt
+                _finalDBConnection->saveEdge(rEdge);
             }
             //save osmNode als routingNode in finalDB
         }
@@ -120,22 +126,24 @@ void DataPreprocessing::createRoutingGraph()
         {
             for( int i = 0; i < OSMEdgesIncome.size(); i++)
             {
-                //ersetze aktuelle KnotenID durch lange KnotenID
+                //replace current nodeID with long nodeID
                 _tmpDBConnection.updateOSMEdgeEndNode(OSMEdgesIncome[i]);
             }
 
             for( int i = 0; i < OSMEdgesOutgoing.size(); i++)
             {
-                //ersetze aktuelle KnotenID durch lange KnotenID
+                //replace current nodeID with long nodeID
                 _tmpDBConnection.updateOSMEdgeStartNode(OSMEdgesOutgoing[i]);
             }
-            routingNode rNode = OSMNodes[i];
+            routingNode rNode = OSMNodes[i];            
+            _finalDBConnection->saveNode(rNode);
         }
     }
     QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);
     for(int i = o ; i < wayIDs.size(); i++)
     {
         OSMEdge osmEdge = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(i);
+        OSMProperty osmProp = osmEdge.getProperties();
         //TODO: fuer alle wayIDs vorwaerts- und rueckwaertseigenschaften erstellen
         if()
         {

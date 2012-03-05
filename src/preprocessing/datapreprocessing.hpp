@@ -99,6 +99,9 @@ public:
     int getStreetSurfaceQuality(const RoutingEdge& edge);
     int getStreetSurfaceType(const RoutingEdge& edge);
     void categorizeEdge(const RoutingEdge& edge);
+    /**
+     * @brief Erstellt aus dem gegebenden Graphen einen neuen, der in der finalen Datenbank abgelegt wird
+     */
     void createRoutingGraph();
 };
 
