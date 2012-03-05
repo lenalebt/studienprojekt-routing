@@ -60,9 +60,17 @@ private:
      * @param properties Der zu kategorisierende <code>QVector<OSMProperty></code>.
      * @param propForward Der Rückgabeparameter, in den die <code>RoutingEdge</code>-Kategorien bezüglich Forwärtsrichtung eingetragen werden.
      * @param propBackward Der Rückgabeparameter, in den die <code>RoutingEdge</code>-Kategorien bezüglich Gegenrichtung eingetragen werden.
-     * @return Ein Pointer auf die aus der <code>OSMEdge</code> Kante erstellte <code>RoutingEdge</code> Kante.
      */
     void categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward,boost::uint64_t& propBackward);
+
+    /**
+     * @brief Skaliert eine Winkel(Gradmaß) auf den Wertebereich mod 128 und gibt den nächsten geraden Wert <= dem ermittelten Wert zurück.
+     *
+     *
+     * @param angle Ein Winkel im Gradmaß.
+     * @return Ein gerader Wert von 0 bis 126.
+     */
+    int getSector(double angle);
 
     
     boost::shared_ptr<OSMParser> _osmParser;

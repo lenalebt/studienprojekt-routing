@@ -162,6 +162,15 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
     }
 }
 
+int DataPreprocessing::getSector(double angle)
+{
+    if(angle > 360){
+        int factor = int(angle / 360);
+        angle = angle - (factor * 360);
+    }
+    return (int(angle * 0.1778))*2; // 0.1777777... = 64/360
+}
+
 
 void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward,boost::uint64_t& propBackward)
 {
