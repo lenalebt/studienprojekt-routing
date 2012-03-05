@@ -92,6 +92,7 @@
 #define ACCESS_PRIVATE			9
 #define ACCESS_NOT_PERMITTED		10
 #define ACCESS_NOT_USABLE_FOR_BIKES	11 // like motorways, impassable surfaces
+#define ACCESS_FOOT_ONLY        	12 // You're not allowed to ride your bike, but you may push it.
 #define ACCESS_UNKNOWN			(1<<BITLENGTH_ACCESS)-1 //last bit, highest possible value
 
 

@@ -168,7 +168,7 @@ int DataPreprocessing::getSector(double angle)
         int factor = int(angle / 360);
         angle = angle - (factor * 360);
     }
-    return (int(angle * 0.1778))*2; // 0.1777777... = 64/360
+    return (int(angle * 0.3555555))*2; // 0.355555555... = 128/360
 }
 
 
@@ -205,10 +205,11 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
 
     bool isLane = false;
     bool isTrack = false;
-    bool isShared = false;
     bool isOpposite = false;
     bool isBusway = false;
     bool isSegregated = false;
+
+    bool definitelyDontUse = false;
 
     bool accessForward = true;
     bool accessBackward = true;
@@ -218,13 +219,10 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
     //Flags//END//////////////////////////////////////////
 
 
-    //TODO:
-    // Was wenn Fahrräder nciht durch kommen, Fußgänger aber schon?
-
-
     //////////////////////////////////////////////////////
     //Keys/und/Values/betrachten//////////////////////////
-    for (QVector<OSMProperty>::const_iterator it = properties.constBegin(); it != properties.constEnd(); it++)
+    QVector<OSMProperty>::const_iterator it;
+    for (it = properties.constBegin(); it != properties.constEnd(); it++)
     {
         QString osmKey = it->getKey();
         QString osmValue = it->getValue();
@@ -234,12 +232,14 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
         if(osmValue == "impassalbe"){
             streetSurfaceQuality = STREETSURFACEQUALITY_IMPASSABLE;
             access = ACCESS_NOT_USABLE_FOR_BIKES;
+            definitelyDontUse = true;
             break; //if the edge can't be passed by bike, there is no need for further categorization
         }
 
         else if(osmKey == "ice_road" || osmKey == "motorroad" || osmKey == "winterroad"){
             if(osmValue == "yes"){
                 access = ACCESS_NOT_USABLE_FOR_BIKES;
+                definitelyDontUse = true;
                 break; //if the edge can't be passed by bike, there is no need for further categorization
             }
         }
@@ -264,10 +264,12 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
             isWay = true;
             if(osmValue == "yes"){
                 isExplicitlyFoot = true;
+                isFootway = true;
             }
             else if(osmValue == "designated"){
                 hasDesignation = true;
                 isExplicitlyFoot = true;
+                isFootway = true;
             }
             else if(osmValue == "no"){
                 isExplicitlyFoot = false;
@@ -345,9 +347,6 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
             if(osmValue.contains("share_busway")){
                 isBusway = true;
             }
-            if(osmValue.contains("shared") || osmValue == "sharrow"){
-                isShared = true;
-            }
         }
         else if(osmKey == "segregated"){
             if(osmValue == "yes"){
@@ -384,6 +383,7 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
                     osmValue == "proposed" ||
                     osmValue == "raceway"){
                 access = ACCESS_NOT_USABLE_FOR_BIKES;
+                definitelyDontUse = true;
                 break; //if the edge can't be passed by bike, there is no need for further categorization
             }
             else if(osmValue == "pedestrian" || osmValue == "footway"){
@@ -469,6 +469,7 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
         else if(osmKey == "access"){
             if(osmValue == "no"){
                 access = ACCESS_NOT_USABLE_FOR_BIKES;
+                definitelyDontUse = true;
                 break; //if the edge can't be passed by bike, there is no need for further categorization
             }
             else if(osmValue == "private"){
@@ -573,6 +574,37 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
          }
 
     }
+    if(it < properties.constEnd() && access == ACCESS_NOT_USABLE_FOR_BIKES){ // Bikes can't pass. Now we check, if Pedestrians may.
+        if(!isFootway){
+            for (it; it != properties.constEnd(); it++){
+                QString osmKey = it->getKey();
+                QString osmValue = it->getValue();
+                if(osmKey == "foot"){
+                    isWay = true;
+                    if(osmValue == "yes"){
+                        isExplicitlyFoot = true;
+                        isFootway = true;
+                    }
+                    else if(osmValue == "designated"){
+                        hasDesignation = true;
+                        isExplicitlyFoot = true;
+                        isFootway = true;
+                    }
+                    else if(osmValue == "no"){
+                        isExplicitlyFoot = false;
+                    }
+                }
+                else if(osmKey == "highway"){
+                    if(osmValue == "pedestrian" || osmValue == "footway"){
+                                    streetType = STREETTYPE_HIGHWAY_PEDESTRIAN;
+                                    isFootway = true;
+
+                    }
+                }
+
+            }
+        }
+    }
     //Keys/und/Values/betrachten//END/////////////////////
 
 
@@ -627,7 +659,7 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
                 access = ACCESS_COMPULSORY;
             }
         }
-        else if(!isExplicitlyBicycle){ //should stay last condtition to overwrite lesser conditions
+        else if(!isExplicitlyBicycle){
             access = ACCESS_NOT_USABLE_FOR_BIKES;
         }
 
@@ -637,8 +669,13 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
         if(isOnewayBicycle || (isOneway && !isOpposite) || !isBicycleBackward){
             accessBackward = false;
         }
+
+        if(access == ACCESS_NOT_USABLE_FOR_BIKES && !definitelyDontUse && isFootway){
+            access = ACCESS_FOOT_ONLY;
+        }
     }
     else{
+        definitelyDontUse = true;
         access = ACCESS_NOT_USABLE_FOR_BIKES;
     }
     //Flagauswertung//END/////////////////////////////////
@@ -657,14 +694,24 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
     routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
 
     if(!accessForward){
-        access = ACCESS_NOT_USABLE_FOR_BIKES;
+        if(isWay && !definitelyDontUse){
+            access = ACCESS_FOOT_ONLY;
+        }
+        else{
+            access = ACCESS_NOT_USABLE_FOR_BIKES;
+        }
     }
     routingEdge->setAccess(access);
 
     propForward = routingEdge->getProperties();
 
     if(!accessBackward){
-        access = ACCESS_NOT_USABLE_FOR_BIKES;
+        if(isWay && !definitelyDontUse){
+            access = ACCESS_FOOT_ONLY;
+        }
+        else{
+            access = ACCESS_NOT_USABLE_FOR_BIKES;
+        }
         routingEdge->setAccess(access);
         propBackward = routingEdge->getProperties();
     }
