@@ -51,7 +51,7 @@
 #define CYCLEWAYTYPE_MTB_2                      12 //Mountainbiketrack, mtb:scale=2, advanced driving skills
 #define CYCLEWAYTYPE_MTB_3                      13 //Mountainbiketrack, mtb:scale=3, very good bike control required
 #define CYCLEWAYTYPE_MTB_HIGH                   14 //Mountainbiketrack, mtb:scale>=4, you're a little bit insane
-#define CYCLEWAYTYPE_UNKNOWN                    (1<<BITLENGTH_CYCLEWAYTYPE)-1 //last bit, highest possible value, there is a cycleway along this edge
+#define CYCLEWAYTYPE_UNKNOWN                    (1<<BITLENGTH_CYCLEWAYTYPE)-1 //last bit, highest possible value, there is a cycleway along this edge // Used, whenever there is a cycleway with no further specifications
 
 
 #define CYCLEWAYTYPE_UNKNOWN                    (1<<BITLENGTH_CYCLEWAYTYPE)-1 //last bit, highest possible value
@@ -98,9 +98,9 @@
 #define TURNTYPE_LEFTCROSS		3
 #define TURNTYPE_UTURNCROSS		4
 
-#define ACCESS_YES			0
+#define ACCESS_YES			0 // at least for bikes
 #define ACCESS_PERMISSIVE		1
-#define ACCESS_COMPULSORY		2 // if compulsory for bike
+#define ACCESS_COMPULSORY		2 // if compulsory for bikes
 #define ACCESS_DESIGNATED		3 // if designated for bike
 #define ACCESS_FORESTRY			4
 #define ACCESS_AGRICULTURAL		5
@@ -110,6 +110,7 @@
 #define ACCESS_PRIVATE			9
 #define ACCESS_NOT_PERMITTED		10
 #define ACCESS_NOT_USABLE_FOR_BIKES	11 // like motorways, impassable surfaces
+#define ACCESS_FOOT_ONLY        	12 // You're not allowed to ride your bike, but you may push it.
 #define ACCESS_UNKNOWN			(1<<BITLENGTH_ACCESS)-1 //last bit, highest possible value
 
 
