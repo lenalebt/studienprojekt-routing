@@ -312,6 +312,8 @@ bool EdgeCategorizer::categorizeWays()
             boost::shared_ptr<RoutingEdge> edge = categorizeEdge(edgeList[i]);
             if (edge->getAccess() != ACCESS_NOT_USABLE_FOR_BIKES)
                 _outQueue->enqueue(edge);
+            /*else
+                std::cerr << "edge not usable for bikes:" << edge->getID() << std::endl;*/
         }
     }
     _outQueue->destroyQueue();
