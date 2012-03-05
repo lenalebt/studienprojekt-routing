@@ -52,15 +52,17 @@ private:
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
 
     /**
-     * @brief Wandelt eine <code>OSMEdge</code> Kante in eine <code>RoutingEdge</code> Kante um und kategorisiert diese.
+     * @brief Analysiert den Inhalt eines <code>OSMProperty</code>-Vectors und ordnet ihn den Kategorien einer <code>RoutingEdge</code> zu. Die Ergebnisse werden in je einen <code>boost::uint64_t</code>-Wert für Hin- und Rückrichtung eingetragen.
      *
-     * Wann immer eine Kante nicht von einem Fahrrad passiert werden kann, wird die Eigenschaft der Zugangsbeschränkung auf den Wert für <code>ACCESS_NOT_USABLE_FOR_BIKES</code> gesetzt.
-     * Eigenschaften wie Ampeln beziehen sich immer auf des Ende einer Kante.
+     * Wann immer eine Kante oder ein Weg mit den entsprechenden <code>OSMProperty</code>s nicht von einem Fahrrad passiert werden kann, wird die Eigenschaft der Zugangsbeschränkung auf den Wert für <code>ACCESS_NOT_USABLE_FOR_BIKES</code> gesetzt.
+     * Solche Wege und Kanten brauchen nicht in die finale Datenbank eingetragen werden.
      *
-     * @param osmEdge Die umzuwandelnde <code>OSMEdge</code> Kante.
+     * @param properties Der zu kategorisierende <code>QVector<OSMProperty></code>.
+     * @param propForward Der Rückgabeparameter, in den die <code>RoutingEdge</code>-Kategorien bezüglich Forwärtsrichtung eingetragen werden.
+     * @param propBackward Der Rückgabeparameter, in den die <code>RoutingEdge</code>-Kategorien bezüglich Gegenrichtung eingetragen werden.
      * @return Ein Pointer auf die aus der <code>OSMEdge</code> Kante erstellte <code>RoutingEdge</code> Kante.
      */
-    boost::shared_ptr<RoutingEdge> categorizeEdge(const OSMEdge& osmEdge);
+    void categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward,boost::uint64_t& propBackward);
 
     
     boost::shared_ptr<OSMParser> _osmParser;

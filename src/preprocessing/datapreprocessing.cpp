@@ -163,7 +163,7 @@ void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
 }
 
 
-void DataPreprocessing::categorize(const QVector<OSMProperty> properties, const bool isForward, boost::uint64_t& propForward,boost::uint64_t& propBackward)
+void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward,boost::uint64_t& propBackward)
 {
     bool hasTrafficLights = false;
     bool hasTrafficCalmingBumps = false;
@@ -175,6 +175,9 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, const 
     boost::uint8_t streetSurfaceType = STREETSURFACETYPE_UNKNOWN;
     boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;    
     boost::uint8_t access = ACCESS_UNKNOWN;
+
+
+    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(0, 0, 0));
 
 
     //////////////////////////////////////////////////////
@@ -198,15 +201,16 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, const 
     bool isBusway = false;
     bool isSegregated = false;
 
+    bool accessForward = true;
+    bool accessBackward = true;
+
     boost::logic::tribool isExplicitlyBicycle = boost::logic::indeterminate; // false means no access for bikes
-    boost::logic::tribool isExplicitlyFoot = boost::logic::indeterminate; // false means no access for pedestrians
+    boost::logic::tribool isExplicitlyFoot = boost::logic::indeterminate; // false means no access for pedestrian
     //Flags//END//////////////////////////////////////////
 
 
-    //DONE:
-    // Key: smoothness, surface, tracktype(only grade1), mtb:scale, bicycle, compulsory und designation zusammenstellen
     //TODO:
-    // highway, stop, traffic_signal, cycleway, oneway
+    // Was wenn Fahrräder nciht durch kommen, Fußgänger aber schon?
 
 
     //////////////////////////////////////////////////////
@@ -420,6 +424,7 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, const 
             }
             else if(osmValue == "cycleway"){
                 isCycleway = true;
+                isTrack = true;
 
             }
             else{
@@ -429,13 +434,25 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, const 
 
             if(osmValue == "steps"){
                 hasStairs = true;
-
             }
+            else if(osmValue == "traffic_signals"){
+                hasTrafficLights = true;
+            }
+            else if(osmValue == "stop"){
+                hasStopSign = true;
+            }
+
         }
         else if(osmKey == "ford"){
             isWay = true;
             if(osmValue != "no"){
                 streetType = STREETTYPE_HIGHWAY_FORD;
+            }
+
+        }
+        else if(osmKey == "barrier"){
+            if(osmValue == "cycle_barrier"){
+                hasCycleBarrier = true;
             }
 
         }
@@ -562,6 +579,35 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, const 
 
         }
 
+        if(isCycleway){
+            cyclewayType = CYCLEWAYTYPE_UNKNOWN; //It's a cycleway. We just don't yet know which kind.
+            if(isLane){
+                if(isFootway || isSegregated){
+                    if(isOpposite){cyclewayType = CYCLEWAYTYPE_LANE_SEGREGAETD_OP;}
+                    else{cyclewayType = CYCLEWAYTYPE_LANE_SEGREGAETD;}
+                }
+                else if(isBusway){
+                    if(isOpposite){cyclewayType = CYCLEWAYTYPE_LANE_SHARED_BUSWAY_OP;}
+                    else{cyclewayType = CYCLEWAYTYPE_LANE_SHARED_BUSWAY;}
+                }
+                else{
+                    if(isOpposite){cyclewayType = CYCLEWAYTYPE_LANE_OP;}
+                    else{cyclewayType = CYCLEWAYTYPE_LANE;}
+                }
+            }
+            else if(isTrack || (streetType == STREETTYPE_HIGHWAY_PATH && isExplicitlyBicycle)){
+                if(isFootway || isSegregated){
+                    cyclewayType = CYCLEWAYTYPE_TRACK_SEGREGATED;
+                }
+                else if(isBusway){
+                    cyclewayType = CYCLEWAYTYPE_TRACK_SHARED_BUSWAY;
+                }
+                else{
+                    cyclewayType = CYCLEWAYTYPE_TRACK;
+                }
+            }
+        }
+
         if(isExplicitlyBicycle){
             access = ACCESS_YES;
 
@@ -575,42 +621,19 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, const 
         else if(!isExplicitlyBicycle){ //should stay last condtition to overwrite lesser conditions
             access = ACCESS_NOT_USABLE_FOR_BIKES;
         }
+
+        if(!isBicycleForward){
+            accessForward = false;
+        }
+        if(isOnewayBicycle || (isOneway && !isOpposite) || !isBicycleBackward){
+            accessBackward = false;
+        }
     }
     else{
         access = ACCESS_NOT_USABLE_FOR_BIKES;
     }
     //Flagauswertung//END/////////////////////////////////
-    bool isCycleway = false;
-    bool isFootway = false;
 
-    bool isOfficial = false;
-    bool hasDesignation = false;
-
-    boost::logic::tribool isOneway = boost::logic::indeterminate; // false means oneway in opposite direction
-    boost::logic::tribool isOnewayBicycle = boost::logic::indeterminate; // false means bicycles may go both ways
-    boost::logic::tribool isBicycleForward = boost::logic::indeterminate;
-    boost::logic::tribool isBicycleBackward = boost::logic::indeterminate;
-
-    bool isLane = false;
-    bool isTrack = false;
-    bool isShared = false;
-    bool isOpposite = false;
-    bool isBusway = false;
-    bool isSegregated = false;
-
-    boost::logic::tribool isExplicitlyBicycle = boost::logic::indeterminate; // false means no access for bikes
-    boost::logic::tribool isExplicitlyFoot = boost::logic::indeterminate; // false means no access for pedestrians
-
-    CYCLEWAYTYPE_NO_CYCLEWAY
-    CYCLEWAYTYPE_LANE
-    CYCLEWAYTYPE_LANE_OP
-    CYCLEWAYTYPE_LANE_SEGREGAETD
-    CYCLEWAYTYPE_LANE_SEGREGAETD_OP
-    CYCLEWAYTYPE_LANE_SHARED_BUSWAY
-    CYCLEWAYTYPE_LANE_SHARED_BUSWAY_OP
-    CYCLEWAYTYPE_TRACK
-    CYCLEWAYTYPE_TRACK_SEGREGATED
-    CYCLEWAYTYPE_TRACK_SHARED_BUSWAY
 
     //////////////////////////////////////////////////////
     //Rückgabeparameter/setzen////////////////////////////
@@ -619,12 +642,26 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, const 
     routingEdge->setStopSign(hasStopSign);
     routingEdge->setStairs(hasStairs);
     routingEdge->setCycleBarrier(hasCycleBarrier);
-    routingEdge->setAccess(access);
     routingEdge->setStreetType(streetType);
     routingEdge->setCyclewayType(cyclewayType);
     routingEdge->setStreetSurfaceType(streetSurfaceType);
     routingEdge->setStreetSurfaceQuality(streetSurfaceQuality);
-    //routingEdge->setTurnType(turnType);
+
+    if(!accessForward){
+        access = ACCESS_NOT_USABLE_FOR_BIKES;
+    }
+    routingEdge->setAccess(access);
+
+    propForward = routingEdge->getProperties();
+
+    if(!accessBackward){
+        access = ACCESS_NOT_USABLE_FOR_BIKES;
+        routingEdge->setAccess(access);
+        propBackward = routingEdge->getProperties();
+    }
+    else{
+        propBackward = propForward;
+    }
     //Rückgabeparameter/setzen//END///////////////////////
 
     return;
