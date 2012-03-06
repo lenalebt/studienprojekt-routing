@@ -179,9 +179,9 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
                         {
                             nodeCosts[activeEdgeEndNodeLongID] = newCosts;
                             //-----------------------*activeNode oder *it benutzen?? ----- 
-                            float distance = (*activeNode).calcDistance(endNode);
+                            float distance = _metric->estimateDistance(*activeNode, endNode);
                             estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
-                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
+                                _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
                             heap.decreaseKey(activeEdgeEndNodeLongID);
                             predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
                         }
@@ -326,7 +326,7 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
                             nodeCosts[activeEdgeEndNodeLongID] = newCosts;
                             float distance = _metric->estimateDistance(*activeNode, endNode);
                             estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
-                            _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
+                                _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
                             heap.decreaseKey(activeEdgeEndNodeLongID);
                             predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
                         }
