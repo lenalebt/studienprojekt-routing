@@ -7,6 +7,7 @@
 #include "osmway.hpp"
 #include "routingedge.hpp"
 #include "routingnode.hpp"
+#include <boost/logic/tribool.hpp>
 
 class EdgeCategorizer
 {
@@ -19,7 +20,7 @@ private:
     bool categorizeEdges();
     bool categorizeWays();
     
-    boost::shared_ptr<RoutingEdge> categorizeEdge(const OSMEdge &osmEdge);
+    void categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward, boost::uint64_t& propBackward);
 public:
     EdgeCategorizer(BlockingQueue<boost::shared_ptr<OSMEdge> >* inQueue, BlockingQueue<boost::shared_ptr<RoutingEdge> >* outQueue);
     EdgeCategorizer(BlockingQueue<boost::shared_ptr<OSMWay> >* inQueue, BlockingQueue<boost::shared_ptr<RoutingEdge> >* outQueue);

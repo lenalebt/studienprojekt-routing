@@ -103,6 +103,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
         boost::uint64_t activeNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
         
         //Startknoten: Kosten auf Null setzen, zum Heap und Puffer hinzufügen, Vorgänger auf Null setzen
+        estimatedCosts.setValue(activeNodeLongID, _metric->estimateDistance(startNode, endNode));
         nodeCosts[activeNodeLongID] = 0.0;
         heap.add(activeNodeLongID);
         nodeMap.insert(activeNodeShortID, _db->getNodeByID(startNode.getID()));
@@ -180,8 +181,7 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
                             nodeCosts[activeEdgeEndNodeLongID] = newCosts;
                             //-----------------------*activeNode oder *it benutzen?? ----- 
                             float distance = _metric->estimateDistance(*activeNode, endNode);
-                            estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
-                                _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
+                            estimatedCosts.setValue(activeEdgeEndNodeLongID, newCosts + distance); 
                             heap.decreaseKey(activeEdgeEndNodeLongID);
                             predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
                         }
@@ -249,6 +249,7 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
         boost::uint64_t activeNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
         
         nodeCosts[activeNodeLongID] = 0.0;
+        estimatedCosts.setValue(activeNodeLongID, _metric->estimateDistance(startNode, endNode));
         heap.add(activeNodeLongID);
         nodeMap.insert(activeNodeShortID, _dbA->getNodeByID(startNode.getID()));
         predecessor.insert(activeNodeLongID, 0);
@@ -325,8 +326,7 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
                         {
                             nodeCosts[activeEdgeEndNodeLongID] = newCosts;
                             float distance = _metric->estimateDistance(*activeNode, endNode);
-                            estimatedCosts.setValue(activeEdgeEndNodeLongID, nodeCosts[activeNodeLongID] + 
-                                _metric->rateEdge(**it, *activeNode, *activeEdgeEndNode) + distance); 
+                            estimatedCosts.setValue(activeEdgeEndNodeLongID, newCosts + distance); 
                             heap.decreaseKey(activeEdgeEndNodeLongID);
                             predecessor.insert(activeEdgeEndNodeLongID, activeNodeLongID);
                         }
@@ -373,6 +373,7 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNo
         boost::uint64_t activeNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
         nodeCosts[activeNodeLongID] = 0.0;
+        estimatedCosts.setValue(activeNodeLongID, _metric->estimateDistance(endNode, startNode));
         heap.add(activeNodeLongID);
         nodeMap.insert(activeNodeShortID, _dbB->getNodeByID(endNode.getID()));
         successor.insert(activeNodeLongID, 0);
@@ -455,8 +456,7 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNo
                             
                             nodeCosts[activeEdgeStartNodeLongID] = newCosts;
                             float distance = _metric->estimateDistance(startNode, *activeNode);
-                            estimatedCosts.setValue(activeEdgeStartNodeLongID, nodeCosts[activeNodeLongID] + 
-                            _metric->rateEdge(**it, *activeEdgeStartNode, *activeNode) + distance); 
+                            estimatedCosts.setValue(activeEdgeStartNodeLongID, newCosts + distance); 
                             
                             heap.decreaseKey(activeEdgeStartNodeLongID);
                             successor.insert(activeEdgeStartNodeLongID, activeNodeLongID);

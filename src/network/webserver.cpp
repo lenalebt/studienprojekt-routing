@@ -289,10 +289,9 @@ bool HttpRequestProcessor::preprocessRequest()
     _httpVersion = httpHelloRegExp.cap(4);
     QString parameters = httpHelloRegExp.cap(3);
     
-    /*std::cerr << "requestType: " << requestType << std::endl
-        << "requestPath: " << _requestPath << std::endl
+    std::cerr << "requestPath: " << _requestPath << std::endl
         << "httpVersion: 1." << _httpVersion << std::endl
-        << "parameters: " << parameters << std::endl;*/
+        << "parameters: " << parameters << std::endl;
     
     //Erst Parameter abfragen, dann können in der Zwischenzeit Daten
     //für die Header reinkommen. Müsste so rum schneller sein.
@@ -511,6 +510,7 @@ void BikerHttpRequestProcessor::processRequest()
             #else
                 altitudeProvider.reset(new ZeroAltitudeProvider());
             #endif
+            //altitudeProvider.reset(new ZeroAltitudeProvider());
             
             //Routingmetrik festlegen anhand der Benutzerwahl
             if (routeModifier == "euclidian")
@@ -554,8 +554,10 @@ void BikerHttpRequestProcessor::processRequest()
             else if (routeModifier == "power")
             {
                 double weight = 90.0;
-                double maxPower = 140.0;
+                //double maxPower = 140.0;
+                double maxPower = 150.0;
                 double minSpeed = 2.5;
+                double pushBikeSpeed = 0.5;
                 
                 if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
                     weight = numberRegExp.cap(1).toDouble();
@@ -563,7 +565,9 @@ void BikerHttpRequestProcessor::processRequest()
                     maxPower = numberRegExp.cap(1).toDouble();
                 if (numberRegExp.indexIn(_parameterMap["minspeed"]) != -1)
                     minSpeed = numberRegExp.cap(1).toDouble();
-                metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed));
+                if (numberRegExp.indexIn(_parameterMap["pushbikespeed"]) != -1)
+                    pushBikeSpeed = numberRegExp.cap(1).toDouble();
+                metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed, pushBikeSpeed));
             }
             else
             {

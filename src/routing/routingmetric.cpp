@@ -93,30 +93,30 @@ double AdvancedHeightRoutingMetric::timeEdge(const RoutingEdge &edge, const Rout
     return this->rateEdge(edge, startNode, endNode) / 5.0;
 }
 
-double PowerRoutingMetric::getPower(float speed, float inclination, float surfaceFactor, float haltungskorrekturfaktor, float weight)
+double PowerRoutingMetric::getPower(double speed, double inclination, double surfaceFactor, double haltungskorrekturfaktor, double weight)
 {
     return calcRollingResistancePower(speed, surfaceFactor, weight) +
             calcAerodynamicResistancePower(speed, haltungskorrekturfaktor) +
             calcInclinationPower(speed, inclination, weight);
 }
-double PowerRoutingMetric::getSpeed(float power, float inclination, float surfaceFactor, float haltungskorrekturfaktor, float weight)
+double PowerRoutingMetric::getSpeed(double power, double inclination, double surfaceFactor, double haltungskorrekturfaktor, double weight)
 {
     double a=0;
     double b=30;
     double mid=(b-a)/2+a;
-    double pwra = getPower(a, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
-    double pwrb = getPower(b, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
+    //double pwra = getPower(a, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
+    //double pwrb = getPower(b, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
     double pwrmid = getPower(mid, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
     for (int i=0; i<20; i++)
     {
         if (pwrmid > power)
         {
-            pwrb = pwrmid;
+            //pwrb = pwrmid;
             b=mid;
         }
         else
         {
-            pwra=pwrmid;
+            //pwra=pwrmid;
             a=mid;
         }
         mid=(b-a)/2+a;
@@ -135,18 +135,18 @@ void PowerRoutingMetric::init()
      *  - Oberflächenfaktor (0.1 - 3, 0.1-Schritte)
      *  - Geschwindigkeit (0-25m/s, 0.25m/s-Schritte) oder Leistung (0-1000W, 10W-Schritte)
      */
-    powerarray = new float**[30];
-    speedarray = new float**[30];
+    powerarray = new double**[30];
+    speedarray = new double**[30];
     for (int i = 0; i < 30; i++)
     {
-        powerarray[i] = new float*[30];
-        speedarray[i] = new float*[30];
+        powerarray[i] = new double*[30];
+        speedarray[i] = new double*[30];
         
         double inclination = 0.5 * i;
         for (int s = 0; s < 30; s++)
         {
-            powerarray[i][s] = new float[100];
-            speedarray[i][s] = new float[100];
+            powerarray[i][s] = new double[100];
+            speedarray[i][s] = new double[100];
         
             double surfaceFactor = 0.1 * s;
             for (int p = 0; p < 100; p++)
@@ -160,6 +160,42 @@ void PowerRoutingMetric::init()
         }
     }
     
+    maxSpeed = getSpeed(maxPower, 0.0, 0.5, haltungskorrekturfaktor, weight) * 1.5;
+    std::cerr << "maxSpeed: " << maxSpeed << std::endl;
+    std::cerr << "minSpeed: " << minSpeed << std::endl;
+    std::cerr << "pushBikeSpeed: " << pushBikeSpeed << std::endl;
+    std::cerr << "maxPower: " << maxPower << std::endl;
+    std::cerr << "weight: " << weight << std::endl;
+    
+    /*for (int i=0; i<500; i+=20)
+        std::cerr << "getSpeed("<<i<<", 0.0, 0.5, 0.5, 100)=" << getSpeed(i, 0.0, 0.5, 0.5, 100)*3.6 << std::endl;*/
+    /*
+    getSpeed(0, 0.0, 0.5, 0.5, 100)=5.14984e-05
+    getSpeed(20, 0.0, 0.5, 0.5, 100)=10.8795
+    getSpeed(40, 0.0, 0.5, 0.5, 100)=15.422
+    getSpeed(60, 0.0, 0.5, 0.5, 100)=18.4742
+    getSpeed(80, 0.0, 0.5, 0.5, 100)=20.8466
+    getSpeed(100, 0.0, 0.5, 0.5, 100)=22.8195
+    getSpeed(120, 0.0, 0.5, 0.5, 100)=24.5254
+    getSpeed(140, 0.0, 0.5, 0.5, 100)=26.0387
+    getSpeed(160, 0.0, 0.5, 0.5, 100)=27.4051
+    getSpeed(180, 0.0, 0.5, 0.5, 100)=28.6555
+    getSpeed(200, 0.0, 0.5, 0.5, 100)=29.8115
+    getSpeed(220, 0.0, 0.5, 0.5, 100)=30.8889
+    getSpeed(240, 0.0, 0.5, 0.5, 100)=31.8997
+    getSpeed(260, 0.0, 0.5, 0.5, 100)=32.8534
+    getSpeed(280, 0.0, 0.5, 0.5, 100)=33.7571
+    getSpeed(300, 0.0, 0.5, 0.5, 100)=34.617
+    getSpeed(320, 0.0, 0.5, 0.5, 100)=35.4379
+    getSpeed(340, 0.0, 0.5, 0.5, 100)=36.224
+    getSpeed(360, 0.0, 0.5, 0.5, 100)=36.9787
+    getSpeed(380, 0.0, 0.5, 0.5, 100)=37.7049
+    getSpeed(400, 0.0, 0.5, 0.5, 100)=38.4053
+    getSpeed(420, 0.0, 0.5, 0.5, 100)=39.0819
+    getSpeed(440, 0.0, 0.5, 0.5, 100)=39.7365
+    getSpeed(460, 0.0, 0.5, 0.5, 100)=40.3711
+    getSpeed(480, 0.0, 0.5, 0.5, 100)=40.9869
+    */
 }
 
 void PowerRoutingMetric::test()
@@ -249,7 +285,7 @@ namespace biker_tests
         CHECK_EQ(shrm1.rateEdge(edge, startNode, endNode), startNode.calcDistance(endNode));
         CHECK_EQ(shrm2.rateEdge(edge, startNode, endNode), 60313.476152647061099);
         
-        PowerRoutingMetric prm(zeroProvider, 100, 200, 4);
+        PowerRoutingMetric prm(zeroProvider, 100, 200, 4, 0.5);
         //CHECK_EQ(prm.rateEdge(edge, startNode, endNode), startNode.calcDistance(endNode));
         prm.test();
         return EXIT_SUCCESS;
