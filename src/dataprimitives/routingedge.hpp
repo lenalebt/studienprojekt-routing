@@ -6,21 +6,6 @@
 #include "tests.hpp"
 
 //Streettypes
-#define STREETTYPE_HIGHWAY_PRIMARY              0
-#define STREETTYPE_HIGHWAY_SECONDARY            1
-#define STREETTYPE_HIGHWAY_TERTIARY             2
-#define STREETTYPE_HIGHWAY_TRACK                3
-#define STREETTYPE_HIGHWAY_PATH                 4
-#define STREETTYPE_HIGHWAY_CYCLEWAY             5
-#define STREETTYPE_HIGHWAY_FOOTWAY              6
-#define STREETTYPE_HIGHWAY_LIVINGSTREET         7
-#define STREETTYPE_HIGHWAY_RESIDENTIAL          8
-#define STREETTYPE_HIGHWAY_UNKNOWN              9
-#define STREETTYPE_HIGHWAY_PEDESTRIAN           10
-#define STREETTYPE_HIGHWAY_SERVICE              11
-#define STREETTYPE_UNKNOWN                      (1<<BITLENGTH_STREETTYPE)-1 //last bit, highest possible value
-
-
 #define STREETTYPE_HIGHWAY_PEDESTRIAN           0
 #define STREETTYPE_HIGHWAY_PRIMARY              1
 #define STREETTYPE_HIGHWAY_SECONDARY            2
@@ -93,10 +78,10 @@
 //Ein Poller, an dem man vorbeifahren kann z.B. nicht.
 
 #define TURNTYPE_STRAIGHT		0 //no crossing
-#define TURNTYPE_RIGHTCROSS		1
-#define TURNTYPE_STRAIGHTCROSS          2
-#define TURNTYPE_LEFTCROSS		3
-#define TURNTYPE_UTURNCROSS		4
+#define TURNTYPE_RIGHTCROSS		2
+#define TURNTYPE_STRAIGHTCROSS          1
+#define TURNTYPE_LEFTCROSS		4
+#define TURNTYPE_UTURNCROSS		3
 
 #define ACCESS_YES			0 // at least for bikes
 #define ACCESS_PERMISSIVE		1

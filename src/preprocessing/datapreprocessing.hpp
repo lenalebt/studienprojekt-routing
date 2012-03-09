@@ -102,6 +102,17 @@ private:
      * @return die korrekte longID
      */
     int setNodeBorderingLongID(boost::shared_ptr<OSMEdge> edge, const RoutingNode& junction);
+
+    /**
+     * @brief Gibt den passenden TurnType zurueck
+     *
+     * @param startSector sektor des startNodes
+     * @param endSector sektor des endNodes
+     *
+     * @return turntType als int-Wert
+     * @see RoutingEdge
+     */
+    int getTurnTypeBySectorNumbers(int startSector, int endSector);
     
 public:    
     DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb);

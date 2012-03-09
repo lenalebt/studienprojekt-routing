@@ -131,6 +131,17 @@ int DataPreprocessing::setNodeBorderingLongID(boost::shared_ptr<OSMEdge> edge, c
     return sector;
 }
 
+int DataPreprocessing::getTurnTypeBySectorNumbers(int startSector, int endSector)
+{
+    //(((startSector - endSector) + 720 + 45) % 360) / 90
+
+    // 1: Bilde Winkeldifferenz zwischen start- und endSector
+    // 2: Drehe den Winkel so, dass Geradeaus von -45 bis +45 Grad liegt (Statt 0 bis 90 Grad)
+    // 3: Ordne den gedrehten Winkeln einen von 4 Sektoren zu (0-3)
+    // 4: Addiere 1 hinzu, damit das auf die Turntypes der routingEdge passt
+    return ((((startSector - endSector) + 256 + 16) % 128) / 32) + 1;
+}
+
 void DataPreprocessing::createRoutingGraph()
 {
     QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
@@ -138,13 +149,14 @@ void DataPreprocessing::createRoutingGraph()
     {
         QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(osmNodes[i]->getID());
         QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
+        QVector<int> sectors;
 
-        if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2)
+        if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2) //Krezung
         {            
             RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
             _finalDBConnection->saveNode(rNode);
 
-            setNodeBorderingLongID(osmEdgesIncome[i], rNode);
+            sectors << setNodeBorderingLongID(osmEdgesIncome[i], rNode);
 
             for(int j = 0; j < osmEdgesOutgoing.size(); j++)
             {
@@ -161,7 +173,26 @@ void DataPreprocessing::createRoutingGraph()
             {
                 //erstelle neue innere Kanten zu allen ausgehenden Kanten
                 //Dabei: Fuege Turntypes zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
+                //TODO: testen. ist dafuer da, die inneren kanten einer kreuzung zu erstellen.
+                //TODO: rEdge braucht noch eine ID.
                 RoutingEdge rEdge;
+                for(QVector<int>::iterator startNodeSector = sectors.begin(); startNodeSector != sectors.end(); startNodeSector++)
+                {
+                    if (*startNodeSector % 2 == 1)
+                        continue;
+                    for(QVector<int>::iterator endNodeSector = sectors.begin(); endNodeSector != sectors.end(); endNodeSector++)
+                    {
+                        if (*endNodeSector % 2 == 0)
+                            continue;
+                        rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
+                        rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
+                        rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
+                        rEdge.setStreetType(STREETTYPE_UNKNOWN);
+                        //TODO: Evtl noch andere Eigenschaften setzen?
+                    }
+                }
+
+
                 //OSMNode tmpOSMNode = osmEdgesIncome[j]->getEndNodeID();
                 //rEdge.setSt
                 _finalDBConnection->saveEdge(rEdge);
@@ -171,16 +202,14 @@ void DataPreprocessing::createRoutingGraph()
         else if((osmEdgesIncome.size() >= 1) && (osmEdgesOutgoing.size() >= 1) ) // Keine Kreuzung
         {
             for( int j = 0; j < osmEdgesIncome.size(); j++)
-            {
-                //replace current nodeID with long nodeID
+            {                
                 osmEdgesIncome[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getStartNodeID()));
 
                 _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
             }
 
             for( int j = 0; j < osmEdgesOutgoing.size(); j++)
-            {
-                //replace current nodeID with long nodeID
+            {             
                 osmEdgesOutgoing[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getEndNodeID()));
 
                 _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
