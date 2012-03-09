@@ -278,8 +278,7 @@
                 }
                 //alert(url);
                 urlparameters = "";
-                if (getCheckedRoutingAlgorithm() != "standard")
-                    urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
+                urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
                 //ACHTUNG! Erlaubt code und Parameter Injection.
                 urlparameters += "&maxpower=" + document.routingmetricsettings.maxpower.value;
                 urlparameters += "&minspeed=" + document.routingmetricsettings.minspeed.value/3.6;
