@@ -153,7 +153,6 @@ beispieltest.cpp:17: false == true?                                             
 /**
  * @ingroup tests
  * @brief Hier werden alle Funktionen abgelegt, die im weiteren Sinne mit Tests zu tun haben.
- * @todo Doxygen-Kommentare, weitere Tests
  */
 namespace biker_tests
 {
@@ -162,7 +161,6 @@ namespace biker_tests
      * 
      * 
      * @return Ob alle ausgeführten Tests erfolgreich waren.
-     * @todo Implemetieren, wahrscheinlich immerzu.
      */
     int testProgram(std::string testName);
 

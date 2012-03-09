@@ -31,7 +31,6 @@ namespace biker_tests
  * @author Lena Brüder
  * @date 2011-12-14
  * @copyright GNU GPL v3
- * @todo implementieren, Schnittstellen definieren
  * @ingroup database
  */
 class TemporaryOSMDatabaseConnection
@@ -60,6 +59,8 @@ private:
     sqlite3_stmt* _getManyOSMEdgesByWayIDStatement;
     sqlite3_stmt* _saveOSMEdgePropertyStatement;
     sqlite3_stmt* _getOSMEdgePropertyStatement;
+    
+    sqlite3_stmt* _getWayIDsStatement;
     
     sqlite3_stmt* _saveOSMTurnRestrictionStatement;
     sqlite3_stmt* _getOSMTurnRestrictionByViaIDStatement;

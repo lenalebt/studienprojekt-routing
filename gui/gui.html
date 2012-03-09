@@ -241,7 +241,7 @@
         {
             //alert("pointlist has " + pointlist.length + " items");
             var urlstart = "../1341253652/api/0.3/";
-            var urlend = "/bike/power.gpx";
+            var urlend = "/" + getCheckedRoutingMetric() + ".gpx";
             var url;
             if (pointlist.length == 1)
             {
@@ -277,6 +277,17 @@
                         url = url + urlend;
                 }
                 //alert(url);
+                urlparameters = "";
+                if (getCheckedRoutingAlgorithm() != "standard")
+                    urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
+                //ACHTUNG! Erlaubt code und Parameter Injection.
+                urlparameters += "&maxpower=" + document.routingmetricsettings.maxpower.value;
+                urlparameters += "&minspeed=" + document.routingmetricsettings.minspeed.value/3.6;
+                urlparameters += "&weight=" + document.routingmetricsettings.weight.value;
+                urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
+                
+                url += "?" + urlparameters;
+                
                 displayGPX(url);
             }
         }
@@ -315,6 +326,26 @@
                 resetRoute();
             }
         }
+        function getCheckedRoutingAlgorithm()
+        {
+            for(i=0; i<document.algorithm.algorithm.length; i++)
+            {
+                if(document.algorithm.algorithm[i].checked == true)
+                {
+                    return document.algorithm.algorithm[i].value;
+                }
+            }
+        }
+        function getCheckedRoutingMetric()
+        {
+            for(i=0; i<document.routingmetric.routingmetric.length; i++)
+            {
+                if(document.routingmetric.routingmetric[i].checked == true)
+                {
+                    return document.routingmetric.routingmetric[i].value;
+                }
+            }
+        }
     </script>
   </head>
   <body onload="init()">
@@ -322,6 +353,31 @@
     <div>
         <button id="b1" type="reset" onclick="resetRoute()">Reset</button>
         <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
+        <button id="b2" type="reset" onclick="calcRoute()">Recalculate Route</button>
+    </div>
+    <div>
+        <form name="algorithm">
+            <input type="radio" name="algorithm" value="astar"> A*
+            <input type="radio" name="algorithm" value="dijkstra"> Dijkstra
+            <input type="radio" name="algorithm" value="multithreadedastar"> Mehrthread-A*
+            <input type="radio" name="algorithm" value="multithreadeddijkstra"> Mehrthread-Dijkstra
+            <input type="radio" name="algorithm" value="standard" checked> Standardalgorithmus<br>
+        </form>
+    </div>
+    <div>
+        <form name="routingmetric">
+            <input type="radio" name="routingmetric" value="bike/euclidian"> euklidische Entfernung
+            <input type="radio" name="routingmetric" value="bike/simpleheight"> einfache Höhenvermeidung
+            <input type="radio" name="routingmetric" value="bike/power" checked> Leistungsmetrik
+        </form>
+    </div>
+    <div>
+        <form name="routingmetricsettings">
+            Maximalleistung (in Watt):<input name="maxpower" type="text" value="150.0">
+            Minimalgeschwindigkeit (in km/h):<input name="minspeed" type="text" value="12.0">
+            Gewicht (in kg, mit Fahrrad):<input name="weight" type="text" value="90.0">
+            Schiebegeschwindigkeit (in km/h):<input name="pushbikespeed" type="text" value="2.5">
+        </form>
     </div>
     <div>
     Erklärung hier hin vielleicht?

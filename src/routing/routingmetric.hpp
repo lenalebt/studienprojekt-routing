@@ -7,6 +7,7 @@
 #include "potentialfunction.hpp"
 #include <QVector>
 #include <boost/shared_ptr.hpp>
+#include <limits>
 
 /**
  * @brief Gibt an, in welcher Einheit eine RoutingMetric die übergebenen
@@ -138,7 +139,12 @@ public:
      */
     virtual double estimateDistance(const GPSPosition& p1, const GPSPosition& p2)
     {
-        return p1.calcDistance(p2);
+        if (getMeasurementUnit() == DISTANCE)
+            return p1.calcDistance(p2);
+        else if (getMeasurementUnit() == SECONDS)
+            return p1.calcDistance(p2) * 2;   //in m/s, schieben mit etwa 2km/h
+        else
+            return p1.calcDistance(p2);
     }
 }; 
 
@@ -181,20 +187,22 @@ public:
 class PowerRoutingMetric : public RoutingMetric
 {
 private:
-    float maxPower;     //maximale Gesamtleistung des Systems
-    float weight;       //Gesamtgewicht des Systems
-    float minSpeed;     //gewünschte Minimalgeschwindigkeit des Systems
-    float haltungskorrekturfaktor;  //Bestimmt, wie aufrecht man sitzt auf dem Rad, realistische Werte:    Oberlenker: 0,5    Bremsgriff: 0.4    Unterlenker: 0.3    Triathlon: 0.25 
+    double maxPower;     //maximale Gesamtleistung des Systems
+    double weight;       //Gesamtgewicht des Systems
+    double minSpeed;     //gewünschte Minimalgeschwindigkeit des Systems
+    double haltungskorrekturfaktor;  //Bestimmt, wie aufrecht man sitzt auf dem Rad, realistische Werte:    Oberlenker: 0,5    Bremsgriff: 0.4    Unterlenker: 0.3    Triathlon: 0.25 
+    double pushBikeSpeed;    //Geschwindigkeit, wenn das Rad geschoben wird
+    double maxSpeed;     //Höchstgeschwindigkeit, errechnet sich aus der zur Verfügung stehenden Leistung
     
-    float*** powerarray;
-    float*** speedarray;
+    double*** powerarray;
+    double*** speedarray;
     
-    inline float calcInclinationPower(float speed, float inclination, float weight)
+    inline double calcInclinationPower(double speed, double inclination, double weight)
     {
         return weight * sin(atan(inclination)) * 9.81 * speed;
         //return (weight * heightDifference * 9.81f) / time;
     }
-    inline float calcAerodynamicResistancePower(float speed, float haltungskorrekturfaktor)
+    inline double calcAerodynamicResistancePower(double speed, double haltungskorrekturfaktor)
     {
         //0.5 * Anpassung * Höhen/Druckkorrektur(20°/150m))
         return 0.5f * 1.311f  * 0.9f * haltungskorrekturfaktor * (speed*speed*speed);
@@ -205,7 +213,7 @@ private:
      * @param surfaceFactor Der Faktor für den Bodenwiderstand. Standardwert: 1 (normaler Asphalt). Schotterweg: 1.8. Guter Schotterweg: 1.47. Rauer Asphalt: 1.15, glatter Asphalt: 0.82
      * @return Den Rollwiderstand
      */
-    inline float calcRollingResistancePower(float speed, float surfaceFactor, float weight)
+    inline double calcRollingResistancePower(double speed, double surfaceFactor, double weight)
     {
         return 0.008f * surfaceFactor * weight * 9.81f * speed;
     }
@@ -213,61 +221,89 @@ private:
     inline double min(double a, double b) {return (a<b) ? a : b;}
     inline double max(double a, double b) {return (a<b) ? b : a;}
     
-    double getPower(float speed, float inclination, float surfaceFactor, float haltungskorrekturfaktor, float weight);
-    double getSpeed(float power, float inclination, float surfaceFactor, float haltungskorrekturfaktor, float weight);
+    double getPower(double speed, double inclination, double surfaceFactor, double haltungskorrekturfaktor, double weight);
+    double getSpeed(double power, double inclination, double surfaceFactor, double haltungskorrekturfaktor, double weight);
     void init();
     
 public:
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
-        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5)
+        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5)
     {
         init();
     }
-    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float weight, float maxPower, float minSpeed)
-        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(0.5)
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed)
+        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(0.5),
+            pushBikeSpeed(pushBikeSpeed)
     {
         init();
     }
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
     {
-        float heightDifference = _altitudeProvider->getAltitude(endNode) - _altitudeProvider->getAltitude(startNode);
+        double heightDifference = _altitudeProvider->getAltitude(endNode) - _altitudeProvider->getAltitude(startNode);
         if (heightDifference < 0)
             heightDifference = 0;
-        float distance = startNode.calcDistance(endNode);
-        float inclination = heightDifference / distance;
+        double distance = startNode.calcDistance(endNode);
+        double inclination = heightDifference / distance;
         
         //TODO: Faktor anpassen je nach Eigenschaften der Kante
-        float surfaceFactor = 1;
-        float streetTypeFactor = 1;
-        float timePunishment = 0;
+        double surfaceFactor = 1;
+        double streetTypeFactor = 1;
+        double timePunishment = 0;
         switch (edge.getAccess())
         {
             case ACCESS_DESTINATION:
+            case ACCESS_PERMISSIVE:
             case ACCESS_YES:
             case ACCESS_UNKNOWN:
+            case ACCESS_DESIGNATED:
+            case ACCESS_COMPULSORY:
                 switch (edge.getStreetType())
                 {
-                    case STREETTYPE_HIGHWAY_FORD:           streetTypeFactor = 1.0; break;
-                    case STREETTYPE_HIGHWAY_JUNCTION:       streetTypeFactor = 1.0; break;
-                    case STREETTYPE_HIGHWAY_LIVINGSTREET:   streetTypeFactor = 1.0; break;
-                    case STREETTYPE_HIGHWAY_PATH:           streetTypeFactor = 1.0; break;
-                    case STREETTYPE_HIGHWAY_PEDESTRIAN:     streetTypeFactor = 1.0; break;
-                    case STREETTYPE_HIGHWAY_PRIMARY:        streetTypeFactor = 1.2; break;
-                    case STREETTYPE_HIGHWAY_RESIDENTIAL:    streetTypeFactor = 1.0; break;
-                    case STREETTYPE_HIGHWAY_SECONDARY:      streetTypeFactor = 1.1; break;
-                    case STREETTYPE_HIGHWAY_SERVICE:        streetTypeFactor = 1.0; break;
-                    case STREETTYPE_HIGHWAY_TERTIARY:       streetTypeFactor = 1.0; break;
-                    case STREETTYPE_HIGHWAY_TRACK:          streetTypeFactor = 1.5; break;
+                    case STREETTYPE_HIGHWAY_FORD:           streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
+                    case STREETTYPE_HIGHWAY_JUNCTION:       streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
+                    case STREETTYPE_HIGHWAY_LIVINGSTREET:   streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
+                    case STREETTYPE_HIGHWAY_PATH:           if ((edge.getCyclewayType() != CYCLEWAYTYPE_NO_CYCLEWAY) && (edge.getCyclewayType() != CYCLEWAYTYPE_UNKNOWN))
+                                                            {
+                                                                streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
+                                                            }
+                                                            else
+                                                            {
+                                                                streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.5 : 2.0); break;
+                                                            }
+                    case STREETTYPE_HIGHWAY_PEDESTRIAN:     return distance / pushBikeSpeed; break;
+                    case STREETTYPE_HIGHWAY_PRIMARY:        streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.2 : 1.2); break;
+                    case STREETTYPE_HIGHWAY_RESIDENTIAL:    streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
+                    case STREETTYPE_HIGHWAY_SECONDARY:      streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.15 : 1.15); break;
+                    case STREETTYPE_HIGHWAY_SERVICE:        streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
+                    case STREETTYPE_HIGHWAY_TERTIARY:       streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.1 : 1.1); break;
+                    case STREETTYPE_HIGHWAY_TRACK:          streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.5 : 2.0); break;
                     case STREETTYPE_UNKNOWN:
-                    default:                                streetTypeFactor = 1.0; break;
+                    default:                                streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.8 : 2.5); break;
                 }
-            default:        streetTypeFactor = -1;
+                break;
+            default:        streetTypeFactor = 100.0;
                             break;
         }
-        /*switch (edge.getCyclewayType())
+        switch (edge.getCyclewayType())
         {
-            
-        }*/
+            case CYCLEWAYTYPE_LANE:                         streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_LANE_OP:                      streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_LANE_SEGREGAETD:              streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_LANE_SEGREGAETD_OP:           streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_LANE_SHARED_BUSWAY:           streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_LANE_SHARED_BUSWAY_OP:        streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_TRACK:                        streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_TRACK_SEGREGATED:             streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_TRACK_SHARED_BUSWAY:          streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_MTB_0:                        streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_MTB_1:                        streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_MTB_2:                        streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_MTB_3:                        streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_MTB_HIGH:                     streetTypeFactor *= 1.0; break;
+            case CYCLEWAYTYPE_NO_CYCLEWAY:
+            case CYCLEWAYTYPE_UNKNOWN:
+            default:                                        streetTypeFactor *= 1.5; break;
+        }
         switch (edge.getStreetSurfaceQuality())
         {
             case STREETSURFACEQUALITY_EXCELLENT:     surfaceFactor *= 0.82; break;
@@ -284,22 +320,22 @@ public:
         switch (edge.getStreetSurfaceType())
         {
             case STREETSURFACETYPE_ASPHALT:         surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_COBBLESTONE:     surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_COMPACTED:       surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_CONCRETE:        surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_FINEGRAVEL:      surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_GRASS:           surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_GRASSPAVER:      surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_COBBLESTONE:     surfaceFactor *= 1.5; break;
+            case STREETSURFACETYPE_COMPACTED:       surfaceFactor *= 1.4; break;
+            case STREETSURFACETYPE_CONCRETE:        surfaceFactor *= 1.4; break;
+            case STREETSURFACETYPE_FINEGRAVEL:      surfaceFactor *= 1.4; break;
+            case STREETSURFACETYPE_GRASS:           surfaceFactor *= 2.0; break;
+            case STREETSURFACETYPE_GRASSPAVER:      surfaceFactor *= 1.7; break;
             case STREETSURFACETYPE_GRAVEL:          surfaceFactor *= 1.0; break;
             case STREETSURFACETYPE_GROUND:          surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_METAL:           surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_PAVED:           surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_PAVING_STONES:   surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_SETT:            surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_TARTAN:          surfaceFactor *= 1.0; break;
-            case STREETSURFACETYPE_UNPAVED:         surfaceFactor *= 1.0; break;
+            case STREETSURFACETYPE_METAL:           surfaceFactor *= 2.0; break;
+            case STREETSURFACETYPE_PAVED:           surfaceFactor *= 1.2; break;
+            case STREETSURFACETYPE_PAVING_STONES:   surfaceFactor *= 1.3; break;
+            case STREETSURFACETYPE_SETT:            surfaceFactor *= 1.3; break;
+            case STREETSURFACETYPE_TARTAN:          surfaceFactor *= 1.3; break;
+            case STREETSURFACETYPE_UNPAVED:         surfaceFactor *= 2.0; break;
             case STREETSURFACETYPE_UNKNOWN:
-            default:                                surfaceFactor *= 1.0; break;
+            default:                                surfaceFactor *= 1.3; break;
             
         }
         switch (edge.getTurnType())
@@ -333,14 +369,14 @@ public:
             timePunishment += 10.0;
         }
         
-        float power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
+        double power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
         //std::cerr << "power: " << power << std::endl;
         
-        float speed;
+        double speed;
         if (power > maxPower)
         {
             //okay, zu viel Leistung: Schiiieben.
-            speed = 0.5f;  //ca. 4km/h
+            speed = pushBikeSpeed;
         }
         else
         {
@@ -351,6 +387,7 @@ public:
         //std::cerr << "speed: " << speed << std::endl;
         
         //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
+        //std::cerr << "time: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
         return streetTypeFactor * (distance / speed) + timePunishment;
         
         //TODO: Vorlieben bei Kanten nach Radweg etc anpassen und hinzufügen
@@ -359,6 +396,10 @@ public:
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
     {
         return rateEdge(edge, startNode, endNode);
+    }
+    double estimateDistance(const GPSPosition& p1, const GPSPosition& p2)
+    {
+        return (p1.calcDistance(p2) / maxSpeed);
     }
     MeasurementUnit getMeasurementUnit() {return SECONDS;}
     void test();
