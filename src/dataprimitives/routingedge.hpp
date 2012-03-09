@@ -17,7 +17,7 @@
 #define STREETTYPE_HIGHWAY_SERVICE              8
 #define STREETTYPE_HIGHWAY_FORD                 9
 #define STREETTYPE_HIGHWAY_JUNCTION             10
-//#define STREETTYPE_HIGHWAY_                     11
+#define STREETTYPE_HIGHWAY_UNCLASSIFIED         11 // expliciedly unclassified
 #define STREETTYPE_UNKNOWN                      (1<<BITLENGTH_STREETTYPE)-1 //last bit, highest possible value
 
 
