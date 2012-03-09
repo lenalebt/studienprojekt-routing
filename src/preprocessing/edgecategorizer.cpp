@@ -584,7 +584,7 @@ bool EdgeCategorizer::categorizeEdges()
         
         categorize(osmEdge->getProperties(), forwardProps, backwardProps);
         
-        boost::shared_ptr<RoutingEdge> edge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, RoutingNode::convertIDToLongFormat(osmEdge->getStartNode()), RoutingNode::convertIDToLongFormat(osmEdge->getEndNode())));
+        boost::shared_ptr<RoutingEdge> edge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, RoutingNode::convertIDToLongFormat(osmEdge->getStartNodeID()), RoutingNode::convertIDToLongFormat(osmEdge->getEndNodeID())));
         if (osmEdge->getForward())
             edge->setProperties(forwardProps);
         else
@@ -610,7 +610,7 @@ bool EdgeCategorizer::categorizeWays()
         QVector<OSMEdge> edgeList = osmWay->getEdgeList();
         for(int i = 0; i < edgeList.size(); i++)
         {
-            boost::shared_ptr<RoutingEdge> edge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode())));
+            boost::shared_ptr<RoutingEdge> edge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNodeID()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNodeID())));
             if (edgeList[i].getForward())
                 edge->setProperties(forwardProps);
             else
