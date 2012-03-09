@@ -370,7 +370,7 @@ public:
         }
         
         double power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
-        //std::cerr << "power: " << power << std::endl;
+        std::cerr << "power: " << power << std::endl;
         
         double speed;
         if (power > maxPower)
