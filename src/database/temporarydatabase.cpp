@@ -906,8 +906,8 @@ bool TemporaryOSMDatabaseConnection::saveOSMEdge(const OSMEdge& edge)
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
     sqlite3_bind_int64(_saveOSMEdgeStatement, 1, edge.getID());
-    sqlite3_bind_int64(_saveOSMEdgeStatement, 2, edge.getStartNode());
-    sqlite3_bind_int64(_saveOSMEdgeStatement, 3, edge.getEndNode());
+    sqlite3_bind_int64(_saveOSMEdgeStatement, 2, edge.getStartNodeID());
+    sqlite3_bind_int64(_saveOSMEdgeStatement, 3, edge.getEndNodeID());
     sqlite3_bind_int(_saveOSMEdgeStatement, 4, edge.getForward());
     
     // Statement ausfuehren
@@ -976,9 +976,9 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge)
     }
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
-    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 1, edge.getStartNode());
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 1, edge.getStartNodeID());
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 2, edge.getID());
-    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 3, edge.getEndNode());
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 3, edge.getEndNodeID());
     sqlite3_bind_int(_updateOSMEdgeStartNodeStatement, 4, edge.getForward());
     
     // Statement ausfuehren
@@ -1011,9 +1011,9 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeEndNode(const OSMEdge& edge)
     }
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
-    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 1, edge.getEndNode());
+    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 1, edge.getEndNodeID());
     sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 2, edge.getID());
-    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 3, edge.getStartNode());
+    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 3, edge.getStartNodeID());
     sqlite3_bind_int(_updateOSMEdgeEndNodeStatement, 4, edge.getForward());
     
     // Statement ausfuehren
@@ -1387,13 +1387,13 @@ namespace biker_tests
         
         CHECK(connection.beginTransaction());
         OSMEdge edge3(12, true, 15, 16);
-        edge3.setStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNode()));
+        edge3.setStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNodeID()));
         CHECK(connection.saveOSMEdge(edge3));
         CHECK(connection.updateOSMEdgeStartNode(edge3));
-        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNode()))[0] ));
-        edge3.setEndNodeID(RoutingNode::convertIDToLongFormat(edge3.getEndNode()));
+        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNodeID()))[0] ));
+        edge3.setEndNodeID(RoutingNode::convertIDToLongFormat(edge3.getEndNodeID()));
         CHECK(connection.updateOSMEdgeEndNode(edge3));
-        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNode()))[0] ));
+        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNodeID()))[0] ));
         CHECK(connection.endTransaction());
         
         QVector<boost::shared_ptr<OSMEdge> > edgeList = connection.getOSMEdgesByStartNodeID(12);

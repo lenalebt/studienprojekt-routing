@@ -28,7 +28,7 @@ boost::shared_ptr<RoutingEdge> EdgeCategorizer::categorizeEdge(const OSMEdge &os
     
     static boost::uint64_t edgeID=0;
     
-    boost::shared_ptr<RoutingEdge> routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, RoutingNode::convertIDToLongFormat(osmEdge.getStartNode()), RoutingNode::convertIDToLongFormat(osmEdge.getEndNode())));
+    boost::shared_ptr<RoutingEdge> routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeID++, RoutingNode::convertIDToLongFormat(osmEdge.getStartNodeID()), RoutingNode::convertIDToLongFormat(osmEdge.getEndNodeID())));
 
     //Flags
     bool isForward = osmEdge.getForward();

@@ -46,50 +46,38 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         _osmParser.reset(new OSMParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);        
         preprocess();        
-        future.waitForFinished();
+        //future.waitForFinished();
 
         //TODO: Graphen aus kategorisierten Daten erstellen
         //createNewGraph();
-
+        createRoutingGraph();
+        std::cerr << "creating indexes..." << std::endl;
+        _finalDBConnection->createIndexes();
         _finalDBConnection->close();
         _tmpDBConnection.close();
         tmpFile.remove();
         return true;
     }
+    #ifdef PROTOBUF_FOUND
     else if (fileToParse.endsWith(".pbf"))
     {
         _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
         preprocess();
-        future.waitForFinished();
+        //future.waitForFinished();
 
         //TODO: Graphen aus kategorisierten Daten erstellen
+        createRoutingGraph();
 
+        std::cerr << "creating indexes..." << std::endl;
+
+        _finalDBConnection->createIndexes();
         _finalDBConnection->close();
         _tmpDBConnection.close();
         tmpFile.remove();
         return true;
     }
-
-    #ifdef PROTOBUF_FOUND
-        else if (fileToParse.endsWith(".pbf"))
-        {
-            _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
-            QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
-            
-            saveNodeToTmpDatabase();
-            saveEdgeToTmpDatabase();
-            saveTurnRestrictionToTmpDatabase();
-            
-            std::cerr << "creating indexes" << std::endl;
-            _tmpDBConnection.createIndexes();
-            _finalDBConnection->createIndexes();
-            
-            future.waitForFinished();
-            return true;
-        }
     #endif
-
     else
     {
         return false;
@@ -98,42 +86,45 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 
 void DataPreprocessing::createRoutingGraph()
 {
-    Vector<boost::shared_ptr<OSMNode> > OSMNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
+    QVector<boost::shared_ptr<OSMNode> > OSMNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
     for(int i = 0; i < OSMNodes.size(); i++)
     {
-        QVector< boost::shared_ptr< OSMEdge > > OSMEdgesIncome = _tmpDBConnectiongetOSMEdgesByStartNodeIDWithoutProperties(OSMNodes[i]);
-        QVector< boost::shared_ptr< OSMEdge > > OSMEdgesOutgoing = _tmpDBConnectiongetOSMEdgesByEndNodeIDWithoutProperties(OSMNodes[i]);
+        QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(OSMNodes[i]);
+        QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(OSMNodes[i]);
 
-        if(OSMEdgesIncome.size() > 2 && OSMEdgesOutgoing.size() > 2)
+        if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2)
         {
-            //sort-all-edges (still in progress)
-            _tmpDBConnection.updateOSMEdgeStartNode(OSMEdgesOutgoing);
+            //allen kanten, abhängig der Himmelsrichtung, neue, lange IDs zuordnen
+            _tmpDBConnection.updateOSMEdgeStartNode(osmEdgesOutgoing);
             _tmpDBConnection.updateOSMEdgeEndNode(OSMEdgeIncome);
+
             //handle turnRestrictions here
 
-            for(int j = 0; j < OSMEdgesIncome.size(); j++)
+            for(int j = 0; j < osmEdgesIncome.size(); j++)
             {
                 //erstelle neue innere Kanten zu allen ausgehenden Kanten
-                //Dabei: Fuege Datentypen zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
+                //Dabei: Fuege Turntypes zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
                 RoutingEdge rEdge = new RoutingEdge();
-                OSMNode tmpOSMNode = OSMEdgesIncome[j]->getEndNode();
-                rEdge.setSt
+                OSMNode tmpOSMNode = osmEdgesIncome[j]->getEndNodeID();
+                //rEdge.setSt
                 _finalDBConnection->saveEdge(rEdge);
             }
             //save osmNode als routingNode in finalDB
         }
-        else if(OSMEdgesIncome.size() >= 1 & OSMEdgesOutgoing.size() >= 1 ) // Keine Kreuzung
+        else if(osmEdgesIncome.size() >= 1 & osmEdgesOutgoing.size() >= 1 ) // Keine Kreuzung
         {
-            for( int i = 0; i < OSMEdgesIncome.size(); i++)
+            for( int i = 0; i < osmEdgesIncome.size(); i++)
             {
                 //replace current nodeID with long nodeID
-                _tmpDBConnection.updateOSMEdgeEndNode(OSMEdgesIncome[i]);
+                osmEdgesIncome[i]->setID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[i]->getStartNodeID()));
+
+                _tmpDBConnection.updateOSMEdgeEndNode(osmEdgesIncome[i]);
             }
 
-            for( int i = 0; i < OSMEdgesOutgoing.size(); i++)
+            for( int i = 0; i < osmEdgesOutgoing.size(); i++)
             {
                 //replace current nodeID with long nodeID
-                _tmpDBConnection.updateOSMEdgeStartNode(OSMEdgesOutgoing[i]);
+                _tmpDBConnection.updateOSMEdgeStartNode(osmEdgesOutgoing[i]);
             }
             routingNode rNode = OSMNodes[i];            
             _finalDBConnection->saveNode(rNode);
@@ -145,11 +136,13 @@ void DataPreprocessing::createRoutingGraph()
         OSMEdge osmEdge = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(i);
         OSMProperty osmProp = osmEdge.getProperties();
         //TODO: fuer alle wayIDs vorwaerts- und rueckwaertseigenschaften erstellen
-        if()
+        if(osmEdge.getForward)
         {
+            //vorwärtskanten mit vorwärtseigenschaft als routingEdge in finalDB speichern
         }
-        if()
+        else
         {
+            //rückwärtskanten mit rückwärtseigenschaft als routingEdge in finalDB speichern
         }
     }
 
@@ -234,7 +227,7 @@ bool DataPreprocessing::preprocess()
             for(int i = 0; i < edgeList.size(); i++)
             {                
                 categorizeEdge(edgeList[i]);
-                RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
+                RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNodeID()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNodeID()));
                // _finalDBConnection->saveEdge(routingEdge); ist hier noch nicht noetig
             }
             //So werden nur die Knoten in die DB gelegt, die auch von Edges benutzt werden.
@@ -271,10 +264,6 @@ bool DataPreprocessing::preprocess()
     {
         
     }
-    
-    //Am Schluss noch Indexe erstellen
-    std::cerr << "creating indexes..." << std::endl;
-    _finalDBConnection->createIndexes();
     return true;
 }
 
@@ -292,7 +281,7 @@ boost::shared_ptr<RoutingEdge> DataPreprocessing::categorizeEdge(const OSMEdge &
     boost::uint8_t streetSurfaceQuality;
     boost::uint8_t turnType;
 
-    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNode(), osmEdge.getEndNode()));
+    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(osmEdge.getID(), osmEdge.getStartNodeID(), osmEdge.getEndNodeID()));
 
     // Hier würden jetzt mit viel if und else, durch Betrachtung der OSMPropertys der OSMEdge, die jeweiligen Werte der routingEdge gesetzt.
     QVector<OSMProperty> props = osmEdge.getProperties();

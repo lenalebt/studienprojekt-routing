@@ -94,34 +94,11 @@ bool SimpleDataPreprocessing::preprocess()
         //Das mit dem nodeIDSet mache ich, weil man der DB nicht sagen kann dass sie doppeltes Einfügen ignorieren soll.
         if (!nodeIDSet.contains(shortNodeID))
         {
-<<<<<<< HEAD
-            QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
-            for(int i = 0; i < edgeList.size(); i++)
-            {
-                //TODO: kategorisieren
-                RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
-                _finalDBConnection->saveEdge(routingEdge);
-            }
-            //So werden nur die Knoten in die DB gelegt, die auch von Edges benutzt werden.
-            QVector<boost::uint64_t> memberList = _osmWay->getMemberList();
-            for(int i = 0; i < memberList.size(); i++)
-            {
-                //Das mit dem nodeIDSet mache ich, weil man der DB nicht sagen kann dass sie doppeltes Einfügen ignorieren soll.
-                if (!nodeIDSet.contains(memberList[i]))
-                {
-                    _osmNode = _tmpDBConnection.getOSMNodeByID(memberList[i]);
-                    RoutingNode routingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon());
-                    _finalDBConnection->saveNode(routingNode);
-                    nodeIDSet.insert(_osmNode->getID());
-                }
-            }
-=======
             _osmNode = _tmpDBConnection.getOSMNodeByID(shortNodeID);
             RoutingNode routingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon());
             _finalDBConnection->saveNode(routingNode);
             nodeIDSet.insert(_osmNode->getID());
         }
->>>>>>> lena-master
             
         if (++wayCount == 100000)
         {
