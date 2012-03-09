@@ -140,12 +140,9 @@ void DataPreprocessing::createRoutingGraph()
         QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
 
         if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2)
-        {
-            //allen kanten, abhängig der Himmelsrichtung, neue, lange IDs zuordnen
+        {            
             RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
             _finalDBConnection->saveNode(rNode);
-
-
 
             setNodeBorderingLongID(osmEdgesIncome[i], rNode);
 
@@ -176,7 +173,7 @@ void DataPreprocessing::createRoutingGraph()
             for( int j = 0; j < osmEdgesIncome.size(); j++)
             {
                 //replace current nodeID with long nodeID
-                osmEdgesIncome[j]->setID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getStartNodeID()));
+                osmEdgesIncome[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getStartNodeID()));
 
                 _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
             }
@@ -184,7 +181,7 @@ void DataPreprocessing::createRoutingGraph()
             for( int j = 0; j < osmEdgesOutgoing.size(); j++)
             {
                 //replace current nodeID with long nodeID
-                osmEdgesOutgoing[j]->setID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getEndNodeID()));
+                osmEdgesOutgoing[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getEndNodeID()));
 
                 _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
             }

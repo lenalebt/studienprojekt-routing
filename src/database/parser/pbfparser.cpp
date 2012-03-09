@@ -325,7 +325,7 @@ void PBFParser::parseNode( boost::shared_ptr<OSMNode> node )
 void PBFParser::parseWay( boost::shared_ptr<OSMWay> way )
 {
     const OSMPBF::Way& inputWay = m_primitiveBlock.primitivegroup( m_currentGroup ).ways( m_currentEntity );
-    way->setID(inputWay.id());
+    way->setWayID(inputWay.id());
     for ( int tag = 0; tag < inputWay.keys_size(); tag++ ) {
         OSMProperty newTag;
         newTag.setKey(QString::fromUtf8( m_primitiveBlock.stringtable().s( inputWay.keys( tag ) ).data() ));
