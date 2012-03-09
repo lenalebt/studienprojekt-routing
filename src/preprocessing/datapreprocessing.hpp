@@ -92,11 +92,21 @@ private:
      * @return Ob es sich um eine Straße handelt.
      */
     bool isStreet(const OSMWay& way);
+
+    /**
+     * @brief Gibt die korrekte longID fuer die <code>edge</code> zurueck, die zu der Kreuzung an <code>node</code> passt
+     *
+     * @param edge die konkrete Edge
+     * @param node der zu der Edge gehoerende Node (der Kreuzungspunkt)
+     *
+     * @return die korrekte longID
+     */
+    int setNodeBorderingLongID(boost::shared_ptr<OSMEdge> edge, const RoutingNode& junction);
     
 public:    
     DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb);
     ~DataPreprocessing();
- 
+
     /**
      * @brief Parsed ueber .osm/.pbf-Dateien und wirft 
      * 

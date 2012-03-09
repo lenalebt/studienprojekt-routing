@@ -97,7 +97,7 @@ public:
      * 
      * Prüft im speziellen, ob Bit 62 gesetzt ist, oder nicht.
      */
-    bool isIDInLongFormat()
+    bool isIDInLongFormat() const
     {
         boost::uint64_t mark = 0x4000000000000000llu;
         return (id & mark);

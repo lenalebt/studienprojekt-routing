@@ -84,6 +84,53 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     }
 }
 
+int DataPreprocessing::setNodeBorderingLongID(boost::shared_ptr<OSMEdge> edge, const RoutingNode& junction)
+{
+    static QCache<boost::uint64_t, OSMNode > cache(1000);
+
+    bool junctionAtStartNode = false;
+    boost::uint64_t shortJunctionNodeID = (junction.isIDInLongFormat() ? RoutingNode::convertIDToShortFormat(junction.getID()) : junction.getID());
+    boost::uint64_t shortSecondNodeID = 0;
+
+    if (RoutingNode::convertIDToShortFormat(edge->getStartNodeID())==shortJunctionNodeID)
+    {
+        //Kreuzung am Startknoten
+        junctionAtStartNode = true;
+        shortSecondNodeID = RoutingNode::convertIDToShortFormat(edge->getEndNodeID());
+    }
+    else if (RoutingNode::convertIDToShortFormat(edge->getEndNodeID())==shortJunctionNodeID)
+    {
+        //Kreuzung am Endknoten
+        junctionAtStartNode = false;
+        shortSecondNodeID = RoutingNode::convertIDToShortFormat(edge->getStartNodeID());
+    }
+    else
+    {
+        //weird. irgendwas ist falsch.
+        std::cerr << "weird things happened while doing junction calculations." << std::endl;
+    }
+
+    OSMNode secondNode;
+    if (cache.contains(shortSecondNodeID))
+        secondNode = *cache[shortSecondNodeID];
+    else
+    {
+        secondNode = *(_tmpDBConnection.getOSMNodeByID(shortSecondNodeID));
+        cache.insert(shortSecondNodeID, &secondNode);
+    }
+
+    int sector = getSector(junction.calcCourseAngle(secondNode));
+    if(junctionAtStartNode)
+    {
+        edge->setStartNodeID(RoutingNode::convertIDToLongFormat(edge->getStartNodeID()) + sector + 0);
+    }
+    else
+    {
+        edge->setEndNodeID(RoutingNode::convertIDToLongFormat(edge->getEndNodeID()) + sector + 1);
+    }
+    return sector;
+}
+
 void DataPreprocessing::createRoutingGraph()
 {
     QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
@@ -95,6 +142,12 @@ void DataPreprocessing::createRoutingGraph()
         if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2)
         {
             //allen kanten, abhängig der Himmelsrichtung, neue, lange IDs zuordnen
+            RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
+            _finalDBConnection->saveNode(rNode);
+
+
+
+            setNodeBorderingLongID(osmEdgesIncome[i], rNode);
 
             for(int j = 0; j < osmEdgesOutgoing.size(); j++)
             {
@@ -118,22 +171,22 @@ void DataPreprocessing::createRoutingGraph()
             }
             //save osmNode als routingNode in finalDB
         }
-        else if(osmEdgesIncome.size() >= 1 & osmEdgesOutgoing.size() >= 1 ) // Keine Kreuzung
+        else if((osmEdgesIncome.size() >= 1) && (osmEdgesOutgoing.size() >= 1) ) // Keine Kreuzung
         {
-            for( int i = 0; i < osmEdgesIncome.size(); i++)
+            for( int j = 0; j < osmEdgesIncome.size(); j++)
             {
                 //replace current nodeID with long nodeID
-                osmEdgesIncome[i]->setID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[i]->getStartNodeID()));
+                osmEdgesIncome[j]->setID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getStartNodeID()));
 
-                _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[i]);
+                _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
             }
 
-            for( int i = 0; i < osmEdgesOutgoing.size(); i++)
+            for( int j = 0; j < osmEdgesOutgoing.size(); j++)
             {
                 //replace current nodeID with long nodeID
-                osmEdgesOutgoing[i]->setID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[i]->getEndNodeID()));
+                osmEdgesOutgoing[j]->setID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getEndNodeID()));
 
-                _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[i]);
+                _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
             }
             RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
             _finalDBConnection->saveNode(rNode);
