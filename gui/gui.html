@@ -11,6 +11,7 @@
     <!--<script src="openlayers/OpenLayers.js"></script>-->
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
+        var thisLink = "";
         var pointlist = [];
         var markerlist = [];
         var lastmarker = [];
@@ -92,7 +93,7 @@
                 wrapDateLine:true,
                 layerCode:"M"});
             map.addLayer(osm);
-            oepnv = new OpenLayers.Layer.OSM("&Ouml;pnvkarte",
+            oepnv = new OpenLayers.Layer.OSM("&Ouml;PNVkarte",
                 "http://tile.memomaps.de/tilegen/${z}/${x}/${y}.png",
                 {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a><br>Original map can be seen at <a href=http://www.xn--pnvkarte-m4a.de>www.&ouml;pnvkarte.de</a>",
                  numZoomLevels: 19,
@@ -295,8 +296,10 @@
                 
                 url += "?" + urlparameters;
             }
+            thisLink = url;
             displayGPX(url);
             setMarkers();
+            getLink()
         }
         function resetRoute()
         {
@@ -329,6 +332,10 @@
                 //markers.redraw();
                 calcRoute();
             }
+        }
+        function getLink()
+        {
+            document.getElementById("tag").href= thisLink;
         }
         function getCheckedRoutingAlgorithm()
         {
@@ -402,6 +409,9 @@
             Gewicht (in kg, mit Fahrrad):<input name="weight" type="text" value="90.0">
             Schiebegeschwindigkeit (in km/h):<input name="pushbikespeed" type="text" value="2.5">
         </form>
+    </div>
+    <div>
+        <a id = "tag">Link zur GPX-Datei</a> 
     </div>
     <div>
     Erklärung hier hin vielleicht?
