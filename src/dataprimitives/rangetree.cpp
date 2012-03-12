@@ -183,7 +183,7 @@ namespace biker_tests
         for (int i=0; i<5000; i++)
         {
             int k = dist();
-            std::cerr << "insert " << k << std::endl;
+//            std::cerr << "insert " << k << std::endl;
             tree4 = tree3;
             tree3.insert(k);
             set.insert(k);
@@ -209,7 +209,7 @@ namespace biker_tests
                 return EXIT_FAILURE;
             }
         }
-        std::cerr << tree3 << std::endl;
+//        std::cerr << tree3 << std::endl;
         std::cerr << "size for 50000 numbers: " << tree3.sizeInBytes()
             << " instead of " << set.size()*sizeof(int) << std::endl;
         return EXIT_SUCCESS;

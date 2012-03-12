@@ -3,8 +3,11 @@
 #include <QtConcurrentRun>
 #include <boost/shared_ptr.hpp>
 #include "osmway.hpp"
+#include "osmedge.hpp"
 #include "osmturnrestriction.hpp"
 #include "osmnode.hpp"
+#include "routingedge.hpp"
+#include "routingnode.hpp"
 
 template <typename T> 
 bool BlockingQueue<T>::dequeue(T& t)
@@ -209,4 +212,7 @@ template class BlockingQueue<OSMNode*>;
 template class BlockingQueue<OSMTurnRestriction*>;
 template class BlockingQueue<boost::shared_ptr<OSMWay> >;
 template class BlockingQueue<boost::shared_ptr<OSMNode> >;
+template class BlockingQueue<boost::shared_ptr<OSMEdge> >;
+template class BlockingQueue<boost::shared_ptr<RoutingEdge> >;
+template class BlockingQueue<boost::shared_ptr<RoutingNode> >;
 template class BlockingQueue<boost::shared_ptr<OSMTurnRestriction> >;

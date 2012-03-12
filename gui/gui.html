@@ -294,7 +294,6 @@
                 urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
                 
                 url += "?" + urlparameters;
-                
             }
             displayGPX(url);
             setMarkers();
@@ -329,6 +328,26 @@
                 pointlist.splice(pointlist.length -1, 1);
                 //markers.redraw();
                 calcRoute();
+            }
+        }
+        function getCheckedRoutingAlgorithm()
+        {
+            for(i=0; i<document.algorithm.algorithm.length; i++)
+            {
+                if(document.algorithm.algorithm[i].checked == true)
+                {
+                    return document.algorithm.algorithm[i].value;
+                }
+            }
+        }
+        function getCheckedRoutingMetric()
+        {
+            for(i=0; i<document.routingmetric.routingmetric.length; i++)
+            {
+                if(document.routingmetric.routingmetric[i].checked == true)
+                {
+                    return document.routingmetric.routingmetric[i].value;
+                }
             }
         }
         function getCheckedRoutingAlgorithm()

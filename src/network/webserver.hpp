@@ -134,6 +134,7 @@ protected:
      * 
      * @param content Inhalt der Datei, die gesendet werden soll.
      * @return Ob das Senden erfolgreich war, oder nicht.
+     * @bug Probleme bei der Übertragung: Z.B. bei Byte 212992 bricht die Übertragung ab.
      */
     bool sendFile(const QString& content);
     

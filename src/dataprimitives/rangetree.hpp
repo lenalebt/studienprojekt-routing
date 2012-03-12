@@ -8,7 +8,8 @@
  * @brief Diese Klasse implementiert einen binären Suchbaum, der Bereiche von Zahlen speichert.
  * 
  * 
- * 
+ * @remarks Diese Datenstruktur wird nicht mehr verwendet und ist eher
+ *      für Referenzzwecke noch im Quellcode verfügbar.
  * @see AdvancedRangeTree
  * @ingroup name
  * @author Lena Brueder
@@ -282,17 +283,16 @@ public:
 
 /**
  * @brief Diese Klasse implementiert einen binären Suchbaum, der Bereiche von Zahlen speichert.
- *      Dabei ist diese Version schneller als die andere, und verbraucht weniger Speicher.
+ *      Dabei ist diese Version schneller als der RangeTree, und verbraucht weniger Speicher.
  * 
  * 
- * 
+ * @remarks In der PDF-Dokumentation ist diese Datenstruktur genauer beschrieben.
  * @see RangeTree
  * @ingroup name
  * @author Lena Brueder
  * @date 2012-02-23
  * @copyright GNU GPL v3
  * @ingroup dataprimitives
- * @todo Doxygen!
  */
 template <typename T>
 class AdvancedRangeTree
@@ -361,6 +361,9 @@ public:
         else
             rTree=0;
     }
+    /**
+     * @brief Erstellt einen neuen, leeren Baum.
+     */
     AdvancedRangeTree() :
         lBound(2), uBound(1), lTree(0), rTree(0)
     {
@@ -374,6 +377,13 @@ public:
             delete rTree;
     }
     
+    /**
+     * @brief Fügt ein Element zum Baum hinzu.
+     * 
+     * @param element Das Element, das hinzugefügt werden soll.
+     * @remarks Wenn ein Element schon enthalten ist, ändert diese Funktion
+     *      nichts an dem Baum.
+     */
     void insert(const T& element)
     {
         //untere Grenze größer obere Grenze bedeutet: ungültiger Wert drin.
@@ -469,6 +479,12 @@ public:
         assert(this->contains(element));
     }
     
+    /**
+     * @brief Stellt fest, ob ein bestimmtes Element im Baum enthalten ist, oder nicht.
+     * 
+     * @param element Das Element, das gesucht werden soll.
+     * @return Ob das übergebende Element im Baum enthalten ist, oder nicht.
+     */
     bool contains(const T& element) const
     {
         if (uBound < lBound)
@@ -503,6 +519,14 @@ public:
         
     }*/
     
+    /**
+     * @brief Gibt die Größe eines AdvancedRangeTrees zurück, in Bytes.
+     * 
+     * Es werden die Größen aller Kinder mit berücksichtigt.
+     * 
+     * @return 
+     * @todo 
+     */
     size_t sizeInBytes()
     {
         return (lTree!=0 ? lTree->sizeInBytes() : 0) + (rTree!=0 ? rTree->sizeInBytes() : 0) + sizeof(AdvancedRangeTree);
@@ -528,6 +552,9 @@ public:
     }
 };
 
+/**
+ * @brief Gibt einen RangeTree auf der Konsole aus.
+ */
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const RangeTree<T>& tree)
 {
@@ -550,6 +577,9 @@ std::ostream& operator<<(std::ostream& os, const RangeTree<T>& tree)
     return os;
 }
 
+/**
+ * @brief Gibt einen AdvancedRangeTree auf der Konsole aus.
+ */
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const AdvancedRangeTree<T>& tree)
 {
