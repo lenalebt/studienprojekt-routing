@@ -36,7 +36,7 @@ public:
     bool saveEdge(const RoutingEdge& edge, const QString& name);
     bool deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID);
     QString getStreetName(const RoutingEdge& edge);
-	~SpatialiteDatabaseConnection();
+	~RAMDatabaseConnection();
     
     bool beginTransaction();
     bool endTransaction();

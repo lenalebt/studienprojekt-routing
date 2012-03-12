@@ -29,12 +29,12 @@ boost::shared_ptr<RoutingNode> RAMDatabaseConnection::getNodeByID(boost::uint64_
 }
 
 
-QVector<boost::shared_ptr<RoutingNode>> RAMDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double radius)
+QVector<boost::shared_ptr<RoutingNode> > RAMDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double radius)
 {
 }
 
 
-QVector<boost::shared_ptr<RoutingNode>> RAMDatabaseConnection::getNodes(const GPSPosition &ulCorner, const GPSPosition &brCorner)
+QVector<boost::shared_ptr<RoutingNode> > RAMDatabaseConnection::getNodes(const GPSPosition &ulCorner, const GPSPosition &brCorner)
 {
 }
 
@@ -44,12 +44,12 @@ bool RAMDatabaseConnection::saveNode(const RoutingNode &node)
 }
 
 
-QVector<boost::shared_ptr<RoutingEdge>> RAMDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
+QVector<boost::shared_ptr<RoutingEdge> > RAMDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 {
 }
 
 
-QVector<boost::shared_ptr<RoutingEdge>> RAMDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
+QVector<boost::shared_ptr<RoutingEdge> > RAMDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 {
 }
 
@@ -79,7 +79,7 @@ QString RAMDatabaseConnection::getStreetName(const RoutingEdge &edge)
 }
 
 
-RAMDatabaseConnection::~SpatialiteDatabaseConnection()
+RAMDatabaseConnection::~RAMDatabaseConnection()
 {
 }
 

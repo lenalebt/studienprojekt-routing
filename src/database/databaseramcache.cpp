@@ -8,19 +8,19 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/generator_iterator.hpp>
 
-QMutex DatabaseRAMCache::_startNodeEdgeCacheMutex;
+QReadWriteLock DatabaseRAMCache::_startNodeEdgeCacheMutex;
 QCache<boost::uint64_t, QVector<boost::shared_ptr<RoutingEdge> > > DatabaseRAMCache::_startNodeEdgeCache;
 
-QMutex DatabaseRAMCache::_endNodeEdgeCacheMutex;
+QReadWriteLock DatabaseRAMCache::_endNodeEdgeCacheMutex;
 QCache<boost::uint64_t, QVector<boost::shared_ptr<RoutingEdge> > > DatabaseRAMCache::_endNodeEdgeCache;
 
-QMutex DatabaseRAMCache::_idEdgeCacheMutex;
+QReadWriteLock DatabaseRAMCache::_idEdgeCacheMutex;
 QCache<boost::uint64_t, boost::shared_ptr<RoutingEdge> > DatabaseRAMCache::_idEdgeCache;
 
-QMutex DatabaseRAMCache::_positionNodeCacheMutex;
+QReadWriteLock DatabaseRAMCache::_positionNodeCacheMutex;
 QCache<boost::uint64_t, QVector<boost::shared_ptr<RoutingNode> > > DatabaseRAMCache::_positionNodeCache;
 
-QMutex DatabaseRAMCache::_idNodeCacheMutex;
+QReadWriteLock DatabaseRAMCache::_idNodeCacheMutex;
 QCache<boost::uint64_t, boost::shared_ptr<RoutingNode> > DatabaseRAMCache::_idNodeCache;
 
 DatabaseRAMCache::DatabaseRAMCache(boost::shared_ptr<DatabaseConnection> connection, int cacheSize) :
@@ -53,7 +53,7 @@ bool DatabaseRAMCache::isDBOpen()
 
 boost::shared_ptr<RoutingNode> DatabaseRAMCache::getNodeByID(boost::uint64_t id)
 {
-    _idNodeCacheMutex.lock();
+    _idNodeCacheMutex.lockForRead();
     if (_idNodeCache.contains(id))
     {
         boost::shared_ptr<RoutingNode> retNode = *_idNodeCache[id];
@@ -65,7 +65,7 @@ boost::shared_ptr<RoutingNode> DatabaseRAMCache::getNodeByID(boost::uint64_t id)
         //Daten entsperren, Datenbankzugriff dauert lang!
         _idNodeCacheMutex.unlock();
         boost::shared_ptr<RoutingNode> retNode = _connection->getNodeByID(id);
-        _idNodeCacheMutex.lock();
+        _idNodeCacheMutex.lockForWrite();
         _idNodeCache.insert(id, new boost::shared_ptr<RoutingNode>(retNode), 32+16);
         _idNodeCacheMutex.unlock();
         return retNode;
@@ -93,7 +93,7 @@ bool DatabaseRAMCache::saveNode(const RoutingNode &node)
 
 QVector<boost::shared_ptr<RoutingEdge> > DatabaseRAMCache::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 {
-    _startNodeEdgeCacheMutex.lock();
+    _startNodeEdgeCacheMutex.lockForRead();
     if (_startNodeEdgeCache.contains(startNodeID))
     {
         QVector<boost::shared_ptr<RoutingEdge> > retEdges = *_startNodeEdgeCache[startNodeID];
@@ -105,7 +105,7 @@ QVector<boost::shared_ptr<RoutingEdge> > DatabaseRAMCache::getEdgesByStartNodeID
         //Daten entsperren, Datenbankzugriff dauert lang!
         _startNodeEdgeCacheMutex.unlock();
         QVector<boost::shared_ptr<RoutingEdge> > retEdges = _connection->getEdgesByStartNodeID(startNodeID);
-        _startNodeEdgeCacheMutex.lock();
+        _startNodeEdgeCacheMutex.lockForWrite();
         _startNodeEdgeCache.insert(startNodeID, new QVector<boost::shared_ptr<RoutingEdge> >(retEdges), 40+16);
         _startNodeEdgeCacheMutex.unlock();
         return retEdges;
@@ -115,7 +115,7 @@ QVector<boost::shared_ptr<RoutingEdge> > DatabaseRAMCache::getEdgesByStartNodeID
 
 QVector<boost::shared_ptr<RoutingEdge> > DatabaseRAMCache::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 {
-    _endNodeEdgeCacheMutex.lock();
+    _endNodeEdgeCacheMutex.lockForRead();
     if (_endNodeEdgeCache.contains(endNodeID))
     {
         QVector<boost::shared_ptr<RoutingEdge> > retEdges = *_endNodeEdgeCache[endNodeID];
@@ -127,7 +127,7 @@ QVector<boost::shared_ptr<RoutingEdge> > DatabaseRAMCache::getEdgesByEndNodeID(b
         //Daten entsperren, Datenbankzugriff dauert lang!
         _endNodeEdgeCacheMutex.unlock();
         QVector<boost::shared_ptr<RoutingEdge> > retEdges = _connection->getEdgesByEndNodeID(endNodeID);
-        _endNodeEdgeCacheMutex.lock();
+        _endNodeEdgeCacheMutex.lockForWrite();
         _endNodeEdgeCache.insert(endNodeID, new QVector<boost::shared_ptr<RoutingEdge> >(retEdges), 40+16);
         _endNodeEdgeCacheMutex.unlock();
         return retEdges;
@@ -137,7 +137,7 @@ QVector<boost::shared_ptr<RoutingEdge> > DatabaseRAMCache::getEdgesByEndNodeID(b
 
 boost::shared_ptr<RoutingEdge> DatabaseRAMCache::getEdgeByEdgeID(boost::uint64_t edgeID)
 {
-    _idEdgeCacheMutex.lock();
+    _idEdgeCacheMutex.lockForRead();
     if (_idEdgeCache.contains(edgeID))
     {
         boost::shared_ptr<RoutingEdge> retEdge = *_idEdgeCache[edgeID];
@@ -149,7 +149,7 @@ boost::shared_ptr<RoutingEdge> DatabaseRAMCache::getEdgeByEdgeID(boost::uint64_t
         //Daten entsperren, Datenbankzugriff dauert lang!
         _idEdgeCacheMutex.unlock();
         boost::shared_ptr<RoutingEdge> retEdge = _connection->getEdgeByEdgeID(edgeID);
-        _idEdgeCacheMutex.lock();
+        _idEdgeCacheMutex.lockForWrite();
         _idEdgeCache.insert(edgeID, new boost::shared_ptr<RoutingEdge>(retEdge), 40+16);
         _idEdgeCacheMutex.unlock();
         return retEdge;
@@ -158,22 +158,22 @@ boost::shared_ptr<RoutingEdge> DatabaseRAMCache::getEdgeByEdgeID(boost::uint64_t
 
 void DatabaseRAMCache::clearNodeCaches()
 {
-    _idNodeCacheMutex.lock();
+    _idNodeCacheMutex.lockForWrite();
     _idNodeCache.clear();
     _idNodeCacheMutex.unlock();
-    _positionNodeCacheMutex.lock();
+    _positionNodeCacheMutex.lockForWrite();
     _positionNodeCache.clear();
     _positionNodeCacheMutex.unlock();
 }
 void DatabaseRAMCache::clearEdgeCaches()
 {
-    _startNodeEdgeCacheMutex.lock();
+    _startNodeEdgeCacheMutex.lockForWrite();
     _startNodeEdgeCache.clear();
     _startNodeEdgeCacheMutex.unlock();
-    _endNodeEdgeCacheMutex.lock();
+    _endNodeEdgeCacheMutex.lockForWrite();
     _endNodeEdgeCache.clear();
     _endNodeEdgeCacheMutex.unlock();
-    _idEdgeCacheMutex.lock();
+    _idEdgeCacheMutex.lockForWrite();
     _idEdgeCache.clear();
     _idEdgeCacheMutex.unlock();
 }
