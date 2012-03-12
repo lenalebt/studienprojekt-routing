@@ -24,6 +24,17 @@
         var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
         var markerNone = new OpenLayers.Icon("", iconSize, iconOffset);
         var iconlist = [markerGreen, markerCyan, markerBlue, markerPurple, markerRed, markerYellow];
+        var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+        renderer= (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
+        var markersnew = new OpenLayers.Layer.Vector( "Markers",{
+            //styleMap: new OpenLayers.StyleMap(markerRed),
+            styleMap: new OpenLayers.StyleMap({
+                externalGraphic: "img/marker-green.png",
+                graphicZIndex: 11}),
+            isBaseLayer: true,
+            rendererOptions: {yOrdering: true},
+            renderers: renderer
+            });
         var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
@@ -53,6 +64,11 @@
                     lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
                     pointlist[pointlist.length] = lonlat;
                     var lonlatSimple = map.getLonLatFromViewPortPx(e.xy);
+                    //lonlatSimple
+                    //.transform(
+                    //new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+                    //    map.getProjectionObject() // to Spherical Mercator Projection
+                    //);
                     markerlist[markerlist.length] = lonlatSimple;
                     calcRoute();
                 }
@@ -174,6 +190,7 @@
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
             
             map.addLayer(markers);
+            map.addLayer(markersnew);
             
             var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
                   .transform(
@@ -197,6 +214,12 @@
             var click = new OpenLayers.Control.Click();
             map.addControl(click);
             click.activate();
+            
+            // Drag - Function
+            var dragFeature = new OpenLayers.Control.DragFeature(markers);
+            map.addControl(dragFeature);
+            dragFeature.activate();
+            startEndMarkers();
         }
         
         function displayGPX(gpxfile)
@@ -212,28 +235,86 @@
                 displayInLayerSwitcher:false
 			});
 			map.addLayer(gpxlayer);
+        }
+        
+        function testVectorMarkers()
+        {
+            markersnew.removeFeatures(markersnew.features);
+            var features = [];
+            for(var index = 0; index < markerlist.length-1; index ++)
             {
-                var iconindex;
-                var help = 0.0;
-                for(var index = 0; index < markerlist.length; index ++)
+                features.push(
+                new OpenLayers.Feature.Vector(
+                    new OpenLayers.Geometry.Point(markerlist[index].lon, markerlist[index].lat))
+                );
+            }
+            markersnew.addFeatures(features);
+        }
+        
+        function startEndMarkers()
+        {
+            //markers.removeFeatures(markers.features)
+            var iconLength = markerlist.length;
+            lastmarker = [];
+            var green = "ein Grüner Marker an Position: ";
+            var yellow = "ein Gelber Marker an Position: ";
+            var red = "ein Roter Marker an Position: ";
+            if(iconLength == 1)
+            {
+                lastmarker[0] = new OpenLayers.Marker(markerlist[0], markerGreen);
+                alert(green + markerlist[0]);
+            }
+            else if(iconLength == 2)
+            {
+                lastmarker[0] = new OpenLayers.Marker(markerlist[0], markerRed);
+                alert(red + markerlist[0]);
+                lastmarker[1] = new OpenLayers.Marker(markerlist[1], markerGreen);
+                alert(green + markerlist[1]);
+            }
+            else if(iconLength > 2)
+            {
+                lastmarker[0] = new OpenLayers.Marker(markerlist[0], markerRed);
+                alert(red + markerlist[0]);
+                for(var index = 1; index < markerlist.length-1; index ++)
                 {
-                    iconindex = index % iconlist.length;
-                    help = index / iconlist.length;
-                    if(help < 1.0)
-                    {
-                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
-                        markers.addMarker(lastmarker[index]);
-                    }
-                    else
-                    {
-                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
-                        markers.addMarker(lastmarker[index]);
-                    }
-                    //alert(iconindex);
-                    //alert(index);
-                    //alert(pointlist[index]);
-                    //alert(help.isDrawn());
+                    lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerYellow);
+                    alert(yellow + markerlist[index]);
                 }
+                lastmarker[lastmarker.length] = new OpenLayers.Marker(markerlist[markerlist.length - 1], markerGreen);
+                alert(green + markerlist[markerlist.length - 1])
+            }
+            for(var indexTwo; indexTwo < lastmarker.length; indexTwo ++)
+            {
+                markers.addMarker(lastmarker[indexTwo]);
+            }
+            markers.redraw();
+        }
+        
+        
+        
+        function colourfulMarkers()    
+        {
+            var iconindex;
+            var help = 0.0;
+            lastmarker = [];
+            for(var index = 0; index < markerlist.length; index ++)
+            {
+                iconindex = index % iconlist.length;
+                help = index / iconlist.length;
+                if(help < 1.0)
+                {
+                    lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
+                    markers.addMarker(lastmarker[index]);
+                }
+                else
+                {
+                    lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        markers.addMarker(lastmarker[index]);
+                }
+                //alert(iconindex);
+                //alert(index);
+                //alert(pointlist[index]);
+                //alert(help.isDrawn());
             }
         }
         
@@ -243,9 +324,8 @@
             var urlstart = "../1341253652/api/0.3/";
             var urlend = "/bike/euclidian.gpx";
             var url;
-            if (pointlist.length == 1)
+            if(pointlist.length == 1)
             {
-                markers.addMarker(new OpenLayers.Marker(markerlist[0], iconlist[0]));
             }
             else if (pointlist.length > 1)
             {
@@ -279,41 +359,30 @@
                 //alert(url);
                 displayGPX(url);
             }
+            //startEndMarkers();
+            //colourfulMarkers();
+            //testVectorMarkers();
         }
         function resetRoute()
         {
-            //map.removeLayer(markers);
-            lastmarker = [];
-            markerlist = [];
+            var element;
+            for (element in pointlist)
+            {
+                removeLastElement();
+            }
+            markerlist =  [];
             pointlist = [];
-            //markers = new OpenLayers.Layer.Markers( "Markers" );
-            markers.redraw();
-            //map.addLayer(markers);
+            lastmarker = [];
+            startEndMarkers()
             calcRoute();
         }
         function removeLastElement()
         {
-            if(pointlist.length >= 1)
-            {
-                //map.removeLayer(markers);
-                //lastmarker[lastmarker.length - 1].destroy();
-                //var copy = [];
-                //for (var index = 0; index <= lastmarker.length -1; index ++)
-                //{
-                 //   copy[index] = lastmarker[index];
-                //}
-                //lastmarker = "";
-                //lastmarker = copy;
-                //map.addLayer(markers);
                 lastmarker.splice(lastmarker.length - 1, 1);
                 markerlist.splice(markerlist.length - 1 , 1);
                 pointlist.splice(pointlist.length -1, 1);
-                //markers.redraw();
+                startEndMarkers()
                 calcRoute();
-            } else
-            {
-                resetRoute();
-            }
         }
     </script>
   </head>
