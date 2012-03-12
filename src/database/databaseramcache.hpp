@@ -6,6 +6,7 @@
 #include <boost/shared_ptr.hpp>
 #include <QCache>
 #include <QMutex>
+#include <QReadWriteLock>
 
 /**
  * @brief Implementiert einen RAM-Cache für Datenbankelemente.
@@ -23,21 +24,20 @@
 class DatabaseRAMCache : public DatabaseConnection
 {
 private:
-    static QMutex _startNodeEdgeCacheMutex;
+    static QReadWriteLock _startNodeEdgeCacheMutex;
     static QCache<boost::uint64_t, QVector<boost::shared_ptr<RoutingEdge> > > _startNodeEdgeCache;
     
-    static QMutex _endNodeEdgeCacheMutex;
+    static QReadWriteLock _endNodeEdgeCacheMutex;
     static QCache<boost::uint64_t, QVector<boost::shared_ptr<RoutingEdge> > > _endNodeEdgeCache;
     
-    static QMutex _idEdgeCacheMutex;
+    static QReadWriteLock _idEdgeCacheMutex;
     static QCache<boost::uint64_t, boost::shared_ptr<RoutingEdge> > _idEdgeCache;
     
-    static QMutex _positionNodeCacheMutex;
+    static QReadWriteLock _positionNodeCacheMutex;
     static QCache<boost::uint64_t, QVector<boost::shared_ptr<RoutingNode> > > _positionNodeCache;
     
-    static QMutex _idNodeCacheMutex;
+    static QReadWriteLock _idNodeCacheMutex;
     static QCache<boost::uint64_t, boost::shared_ptr<RoutingNode> > _idNodeCache;
-    
     
     boost::shared_ptr<DatabaseConnection> _connection;
     
