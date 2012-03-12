@@ -18,18 +18,6 @@ DataPreprocessing::~DataPreprocessing()
     
 }
 
-bool DataPreprocessing::isStreet(const OSMWay& way)
-{
-    //Wenn ein "highway"-key gefunden wird, ist es eine Straße - sonst nicht.
-    QVector<OSMProperty> props = way.getProperties();
-    for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
-    {
-        if (it->getKey() == "highway")
-            return true;
-    }
-    return false;
-}
-
 bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 {
     _finalDBConnection->open(dbFilename);
@@ -46,10 +34,7 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         _osmParser.reset(new OSMParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);        
         preprocess();        
-        //future.waitForFinished();
 
-        //TODO: Graphen aus kategorisierten Daten erstellen
-        //createNewGraph();
         createRoutingGraph();
         std::cerr << "creating indexes..." << std::endl;
         _finalDBConnection->createIndexes();
@@ -64,9 +49,7 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
         preprocess();
-        //future.waitForFinished();
 
-        //TODO: Graphen aus kategorisierten Daten erstellen
         createRoutingGraph();
 
         std::cerr << "creating indexes..." << std::endl;
@@ -82,213 +65,6 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     {
         return false;
     }
-}
-
-int DataPreprocessing::setNodeBorderingLongID(boost::shared_ptr<OSMEdge> edge, const RoutingNode& junction)
-{
-    static QCache<boost::uint64_t, OSMNode > cache(1000);
-
-    bool junctionAtStartNode = false;
-    boost::uint64_t shortJunctionNodeID = (junction.isIDInLongFormat() ? RoutingNode::convertIDToShortFormat(junction.getID()) : junction.getID());
-    boost::uint64_t shortSecondNodeID = 0;
-
-    if (RoutingNode::convertIDToShortFormat(edge->getStartNodeID())==shortJunctionNodeID)
-    {
-        //Kreuzung am Startknoten
-        junctionAtStartNode = true;
-        shortSecondNodeID = RoutingNode::convertIDToShortFormat(edge->getEndNodeID());
-    }
-    else if (RoutingNode::convertIDToShortFormat(edge->getEndNodeID())==shortJunctionNodeID)
-    {
-        //Kreuzung am Endknoten
-        junctionAtStartNode = false;
-        shortSecondNodeID = RoutingNode::convertIDToShortFormat(edge->getStartNodeID());
-    }
-    else
-    {
-        //weird. irgendwas ist falsch.
-        std::cerr << "weird things happened while doing junction calculations." << std::endl;
-    }
-
-    OSMNode secondNode;
-    if (cache.contains(shortSecondNodeID))
-        secondNode = *cache[shortSecondNodeID];
-    else
-    {
-        secondNode = *(_tmpDBConnection.getOSMNodeByID(shortSecondNodeID));
-        cache.insert(shortSecondNodeID, &secondNode);
-    }
-
-    int sector = getSector(junction.calcCourseAngle(secondNode));
-    if(junctionAtStartNode)
-    {
-        edge->setStartNodeID(RoutingNode::convertIDToLongFormat(edge->getStartNodeID()) + sector + 0);
-    }
-    else
-    {
-        edge->setEndNodeID(RoutingNode::convertIDToLongFormat(edge->getEndNodeID()) + sector + 1);
-    }
-    return sector;
-}
-
-int DataPreprocessing::getTurnTypeBySectorNumbers(int startSector, int endSector)
-{
-    //(((startSector - endSector) + 720 + 45) % 360) / 90
-
-    // 1: Bilde Winkeldifferenz zwischen start- und endSector
-    // 2: Drehe den Winkel so, dass Geradeaus von -45 bis +45 Grad liegt (Statt 0 bis 90 Grad)
-    // 3: Ordne den gedrehten Winkeln einen von 4 Sektoren zu (0-3)
-    // 4: Addiere 1 hinzu, damit das auf die Turntypes der routingEdge passt
-    return ((((startSector - endSector) + 256 + 16) % 128) / 32) + 1;
-}
-
-void DataPreprocessing::createRoutingGraph()
-{
-    QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
-    for(int i = 0; i < osmNodes.size(); i++)
-    {
-        QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(osmNodes[i]->getID());
-        QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
-        QVector<int> sectors;
-
-        if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2) //Krezung
-        {            
-            RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
-            _finalDBConnection->saveNode(rNode);
-
-            sectors << setNodeBorderingLongID(osmEdgesIncome[i], rNode);
-
-            for(int j = 0; j < osmEdgesOutgoing.size(); j++)
-            {
-                _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
-            }
-            for(int j = 0; j < osmEdgesIncome.size(); j++)
-            {
-                _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
-            }
-
-            //handle turnRestrictions here
-
-            for(int j = 0; j < osmEdgesIncome.size(); j++)
-            {
-                //erstelle neue innere Kanten zu allen ausgehenden Kanten
-                //Dabei: Fuege Turntypes zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
-                //TODO: testen. ist dafuer da, die inneren kanten einer kreuzung zu erstellen.
-                //TODO: rEdge braucht noch eine ID.
-                RoutingEdge rEdge;
-                for(QVector<int>::iterator startNodeSector = sectors.begin(); startNodeSector != sectors.end(); startNodeSector++)
-                {
-                    if (*startNodeSector % 2 == 1)
-                        continue;
-                    for(QVector<int>::iterator endNodeSector = sectors.begin(); endNodeSector != sectors.end(); endNodeSector++)
-                    {
-                        if (*endNodeSector % 2 == 0)
-                            continue;
-                        rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
-                        rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
-                        rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
-                        rEdge.setStreetType(STREETTYPE_UNKNOWN);
-                        //TODO: Evtl noch andere Eigenschaften setzen?
-                    }
-                }
-
-
-                //OSMNode tmpOSMNode = osmEdgesIncome[j]->getEndNodeID();
-                //rEdge.setSt
-                _finalDBConnection->saveEdge(rEdge);
-            }
-            //save osmNode als routingNode in finalDB
-        }
-        else if((osmEdgesIncome.size() >= 1) && (osmEdgesOutgoing.size() >= 1) ) // Keine Kreuzung
-        {
-            for( int j = 0; j < osmEdgesIncome.size(); j++)
-            {                
-                osmEdgesIncome[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getStartNodeID()));
-
-                _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
-            }
-
-            for( int j = 0; j < osmEdgesOutgoing.size(); j++)
-            {             
-                osmEdgesOutgoing[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getEndNodeID()));
-
-                _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
-            }
-            RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
-            _finalDBConnection->saveNode(rNode);
-        }
-    }
-    QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);
-    for(int i = 0 ; i < wayIDs.size(); i++)
-    {
-        QVector< boost::shared_ptr< OSMEdge > > tmpOsmEdges = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(i);
-        for(int j = 0; j < tmpOsmEdges.size(); j++)
-        {
-            OSMEdge osmEdge = *tmpOsmEdges[j];
-            QVector<OSMProperty> osmProp = osmEdge.getProperties();
-
-            //TODO: fuer alle wayIDs vorwaerts- und rueckwaertseigenschaften erstellen
-            if(osmEdge.getForward())
-            {
-                //vorwärtskanten mit vorwärtseigenschaft als routingEdge in finalDB speichern
-            }
-            else
-            {
-                //rückwärtskanten mit rückwärtseigenschaft als routingEdge in finalDB speichern
-            }
-        }
-    }
-
-
-
-    //QVector<OSMProperty>::const_iterator it;
-    //for (it = properties.constBegin(); it != properties.constEnd(); it++)
-    //{
-        //QString osmKey = it->getKey();
-        //QString osmValue = it->getValue();
-
-    /*for( all OSMNODES, aufsteigend nach ID (tmpDB-funktion))
-    {
-        erzeuge Liste aller eingehenden OSMEdges
-        erzeuge Liste aller ausgehenden OSMEdges
-        if(# eingehende Kante > 2) && (# ausgehende Kante > 2)//Kreuzung
-        {
-            -ordne allen Kanten, abhaengig der Himmelsrichung, die neuen, langen IDs zu //Funktion noch in der Mache
-             //bei ausgehender Kante ersetze die StartID und bei eingehenden Kanten die EndID durch die langen IDs
-            -update die betrachteten Kanten in tmpDB
-            - Hier Abbiegebeschraenkung beachten
-            for(alle eingehenden Kanten)
-            {
-                erstelle neue innere Kanten zu allen ausgehenden Kanten
-                //Dabei: Fuege Datentypen zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
-            }
-            -lege OSMNode als RoutingNode in finalDB ab
-        }                                               
-        else if(# eingehende & #ausgehende Kanten >= 1) //Keine Kreuzung
-        {
-            for(alle ein- und ausgehende Kanten)
-            {
-                -ersetze aktuelle KnotenID durch lange KnotenID
-                -Update Edge in tmpDB
-            }
-            -lege OSMNode als RoutingNode in finalDB ab
-        }
-    }
-    for(all wayIDs aufsteigend)
-    {
-        -hole alle OSMEdges mit gleicher WayID aus tmpDB;
-        -(fuer wayID) erstelle Vorwaertseigenschaften;
-        -(fuer wayID) erstelle Rueckwaertseigenschaften;
-        if(Strasse kann vorwaerts befahren werden)
-        {
-            lege vorwaertsKanten mit Vorwaertseigenschaft als RoutingEdge in finalDB ab;
-        }
-        if(Strasse kann rueckwaerts befahren werden)
-        {
-            lege rueckwaertsKanten mit Rueckwaertseigenschaft als RoutingEdge in finalDB ab;
-        }
-    }
-*/
 }
 
 bool DataPreprocessing::preprocess()
@@ -315,8 +91,6 @@ bool DataPreprocessing::preprocess()
     QSet<boost::uint64_t> nodeIDSet;
     std::cerr << "Parsing Ways..." << std::endl;
     _tmpDBConnection.beginTransaction();
-    //boost::uint64_t edgeID=0;
-    //TODO: nochmal ueberlegen, ob if-Abfrage nicht sinnvoller als while-loop
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
     {
@@ -335,7 +109,7 @@ bool DataPreprocessing::preprocess()
         }
     }
     _tmpDBConnection.endTransaction();
-    
+
     //Die Queues müssen alle geleert werden, sonst kann das Programm nicht beendet werden!
     while (_turnRestrictionQueue.dequeue(_osmTurnRestriction))
     {
@@ -343,17 +117,6 @@ bool DataPreprocessing::preprocess()
     }
     return true;
 }
-
-int DataPreprocessing::getSector(double angle)
-{
-    if(angle > 360){
-        int factor = int(angle / 360);
-        angle = angle - (factor * 360);
-    }
-    return (int(angle * (128.0/360.0))*2); // 0.355555555... = 128/360
-}
-
-
 
 void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward, boost::uint64_t& propBackward)
 {
@@ -365,7 +128,7 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
     boost::uint8_t streetType = STREETTYPE_UNKNOWN;
     boost::uint8_t cyclewayType = CYCLEWAYTYPE_NO_CYCLEWAY;
     boost::uint8_t streetSurfaceType = STREETSURFACETYPE_UNKNOWN;
-    boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;    
+    boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;
     boost::uint8_t access = ACCESS_UNKNOWN;
 
 
@@ -904,6 +667,230 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
     //Rückgabeparameter/setzen//END///////////////////////
 
     return;
+}
+
+void DataPreprocessing::createRoutingGraph()
+{
+    QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
+    for(int i = 0; i < osmNodes.size(); i++)
+    {
+        QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(osmNodes[i]->getID());
+        QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
+        QVector<int> sectors;
+
+        if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2) //Krezung
+        {
+            RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
+            _finalDBConnection->saveNode(rNode);
+
+            sectors << setNodeBorderingLongID(osmEdgesIncome[i], rNode);
+
+            for(int j = 0; j < osmEdgesOutgoing.size(); j++)
+            {
+                _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
+            }
+            for(int j = 0; j < osmEdgesIncome.size(); j++)
+            {
+                _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
+            }
+
+            //handle turnRestrictions here
+
+            for(int j = 0; j < osmEdgesIncome.size(); j++)
+            {
+                //erstelle neue innere Kanten zu allen ausgehenden Kanten
+                //Dabei: Fuege Turntypes zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
+                //TODO: testen. ist dafuer da, die inneren kanten einer kreuzung zu erstellen.
+                //TODO: rEdge braucht noch eine ID.
+                RoutingEdge rEdge;
+                for(QVector<int>::iterator startNodeSector = sectors.begin(); startNodeSector != sectors.end(); startNodeSector++)
+                {
+                    if (*startNodeSector % 2 == 1)
+                        continue;
+                    for(QVector<int>::iterator endNodeSector = sectors.begin(); endNodeSector != sectors.end(); endNodeSector++)
+                    {
+                        if (*endNodeSector % 2 == 0)
+                            continue;
+                        rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
+                        rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
+                        rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
+                        rEdge.setStreetType(STREETTYPE_UNKNOWN);
+                        //TODO: Evtl noch andere Eigenschaften setzen?
+                    }
+                }
+                _finalDBConnection->saveEdge(rEdge);
+            }
+
+        }
+        else if((osmEdgesIncome.size() >= 1) && (osmEdgesOutgoing.size() >= 1) ) // Keine Kreuzung
+        {
+            for( int j = 0; j < osmEdgesIncome.size(); j++)
+            {
+                osmEdgesIncome[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getStartNodeID()));
+
+                _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
+            }
+
+            for( int j = 0; j < osmEdgesOutgoing.size(); j++)
+            {
+                osmEdgesOutgoing[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getEndNodeID()));
+
+                _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
+            }
+            RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
+            _finalDBConnection->saveNode(rNode);
+        }
+    }
+    QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);
+    for(int i = 0 ; i < wayIDs.size(); i++)
+    {
+        QVector< boost::shared_ptr< OSMEdge > > tmpOsmEdges = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(i);
+        for(int j = 0; j < tmpOsmEdges.size(); j++)
+        {
+            OSMEdge osmEdge = *tmpOsmEdges[j];
+            QVector<OSMProperty> osmProp = osmEdge.getProperties();
+
+            //TODO: fuer alle wayIDs vorwaerts- und rueckwaertseigenschaften erstellen
+            if(osmEdge.getForward())
+            {
+                //vorwärtskanten mit vorwärtseigenschaft als routingEdge in finalDB speichern
+            }
+            else
+            {
+                //rückwärtskanten mit rückwärtseigenschaft als routingEdge in finalDB speichern
+            }
+        }
+    }
+
+
+
+    //QVector<OSMProperty>::const_iterator it;
+    //for (it = properties.constBegin(); it != properties.constEnd(); it++)
+    //{
+        //QString osmKey = it->getKey();
+        //QString osmValue = it->getValue();
+
+    /*for( all OSMNODES, aufsteigend nach ID (tmpDB-funktion))
+    {
+        erzeuge Liste aller eingehenden OSMEdges
+        erzeuge Liste aller ausgehenden OSMEdges
+        if(# eingehende Kante > 2) && (# ausgehende Kante > 2)//Kreuzung
+        {
+            -ordne allen Kanten, abhaengig der Himmelsrichung, die neuen, langen IDs zu //Funktion noch in der Mache
+             //bei ausgehender Kante ersetze die StartID und bei eingehenden Kanten die EndID durch die langen IDs
+            -update die betrachteten Kanten in tmpDB
+            - Hier Abbiegebeschraenkung beachten
+            for(alle eingehenden Kanten)
+            {
+                erstelle neue innere Kanten zu allen ausgehenden Kanten
+                //Dabei: Fuege Datentypen zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
+            }
+            -lege OSMNode als RoutingNode in finalDB ab
+        }
+        else if(# eingehende & #ausgehende Kanten >= 1) //Keine Kreuzung
+        {
+            for(alle ein- und ausgehende Kanten)
+            {
+                -ersetze aktuelle KnotenID durch lange KnotenID
+                -Update Edge in tmpDB
+            }
+            -lege OSMNode als RoutingNode in finalDB ab
+        }
+    }
+    for(all wayIDs aufsteigend)
+    {
+        -hole alle OSMEdges mit gleicher WayID aus tmpDB;
+        -(fuer wayID) erstelle Vorwaertseigenschaften;
+        -(fuer wayID) erstelle Rueckwaertseigenschaften;
+        if(Strasse kann vorwaerts befahren werden)
+        {
+            lege vorwaertsKanten mit Vorwaertseigenschaft als RoutingEdge in finalDB ab;
+        }
+        if(Strasse kann rueckwaerts befahren werden)
+        {
+            lege rueckwaertsKanten mit Rueckwaertseigenschaft als RoutingEdge in finalDB ab;
+        }
+    }
+*/
+}
+
+bool DataPreprocessing::isStreet(const OSMWay& way)
+{
+    //Wenn ein "highway"-key gefunden wird, ist es eine Straße - sonst nicht.
+    QVector<OSMProperty> props = way.getProperties();
+    for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
+    {
+        if (it->getKey() == "highway")
+            return true;
+    }
+    return false;
+}
+
+int DataPreprocessing::setNodeBorderingLongID(boost::shared_ptr<OSMEdge> edge, const RoutingNode& junction)
+{
+    static QCache<boost::uint64_t, OSMNode > cache(1000);
+
+    bool junctionAtStartNode = false;
+    boost::uint64_t shortJunctionNodeID = (junction.isIDInLongFormat() ? RoutingNode::convertIDToShortFormat(junction.getID()) : junction.getID());
+    boost::uint64_t shortSecondNodeID = 0;
+
+    if (RoutingNode::convertIDToShortFormat(edge->getStartNodeID())==shortJunctionNodeID)
+    {
+        //Kreuzung am Startknoten
+        junctionAtStartNode = true;
+        shortSecondNodeID = RoutingNode::convertIDToShortFormat(edge->getEndNodeID());
+    }
+    else if (RoutingNode::convertIDToShortFormat(edge->getEndNodeID())==shortJunctionNodeID)
+    {
+        //Kreuzung am Endknoten
+        junctionAtStartNode = false;
+        shortSecondNodeID = RoutingNode::convertIDToShortFormat(edge->getStartNodeID());
+    }
+    else
+    {
+        //weird. irgendwas ist falsch.
+        std::cerr << "weird things happened while doing junction calculations." << std::endl;
+    }
+
+    OSMNode secondNode;
+    if (cache.contains(shortSecondNodeID))
+        secondNode = *cache[shortSecondNodeID];
+    else
+    {
+        secondNode = *(_tmpDBConnection.getOSMNodeByID(shortSecondNodeID));
+        cache.insert(shortSecondNodeID, &secondNode);
+    }
+
+    int sector = getSector(junction.calcCourseAngle(secondNode));
+    if(junctionAtStartNode)
+    {
+        edge->setStartNodeID(RoutingNode::convertIDToLongFormat(edge->getStartNodeID()) + sector + 0);
+    }
+    else
+    {
+        edge->setEndNodeID(RoutingNode::convertIDToLongFormat(edge->getEndNodeID()) + sector + 1);
+    }
+    return sector;
+}
+
+int DataPreprocessing::getTurnTypeBySectorNumbers(int startSector, int endSector)
+{
+    //(((startSector - endSector) + 720 + 45) % 360) / 90
+
+    // 1: Bilde Winkeldifferenz zwischen start- und endSector
+    // 2: Drehe den Winkel so, dass Geradeaus von -45 bis +45 Grad liegt (Statt 0 bis 90 Grad)
+    // 3: Ordne den gedrehten Winkeln einen von 4 Sektoren zu (0-3)
+    // 4: Addiere 1 hinzu, damit das auf die Turntypes der routingEdge passt
+    return ((((startSector - endSector) + 256 + 16) % 128) / 32) + 1;
+}
+
+int DataPreprocessing::getSector(double angle)
+{
+    if(angle > 360){
+        int factor = int(angle / 360);
+        angle = angle - (factor * 360);
+    }
+    return (int(angle * (128.0/360.0))*2); // 0.355555555... = 128/360
 }
 
 namespace biker_tests
