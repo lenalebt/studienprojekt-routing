@@ -24,17 +24,6 @@
         var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
         var markerNone = new OpenLayers.Icon("", iconSize, iconOffset);
         var iconlist = [markerGreen, markerCyan, markerBlue, markerPurple, markerRed, markerYellow];
-        var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
-        renderer= (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
-        var markersnew = new OpenLayers.Layer.Vector( "Markers",{
-            //styleMap: new OpenLayers.StyleMap(markerRed),
-            styleMap: new OpenLayers.StyleMap({
-                externalGraphic: "img/marker-green.png",
-                graphicZIndex: 11}),
-            isBaseLayer: true,
-            rendererOptions: {yOrdering: true},
-            renderers: renderer
-            });
         var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
@@ -64,11 +53,6 @@
                     lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
                     pointlist[pointlist.length] = lonlat;
                     var lonlatSimple = map.getLonLatFromViewPortPx(e.xy);
-                    //lonlatSimple
-                    //.transform(
-                    //new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-                    //    map.getProjectionObject() // to Spherical Mercator Projection
-                    //);
                     markerlist[markerlist.length] = lonlatSimple;
                     calcRoute();
                 }
@@ -190,7 +174,6 @@
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
             
             map.addLayer(markers);
-            map.addLayer(markersnew);
             
             var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
                   .transform(
@@ -214,12 +197,6 @@
             var click = new OpenLayers.Control.Click();
             map.addControl(click);
             click.activate();
-            
-            // Drag - Function
-            var dragFeature = new OpenLayers.Control.DragFeature(markers);
-            map.addControl(dragFeature);
-            dragFeature.activate();
-            startEndMarkers();
         }
         
         function displayGPX(gpxfile)
@@ -236,96 +213,46 @@
 			});
 			map.addLayer(gpxlayer);
         }
-        
-        function testVectorMarkers()
+        function setMarkers()
         {
-            markersnew.removeFeatures(markersnew.features);
-            var features = [];
-            for(var index = 0; index < markerlist.length-1; index ++)
-            {
-                features.push(
-                new OpenLayers.Feature.Vector(
-                    new OpenLayers.Geometry.Point(markerlist[index].lon, markerlist[index].lat))
-                );
-            }
-            markersnew.addFeatures(features);
-        }
-        
-        function startEndMarkers()
-        {
-            //markers.removeFeatures(markers.features)
-            var iconLength = markerlist.length;
-            lastmarker = [];
-            var green = "ein Grüner Marker an Position: ";
-            var yellow = "ein Gelber Marker an Position: ";
-            var red = "ein Roter Marker an Position: ";
-            if(iconLength == 1)
-            {
-                lastmarker[0] = new OpenLayers.Marker(markerlist[0], markerGreen);
-                alert(green + markerlist[0]);
-            }
-            else if(iconLength == 2)
-            {
-                lastmarker[0] = new OpenLayers.Marker(markerlist[0], markerRed);
-                alert(red + markerlist[0]);
-                lastmarker[1] = new OpenLayers.Marker(markerlist[1], markerGreen);
-                alert(green + markerlist[1]);
-            }
-            else if(iconLength > 2)
-            {
-                lastmarker[0] = new OpenLayers.Marker(markerlist[0], markerRed);
-                alert(red + markerlist[0]);
-                for(var index = 1; index < markerlist.length-1; index ++)
+                markers.destroy();
+                //alert("destroy");
+                markers = new OpenLayers.Layer.Markers( "Markers" );
+                //alert("new");
+                map.addLayer(markers);
+                //alert("added");
+                var iconindex;
+                var help = 0.0;
+                for(var index = 0; index < markerlist.length; index ++)
                 {
-                    lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerYellow);
-                    alert(yellow + markerlist[index]);
-                }
-                lastmarker[lastmarker.length] = new OpenLayers.Marker(markerlist[markerlist.length - 1], markerGreen);
-                alert(green + markerlist[markerlist.length - 1])
-            }
-            for(var indexTwo; indexTwo < lastmarker.length; indexTwo ++)
-            {
-                markers.addMarker(lastmarker[indexTwo]);
-            }
-            markers.redraw();
-        }
-        
-        
-        
-        function colourfulMarkers()    
-        {
-            var iconindex;
-            var help = 0.0;
-            lastmarker = [];
-            for(var index = 0; index < markerlist.length; index ++)
-            {
-                iconindex = index % iconlist.length;
-                help = index / iconlist.length;
-                if(help < 1.0)
-                {
-                    lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
-                    markers.addMarker(lastmarker[index]);
-                }
-                else
-                {
-                    lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                    iconindex = index % iconlist.length;
+                    help = index / iconlist.length;
+                    if(help < 1.0)
+                    {
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
                         markers.addMarker(lastmarker[index]);
+                    }
+                    else
+                    {
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        markers.addMarker(lastmarker[index]);
+                    }
+                    //alert(iconindex);
+                    //alert(index);
+                    //alert(pointlist[index]);
+                    //alert(help.isDrawn());
                 }
-                //alert(iconindex);
-                //alert(index);
-                //alert(pointlist[index]);
-                //alert(help.isDrawn());
-            }
+                
         }
-        
         function calcRoute()
         {
             //alert("pointlist has " + pointlist.length + " items");
             var urlstart = "../1341253652/api/0.3/";
-            var urlend = "/bike/euclidian.gpx";
-            var url;
-            if(pointlist.length == 1)
+            var urlend = "/" + getCheckedRoutingMetric() + ".gpx";
+            var url = "";
+            if (pointlist.length == 1)
             {
+                markers.addMarker(new OpenLayers.Marker(markerlist[0], iconlist[0]));
             }
             else if (pointlist.length > 1)
             {
@@ -356,33 +283,73 @@
                         }
                         url = url + urlend;
                 }
+                
                 //alert(url);
-                displayGPX(url);
+                urlparameters = "";
+                urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
+                //ACHTUNG! Erlaubt code und Parameter Injection.
+                urlparameters += "&maxpower=" + document.routingmetricsettings.maxpower.value;
+                urlparameters += "&minspeed=" + document.routingmetricsettings.minspeed.value/3.6;
+                urlparameters += "&weight=" + document.routingmetricsettings.weight.value;
+                urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
+                
+                url += "?" + urlparameters;
+                
             }
-            //startEndMarkers();
-            //colourfulMarkers();
-            //testVectorMarkers();
+            displayGPX(url);
+            setMarkers();
         }
         function resetRoute()
         {
-            var element;
-            for (element in pointlist)
-            {
-                removeLastElement();
-            }
-            markerlist =  [];
-            pointlist = [];
+            //map.removeLayer(markers);
             lastmarker = [];
-            startEndMarkers()
+            markerlist = [];
+            pointlist = [];
+            //markers = new OpenLayers.Layer.Markers( "Markers" );
+            //markers.redraw();
+            //map.addLayer(markers);
             calcRoute();
         }
         function removeLastElement()
         {
+            if(pointlist.length >= 1)
+            {
+                //map.removeLayer(markers);
+                //lastmarker[lastmarker.length - 1].destroy();
+                //var copy = [];
+                //for (var index = 0; index <= lastmarker.length -1; index ++)
+                //{
+                 //   copy[index] = lastmarker[index];
+                //}
+                //lastmarker = "";
+                //lastmarker = copy;
+                //map.addLayer(markers);
                 lastmarker.splice(lastmarker.length - 1, 1);
                 markerlist.splice(markerlist.length - 1 , 1);
                 pointlist.splice(pointlist.length -1, 1);
-                startEndMarkers()
+                //markers.redraw();
                 calcRoute();
+            }
+        }
+        function getCheckedRoutingAlgorithm()
+        {
+            for(i=0; i<document.algorithm.algorithm.length; i++)
+            {
+                if(document.algorithm.algorithm[i].checked == true)
+                {
+                    return document.algorithm.algorithm[i].value;
+                }
+            }
+        }
+        function getCheckedRoutingMetric()
+        {
+            for(i=0; i<document.routingmetric.routingmetric.length; i++)
+            {
+                if(document.routingmetric.routingmetric[i].checked == true)
+                {
+                    return document.routingmetric.routingmetric[i].value;
+                }
+            }
         }
     </script>
   </head>
@@ -391,6 +358,31 @@
     <div>
         <button id="b1" type="reset" onclick="resetRoute()">Reset</button>
         <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
+        <button id="b2" type="reset" onclick="calcRoute()">Recalculate Route</button>
+    </div>
+    <div>
+        <form name="algorithm">
+            <input type="radio" name="algorithm" value="astar"> A*
+            <input type="radio" name="algorithm" value="dijkstra"> Dijkstra
+            <input type="radio" name="algorithm" value="multithreadedastar"> Mehrthread-A*
+            <input type="radio" name="algorithm" value="multithreadeddijkstra"> Mehrthread-Dijkstra
+            <input type="radio" name="algorithm" value="standard" checked> Standardalgorithmus<br>
+        </form>
+    </div>
+    <div>
+        <form name="routingmetric">
+            <input type="radio" name="routingmetric" value="bike/euclidian"> euklidische Entfernung
+            <input type="radio" name="routingmetric" value="bike/simpleheight"> einfache Höhenvermeidung
+            <input type="radio" name="routingmetric" value="bike/power" checked> Leistungsmetrik
+        </form>
+    </div>
+    <div>
+        <form name="routingmetricsettings">
+            Maximalleistung (in Watt):<input name="maxpower" type="text" value="150.0">
+            Minimalgeschwindigkeit (in km/h):<input name="minspeed" type="text" value="12.0">
+            Gewicht (in kg, mit Fahrrad):<input name="weight" type="text" value="90.0">
+            Schiebegeschwindigkeit (in km/h):<input name="pushbikespeed" type="text" value="2.5">
+        </form>
     </div>
     <div>
     Erklärung hier hin vielleicht?
