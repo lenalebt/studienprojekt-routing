@@ -212,7 +212,15 @@
                 displayInLayerSwitcher:false
 			});
 			map.addLayer(gpxlayer);
-            {
+        }
+        function setMarkers()
+        {
+                markers.destroy();
+                //alert("destroy");
+                markers = new OpenLayers.Layer.Markers( "Markers" );
+                //alert("new");
+                map.addLayer(markers);
+                //alert("added");
                 var iconindex;
                 var help = 0.0;
                 for(var index = 0; index < markerlist.length; index ++)
@@ -234,15 +242,14 @@
                     //alert(pointlist[index]);
                     //alert(help.isDrawn());
                 }
-            }
+                
         }
-        
         function calcRoute()
         {
             //alert("pointlist has " + pointlist.length + " items");
             var urlstart = "../1341253652/api/0.3/";
             var urlend = "/" + getCheckedRoutingMetric() + ".gpx";
-            var url;
+            var url = "";
             if (pointlist.length == 1)
             {
                 markers.addMarker(new OpenLayers.Marker(markerlist[0], iconlist[0]));
@@ -276,6 +283,7 @@
                         }
                         url = url + urlend;
                 }
+                
                 //alert(url);
                 urlparameters = "";
                 urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
@@ -286,9 +294,9 @@
                 urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
                 
                 url += "?" + urlparameters;
-                
-                displayGPX(url);
             }
+            displayGPX(url);
+            setMarkers();
         }
         function resetRoute()
         {
@@ -297,7 +305,7 @@
             markerlist = [];
             pointlist = [];
             //markers = new OpenLayers.Layer.Markers( "Markers" );
-            markers.redraw();
+            //markers.redraw();
             //map.addLayer(markers);
             calcRoute();
         }
@@ -320,9 +328,26 @@
                 pointlist.splice(pointlist.length -1, 1);
                 //markers.redraw();
                 calcRoute();
-            } else
+            }
+        }
+        function getCheckedRoutingAlgorithm()
+        {
+            for(i=0; i<document.algorithm.algorithm.length; i++)
             {
-                resetRoute();
+                if(document.algorithm.algorithm[i].checked == true)
+                {
+                    return document.algorithm.algorithm[i].value;
+                }
+            }
+        }
+        function getCheckedRoutingMetric()
+        {
+            for(i=0; i<document.routingmetric.routingmetric.length; i++)
+            {
+                if(document.routingmetric.routingmetric[i].checked == true)
+                {
+                    return document.routingmetric.routingmetric[i].value;
+                }
             }
         }
         function getCheckedRoutingAlgorithm()
