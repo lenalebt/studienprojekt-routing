@@ -63,6 +63,8 @@
         var map, layer, gpxlayer;
         
         function init(){
+            var geolocate = new OpenLayers.Control.Geolocate({id: 'locate-control', geolocationOptions: {enableHighAccuracy: false, maximumAge: 0, timeout: 7000}});
+            
             map = new OpenLayers.Map('map',
                 {controls:[new OpenLayers.Control.ArgParser,
                 new OpenLayers.Control.Attribution,
@@ -72,6 +74,7 @@
                 //new OpenLayers.Control.PanZoom,   //Einkommentieren bringt das Problem mit den doppelten Zoombuttons
                 new OpenLayers.Control.PanZoomBar,
                 new OpenLayers.Control.OverviewMap({maximized: false}),
+                geolocate,
                 new OpenLayers.Control.TouchNavigation({dragPanOptions: {enableKinetic: true}}),
                 new OpenLayers.Control.ScaleLine({geodesic:true})],
                 units:"m",
@@ -133,6 +136,42 @@
                 transitionEffect: 'resize'}
                 );
             map.addLayer(cyclemap);
+            var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {});
+            map.addLayer(vectorLayer);
+            var geolocationstyle = {
+                fillColor: '#000',
+                fillOpacity: 0.1,
+                strokeWidth: 0
+            };
+            geolocate.events.register("locationupdated", this, function(e) {
+                vectorLayer.removeAllFeatures();
+                vectorLayer.addFeatures([
+                    new OpenLayers.Feature.Vector(
+                        e.point,
+                        {},
+                        {
+                            graphicName: 'star',
+                            strokeColor: '#f00',
+                            strokeWidth: 1,
+                            fillOpacity: 0,
+                            pointRadius: 7
+                        }
+                    ),
+                    new OpenLayers.Feature.Vector(
+                        OpenLayers.Geometry.Polygon.createRegularPolygon(
+                            new OpenLayers.Geometry.Point(e.point.x, e.point.y),
+                            e.position.coords.accuracy / 2,
+                            50,
+                            0
+                        ),
+                        {},
+                        geolocationstyle
+                    )
+                ]);
+                map.zoomToExtent(vector.getDataExtent());
+            });
+            geolocate.deactivate();
+            geolocate.activate();
             /*var mapquestaerial=new OpenLayers.Layer.OSM(
                 "Mapquest Aerial",
                 ["http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
