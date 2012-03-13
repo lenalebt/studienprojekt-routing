@@ -29,6 +29,7 @@ public:
     //Datenbank
     std::string dbFilename;
     std::string dbBackend;
+    unsigned int dbCacheSize;
     
     //Routenberechnung
     bool doRouting;

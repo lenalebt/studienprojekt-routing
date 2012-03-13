@@ -52,6 +52,7 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
         #else
             ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->default_value("sqlite"), "set database backend. possible values: sqlite.")
         #endif
+        ("dbcachesize", po::value<unsigned int>(&(programOptions->dbCacheSize))->default_value(500000u), "set database cache size (in bytes per query statement, ~6x)")
         ("route", po::value<std::string>(&(programOptions->routingStartPointString))->implicit_value("(0/0)"), "set routing startpoint.")
         ("to", po::value<std::string>(&(programOptions->routingEndPointString))->implicit_value("(0/0)"), "set routing endpoint.")
         ("json-output", "create routes as JSON instead of GPX.")
