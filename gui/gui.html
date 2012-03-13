@@ -241,11 +241,13 @@
                     if(help < 1.0)
                     {
                         lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
+                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
                         markers.addMarker(lastmarker[index]);
                     }
                     else
                     {
                         lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
                         markers.addMarker(lastmarker[index]);
                     }
                     //alert(iconindex);
