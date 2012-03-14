@@ -146,6 +146,8 @@ public:
         else
             return p1.calcDistance(p2);
     }
+    
+    virtual QString getParameterDetails() {return "none";}
 }; 
 
 class EuclidianRoutingMetric : public RoutingMetric

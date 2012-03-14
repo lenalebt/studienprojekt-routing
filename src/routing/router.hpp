@@ -4,7 +4,10 @@
 #include "heap.hpp"
 #include "gpsposition.hpp"
 #include "gpsroute.hpp"
+#include "routingmetric.hpp"
 #include <QVector>
+#include <QReadWriteLock>
+#include <QCache>
 
 /**
  * @brief Von diesem Interface erben alle Klassen, die eine Route in einem
@@ -21,7 +24,10 @@ class Router
 {
 private:
     
+protected:
+    boost::shared_ptr<RoutingMetric> _metric;
 public:
+    Router(boost::shared_ptr<RoutingMetric> metric) : _metric(metric) {}
     /**
      * @brief Berechnet eine Route in einem Graphen.
      * 
@@ -42,6 +48,29 @@ public:
      * @return Eine Route vom Start zum Ziel, die nach der angegebenen RoutingMetric die beste ist.
      */
     virtual GPSRoute calculateShortestRoute(QVector<GPSPosition> pointList);
+};
+
+class RouteCache
+{
+private:
+    static RouteCache* instance;
+    RouteCache() : routeCache(100), lock() {}
+    
+    QCache<QString, boost::shared_ptr<GPSRoute> > routeCache;
+    QReadWriteLock lock;
+public:
+    static RouteCache* getInstance()
+    {
+        if (instance == NULL)
+        {
+            instance = new RouteCache();
+            std::cerr << "created new route cache." << std::endl;
+        }
+        return instance;
+    }
+    
+    boost::shared_ptr<GPSRoute> getRoute(const GPSPosition& startPos, const GPSPosition& endPos, QString parameters);
+    void addRoute(const GPSRoute& route, const GPSPosition& startPos, const GPSPosition& endPos, QString parameters);
 };
 
 #endif //ROUTER_HPP
