@@ -352,6 +352,14 @@
             setMarkers();
             getLink()
         }
+        function about()
+        {
+            //TODO : Erklärung überarberarbeiten
+            // anmerkung: leider kann man den Titel des Fensters nicht bearbeiten
+            alert("Erklärung hier hin vielleicht? Google-Karten kann man evtl nutzen, steht <a href="+"http://code.google.com/intl/de-DE/apis/maps/documentation/javascript/"+">hier</a>;<br>" 
+           + "MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="+"http://www.mapquest.com/"+">guckst du</a>)<br>"
+        + "Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>");
+        }
         function resetRoute()
         {
             //map.removeLayer(markers);
@@ -432,46 +440,48 @@
   </head>
   <body onload="init()">
     <div id="map" class="smallmap"></div>
-    <div>
+    <div id= "controlButton">
         <button id="b1" type="reset" onclick="resetRoute()">Reset</button>
         <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
         <button id="b2" type="reset" onclick="calcRoute()">Recalculate Route</button>
+        <a id = "tag">Link zur GPX-Datei</a>
+        <button id="b3" type="button" onclick="">Settings</button>
+        <button id="b4" type="button" onclick="about()">About</button>
     </div>
-    <div>
+    <div id = "allSettings">
+    <div id ="radioAlgorithm">
         <form name="algorithm">
-            <input type="radio" name="algorithm" value="astar"> A*
-            <input type="radio" name="algorithm" value="dijkstra"> Dijkstra
-            <input type="radio" name="algorithm" value="multithreadedastar"> Mehrthread-A*
-            <input type="radio" name="algorithm" value="multithreadeddijkstra"> Mehrthread-Dijkstra
-            <input type="radio" name="algorithm" value="standard" checked> Standardalgorithmus<br>
+            <table>
+                <tr><td>Algorithmenauswahl: </td></tr>
+                <tr><td><input type="radio" name="algorithm" value="astar"> A*</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="dijkstra"> Dijkstra</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="multithreadedastar"> Mehrthread-A*</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="multithreadeddijkstra"> Mehrthread-Dijkstra</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="standard" checked> Standardalgorithmus</td></tr>
+            </table>
         </form>
     </div>
-    <div>
+    <div id = "radioRoutingmetric">
         <form name="routingmetric">
-            <input type="radio" name="routingmetric" value="bike/euclidian"> euklidische Entfernung
-            <input type="radio" name="routingmetric" value="bike/simpleheight"> einfache Höhenvermeidung
-            <input type="radio" name="routingmetric" value="bike/power" checked> Leistungsmetrik
+            <table>
+                <tr><td>Routingmetriken: </td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/euclidian"> euklidische Entfernung</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/simpleheight"> einfache Höhenvermeidung</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/power" checked> Leistungsmetrik</td></tr>
+            </table>
         </form>
     </div>
-    <div>
+    <div id="settings">
         <form name="routingmetricsettings">
-            Maximalleistung (in Watt):<input name="maxpower" type="text" value="150.0">
-            Minimalgeschwindigkeit (in km/h):<input name="minspeed" type="text" value="12.0">
-            Gewicht (in kg, mit Fahrrad):<input name="weight" type="text" value="90.0">
-            Schiebegeschwindigkeit (in km/h):<input name="pushbikespeed" type="text" value="2.5">
+            <table>
+                <tr><td>Einstellungen: </td></tr>
+                <tr><td>Maximalleistung (in Watt):<input name="maxpower" type="text" value="150.0"></td></tr>
+                <tr><td>Minimalgeschwindigkeit (in km/h):<input name="minspeed" type="text" value="12.0"></td></tr>
+                <tr><td>Gewicht (in kg, mit Fahrrad):<input name="weight" type="text" value="90.0"></td></tr>
+                <tr><td>Schiebegeschwindigkeit (in km/h):<input name="pushbikespeed" type="text" value="2.5"></td></tr>
+            </table>
         </form>
     </div>
-    <div>
-        <a id = "tag">Link zur GPX-Datei</a> 
-    </div>
-    <div>
-    Erklärung hier hin vielleicht?
-    
-    Google-Karten kann man evtl nutzen, steht <a href="http://code.google.com/intl/de-DE/apis/maps/documentation/javascript/">hier</a><br>
-    
-    MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="http://www.mapquest.com/">guckst du</a>)<br>
-    
-    Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>
-    </div>
+   </div>
   </body>
 </html>

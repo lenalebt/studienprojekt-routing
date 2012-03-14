@@ -1,9 +1,16 @@
-            html, body, #map {
+            html, body {
                 margin: 0;
                 width: 100%;
-                height: 95%;
+                height: 100%;
+                z-index: 2;
             }
-
+            #map {
+                margin: 0;
+                width: 79%;
+                height: 100%;
+                z-index: 2;
+                float:left;
+            }
             #text {
                 position: absolute;
                 bottom: 1em;
@@ -12,4 +19,28 @@
                 z-index: 20000;
                 background-color: white;
                 padding: 0 0.5em 0.5em 0.5em;
+            }
+            div{
+            z-index: 3;
+            }
+            #controlButton{
+            position: absolute;
+            top: 90%;
+            left: 10%;
+            }
+            #radioAlgorithm{
+            
+            
+            }
+            #radioRoutingmetric{
+            
+            
+            }
+            #settings{
+            
+            }
+            #allSettings{
+            position: absolute;
+            top: 10px;
+            left: 80%;
             }
