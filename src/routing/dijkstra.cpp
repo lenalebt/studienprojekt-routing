@@ -18,9 +18,6 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition
         RoutingNode startNode, endNode;
         QVector<boost::shared_ptr<RoutingNode> > nodeList;
         
-        /* TODO: Fehlerhafte Annahme hier ist, dass alle Knoten auch Ways
-         *    haben, die bei ihnen losgehen. Soll erstmal reichen.
-         */
         //Suche zuerst den Startknoten raus, dann den Endknoten. Umkreissuche.
         nodeList = _db->getNodes(startPosition, 50.0);
         if (nodeList.isEmpty())
@@ -97,13 +94,11 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         _db->beginTransaction();
         
         //Initialisiere Datenstrukturen
-        //std::cerr << "init data structures" << std::endl;
         HashClosedList closedList;
         NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
         BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
         QHash<boost::uint64_t, boost::uint64_t> predecessor;
         QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> > nodeMap;
-        
         
         //Startknoten: Kosten auf Null setzen, zum Heap und Puffer hinzufügen, Vorgänger auf Null setzen
         boost::uint64_t activeNodeLongID = RoutingNode::convertIDToLongFormat(startNode.getID());
@@ -116,7 +111,6 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         
         boost::shared_ptr<RoutingNode> activeNode;
         
-        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
         boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
         QVector<boost::shared_ptr<RoutingNode> > nodes = _db->getNodes(startNode, startNode.calcDistance(endNode)/1.5);
@@ -127,17 +121,13 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
         //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
         
-        //std::cerr << "starting while loop" << std::endl;
         while (!heap.isEmpty())
         {
-            //std::cerr << ".";
             //Aktuelles Element wird jetzt abschließend betrachtet.
             activeNodeLongID = heap.removeMinimumCostElement();
             activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
             activeNode = nodeMap[activeNodeShortID];
             closedList.addElement(activeNodeLongID);
-            
-            //std::cerr << activeNodeLongID << ":" << activeNodeShortID;
             
             //Wenn der jetzt abschließend zu betrachtende Knoten der Endkonten ist: Fertig.
             if (activeNodeShortID == endNodeShortID)
@@ -218,9 +208,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
             return GPSRoute();
         }
         
-        
         /* TODO:
-         * - Fertige Route heraussuchen und zurückgeben.
          * - Evtl. Routenbeschreibung erzeugen?
          */
     }
@@ -251,7 +239,6 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const Routin
         _dbA->beginTransaction();
         
         //Initialisiere Datenstrukturen
-        //std::cerr << "init data structures" << std::endl;
         NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
         BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
         QHash<boost::uint64_t, boost::uint64_t> predecessor;
@@ -268,8 +255,6 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const Routin
         
         boost::shared_ptr<RoutingNode> activeNode;
         
-        boost::uint64_t startNodeShortID = RoutingNode::convertIDToShortFormat(startNode.getID());
-        
         /*QVector<boost::shared_ptr<RoutingNode> > nodes = _dbA->getNodes(startNode, startNode.calcDistance(endNode)/2.5);
         for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodes.constBegin(); it != nodes.constEnd(); it++)
         {
@@ -279,22 +264,17 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const Routin
         //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
         //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
         
-        //std::cerr << "starting while loop" << std::endl;
         while (!heap.isEmpty())
         {
-            //std::cerr << ".";
             //Aktuelles Element wird jetzt abschließend betrachtet.
             activeNodeLongID = heap.removeMinimumCostElement();
             activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
             activeNode = nodeMap[activeNodeShortID];
             closedList->addElement(activeNodeLongID, S_THREAD);
             
-            //std::cerr << activeNodeLongID << ":" << activeNodeShortID;
-            
             //Wenn jetzt ein überlappendes Element gefunden wurde: Fertig.
             if (closedList->getOverlappingElement() != 0)
             {
-                //std::cerr << "found endnode!";
                 break;
             }
             //Hole Liste von Kanten, die in abschließend betrachtetem
@@ -380,7 +360,6 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const Routin
         _dbB->beginTransaction();
         
         //Initialisiere Datenstrukturen
-        //std::cerr << "init data structures" << std::endl;
         NodeCostLessAndQHashFunctor<boost::uint64_t, double> nodeCosts;
         BinaryHeap<boost::uint64_t, NodeCostLessAndQHashFunctor<boost::uint64_t, double> > heap(nodeCosts);
         QHash<boost::uint64_t, boost::uint64_t> successor;
@@ -397,8 +376,6 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const Routin
         
         boost::shared_ptr<RoutingNode> activeNode;
         
-        boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
-        
         /*QVector<boost::shared_ptr<RoutingNode> > nodes = _dbB->getNodes(startNode, startNode.calcDistance(endNode)/2.5);
         for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodes.constBegin(); it != nodes.constEnd(); it++)
         {
@@ -408,22 +385,17 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const Routin
         //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
         //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
         
-        //std::cerr << "starting while loop" << std::endl;
         while (!heap.isEmpty())
         {
-            //std::cerr << ".";
             //Aktuelles Element wird jetzt abschließend betrachtet.
             activeNodeLongID = heap.removeMinimumCostElement();
             activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
             activeNode = nodeMap[activeNodeShortID];
             closedList->addElement(activeNodeLongID, T_THREAD);
             
-            //std::cerr << activeNodeLongID << ":" << activeNodeShortID;
-            
             //Wenn jetzt ein überlappendes Element gefunden wurde: Fertig.
             if (closedList->getOverlappingElement() != 0)
             {
-                //std::cerr << "found endnode!";
                 break;
             }
             //Hole Liste von Kanten, die in abschließend betrachtetem
@@ -514,9 +486,6 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const GPSPosition& 
         RoutingNode startNode, endNode;
         QVector<boost::shared_ptr<RoutingNode> > nodeList;
         
-        /* TODO: Fehlerhafte Annahme hier ist, dass alle Knoten auch Ways
-         *    haben, die bei ihnen losgehen. Soll erstmal reichen.
-         */
         //Suche zuerst den Startknoten raus, dann den Endknoten. Umkreissuche.
         nodeList = _dbA->getNodes(startPosition, 50.0);
         if (nodeList.isEmpty())
@@ -590,7 +559,6 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const RoutingNode& 
     futureA.waitForFinished();
     futureB.waitForFinished();
     
-    //TODO: Route ausrechnen
     if (closedList.getOverlappingElement() == 0)
     {
         std::cerr << "no route found." << std::endl;

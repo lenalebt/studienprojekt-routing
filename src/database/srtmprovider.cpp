@@ -50,21 +50,26 @@ double SRTMProvider::getAltitude(double lat, double lon)
     
     index = latLonToIndex(int(floor(lat)), int(floor(lon)));
     
-    lock.lockForWrite();
     SRTMTile *tile = new SRTMTile(index);
+    lock.lockForRead();
     if(tileCache.contains(index)){
         tile = tileCache[index];
     }
-    else if(fillTile(index, &tile)){
-        tileCache.insert(index, tile);
-    }
-    else{
+    else 
+    {
         lock.unlock();
-        return altitude;
+        lock.lockForWrite();
+        if(fillTile(index, &tile)){
+            tileCache.insert(index, tile);
+        }
+        else{
+            lock.unlock();
+            return altitude;
+        }
     }
-    lock.unlock();
+    //lock.unlock();
     
-    lock.lockForRead();
+    //lock.lockForRead();
     altitude = tile->getAltitudeFromLatLon(lat, lon);
     lock.unlock();
     

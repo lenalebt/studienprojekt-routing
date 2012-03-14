@@ -11,13 +11,26 @@
     <!--<script src="openlayers/OpenLayers.js"></script>-->
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
+        var thisLink = "";
         var pointlist = [];
-        
+        var markerlist = [];
+        var lastmarker = [];
+        var iconSize = new OpenLayers.Size(20, 20);
+        var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
+        var markerRed = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
+        var markerBlue = new OpenLayers.Icon("img/marker-blue.png", iconSize, iconOffset);
+        var markerCyan = new OpenLayers.Icon("img/marker-cyan.png", iconSize, iconOffset);
+        var markerGreen = new OpenLayers.Icon("img/marker-green.png", iconSize, iconOffset);
+        var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
+        var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
+        var markerNone = new OpenLayers.Icon("", iconSize, iconOffset);
+        var iconlist = [markerGreen, markerCyan, markerBlue, markerPurple, markerRed, markerYellow];
+        var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
                     'single': true,
                     'double': false,
-                    'pixelTolerance': 0,
+                    'pixelTolerance': 2,
                     'stopSingle': false,
                     'stopDouble': false
                 },
@@ -39,22 +52,30 @@
                 trigger: function(e) {
                     var lonlat = map.getLonLatFromViewPortPx(e.xy);
                     lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
-                    pointlist.push(lonlat);
+                    pointlist[pointlist.length] = lonlat;
+                    var lonlatSimple = map.getLonLatFromViewPortPx(e.xy);
+                    markerlist[markerlist.length] = lonlatSimple;
                     calcRoute();
                 }
 
             });
         
         var map, layer, gpxlayer;
+        
         function init(){
+            var geolocate = new OpenLayers.Control.Geolocate({id: 'locate-control', geolocationOptions: {enableHighAccuracy: false, maximumAge: 0, timeout: 7000}});
+            
             map = new OpenLayers.Map('map',
                 {controls:[new OpenLayers.Control.ArgParser,
                 new OpenLayers.Control.Attribution,
                 new OpenLayers.Control.LayerSwitcher,
-                new OpenLayers.Control.Navigation,
+                new OpenLayers.Control.Navigation({dragPanOptions: {enableKinetic: true}}),
                 new OpenLayers.Control.MousePosition,
                 //new OpenLayers.Control.PanZoom,   //Einkommentieren bringt das Problem mit den doppelten Zoombuttons
                 new OpenLayers.Control.PanZoomBar,
+                new OpenLayers.Control.OverviewMap({maximized: false}),
+                geolocate,
+                new OpenLayers.Control.TouchNavigation({dragPanOptions: {enableKinetic: true}}),
                 new OpenLayers.Control.ScaleLine({geodesic:true})],
                 units:"m",
                 maxResolution:156543.0339,
@@ -64,7 +85,9 @@
             var osmdeutsch = new OpenLayers.Layer.OSM("OSM deutscher Stil", [
                "http://a.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
                "http://b.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
-               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],{attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>'});
+               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],
+               {attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>',
+                transitionEffect: 'resize'});
             map.addLayer(osmdeutsch);
             var osm=new OpenLayers.Layer.OSM(
                 "OSM Mapnik",
@@ -75,14 +98,17 @@
                 keyid:"mapnik",
                 displayOutsideMaxExtent:true,
                 wrapDateLine:true,
-                layerCode:"M"});
+                layerCode:"M",
+                transitionEffect: 'resize'}
+                );
             map.addLayer(osm);
-            oepnv = new OpenLayers.Layer.OSM("&Ouml;pnvkarte",
+            oepnv = new OpenLayers.Layer.OSM("&Ouml;PNVkarte",
                 "http://tile.memomaps.de/tilegen/${z}/${x}/${y}.png",
                 {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a><br>Original map can be seen at <a href=http://www.xn--pnvkarte-m4a.de>www.&ouml;pnvkarte.de</a>",
                  numZoomLevels: 19,
                  displayInLayerSwitcher:true,
-                 buffer:0}
+                 buffer:0,
+                 transitionEffect: 'resize'}
                 );
             map.addLayer(oepnv);
             var transport=new OpenLayers.Layer.OSM(
@@ -94,7 +120,8 @@
                 keyid:"transportmap",
                 displayOutsideMaxExtent:!0,
                 wrapDateLine:true,
-                layerCode:"T"});
+                layerCode:"T"},
+                {transitionEffect: 'resize'});
             map.addLayer(transport);
             var cyclemap=new OpenLayers.Layer.OSM(
                 "OSM Radfahrerkarte",
@@ -105,8 +132,46 @@
                 keyid:"cyclemap",
                 displayOutsideMaxExtent:true,
                 wrapDateLine:true,
-                layerCode:"C"});
+                layerCode:"C",
+                transitionEffect: 'resize'}
+                );
             map.addLayer(cyclemap);
+            var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {});
+            map.addLayer(vectorLayer);
+            var geolocationstyle = {
+                fillColor: '#000',
+                fillOpacity: 0.1,
+                strokeWidth: 0
+            };
+            geolocate.events.register("locationupdated", this, function(e) {
+                vectorLayer.removeAllFeatures();
+                vectorLayer.addFeatures([
+                    new OpenLayers.Feature.Vector(
+                        e.point,
+                        {},
+                        {
+                            graphicName: 'star',
+                            strokeColor: '#f00',
+                            strokeWidth: 1,
+                            fillOpacity: 0,
+                            pointRadius: 7
+                        }
+                    ),
+                    new OpenLayers.Feature.Vector(
+                        OpenLayers.Geometry.Polygon.createRegularPolygon(
+                            new OpenLayers.Geometry.Point(e.point.x, e.point.y),
+                            e.position.coords.accuracy / 2,
+                            50,
+                            0
+                        ),
+                        {},
+                        geolocationstyle
+                    )
+                ]);
+                map.zoomToExtent(vector.getDataExtent());
+            });
+            geolocate.deactivate();
+            geolocate.activate();
             /*var mapquestaerial=new OpenLayers.Layer.OSM(
                 "Mapquest Aerial",
                 ["http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
@@ -158,7 +223,6 @@
             );
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
             
-            var markers = new OpenLayers.Layer.Markers( "Markers" );
             map.addLayer(markers);
             
             var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
@@ -166,7 +230,7 @@
                     new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
                     map.getProjectionObject() // to Spherical Mercator Projection
                   );
-            markers.addMarker(new OpenLayers.Marker(lonLat, new OpenLayers.Icon("img/marker-red.png")));
+            //markers.addMarker(new OpenLayers.Marker(lonLat, markerCyan));
             
             map.setCenter(
                 new OpenLayers.LonLat(7.2662, 51.447).transform(
@@ -177,7 +241,7 @@
             
             gpxlayer = null;
             
-            displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/simpleheight.gpx?detourperheightmeter=100.0");
+            //displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/euclidian.gpx");
             //displayGPX("route.gpx");
             
             var click = new OpenLayers.Control.Click();
@@ -199,25 +263,208 @@
 			});
 			map.addLayer(gpxlayer);
         }
-        
+        function setMarkers()
+        {
+                markers.destroy();
+                //alert("destroy");
+                markers = new OpenLayers.Layer.Markers( "Markers" );
+                //alert("new");
+                map.addLayer(markers);
+                //alert("added");
+                var iconindex;
+                var help = 0.0;
+                for(var index = 0; index < markerlist.length; index ++)
+                {
+                    iconindex = index % iconlist.length;
+                    help = index / iconlist.length;
+                    if(help < 1.0)
+                    {
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
+                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        markers.addMarker(lastmarker[index]);
+                    }
+                    else
+                    {
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        markers.addMarker(lastmarker[index]);
+                    }
+                    //alert(iconindex);
+                    //alert(index);
+                    //alert(pointlist[index]);
+                    //alert(help.isDrawn());
+                }
+                
+        }
         function calcRoute()
         {
             //alert("pointlist has " + pointlist.length + " items");
             var urlstart = "../1341253652/api/0.3/";
-            var urlend = "/bike/simpleheight.gpx?detourperheightmeter=100.0";
-            if (pointlist.length > 1)
+            var urlend = "/" + getCheckedRoutingMetric() + ".gpx";
+            var url = "";
+            if (pointlist.length == 1)
             {
-                //alert("call displaygpx");
-                var url = urlstart + pointlist[0].lat + "," + pointlist[0].lon + "," + pointlist[pointlist.length-1].lat + "," + pointlist[pointlist.length-1].lon + urlend;
+                markers.addMarker(new OpenLayers.Marker(markerlist[0], iconlist[0]));
+            }
+            else if (pointlist.length > 1)
+            {
+                if(pointlist.length == 2)
+                {
+                     url = urlstart + pointlist[0].lat + "," + pointlist[0].lon + "," + pointlist[1].lat + "," + pointlist[1].lon + urlend;
+                }
+                else
+                {
+                    //alert("call displaygpx");
+                    url = urlstart;
+                    for (var index = 0; index <= pointlist.length - 1; index++)
+                        {
+                            url = url + pointlist[index].lat + "," + pointlist[index].lon;
+                            if(index == pointlist.length - 2)
+                            {
+                                url =  url + "]";
+                            }
+                            if(index != pointlist.length - 1)
+                            {
+                                url = url  + ",";
+                            }
+                            if(index == 0)
+                            {
+                                url = url + "[";
+                            }
+                            
+                        }
+                        url = url + urlend;
+                }
+                
                 //alert(url);
-                displayGPX(url);
+                urlparameters = "";
+                urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
+                //ACHTUNG! Erlaubt code und Parameter Injection.
+                urlparameters += "&maxpower=" + document.routingmetricsettings.maxpower.value;
+                urlparameters += "&minspeed=" + document.routingmetricsettings.minspeed.value/3.6;
+                urlparameters += "&weight=" + document.routingmetricsettings.weight.value;
+                urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
+                
+                url += "?" + urlparameters;
+            }
+            thisLink = url;
+            displayGPX(url);
+            setMarkers();
+            getLink()
+        }
+        function resetRoute()
+        {
+            //map.removeLayer(markers);
+            lastmarker = [];
+            markerlist = [];
+            pointlist = [];
+            //markers = new OpenLayers.Layer.Markers( "Markers" );
+            //markers.redraw();
+            //map.addLayer(markers);
+            calcRoute();
+        }
+        function removeLastElement()
+        {
+            if(pointlist.length >= 1)
+            {
+                //map.removeLayer(markers);
+                //lastmarker[lastmarker.length - 1].destroy();
+                //var copy = [];
+                //for (var index = 0; index <= lastmarker.length -1; index ++)
+                //{
+                 //   copy[index] = lastmarker[index];
+                //}
+                //lastmarker = "";
+                //lastmarker = copy;
+                //map.addLayer(markers);
+                lastmarker.splice(lastmarker.length - 1, 1);
+                markerlist.splice(markerlist.length - 1 , 1);
+                pointlist.splice(pointlist.length -1, 1);
+                //markers.redraw();
+                calcRoute();
+            }
+        }
+        function getLink()
+        {
+            document.getElementById("tag").href= thisLink;
+        }
+        function getCheckedRoutingAlgorithm()
+        {
+            for(i=0; i<document.algorithm.algorithm.length; i++)
+            {
+                if(document.algorithm.algorithm[i].checked == true)
+                {
+                    return document.algorithm.algorithm[i].value;
+                }
+            }
+        }
+        function getCheckedRoutingMetric()
+        {
+            for(i=0; i<document.routingmetric.routingmetric.length; i++)
+            {
+                if(document.routingmetric.routingmetric[i].checked == true)
+                {
+                    return document.routingmetric.routingmetric[i].value;
+                }
+            }
+        }
+        function getCheckedRoutingAlgorithm()
+        {
+            for(i=0; i<document.algorithm.algorithm.length; i++)
+            {
+                if(document.algorithm.algorithm[i].checked == true)
+                {
+                    return document.algorithm.algorithm[i].value;
+                }
+            }
+        }
+        function getCheckedRoutingMetric()
+        {
+            for(i=0; i<document.routingmetric.routingmetric.length; i++)
+            {
+                if(document.routingmetric.routingmetric[i].checked == true)
+                {
+                    return document.routingmetric.routingmetric[i].value;
+                }
             }
         }
     </script>
   </head>
   <body onload="init()">
     <div id="map" class="smallmap"></div>
-    
+    <div>
+        <button id="b1" type="reset" onclick="resetRoute()">Reset</button>
+        <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
+        <button id="b2" type="reset" onclick="calcRoute()">Recalculate Route</button>
+    </div>
+    <div>
+        <form name="algorithm">
+            <input type="radio" name="algorithm" value="astar"> A*
+            <input type="radio" name="algorithm" value="dijkstra"> Dijkstra
+            <input type="radio" name="algorithm" value="multithreadedastar"> Mehrthread-A*
+            <input type="radio" name="algorithm" value="multithreadeddijkstra"> Mehrthread-Dijkstra
+            <input type="radio" name="algorithm" value="standard" checked> Standardalgorithmus<br>
+        </form>
+    </div>
+    <div>
+        <form name="routingmetric">
+            <input type="radio" name="routingmetric" value="bike/euclidian"> euklidische Entfernung
+            <input type="radio" name="routingmetric" value="bike/simpleheight"> einfache Höhenvermeidung
+            <input type="radio" name="routingmetric" value="bike/power" checked> Leistungsmetrik
+        </form>
+    </div>
+    <div>
+        <form name="routingmetricsettings">
+            Maximalleistung (in Watt):<input name="maxpower" type="text" value="150.0">
+            Minimalgeschwindigkeit (in km/h):<input name="minspeed" type="text" value="12.0">
+            Gewicht (in kg, mit Fahrrad):<input name="weight" type="text" value="90.0">
+            Schiebegeschwindigkeit (in km/h):<input name="pushbikespeed" type="text" value="2.5">
+        </form>
+    </div>
+    <div>
+        <a id = "tag">Link zur GPX-Datei</a> 
+    </div>
+    <div>
     Erklärung hier hin vielleicht?
     
     Google-Karten kann man evtl nutzen, steht <a href="http://code.google.com/intl/de-DE/apis/maps/documentation/javascript/">hier</a><br>
@@ -225,5 +472,6 @@
     MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="http://www.mapquest.com/">guckst du</a>)<br>
     
     Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>
+    </div>
   </body>
 </html>

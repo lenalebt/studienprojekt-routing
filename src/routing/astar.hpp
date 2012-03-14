@@ -40,7 +40,6 @@ template class NodeCostLessAndQHashFunctorStar<boost::uint64_t, double>;
  * @author Lena Brüder
  * @date 2011-12-23
  * @copyright GNU GPL v3
- * @todo Implementieren!
  * @ingroup routing
  */
 class AStarRouter : public Router

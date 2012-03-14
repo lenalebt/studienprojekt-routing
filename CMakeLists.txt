@@ -7,7 +7,7 @@ PROJECT(biker)
 
 #Hier Versionsnummer setzen
 SET (biker_VERSION_MAJOR 0)
-SET (biker_VERSION_MINOR 05)
+SET (biker_VERSION_MINOR 06)
 
 #Programmversion dem Quelltext bekannt machen
 ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
@@ -18,10 +18,14 @@ IF (CMAKE_BUILD_TYPE STREQUAL Debug)
     MESSAGE("CMAKE_BUILD_TYPE set to Debug.")
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
     MESSAGE("CMAKE_BUILD_TYPE set to Release.")
+    #für assert.h
+    ADD_DEFINITIONS(-DNDEBUG)
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Profiling)
     MESSAGE("CMAKE_BUILD_TYPE set to Profiling.")
     SET(CMAKE_CXX_FLAGS_PROFILING "-pg")
 #    SET(CMAKE_EXE_LINKER_FLAGS_PROFILING "-pg")
+    #für assert.h
+    ADD_DEFINITIONS(-DNDEBUG)
 ENDIF ()
 
 #Evtl muss man mal für die Compiler verschiedene Einstellungen machen: Wenn, dann hier.
@@ -84,6 +88,7 @@ SET(
     
     #src/dataprimitives
     src/dataprimitives/bloomfilter.cpp
+    src/dataprimitives/rangetree.cpp
     src/dataprimitives/gpsposition.cpp
     src/dataprimitives/gpsroute.cpp
     src/dataprimitives/routingedge.cpp
@@ -97,6 +102,7 @@ SET(
     #src/preprocessing
     src/preprocessing/datapreprocessing.cpp
     src/preprocessing/simpledatapreprocessing.cpp
+    src/preprocessing/edgecategorizer.cpp
 
     #src/database/
     src/database/altitudeprovider.cpp
@@ -104,6 +110,7 @@ SET(
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
     src/database/sqlitedatabase.cpp
+    src/database/ramdatabase.cpp
     src/database/temporarydatabase.cpp
     src/database/zip.cpp
     src/database/sqlite_functions.cpp
@@ -138,6 +145,7 @@ SET(
     
     #src/dataprimitives
     src/dataprimitives/bloomfilter.hpp
+    src/dataprimitives/rangetree.hpp
     src/dataprimitives/gpsposition.hpp
     src/dataprimitives/gpsroute.hpp
     src/dataprimitives/osmproperty.hpp
@@ -151,6 +159,7 @@ SET(
     #src/preprocessing
     src/preprocessing/datapreprocessing.hpp
     src/preprocessing/simpledatapreprocessing.hpp
+    src/preprocessing/edgecategorizer.hpp
 
     #src/database/
     src/database/altitudeprovider.hpp
@@ -159,6 +168,7 @@ SET(
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
     src/database/sqlitedatabase.hpp
+    src/database/ramdatabase.hpp
     src/database/temporarydatabase.hpp
     src/database/zip.hpp
     src/database/sqlite_functions.hpp
@@ -326,6 +336,9 @@ ADD_EXECUTABLE(
 # veranlassen.
 ENABLE_TESTING()
 ADD_TEST(uint64_t2string                  "biker" "--test" "uint64_t2string")
+ADD_TEST(bloomfilter                      "biker" "--test" "bloomfilter")
+ADD_TEST(advancedrangetree                "biker" "--test" "advancedrangetree")
+ADD_TEST(rangetree                        "biker" "--test" "rangetree")
 ADD_TEST(basename                         "biker" "--test" "basename")
 ADD_TEST(routingedge                      "biker" "--test" "routingedge")
 ADD_TEST(gpsposition                      "biker" "--test" "gpsposition")
@@ -349,6 +362,7 @@ IF(SPATIALITE_FOUND)
     ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 ENDIF()
 ADD_TEST(sqlitedatabaseconnection         "biker" "--test" "sqlitedatabaseconnection")
+ADD_TEST(ramdatabaseconnection            "biker" "--test" "ramdatabaseconnection")
 ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
 ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")
 ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
@@ -362,6 +376,7 @@ ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
 ADD_TEST(multithreadeddijkstrarouter      "biker" "--test" "multithreadeddijkstrarouter")
 ADD_TEST(astarrouter                      "biker" "--test" "astarrouter")
 ADD_TEST(multithreadedastarrouter         "biker" "--test" "multithreadedastarrouter")
+ADD_TEST(routingmetrics                   "biker" "--test" "routingmetrics")
 
 SET_TESTS_PROPERTIES(dijkstrarouter              PROPERTIES DEPENDS simpledatapreprocessing)
 SET_TESTS_PROPERTIES(astarrouter                 PROPERTIES DEPENDS simpledatapreprocessing)

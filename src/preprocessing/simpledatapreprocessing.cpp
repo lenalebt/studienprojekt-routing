@@ -1,6 +1,7 @@
 #include "simpledatapreprocessing.hpp"
 #include <QSet>
-
+#include "rangetree.hpp"
+#include "edgecategorizer.hpp"
 
 SimpleDataPreprocessing::SimpleDataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
     : _nodeQueue(10000), _wayQueue(10000), _turnRestrictionQueue(10000),
@@ -75,43 +76,35 @@ bool SimpleDataPreprocessing::preprocess()
     std::cerr << "parsing ways..." << std::endl;
     _finalDBConnection->beginTransaction();
     _tmpDBConnection.beginTransaction();
-    boost::uint64_t edgeID=0;
-    QSet<boost::uint64_t> nodeIDSet;
+    //boost::uint64_t edgeID=0;
+    //QSet<boost::uint64_t> nodeIDSet;
+    //RangeTree<boost::uint64_t> nodeIDSet;
+    AdvancedRangeTree<boost::uint64_t> nodeIDSet;
     int wayCount=0;
-    while(_wayQueue.dequeue(_osmWay))
+    BlockingQueue<boost::shared_ptr<RoutingEdge> > routingEdgeQueue(10000);
+    
+    EdgeCategorizer categorizer(&_wayQueue, &routingEdgeQueue);
+    QFuture<bool> future = QtConcurrent::run(&categorizer, &EdgeCategorizer::startCategorizerLoop);
+    boost::shared_ptr<RoutingEdge> routingEdge;
+    
+    while(routingEdgeQueue.dequeue(routingEdge))
     {
-        //edges aus way extrahieren
-        if (isStreet(*_osmWay) && isPassable(*_osmWay))
+        _finalDBConnection->saveEdge(*routingEdge);
+        boost::uint64_t shortNodeID = RoutingNode::convertIDToShortFormat(routingEdge->getStartNodeID());
+        //Das mit dem nodeIDSet mache ich, weil man der DB nicht sagen kann dass sie doppeltes Einfügen ignorieren soll.
+        if (!nodeIDSet.contains(shortNodeID))
         {
-            QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
-            for(int i = 0; i < edgeList.size(); i++)
-            {
-                if (edgeList[i].isOneWayForBikes() != -1)
-                {   //temporär, damit einbahnstraßen richtig gemacht werden
-                    RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
-                    _finalDBConnection->saveEdge(routingEdge);
-                }
-            }
-            //So werden nur die Knoten in die DB gelegt, die auch von Edges benutzt werden.
-            QVector<boost::uint64_t> memberList = _osmWay->getMemberList();
-            for(int i = 0; i < memberList.size(); i++)
-            {
-                //Das mit dem nodeIDSet mache ich, weil man der DB nicht sagen kann dass sie doppeltes Einfügen ignorieren soll.
-                if (!nodeIDSet.contains(memberList[i]))
-                {
-                    _osmNode = _tmpDBConnection.getOSMNodeByID(memberList[i]);
-                    RoutingNode routingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon());
-                    _finalDBConnection->saveNode(routingNode);
-                    nodeIDSet.insert(_osmNode->getID());
-                }
-            }
+            _osmNode = _tmpDBConnection.getOSMNodeByID(shortNodeID);
+            RoutingNode routingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon());
+            _finalDBConnection->saveNode(routingNode);
+            nodeIDSet.insert(_osmNode->getID());
+        }
             
-            if (++wayCount == 100000)
-            {
-                wayCount = 0;
-                _finalDBConnection->endTransaction();
-                _finalDBConnection->beginTransaction();
-            }
+        if (++wayCount == 100000)
+        {
+            wayCount = 0;
+            _finalDBConnection->endTransaction();
+            _finalDBConnection->beginTransaction();
         }
     }
     _finalDBConnection->endTransaction();

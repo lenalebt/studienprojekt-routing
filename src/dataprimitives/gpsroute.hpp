@@ -5,6 +5,8 @@
 // QList wird verwendet, weil an verschiedenen Stellen in der Liste Objekte eingefügt werden können (und nicht nur einseitig).
 #include <QList>
 #include "tests.hpp"
+#include "altitudeprovider.hpp"
+#include <boost/shared_ptr.hpp>
 
 /**
  * @brief Diese Klasse stellt eine Route im Speicher dar.
@@ -129,13 +131,13 @@ public:
      * von anderen Applikationen benutzt werden kann.
      * @param filename Name unter der die GPX-Datei gespeichert werden soll
      */
-    void exportGPX(const QString filename);//, GPSRoute& route);
+    void exportGPX(const QString filename, boost::shared_ptr<AltitudeProvider> provider = boost::shared_ptr<AltitudeProvider>());//, GPSRoute& route);
     /**
      * @brief Diese Funktion exportiert die Route in einen QString mit  GPX-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
      * @param route die Route, die ausgegeben werden soll
      */
-    QString exportGPXString();//(GPSRoute& route);
+    QString exportGPXString(boost::shared_ptr<AltitudeProvider> provider = boost::shared_ptr<AltitudeProvider>());//(GPSRoute& route);
 
     /**
      * @brief Diese Funktion exportiert die Route in das JSON-Format, sodass sie

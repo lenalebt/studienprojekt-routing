@@ -33,6 +33,10 @@
 #include "astar.hpp"
 #include "sqlitedatabase.hpp"
 #include "filedownloader.hpp"
+#include "bloomfilter.hpp"
+#include "rangetree.hpp"
+#include "routingmetric.hpp"
+#include "ramdatabase.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
@@ -157,6 +161,7 @@ namespace biker_tests
     template bool check_equality(std::string message, unsigned long a,   unsigned long long b);
     template bool check_equality(std::string message, OSMProperty a,     OSMProperty b);
     template bool check_equality(std::string message, OSMNode a,         OSMNode b);
+    template bool check_equality(std::string message, OSMEdge a,         OSMEdge b);
     template bool check_equality(std::string message, GPSPosition a,     GPSPosition b);
     template bool check_equality(std::string message, OSMTurnRestriction a, OSMTurnRestriction b);
   
@@ -192,6 +197,8 @@ namespace biker_tests
         #endif
         else if (testName == "sqlitedatabaseconnection")
             return biker_tests::testSQLiteDatabaseConnection();
+        else if (testName == "ramdatabaseconnection")
+            return biker_tests::testRAMDatabaseConnection();
         else if (testName == "temporaryosmdatabaseconnection")
             return biker_tests::testTemporaryOSMDatabaseConnection();
         else if (testName == "databaseramcache")
@@ -248,6 +255,14 @@ namespace biker_tests
             return biker_tests::testAStarRouter();
         else if (testName == "multithreadedastarrouter")
             return biker_tests::testMultithreadedAStarRouter();
+        else if (testName == "bloomfilter")
+            return biker_tests::testBloomfilter();
+        else if (testName == "rangetree")
+            return biker_tests::testRangeTree();
+        else if (testName == "advancedrangetree")
+            return biker_tests::testAdvancedRangeTree();
+        else if (testName == "routingmetrics")
+            return biker_tests::testRoutingMetrics();
         
         //Anpassen, falls Fehler auftraten!
         std::cerr << "error: did not find test \"" << testName << "\"." << std::endl;

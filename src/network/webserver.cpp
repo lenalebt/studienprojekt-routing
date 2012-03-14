@@ -14,6 +14,7 @@
 #include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
 #include "srtmprovider.hpp"
+#include "databaseramcache.hpp"
 
 template <typename HttpRequestProcessorType>
 void HttpServerThread<HttpRequestProcessorType>::run()
@@ -208,7 +209,9 @@ bool HttpRequestProcessor::sendFile(const QString& content)
     writeString(_socket, "Cache-Control: no-store\n");
     writeString(_socket, "\n");
     _socket->flush();
-    _socket->write(content.toUtf8());
+    QByteArray data = content.toUtf8();
+    //std::cerr << "content length: " << data.size() << std::endl;
+    _socket->write(data);
     //TODO: Header, die zum Dateiinhalt passen
     //TODO: Dateiinhalt senden
     //TODO: Bei Fehler false zurückgeben
@@ -287,10 +290,9 @@ bool HttpRequestProcessor::preprocessRequest()
     _httpVersion = httpHelloRegExp.cap(4);
     QString parameters = httpHelloRegExp.cap(3);
     
-    /*std::cerr << "requestType: " << requestType << std::endl
-        << "requestPath: " << _requestPath << std::endl
+    std::cerr << "requestPath: " << _requestPath << std::endl
         << "httpVersion: 1." << _httpVersion << std::endl
-        << "parameters: " << parameters << std::endl;*/
+        << "parameters: " << parameters << std::endl;
     
     //Erst Parameter abfragen, dann können in der Zwischenzeit Daten
     //für die Header reinkommen. Müsste so rum schneller sein.
@@ -424,7 +426,9 @@ void BikerHttpRequestProcessor::processRequest()
          * @todo RegExp nur einmal erzeugen und dann wiederverwenden!
          */
         QRegExp cloudmadeApiKeyRegExp("^/([\\da-fA-F]{1,64})/(?:api|API)/0.(\\d)");
-        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        //QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))){0,20}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        QRegExp cloudmadeApiPointListRegExp("^/(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})),(?:\\[(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))(?:,(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16})){0,40}\\],)?(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
+        QRegExp cloudmadeApiPointListExtractor("(?:(\\d{1,3}.\\d{1,16}),(\\d{1,3}.\\d{1,16}))");
         QRegExp cloudmadeApiRouteTypeRegExp("^/([a-zA-Z0-9]{1,64})(?:/([a-zA-Z0-9]{1,64}))?.(gpx|GPX|js|JS)$");
         
         QString apiKey="";
@@ -459,16 +463,16 @@ void BikerHttpRequestProcessor::processRequest()
         if (cloudmadeApiPointListRegExp.cap(0).length() != 0)
         {
             //Punktliste gefunden. Auswerten!
+            //Neue RegExp zum Punkte herausholen...
+            cloudmadeApiPointListExtractor.indexIn(cloudmadeApiPointListRegExp.cap(0));
             QString strLat, strLon;
             routePointList.clear();
-            for (int i=1; i<=cloudmadeApiPointListRegExp.captureCount(); i+=2)
+            for (int pos=0; pos>=0; pos=cloudmadeApiPointListExtractor.indexIn(cloudmadeApiPointListRegExp.cap(0), cloudmadeApiPointListExtractor.cap(0).length()+pos))
             {
-                strLat = cloudmadeApiPointListRegExp.cap(i);
-                strLon = cloudmadeApiPointListRegExp.cap(i+1);
+                strLat = cloudmadeApiPointListExtractor.cap(1);
+                strLon = cloudmadeApiPointListExtractor.cap(2);
                 GPSPosition point(strLat.toDouble(), strLon.toDouble());
-                //Workaround für (0/0)-Punkte. Warum ist das so?
-                if (point.isInitialized())
-                    routePointList << point;
+                routePointList << point;
             }
             
             position += cloudmadeApiPointListRegExp.cap(0).length();
@@ -507,6 +511,7 @@ void BikerHttpRequestProcessor::processRequest()
             #else
                 altitudeProvider.reset(new ZeroAltitudeProvider());
             #endif
+            //altitudeProvider.reset(new ZeroAltitudeProvider());
             
             //Routingmetrik festlegen anhand der Benutzerwahl
             if (routeModifier == "euclidian")
@@ -515,12 +520,26 @@ void BikerHttpRequestProcessor::processRequest()
             }
             else if (routeModifier == "simpleheight")
             {
-                float detourPerHeightMeter = 50.0f;
+                float detourPerHeightMeter = 100.0f;
                 if (numberRegExp.indexIn(_parameterMap["detourperheightmeter"]) != -1)
                 {
                     detourPerHeightMeter = numberRegExp.cap(1).toFloat();
                 }
                 metric.reset(new SimpleHeightRoutingMetric(altitudeProvider, detourPerHeightMeter));
+            }
+            else if (routeModifier == "advancedheight")
+            {
+                float punishment = 1.0f;
+                float detourPerHeightMeter = 200.0f;
+                if (numberRegExp.indexIn(_parameterMap["punishment"]) != -1)
+                {
+                    punishment = numberRegExp.cap(1).toFloat();
+                }
+                if (numberRegExp.indexIn(_parameterMap["detourperheightmeter"]) != -1)
+                {
+                    detourPerHeightMeter = numberRegExp.cap(1).toFloat();
+                }
+                metric.reset(new AdvancedHeightRoutingMetric(altitudeProvider, detourPerHeightMeter, punishment));
             }
             else if (routeModifier == "simplepower")
             {
@@ -532,6 +551,24 @@ void BikerHttpRequestProcessor::processRequest()
                 if (numberRegExp.indexIn(_parameterMap["efficiency"]) != -1)
                     efficiency = numberRegExp.cap(1).toDouble();
                 metric.reset(new SimplePowerRoutingMetric(altitudeProvider, weight, efficiency));
+            }
+            else if (routeModifier == "power")
+            {
+                double weight = 90.0;
+                //double maxPower = 140.0;
+                double maxPower = 150.0;
+                double minSpeed = 2.5;
+                double pushBikeSpeed = 0.5;
+                
+                if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
+                    weight = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["maxpower"]) != -1)
+                    maxPower = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["minspeed"]) != -1)
+                    minSpeed = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["pushbikespeed"]) != -1)
+                    pushBikeSpeed = numberRegExp.cap(1).toDouble();
+                metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed, pushBikeSpeed));
             }
             else
             {
@@ -557,7 +594,11 @@ void BikerHttpRequestProcessor::processRequest()
             dbA->open(ProgramOptions::getInstance()->dbFilename.c_str());
             dbB->open(ProgramOptions::getInstance()->dbFilename.c_str());
             
-            //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-Dijkstra.
+            //TODO: Testen, ob das mit dem Cache überhaupt was bringt...
+            dbA = boost::shared_ptr<DatabaseConnection>(new DatabaseRAMCache(dbA, ProgramOptions::getInstance()->dbCacheSize));
+            dbB = boost::shared_ptr<DatabaseConnection>(new DatabaseRAMCache(dbB, ProgramOptions::getInstance()->dbCacheSize));
+            
+            //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-A* oder Mehrthread-Dijkstra - je nach Metrik.
             if (_parameterMap["algorithm"] == "multithreadeddijkstra")
                 router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
             else if (_parameterMap["algorithm"] == "dijkstra")
@@ -567,7 +608,12 @@ void BikerHttpRequestProcessor::processRequest()
             else if (_parameterMap["algorithm"] == "multithreadedastar")
                 router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
             else
-                router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
+            {
+                if (metric->getMeasurementUnit() == DISTANCE)
+                    router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
+                else
+                    router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
+            }
             
             //Route berechnen
             GPSRoute route = router->calculateShortestRoute(routePointList);
@@ -581,7 +627,7 @@ void BikerHttpRequestProcessor::processRequest()
             
             //Antwort entsprechend des Routentypen senden.
             if (routeDataType == "gpx")
-                this->sendFile(route.exportGPXString());
+                this->sendFile(route.exportGPXString(altitudeProvider));
             else if (routeDataType == "js")
                 this->sendFile(route.exportJSONString());
             else

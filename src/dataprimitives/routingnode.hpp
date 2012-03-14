@@ -15,7 +15,6 @@
  * @author Lena Brüder
  * @date 2011-11-01
  * @copyright GNU GPL v3
- * @todo Evtl erweitern?
  */
 class RoutingNode : public GPSPosition
 {
@@ -57,6 +56,11 @@ public:
      * @brief Wandelt eine ID in das Format um, in dem Kanten KnotenID
      *  (für Start- und Endknoten) speichern.
      * 
+     * Das lange Format zeichnet sich aus durch Shift nach links um 8 Positionen,
+     * sowie ein Markierungsbit an Bitposition 62, welches bei signed-Konvertierungen
+     * das größte Nichtvorzeichenbit wäre.
+     * 
+     * @remarks Bearbeitet nur kurze IDs, lange IDs werden unverändert zurückgegeben.
      * @param id Die zu konvertierende ID
      * @return Die konvertierte ID
      */
@@ -73,6 +77,10 @@ public:
      * @brief Wandelt eine ID in das Format um, in dem Knoten ihre ID
      *  speichern.
      * 
+     * Entfernt das Markerbit an Bitposition 62, und verschiebt die Bits
+     * wieder 8 Positionen nach rechts.
+     * 
+     * @remarks Bearbeitet nur lange IDs, kurze IDs werden unverändert zurückgegeben.
      * @param id Die zu konvertierende ID
      * @return Die konvertierte ID
      */
@@ -84,11 +92,24 @@ public:
         return ((id & ~mark) >> 8);
     }
     
+    /**
+     * @brief Prüft, ob eine ID im langen Format ist, oder nicht.
+     * 
+     * Prüft im speziellen, ob Bit 62 gesetzt ist, oder nicht.
+     */
     bool isIDInLongFormat()
     {
         boost::uint64_t mark = 0x4000000000000000llu;
         return (id & mark);
     }
+    
+    /**
+     * @brief Prüft, ob eine ID im langen Format ist, oder nicht.
+     * 
+     * Prüft im speziellen, ob Bit 62 gesetzt ist, oder nicht.
+     * 
+     * @param id Die ID, die überprüft wird.
+     */
     static inline bool isIDInLongFormat(const boost::uint64_t id)
     {
         boost::uint64_t mark = 0x4000000000000000llu;
