@@ -14,6 +14,7 @@
 #include "spatialitedatabase.hpp"
 #include "sqlitedatabase.hpp"
 #include "srtmprovider.hpp"
+#include "databaseramcache.hpp"
 
 template <typename HttpRequestProcessorType>
 void HttpServerThread<HttpRequestProcessorType>::run()
@@ -592,6 +593,10 @@ void BikerHttpRequestProcessor::processRequest()
             //Datenbank ist die globale DB...
             dbA->open(ProgramOptions::getInstance()->dbFilename.c_str());
             dbB->open(ProgramOptions::getInstance()->dbFilename.c_str());
+            
+            //TODO: Testen, ob das mit dem Cache überhaupt was bringt...
+            dbA = boost::shared_ptr<DatabaseConnection>(new DatabaseRAMCache(dbA, ProgramOptions::getInstance()->dbCacheSize));
+            dbB = boost::shared_ptr<DatabaseConnection>(new DatabaseRAMCache(dbB, ProgramOptions::getInstance()->dbCacheSize));
             
             //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-A* oder Mehrthread-Dijkstra - je nach Metrik.
             if (_parameterMap["algorithm"] == "multithreadeddijkstra")

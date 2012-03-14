@@ -30,7 +30,7 @@
                 defaultHandlerOptions: {
                     'single': true,
                     'double': false,
-                    'pixelTolerance': 0,
+                    'pixelTolerance': 2,
                     'stopSingle': false,
                     'stopDouble': false
                 },
@@ -63,14 +63,19 @@
         var map, layer, gpxlayer;
         
         function init(){
+            var geolocate = new OpenLayers.Control.Geolocate({id: 'locate-control', geolocationOptions: {enableHighAccuracy: false, maximumAge: 0, timeout: 7000}});
+            
             map = new OpenLayers.Map('map',
                 {controls:[new OpenLayers.Control.ArgParser,
                 new OpenLayers.Control.Attribution,
                 new OpenLayers.Control.LayerSwitcher,
-                new OpenLayers.Control.Navigation,
+                new OpenLayers.Control.Navigation({dragPanOptions: {enableKinetic: true}}),
                 new OpenLayers.Control.MousePosition,
                 //new OpenLayers.Control.PanZoom,   //Einkommentieren bringt das Problem mit den doppelten Zoombuttons
                 new OpenLayers.Control.PanZoomBar,
+                new OpenLayers.Control.OverviewMap({maximized: false}),
+                geolocate,
+                new OpenLayers.Control.TouchNavigation({dragPanOptions: {enableKinetic: true}}),
                 new OpenLayers.Control.ScaleLine({geodesic:true})],
                 units:"m",
                 maxResolution:156543.0339,
@@ -80,7 +85,9 @@
             var osmdeutsch = new OpenLayers.Layer.OSM("OSM deutscher Stil", [
                "http://a.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
                "http://b.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
-               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],{attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>'});
+               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],
+               {attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>',
+                transitionEffect: 'resize'});
             map.addLayer(osmdeutsch);
             var osm=new OpenLayers.Layer.OSM(
                 "OSM Mapnik",
@@ -91,14 +98,17 @@
                 keyid:"mapnik",
                 displayOutsideMaxExtent:true,
                 wrapDateLine:true,
-                layerCode:"M"});
+                layerCode:"M",
+                transitionEffect: 'resize'}
+                );
             map.addLayer(osm);
             oepnv = new OpenLayers.Layer.OSM("&Ouml;PNVkarte",
                 "http://tile.memomaps.de/tilegen/${z}/${x}/${y}.png",
                 {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a><br>Original map can be seen at <a href=http://www.xn--pnvkarte-m4a.de>www.&ouml;pnvkarte.de</a>",
                  numZoomLevels: 19,
                  displayInLayerSwitcher:true,
-                 buffer:0}
+                 buffer:0,
+                 transitionEffect: 'resize'}
                 );
             map.addLayer(oepnv);
             var transport=new OpenLayers.Layer.OSM(
@@ -110,7 +120,8 @@
                 keyid:"transportmap",
                 displayOutsideMaxExtent:!0,
                 wrapDateLine:true,
-                layerCode:"T"});
+                layerCode:"T"},
+                {transitionEffect: 'resize'});
             map.addLayer(transport);
             var cyclemap=new OpenLayers.Layer.OSM(
                 "OSM Radfahrerkarte",
@@ -121,8 +132,46 @@
                 keyid:"cyclemap",
                 displayOutsideMaxExtent:true,
                 wrapDateLine:true,
-                layerCode:"C"});
+                layerCode:"C",
+                transitionEffect: 'resize'}
+                );
             map.addLayer(cyclemap);
+            var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {});
+            map.addLayer(vectorLayer);
+            var geolocationstyle = {
+                fillColor: '#000',
+                fillOpacity: 0.1,
+                strokeWidth: 0
+            };
+            geolocate.events.register("locationupdated", this, function(e) {
+                vectorLayer.removeAllFeatures();
+                vectorLayer.addFeatures([
+                    new OpenLayers.Feature.Vector(
+                        e.point,
+                        {},
+                        {
+                            graphicName: 'star',
+                            strokeColor: '#f00',
+                            strokeWidth: 1,
+                            fillOpacity: 0,
+                            pointRadius: 7
+                        }
+                    ),
+                    new OpenLayers.Feature.Vector(
+                        OpenLayers.Geometry.Polygon.createRegularPolygon(
+                            new OpenLayers.Geometry.Point(e.point.x, e.point.y),
+                            e.position.coords.accuracy / 2,
+                            50,
+                            0
+                        ),
+                        {},
+                        geolocationstyle
+                    )
+                ]);
+                map.zoomToExtent(vector.getDataExtent());
+            });
+            geolocate.deactivate();
+            geolocate.activate();
             /*var mapquestaerial=new OpenLayers.Layer.OSM(
                 "Mapquest Aerial",
                 ["http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
@@ -231,11 +280,13 @@
                     if(help < 1.0)
                     {
                         lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
+                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
                         markers.addMarker(lastmarker[index]);
                     }
                     else
                     {
                         lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
                         markers.addMarker(lastmarker[index]);
                     }
                     //alert(iconindex);

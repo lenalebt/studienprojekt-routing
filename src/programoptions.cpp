@@ -17,6 +17,7 @@ ProgramOptions::ProgramOptions() :
     
     dbFilename(""),
     dbBackend("spatialite"),
+    dbCacheSize(500000u),
     
     doRouting(false),
     routingStartPoint(),
