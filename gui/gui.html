@@ -136,7 +136,7 @@
                 transitionEffect: 'resize'}
                 );
             map.addLayer(cyclemap);
-            var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {});
+            var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {displayInLayerSwitcher:false});
             map.addLayer(vectorLayer);
             var geolocationstyle = {
                 fillColor: '#000',
