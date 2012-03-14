@@ -248,14 +248,11 @@ public:
      *      wichtige Daten auszuliefern werden nur solche Dateien ausgeliefert,
      *      die für alle Benutzer des Systems lesbar sind.
      */
-    static QString publicHtmlDirectory;
     BikerHttpRequestProcessor(int socketDescriptor) :
         HttpRequestProcessor(socketDescriptor) {}
     /**
      * @remarks Es werden nur GET-Anfragen beantwortet. Alle anderen werden mit
      *      HTTP 405 beantwortet.
-     * @todo Dynamische Requests bearbeiten, diese werden atm noch mit HTTP 404
-     *      beantwortet.
      */
     void processRequest();
 };

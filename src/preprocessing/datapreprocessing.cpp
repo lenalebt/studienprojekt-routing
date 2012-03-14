@@ -4,8 +4,10 @@
 DataPreprocessing::DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
     : _nodeQueue(1000), _wayQueue(1000), _turnRestrictionQueue(1000),
     _osmParser(),
-    _pbfParser(),
-      _finalDBConnection(finaldb)
+    #ifdef PROTOBUF_FOUND
+        _pbfParser(),
+    #endif
+    _finalDBConnection(finaldb)
 {
     
 }
@@ -38,22 +40,24 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
         future.waitForFinished();
         return true;
     }
-    else if (fileToParse.endsWith(".pbf"))
-    {
-        _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
-        QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
-        
-        saveNodeToTmpDatabase();
-        saveEdgeToTmpDatabase();
-        saveTurnRestrictionToTmpDatabase();
-        
-        std::cerr << "creating indexes" << std::endl;
-        _tmpDBConnection.createIndexes();
-        _finalDBConnection->createIndexes();
-        
-        future.waitForFinished();
-        return true;
-    }
+    #ifdef PROTOBUF_FOUND
+        else if (fileToParse.endsWith(".pbf"))
+        {
+            _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
+            QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
+            
+            saveNodeToTmpDatabase();
+            saveEdgeToTmpDatabase();
+            saveTurnRestrictionToTmpDatabase();
+            
+            std::cerr << "creating indexes" << std::endl;
+            _tmpDBConnection.createIndexes();
+            _finalDBConnection->createIndexes();
+            
+            future.waitForFinished();
+            return true;
+        }
+    #endif
     else
     {
         return false;
@@ -738,7 +742,11 @@ namespace biker_tests
         if (file.exists())
             file.remove();
         
-        boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
+        #ifdef SPATIALITE_FOUND
+            boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
+        #else
+            boost::shared_ptr<SQLiteDatabaseConnection> finalDB(new SQLiteDatabaseConnection());
+        #endif
         DataPreprocessing dataPreprocessing(finalDB);
         dataPreprocessing.startparser("data/rub.osm", "rub.db");
         return EXIT_SUCCESS;

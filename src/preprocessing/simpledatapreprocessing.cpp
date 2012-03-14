@@ -5,8 +5,10 @@
 SimpleDataPreprocessing::SimpleDataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
     : _nodeQueue(10000), _wayQueue(10000), _turnRestrictionQueue(10000),
     _osmParser(),
-    _pbfParser(),
-      _finalDBConnection(finaldb)
+    #ifdef PROTOBUF_FOUND
+        _pbfParser(),
+    #endif
+    _finalDBConnection(finaldb)
 {
     
 }
@@ -26,6 +28,27 @@ bool SimpleDataPreprocessing::isStreet(const OSMWay& way)
             return true;
     }
     return false;
+}
+
+bool SimpleDataPreprocessing::isPassable(const OSMWay& way)
+{
+    //Wenn ein "highway"-key gefunden wird, ist es eine Straße - sonst nicht.
+    QVector<OSMProperty> props = way.getProperties();
+    for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
+    {
+        if (it->getKey() == "highway")
+        {
+            if (it->getValue() == "motorway")
+                return false;
+            else if (it->getValue() == "motorway_link")
+                return false;
+            else if (it->getValue() == "trunk")
+                return false;
+            else if (it->getValue() == "trunk_link")
+                return false;
+        }
+    }
+    return true;
 }
 
 bool SimpleDataPreprocessing::preprocess()
@@ -51,19 +74,23 @@ bool SimpleDataPreprocessing::preprocess()
     //bearbeite dann alle Kanten.
     std::cerr << "parsing ways..." << std::endl;
     _finalDBConnection->beginTransaction();
+    _tmpDBConnection.beginTransaction();
     boost::uint64_t edgeID=0;
     QSet<boost::uint64_t> nodeIDSet;
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
     {
         //edges aus way extrahieren
-        if (isStreet(*_osmWay))
+        if (isStreet(*_osmWay) && isPassable(*_osmWay))
         {
             QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
             for(int i = 0; i < edgeList.size(); i++)
             {
-                RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
-                _finalDBConnection->saveEdge(routingEdge);
+                if (edgeList[i].isOneWayForBikes() != -1)
+                {   //temporär, damit einbahnstraßen richtig gemacht werden
+                    RoutingEdge routingEdge(edgeID++, RoutingNode::convertIDToLongFormat(edgeList[i].getStartNode()), RoutingNode::convertIDToLongFormat(edgeList[i].getEndNode()));
+                    _finalDBConnection->saveEdge(routingEdge);
+                }
             }
             //So werden nur die Knoten in die DB gelegt, die auch von Edges benutzt werden.
             QVector<boost::uint64_t> memberList = _osmWay->getMemberList();
@@ -88,6 +115,7 @@ bool SimpleDataPreprocessing::preprocess()
         }
     }
     _finalDBConnection->endTransaction();
+    _tmpDBConnection.endTransaction();
     
     //Abbiegebeschränkungen werden einfach überlesen.
     std::cerr << "parsing turn restrictions..." << std::endl;
@@ -106,6 +134,11 @@ bool SimpleDataPreprocessing::preprocess()
 bool SimpleDataPreprocessing::preprocess(QString fileToParse, QString dbFilename)
 {
     _finalDBConnection->open(dbFilename);
+    if (!_finalDBConnection->isDBOpen())
+    {
+        std::cerr << "was not able to open database file \"" << dbFilename << "\"." << std::endl;
+        return false;
+    }
     QTemporaryFile tmpFile;
     tmpFile.open();
     QString tmpFilename = tmpFile.fileName();
@@ -127,20 +160,23 @@ bool SimpleDataPreprocessing::preprocess(QString fileToParse, QString dbFilename
         tmpFile.remove();
         return (preprocessRetval && future.result());
     }
-    else if (fileToParse.endsWith(".pbf"))
-    {
-        _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
-        QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
-        
-        bool preprocessRetval = preprocess();
-        future.waitForFinished();
-        _finalDBConnection->close();
-        _tmpDBConnection.close();
-        tmpFile.remove();
-        return (preprocessRetval && future.result());
-    }
+    #ifdef PROTOBUF_FOUND
+        else if (fileToParse.endsWith(".pbf"))
+        {
+            _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
+            QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
+            
+            bool preprocessRetval = preprocess();
+            future.waitForFinished();
+            _finalDBConnection->close();
+            _tmpDBConnection.close();
+            tmpFile.remove();
+            return (preprocessRetval && future.result());
+        }
+    #endif
     else
     {
+        std::cerr << "no parser for file \"" << fileToParse << "\" available." << std::endl;
         return false;
     }
 }
@@ -155,7 +191,11 @@ namespace biker_tests
         if (file.exists())
             file.remove();
         
-        boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
+        #ifdef SPATIALITE_FOUND
+            boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
+        #else
+            boost::shared_ptr<SQLiteDatabaseConnection> finalDB(new SQLiteDatabaseConnection());
+        #endif
         SimpleDataPreprocessing dataPreprocessing(finalDB);
         CHECK(dataPreprocessing.preprocess("data/rub.osm", "rub.db"));
         CHECK(dataPreprocessing.preprocess("data/bochum_city.osm", "bochum_city.db"));

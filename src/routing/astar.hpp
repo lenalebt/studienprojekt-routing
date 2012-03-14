@@ -1,5 +1,5 @@
-#ifndef DIJKSTRA_HPP
-#define DIJKSTRA_HPP
+#ifndef ASTAR_HPP
+#define ASTAR_HPP
 
 #include "router.hpp"
 #include "routingnode.hpp"
@@ -8,12 +8,12 @@
 #include "closedlist.hpp"
 
 template<typename K, typename V>
-class NodeCostLessAndQHashFunctor
+class NodeCostLessAndQHashFunctorStar
 {
 private:
     QHash<K, V> hashMap;
 public:
-    NodeCostLessAndQHashFunctor()
+    NodeCostLessAndQHashFunctorStar()
     {
         
     }
@@ -31,7 +31,7 @@ public:
         return hashMap[key];
     }
 };
-template class NodeCostLessAndQHashFunctor<boost::uint64_t, double>;
+template class NodeCostLessAndQHashFunctorStar<boost::uint64_t, double>;
 
 /**
  * @brief Implementiert den klassischen Dijkstra-Algorithmus in einer
@@ -40,9 +40,10 @@ template class NodeCostLessAndQHashFunctor<boost::uint64_t, double>;
  * @author Lena Brüder
  * @date 2011-12-23
  * @copyright GNU GPL v3
+ * @todo Implementieren!
  * @ingroup routing
  */
-class DijkstraRouter : public Router
+class AStarRouter : public Router
 {
 private:
     boost::shared_ptr<DatabaseConnection> _db;
@@ -50,7 +51,7 @@ private:
     
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
-    DijkstraRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric);
+    AStarRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric);
     GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
@@ -58,27 +59,13 @@ public:
  * @brief Implementiert den Algorithmus von Dijkstra mit zwei Threads:
  *      Einen vom Start-, und einen vom Zielpunkt aus.
  * 
- * Das Routing mit diesem Algorithmus ist theoretisch bis zu 4 Mal so schnell,
- * wie die Variante mit einem Thread: Auf der einen Seite benutzt diese
- * Implementierung 2 Threads zum Ausführen der Berechnung, die gleichwertig sind.
- * Dadurch könnte auf einem mehrprozessorsystem doppelte Ausführungsgeschwindigkeit
- * erreicht werden. Das Routing geschieht gleichtzeitig vom Start in Richtung
- * Ziel, und vom Ziel in Richtung Start. Wenn beide Threads einen Punkt als
- * endgültig betrachtet ansehen, ist die Ausführung beendet.
- * 
- * Betrachtet man den Suchraum des Algorithmus ergibt sich im Vergleich zum
- * klassischen Algorithmus von Dijkstra statt eines etwa kreisförmigen
- * Raumes mit Radius <code>r</code> der Entfernung vom Start zum Ziel
- * ein Suchraum der Form zweier Kreise mit halbem Radius. Dadurch halbiert sich
- * die Größe des Suchraumes. Selbst auf einem System mit nur einem Prozessor würde
- * sich somit die Ausführungsgeschwindigkeit etwa verdoppeln.
- * 
  * @author Lena Brüder
  * @date 2011-12-23
  * @copyright GNU GPL v3
+ * @todo Umbauen, atm ist das nur der Mehrthreaddijkstra.
  * @ingroup routing
  */
-class MultithreadedDijkstraRouter : public Router
+class MultithreadedAStarRouter : public Router
 {
 private:
     boost::shared_ptr<DatabaseConnection> _dbA;
@@ -94,7 +81,7 @@ private:
      * 
      * @return Die Route vom Startpunkt zum gemeinsamen Punkt
      */
-    GPSRoute calculateShortestRouteThreadA(const RoutingNode& startNode, MultiThreadedHashClosedList* closedList);
+    GPSRoute calculateShortestRouteThreadA(const RoutingNode& startNode, const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
     /**
      * @brief Berechnet eine Route vom Ziel aus in Richtung Startpunkt.
      * 
@@ -103,10 +90,10 @@ private:
      * 
      * @return Die Route vom gemeinsamen Punkt zum Endpunkt
      */
-    GPSRoute calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
+    GPSRoute calculateShortestRouteThreadB(const RoutingNode& startNode, const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
 public:
     /**
-     * @brief Erstellt einen neuen Router, der den Algorithmus von Dijkstra
+     * @brief Erstellt einen neuen Router, der den A*-Algorithmus
      *  in einer mehr-Thread-Version ausführt.
      * 
      * Es müssen 2 Datenbankverbindungen angegeben werden, weil SQLite nicht
@@ -118,20 +105,14 @@ public:
      * @param dbB Die Datenbank für Thread B
      * @param metric Die Routingmetrik, die zum Bewerten von Kanten verwendet werden soll
      */
-    MultithreadedDijkstraRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric);
+    MultithreadedAStarRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric);
     GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
 namespace biker_tests
 {
-    /**
-     * @ingroup tests
-     */
-    int testDijkstraRouter();
-    /**
-     * @ingroup tests
-     */
-    int testMultithreadedDijkstraRouter();
+    int testAStarRouter();
+    int testMultithreadedAStarRouter();
 }
 
-#endif //DIJKSTRA_HPP
+#endif //ASTAR_HPP

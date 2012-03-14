@@ -9,8 +9,11 @@
 #include "routingmetric.hpp"
 #include "database.hpp"
 #include "dijkstra.hpp"
-
-QString BikerHttpRequestProcessor::publicHtmlDirectory = "";
+#include "astar.hpp"
+#include "programoptions.hpp"
+#include "spatialitedatabase.hpp"
+#include "sqlitedatabase.hpp"
+#include "srtmprovider.hpp"
 
 template <typename HttpRequestProcessorType>
 void HttpServerThread<HttpRequestProcessorType>::run()
@@ -362,8 +365,9 @@ void HttpRequestProcessor::run()
 
 void BikerHttpRequestProcessor::processRequest()
 {
-    //TODO: Request bearbeiten
     std::cerr << "processing request..." << std::endl;
+    
+    QRegExp numberRegExp("(\\d+(?:.\\d+)?)");
     
     //Es wird nur GET unterstützt, der Rest nicht. Bei was anderem: Grantig sein und 405 antworten.
     if (_requestType != "GET")
@@ -384,14 +388,14 @@ void BikerHttpRequestProcessor::processRequest()
     {
         //"/files/" entfernen!
         QString _myRequestPath = _requestPath.remove(0, 7);
-        QDir mainDir(publicHtmlDirectory);
-        if ((publicHtmlDirectory == "") || !mainDir.exists())
+        QDir mainDir((ProgramOptions::getInstance()->webserver_public_html_folder).c_str());
+        if ((ProgramOptions::getInstance()->webserver_public_html_folder == "") || !mainDir.exists())
         {
             this->send404();
             return;
         }
-        QFile file(publicHtmlDirectory + "/" + _myRequestPath);
-        QDir dir(publicHtmlDirectory + "/" + _myRequestPath);
+        QFile file(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
+        QDir dir(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
         
         //Wenn die Datei existiert, und alle sie lesen dürfen (nicht nur
         //    Benutzer oder Gruppe): Datei senden. Sonst: 404 Not found.
@@ -462,7 +466,9 @@ void BikerHttpRequestProcessor::processRequest()
                 strLat = cloudmadeApiPointListRegExp.cap(i);
                 strLon = cloudmadeApiPointListRegExp.cap(i+1);
                 GPSPosition point(strLat.toDouble(), strLon.toDouble());
-                routePointList << point;
+                //Workaround für (0/0)-Punkte. Warum ist das so?
+                if (point.isInitialized())
+                    routePointList << point;
             }
             
             position += cloudmadeApiPointListRegExp.cap(0).length();
@@ -486,23 +492,46 @@ void BikerHttpRequestProcessor::processRequest()
             return;
         }
         
-        //TODO: Routing starten
         //this->send102();
         
         if ((routeType == "bicycle") || (routeType == "bike"))
         {
             boost::shared_ptr<RoutingMetric> metric;
             boost::shared_ptr<Router> router;
-            boost::shared_ptr<DatabaseConnection> db;
+            boost::shared_ptr<DatabaseConnection> dbA;
+            boost::shared_ptr<DatabaseConnection> dbB;
+            boost::shared_ptr<AltitudeProvider> altitudeProvider;
+            
+            #ifdef ZZIP_FOUND
+                altitudeProvider.reset(new SRTMProvider());
+            #else
+                altitudeProvider.reset(new ZeroAltitudeProvider());
+            #endif
+            
             //Routingmetrik festlegen anhand der Benutzerwahl
             if (routeModifier == "euclidian")
             {
-                metric.reset(new EuclidianRoutingMetric());
+                metric.reset(new EuclidianRoutingMetric(altitudeProvider));
             }
-            else if (routeModifier == "power")
+            else if (routeModifier == "simpleheight")
             {
-                //TODO: Gewicht etc aus der Anfrage herauslesen
-                metric.reset(new PowerRoutingMetric(boost::shared_ptr<AltitudeProvider>(new SRTMProvider())));
+                float detourPerHeightMeter = 50.0f;
+                if (numberRegExp.indexIn(_parameterMap["detourperheightmeter"]) != -1)
+                {
+                    detourPerHeightMeter = numberRegExp.cap(1).toFloat();
+                }
+                metric.reset(new SimpleHeightRoutingMetric(altitudeProvider, detourPerHeightMeter));
+            }
+            else if (routeModifier == "simplepower")
+            {
+                double weight = 90.0;
+                double efficiency = 3 * weight;
+                
+                if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
+                    weight = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["efficiency"]) != -1)
+                    efficiency = numberRegExp.cap(1).toDouble();
+                metric.reset(new SimplePowerRoutingMetric(altitudeProvider, weight, efficiency));
             }
             else
             {
@@ -511,18 +540,37 @@ void BikerHttpRequestProcessor::processRequest()
                 return;
             }
             
+            #ifdef SPATIALITE_FOUND
+                if (ProgramOptions::getInstance()->dbBackend == "spatialite")
+                {
+                    dbA.reset(new SpatialiteDatabaseConnection());
+                    dbB.reset(new SpatialiteDatabaseConnection());
+                }
+                else 
+            #endif
+            if (ProgramOptions::getInstance()->dbBackend == "sqlite")
+            {
+                dbA.reset(new SQLiteDatabaseConnection());
+                dbB.reset(new SQLiteDatabaseConnection());
+            }
             //Datenbank ist die globale DB...
-            db = DatabaseConnection::getGlobalInstance();
+            dbA->open(ProgramOptions::getInstance()->dbFilename.c_str());
+            dbB->open(ProgramOptions::getInstance()->dbFilename.c_str());
             
-            //Als Router nehmen wir erstmal Dijkstra.
-            router.reset(new DijkstraRouter(db, metric));
-            //TODO: Bei mehr als 2 Punkten richtig routen. atm werden Transitpunkte vernachlässigt.
-            //Start- und Endpunkt heraussuchen
-            GPSPosition startPosition = routePointList[0];
-            GPSPosition endPosition = routePointList.last();
+            //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-Dijkstra.
+            if (_parameterMap["algorithm"] == "multithreadeddijkstra")
+                router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
+            else if (_parameterMap["algorithm"] == "dijkstra")
+                router.reset(new DijkstraRouter(dbA, metric));
+            else if (_parameterMap["algorithm"] == "astar")
+                router.reset(new AStarRouter(dbA, metric));
+            else if (_parameterMap["algorithm"] == "multithreadedastar")
+                router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
+            else
+                router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
             
             //Route berechnen
-            GPSRoute route = router->calculateShortestRoute(startPosition, endPosition);
+            GPSRoute route = router->calculateShortestRoute(routePointList);
             //Keine Route gefunden? 404 senden.
             if (route.isEmpty())
             {
@@ -560,7 +608,7 @@ namespace biker_tests
     {
         std::cerr << "Testing Webserver..." << std::endl;
         
-        BikerHttpRequestProcessor::publicHtmlDirectory = "./gui/";
+        ProgramOptions::getInstance()->webserver_public_html_folder = "./gui/";
         HttpServerThread<BikerHttpRequestProcessor> server(8081);
         server.startServer();
         //todo: aufs hochfahren warten toller lösen als so

@@ -23,7 +23,15 @@ enum MeasurementUnit
     /**
      * @brief Gibt an, dass keine festgelegte Maßeinheit verwendet wird.
      */
-    VIRTUAL
+    VIRTUAL,
+    
+    /**
+     * @brief Gibt an, dass als grobes Maß Entfernungen verwendet werden.
+     * 
+     * Dabei ist festgelegt, dass der Wert einer Kante niemals den Wert der
+     * Entfernung der beiden Endpunkte in Metern unterschreitet.
+     */
+    DISTANCE
 };
 
 /**
@@ -81,14 +89,14 @@ public:
     /**
      * @brief Gibt an, in welcher Einheit die Bewertung von rateEdge() angegeben wird.
      * 
-     * Standardmäßig gibt diese Funktion VIRTUAL zurück.
+     * Standardmäßig gibt diese Funktion DISTANCE zurück.
      * 
      * @return In welcher Einheit die Bewertung von rateEdge() angegeben wird.
      * @see MeasurementUnit
      */
     virtual MeasurementUnit getMeasurementUnit() 
     {
-        return VIRTUAL;
+        return DISTANCE;
     }
     
     /**
@@ -112,6 +120,26 @@ public:
     virtual double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)=0;
 
     virtual ~RoutingMetric();
+    
+    /**
+     * @brief Macht eine Vorhersage über die zu erwartenden Kosten, um eine bestimmte
+     *      Entfernung zurückzulegen.
+     * 
+     * Die Schätzung muss in der Einheit erfolgen, die getMeasurementUnit()
+     * zurückgibt - dadurch wird es ermöglicht, A* einzusetzen auch in den
+     * Fällen, wo nicht die pure Entfernung als Metrik für den Algorithmus
+     * verwendet wird.
+     * 
+     * Es ist eine Standardimplementierung vorhanden, die die Entfernung
+     * von p1 zu p2 zurückgibt - kompatibel mit der Einheit DISTANCE.
+     * 
+     * @remarks Diese Funktion darf die Kosten niemals überschätzen.
+     * @return Die geschätzten Kosten von p1 zu p2.
+     */
+    virtual double estimateDistance(const GPSPosition& p1, const GPSPosition& p2)
+    {
+        return p1.calcDistance(p2);
+    }
 }; 
 
 class EuclidianRoutingMetric : public RoutingMetric
@@ -125,7 +153,19 @@ public:
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
 };
 
-class PowerRoutingMetric : public RoutingMetric
+class SimpleHeightRoutingMetric : public RoutingMetric
+{
+private:
+    float _detourPerHeightMeter;
+public:
+    SimpleHeightRoutingMetric() : _detourPerHeightMeter(50.0) {}
+    SimpleHeightRoutingMetric(float detourPerHeightMeter) : _detourPerHeightMeter(detourPerHeightMeter) {}
+    SimpleHeightRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float detourPerHeightMeter) : RoutingMetric(provider), _detourPerHeightMeter(detourPerHeightMeter) {}
+    double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+    double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+};
+
+class SimplePowerRoutingMetric : public RoutingMetric
 {
 private:
     double weight;
@@ -177,13 +217,13 @@ private:
         return time;
     }
 public:
-    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) :
+    SimplePowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) :
         RoutingMetric(provider)
     {
         weight = 85.0;
-        efficiency = 3.0 * 85.0;
+        efficiency = 3.0 * weight;
     }
-    PowerRoutingMetric (boost::shared_ptr<AltitudeProvider> provider, double newWeight, double newEfficiency) :
+    SimplePowerRoutingMetric (boost::shared_ptr<AltitudeProvider> provider, double newWeight, double newEfficiency) :
         RoutingMetric(provider), weight(newWeight), efficiency(newEfficiency)
     {}
 

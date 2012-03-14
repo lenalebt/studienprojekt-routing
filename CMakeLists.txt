@@ -7,7 +7,7 @@ PROJECT(biker)
 
 #Hier Versionsnummer setzen
 SET (biker_VERSION_MAJOR 0)
-SET (biker_VERSION_MINOR 03)
+SET (biker_VERSION_MINOR 05)
 
 #Programmversion dem Quelltext bekannt machen
 ADD_DEFINITIONS(-DVERSION=${biker_VERSION_MAJOR}.${biker_VERSION_MINOR})
@@ -48,33 +48,42 @@ SET(QT_USE_QTGUI FALSE)
 #Qt für ganz viel Krams
 FIND_PACKAGE(Qt4 4.7 REQUIRED)
 #Spatialite für die Datenbank
-FIND_PACKAGE(SPATIALITE REQUIRED)
+FIND_PACKAGE(SPATIALITE)
 FIND_PACKAGE(SQLITE3 REQUIRED)
 #ZZipLib zum Entpacken von ZIP-Archiven
-FIND_PACKAGE(ZZIP REQUIRED)
+FIND_PACKAGE(ZZIP)
 #Boost für Kommandozeilenoptionen und so
 FIND_PACKAGE(Boost 1.42.0
     COMPONENTS
     program_options
     REQUIRED)
 #Google Protocol Buffers (->Protobuf) zum Lesen von .pbf-Dateien
-FIND_PACKAGE(ProtocolBuffers REQUIRED)
+FIND_PACKAGE(ProtocolBuffers)
 #zlib zum Entpacken von PBF-Dateien
 FIND_PACKAGE(ZLIB REQUIRED)
 #Doxygen zum Erzeugen der Doku. Nicht notwendig zum Kompilieren.
 FIND_PACKAGE(Doxygen)
 
 #ProtocolBuffers-Compiler ausführen, um Quelldateien zu erstellen
-PROTOBUF_GENERATE_CPP(OSMFORMAT_PROTO_SOURCES OSMFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/osmformat.proto)
-PROTOBUF_GENERATE_CPP(FILEFORMAT_PROTO_SOURCES FILEFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/fileformat.proto)
+IF(PROTOBUF_FOUND)
+    PROTOBUF_GENERATE_CPP(OSMFORMAT_PROTO_SOURCES OSMFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/osmformat.proto)
+    PROTOBUF_GENERATE_CPP(FILEFORMAT_PROTO_SOURCES FILEFORMAT_PROTO_HEADERS PROTOFILES src/database/parser/pbf/fileformat.proto)
+ELSE()
+    SET(OSMFORMAT_PROTO_SOURCES
+        )
+    SET(FILEFORMAT_PROTO_SOURCES
+        )
+ENDIF()
 
 #Hier Quelldateien eintragen
 SET(
     biker_SOURCES
     src/main.cpp
     src/tests.cpp
+    src/programoptions.cpp
     
     #src/dataprimitives
+    src/dataprimitives/bloomfilter.cpp
     src/dataprimitives/gpsposition.cpp
     src/dataprimitives/gpsroute.cpp
     src/dataprimitives/routingedge.cpp
@@ -91,13 +100,16 @@ SET(
 
     #src/database/
     src/database/altitudeprovider.cpp
+    src/database/srtmprovider.cpp
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
+    src/database/sqlitedatabase.cpp
     src/database/temporarydatabase.cpp
     src/database/zip.cpp
     src/database/sqlite_functions.cpp
     src/database/databaseramcache.cpp
     src/database/database.cpp
+    src/database/spacefillingcurves.cpp
     
     #src/database/parser
     src/database/parser/osmparser.cpp
@@ -110,6 +122,7 @@ SET(
     src/routing/heap.cpp
     src/routing/closedlist.cpp
     src/routing/dijkstra.cpp
+    src/routing/astar.cpp
     
     #src/network/
     src/network/webserver.cpp
@@ -121,8 +134,10 @@ SET(
     biker_HEADERS
     src/main.hpp
     src/tests.hpp
+    src/programoptions.hpp
     
     #src/dataprimitives
+    src/dataprimitives/bloomfilter.hpp
     src/dataprimitives/gpsposition.hpp
     src/dataprimitives/gpsroute.hpp
     src/dataprimitives/osmproperty.hpp
@@ -139,13 +154,16 @@ SET(
 
     #src/database/
     src/database/altitudeprovider.hpp
+    src/database/srtmprovider.hpp
     src/database/database.hpp
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
+    src/database/sqlitedatabase.hpp
     src/database/temporarydatabase.hpp
     src/database/zip.hpp
     src/database/sqlite_functions.hpp
     src/database/databaseramcache.hpp
+    src/database/spacefillingcurves.hpp
     
     #src/database/parser
     src/database/parser/osmparser.hpp
@@ -158,6 +176,7 @@ SET(
     src/routing/heap.hpp
     src/routing/closedlist.hpp
     src/routing/dijkstra.hpp
+    src/routing/astar.hpp
     
     #src/network/
     src/network/webserver.hpp
@@ -205,12 +224,21 @@ SET(
     biker_UIS
     )
 
+IF (SPATIALITE_FOUND)
+    INCLUDE_DIRECTORIES(${SPATIALITE_INCLUDE_DIR})
+ENDIF()
+
+IF(ZZIP_FOUND)
+    INCLUDE_DIRECTORIES(${ZZIP_INCLUDE_DIR})
+ENDIF()
+
+IF(PROTOBUF_FOUND)
+    INCLUDE_DIRECTORIES(${PROTOBUF_INCLUDE_DIRS})
+ENDIF()
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${SPATIALITE_INCLUDE_DIR}
-    ${ZZIP_INCLUDE_DIR}
     ${Boost_INCLUDE_DIR}
-    ${PROTOBUF_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
     ${SQLITE_INCLUDE_DIRS}
     src/
@@ -267,7 +295,16 @@ IF(DOXYGEN_FOUND)
 ENDIF()
 
 #Dem Quelltext sagen, wo die spatialite-library ist
-ADD_DEFINITIONS(-DSPATIALITE_LIB=${SPATIALITE_LIBRARY})
+IF(SPATIALITE_FOUND)
+    ADD_DEFINITIONS(-DSPATIALITE_LIB=${SPATIALITE_LIBRARY})
+    ADD_DEFINITIONS(-DSPATIALITE_FOUND)
+ENDIF()
+IF(ZZIP_FOUND)
+    ADD_DEFINITIONS(-DZZIP_FOUND)
+ENDIF()
+IF(PROTOBUF_FOUND)
+    ADD_DEFINITIONS(-DPROTOBUF_FOUND)
+ENDIF()
 
 INCLUDE(
     ${QT_USE_FILE}
@@ -299,11 +336,19 @@ ADD_TEST(osmedge                          "biker" "--test" "osmedge")
 ADD_TEST(osmproperty                      "biker" "--test" "osmproperty")
 ADD_TEST(osmturnrestriction               "biker" "--test" "osmturnrestriction")
 ADD_TEST(osmparser                        "biker" "--test" "osmparser")
-ADD_TEST(pbfparser                        "biker" "--test" "pbfparser")
+IF(PROTOBUF_FOUND)
+    ADD_TEST(pbfparser                        "biker" "--test" "pbfparser")
+ENDIF()
 ADD_TEST(gpsroute                         "biker" "--test" "gpsroute")
 ADD_TEST(potentialfunction                "biker" "--test" "potentialfunction")
-ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
-ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
+IF(ZZIP_FOUND)
+    ADD_TEST(srtmprovider                     "biker" "--test" "srtmprovider")
+ENDIF()
+ADD_TEST(filedownloader                   "biker" "--test" "filedownloader")
+IF(SPATIALITE_FOUND)
+    ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
+ENDIF()
+ADD_TEST(sqlitedatabaseconnection         "biker" "--test" "sqlitedatabaseconnection")
 ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
 ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")
 ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")
@@ -314,7 +359,15 @@ ADD_TEST(datapreprocessing                "biker" "--test" "datapreprocessing")
 ADD_TEST(simpledatapreprocessing          "biker" "--test" "simpledatapreprocessing")
 ADD_TEST(webserver                        "biker" "--test" "webserver")
 ADD_TEST(dijkstrarouter                   "biker" "--test" "dijkstrarouter")
-SET_TESTS_PROPERTIES(dijkstrarouter PROPERTIES DEPENDS simpledatapreprocessing)
+ADD_TEST(multithreadeddijkstrarouter      "biker" "--test" "multithreadeddijkstrarouter")
+ADD_TEST(astarrouter                      "biker" "--test" "astarrouter")
+ADD_TEST(multithreadedastarrouter         "biker" "--test" "multithreadedastarrouter")
+
+SET_TESTS_PROPERTIES(dijkstrarouter              PROPERTIES DEPENDS simpledatapreprocessing)
+SET_TESTS_PROPERTIES(astarrouter                 PROPERTIES DEPENDS simpledatapreprocessing)
+SET_TESTS_PROPERTIES(multithreadeddijkstrarouter PROPERTIES DEPENDS simpledatapreprocessing)
+SET_TESTS_PROPERTIES(multithreadedastarrouter    PROPERTIES DEPENDS simpledatapreprocessing)
+
 
 #Zum Erstellen von automatischen Installationspaketen
 IF(UNIX)
@@ -377,14 +430,20 @@ INCLUDE(CPack)
 
 #Hier hinschreiben, welche Libs zu der ausführbaren Datei gelinkt werden
 #müssen.
+IF (SPATIALITE_FOUND)
+    TARGET_LINK_LIBRARIES(biker ${SPATIALITE_LIBRARY})
+ENDIF()
+IF (ZZIP_FOUND)
+    TARGET_LINK_LIBRARIES(biker ${ZZIP_LIBRARIES})
+ENDIF()
+IF(PROTOBUF_FOUND)
+    TARGET_LINK_LIBRARIES(biker ${PROTOBUF_LIBRARIES})
+ENDIF()
 TARGET_LINK_LIBRARIES(biker
     ${QT_LIBRARIES}
     ${QT_QTNETWORK_LIBRARIES}
     ${QT_QTXML_LIBRARIES}
-    ${SPATIALITE_LIBRARY}
-    ${ZZIP_LIBRARIES}
     ${Boost_LIBRARIES}
-    ${PROTOBUF_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${SQLITE3_LIBRARIES}
     )

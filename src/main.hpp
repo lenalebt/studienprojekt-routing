@@ -37,17 +37,20 @@
  * nötig. Diese sind:
  * @verbatim
    Qt 4.7 oder höher
-   Boost 1.42 oder höher
-   libprotobuf
-   protoc
-   libzzip
-   ...
+   Boost 1.42 oder höher mit der Bibliothek program_options
+   sqlite 3.7.2 oder höher
+   libprotobuf (optional, um .osm.pbf-Dateien zu lesen)
+   protoc (optional, s.o.)
+   libzzip (optional, um Höhendaten zu verarbeiten)
+   spatialite (optional, um ein besseres Datenbankformat benutzen zu können)
    @endverbatim
-   
+ * Bei Bibliotheken, bei denen eine Versionsnummer angegeben ist, ist
+ * es möglich dass Vorgängerversionen auch funktionieren. Dies ist jedoch
+ * nicht getestet worden.
+ * 
  * Zusätzlich ist zur Erzeugung der Quellcodedokumentation
  * Doxygen erfoderlich. Ist dies nicht installiert, kann das
  * Programm aber trotzdem übersetzt werden.
- * @todo Bibliotheken aufzählen
 
  * @subsection compile_unix Kompilieren unter Linux / Unixoiden
  * Um das Programm zu kompilieren tippt man folgende Befehle auf der Konsole ein,
@@ -58,6 +61,8 @@
  * cmake ..
  * make
  * @endcode
+ * Sollten Bibliotheken fehlen oder nicht gefunden werden,
+ * wird dies nach dem zweiten Befehl angezeigt.
  * Zum Installieren ist dann noch nötig,
  * @code
  * make install
@@ -83,6 +88,27 @@
  * Das Programm ist in in 2 Teile aufgeteilt: Server und GUI. Bevor das
  * Programm verwendet werden kann, muss eine Datenaufbereitung
  * durchgeführt werden.
+ * 
+ * @subsubsection datenaufbereitung Datenaufbereitung
+ * Für die Datenaufbereitung stehen 2 Module bereit: Die einfache, und
+ * die normale Vorverarbeitung. Bei der normalen Vorverarbeitung wird
+ * ein komplexerer Routinggraph erzeugt, mit dem es auch möglich ist,
+ * Beschränkungen beim Abbiegen zu beachten, oder Abbiegen mit höheren
+ * Kosten zu belegen als einer Geradeausfahrt. mit dem einfacheren Routinggraphen
+ * sind solche Unterscheidungen nicht möglich. Die einfache Vorverarbeitung
+ * ist schneller bearbeitet als die normale.
+ * @code
+ * biker --[simple-]parse=datei.osm[.pbf] --dbfile=datei.db [--dbbackend=sqlite|spatialite]
+ * @endcode
+ * Angaben in eckigen Klammern sind optional. Standardmäßig wird Spatialite
+ * als Datenbankbackend verwendet, wenn Unterstützung dafür eincompiliert wurde,
+ * ansonsten wird SQLite verwendet.
+ * 
+ * \todo Datenaufbereitung aufschreiben (->Benutzung)
+ * 
+ * @subsubsection serverstart Starten des Servers
+ * Zum Starten des Servers
+ * \todo Serverstart aufschreiben
  * 
  * @subsection tests Tests
  * Um alle Tests auszuführen, tippt man im build-Verzeichnis des Programms:

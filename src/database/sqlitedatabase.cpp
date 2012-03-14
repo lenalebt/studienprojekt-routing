@@ -1,6 +1,4 @@
-#ifdef SPATIALITE_FOUND
-
-#include "spatialitedatabase.hpp"
+#include "sqlitedatabase.hpp"
 #include <QStringList>
 #include <QFile>
 #include <sqlite_functions.hpp>
@@ -11,19 +9,20 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/generator_iterator.hpp>
 
-SpatialiteDatabaseConnection::SpatialiteDatabaseConnection() :
+SQLiteDatabaseConnection::SQLiteDatabaseConnection() :
     _dbOpen(false), _db(NULL), _saveNodeStatement(NULL), _getNodeStatement(NULL),
     _getNodeByIDStatement(NULL),
     _saveEdgeStatement(NULL), _getEdgeStatementID(NULL), _getEdgeStatementStartNode(NULL),
-    _getEdgeStatementEndNode(NULL), 
+    _getEdgeStatementEndNode(NULL),
     _saveEdgeStreetnameStatement(NULL),
     _getEdgeStreetnameStatement(NULL),
-    _deleteEdgeStatement(NULL)
+    _deleteEdgeStatement(NULL),
+    spc(new ZOrderCurve())
 {
     
 }
 
-SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
+SQLiteDatabaseConnection::~SQLiteDatabaseConnection()
 {
     //Prepared Statements löschen
 	if(_saveNodeStatement != NULL)
@@ -51,13 +50,13 @@ SpatialiteDatabaseConnection::~SpatialiteDatabaseConnection()
         this->close();
 }
 
-void SpatialiteDatabaseConnection::close()
+void SQLiteDatabaseConnection::close()
 {
     sqlite3_close(_db);
     _dbOpen = false;
 }
 
-void SpatialiteDatabaseConnection::open(QString dbConnectionString)
+void SQLiteDatabaseConnection::open(QString dbConnectionString)
 {
     int rc; //return-Wert speichern
     QFile file(dbConnectionString);
@@ -78,49 +77,7 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
         return;
     }
     
-    //Zeiger auf die Fehlernachricht von SQLite. Speicher wird von Sqlite
-    //selbst geholt und verwaltet, nur wieder freigeben ist nötig.
-    char* errorMessage;
-    
-    //Bekommt den Dateinamen von Spatialite direkt von CMake :).
-    std::string spatialiteFilename;
-    spatialiteFilename = QUOTEME(SPATIALITE_LIB);
-    
-    //Erlaube das Laden von Erweiterungen
-    rc = sqlite3_enable_load_extension(_db, 1);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to enable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
-    //Lade die Erweiterung
-    rc = sqlite3_load_extension(_db, spatialiteFilename.c_str(), 0, &errorMessage);
-    
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to load spatialite. Filename: \"" << spatialiteFilename
-            << ", Error message: \"" << errorMessage << "\"" << std::endl;
-        sqlite3_free(errorMessage);
-        return;
-    }
-    
-    //Verbiete das laden von Erweiterungen wieder (Sicherheitsfeature?)
-    rc = sqlite3_enable_load_extension(_db, 0);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to disable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
     //Erstelle Tabellen nur, wenn die Datei vorher nicht existierte.
-    //Grund: IF NOT EXISTS gibt es nicht für virtuelle Tabellen.
     if (!dbExisted)
         _dbOpen = createTables();
     else
@@ -143,7 +100,7 @@ void SpatialiteDatabaseConnection::open(QString dbConnectionString)
     }
 }
 
-bool SpatialiteDatabaseConnection::createTables()
+bool SQLiteDatabaseConnection::createTables()
 {
 	bool retVal = true;
 	
@@ -156,7 +113,7 @@ bool SpatialiteDatabaseConnection::createTables()
     statements << "PRAGMA journal_mode=MEMORY;";
     statements << "PRAGMA temp_store = MEMORY;";
 	statements << "CREATE TABLE IF NOT EXISTS EDGES(ID INTEGER PRIMARY KEY, STARTNODE INTEGER NOT NULL, ENDNODE INTEGER NOT NULL, PROPERTIES INTEGER NOT NULL);";
-	statements << "CREATE VIRTUAL TABLE NODES USING rtree(ID, MIN_LAT, MAX_LAT, MIN_LON, MAX_LON);";
+	statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER PRIMARY KEY, LAT, LON, BUCKETID);";
 	//TODO: Müssen noch Indicies erstellt werden? Laut Doku sollte es so schon schnell sein.
     statements << "CREATE TABLE EDGES_STREETNAME(ID INTEGER PRIMARY KEY, STREETNAME VARCHAR);";
     
@@ -172,7 +129,7 @@ bool SpatialiteDatabaseConnection::createTables()
 	return retVal;
 }
 
-bool SpatialiteDatabaseConnection::createIndexes()
+bool SQLiteDatabaseConnection::createIndexes()
 {
 	bool retVal = true;
 	
@@ -193,7 +150,7 @@ bool SpatialiteDatabaseConnection::createIndexes()
 	return retVal;
 }
 
-bool SpatialiteDatabaseConnection::execCreateTableStatement(std::string paramCreateTableStatement)
+bool SQLiteDatabaseConnection::execCreateTableStatement(std::string paramCreateTableStatement)
 {
 	char* errorMessage;
     //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
@@ -211,19 +168,19 @@ bool SpatialiteDatabaseConnection::execCreateTableStatement(std::string paramCre
 		return true;
 }
 
-bool SpatialiteDatabaseConnection::isDBOpen()
+bool SQLiteDatabaseConnection::isDBOpen()
 {
     return _dbOpen;
 }
 
-boost::shared_ptr<RoutingNode> SpatialiteDatabaseConnection::getNodeByID(boost::uint64_t id)
+boost::shared_ptr<RoutingNode> SQLiteDatabaseConnection::getNodeByID(boost::uint64_t id)
 {
     boost::shared_ptr<RoutingNode> retVal;
     
 	int rc;
 	if(_getNodeByIDStatement == NULL)
 	{		
-		rc = sqlite3_prepare_v2(_db, "SELECT ID, MIN_LAT, MIN_LON FROM NODES WHERE ID=?;",
+		rc = sqlite3_prepare_v2(_db, "SELECT ID, LAT, LON FROM NODES WHERE ID=?;",
 			-1, &_getNodeByIDStatement, NULL);
 		if (rc != SQLITE_OK)
 		{	
@@ -279,7 +236,7 @@ boost::shared_ptr<RoutingNode> SpatialiteDatabaseConnection::getNodeByID(boost::
 }
 
 QVector<boost::shared_ptr<RoutingNode> >
-SpatialiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double radius)
+SQLiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double radius)
 {
     //Berechne einfach die beiden Punkte, die in den Ecken des umgebenden
     //Rechtecks sein müssten, plus ein bisschen.
@@ -289,14 +246,14 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &searchMidpoint, double
 
 
 QVector<boost::shared_ptr<RoutingNode> >
-SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPosition &maxCorner)
+SQLiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPosition &maxCorner)
 {
     QVector<boost::shared_ptr<RoutingNode> > retList;
     
 	int rc;
 	if(_getNodeStatement == NULL)
 	{		
-		rc = sqlite3_prepare_v2(_db, "SELECT ID, MIN_LAT, MIN_LON FROM NODES WHERE MIN_LAT>=? AND MAX_LAT<=? AND MIN_LON>=? AND MAX_LON<=?;",
+		rc = sqlite3_prepare_v2(_db, "SELECT ID, LAT, LON FROM NODES WHERE BUCKETID>=? AND BUCKETID<=?;",
 			-1, &_getNodeStatement, NULL);
 		if (rc != SQLITE_OK)
 		{	
@@ -306,16 +263,11 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 	}
 	
 	// Parameter an das Statement binden
-	sqlite3_bind_double(_getNodeStatement, 1, minCorner.getLat());
-	sqlite3_bind_double(_getNodeStatement, 2, maxCorner.getLat());
-	sqlite3_bind_double(_getNodeStatement, 3, minCorner.getLon());
-	sqlite3_bind_double(_getNodeStatement, 4, maxCorner.getLon());
+    boost::uint64_t minBucketID = spc->getBucketID(minCorner.getLat(), minCorner.getLon());
+    boost::uint64_t maxBucketID = spc->getBucketID(maxCorner.getLat(), maxCorner.getLon());
+	sqlite3_bind_int64(_getNodeStatement, 1, minBucketID);
+	sqlite3_bind_int64(_getNodeStatement, 2, maxBucketID);
 	
-    /*std::cerr << "bound parameters:" << "minCorner.getLat()=" << minCorner.getLat() <<
-        ", maxCorner.getLat()=" << maxCorner.getLat() <<
-        ", minCorner.getLon()=" << minCorner.getLon() <<
-        ", maxCorner.getLon()=" << maxCorner.getLon() << std::endl;*/
-    
 	// Statement ausfuehren, in einer Schleife immer neue Zeilen holen
 	while ((rc = sqlite3_step(_getNodeStatement)) != SQLITE_DONE)
     {
@@ -351,12 +303,12 @@ SpatialiteDatabaseConnection::getNodes(const GPSPosition &minCorner, const GPSPo
 }
 
 
-bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
+bool SQLiteDatabaseConnection::saveNode(const RoutingNode &node)
 {
     int rc;
     if(_saveNodeStatement == NULL)
     {
-        rc = sqlite3_prepare_v2(_db, "INSERT INTO NODES VALUES (@ID, @MIN_LAT, @MAX_LAT, @MIN_LON, @MAX_LON);", -1, &_saveNodeStatement, NULL);
+        rc = sqlite3_prepare_v2(_db, "INSERT INTO NODES VALUES(@ID, @LAT, @LON, @BUCKETID);", -1, &_saveNodeStatement, NULL);
         if (rc != SQLITE_OK)
         {	
             std::cerr << "Failed to create saveNodeStatement." << " Resultcode: " << rc << std::endl;
@@ -367,9 +319,8 @@ bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
     // Parameter an das Statement binden
     sqlite3_bind_int64(_saveNodeStatement, 1, node.getID());
     sqlite3_bind_double(_saveNodeStatement, 2, node.getLat());
-    sqlite3_bind_double(_saveNodeStatement, 3, node.getLat());
-    sqlite3_bind_double(_saveNodeStatement, 4, node.getLon());
-    sqlite3_bind_double(_saveNodeStatement, 5, node.getLon());
+    sqlite3_bind_double(_saveNodeStatement, 3, node.getLon());
+    sqlite3_bind_int64(_saveNodeStatement, 4, spc->getBucketID(node.getLat(), node.getLon()));
 
     // Statement ausfuehren
     rc = sqlite3_step(_saveNodeStatement);
@@ -391,13 +342,13 @@ bool SpatialiteDatabaseConnection::saveNode(const RoutingNode &node)
 
 
 QVector<boost::shared_ptr<RoutingEdge> >
-SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
+SQLiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 {
     QVector<boost::shared_ptr<RoutingEdge> > edgeList;
       
 	int rc;
 	if(_getEdgeStatementStartNode == NULL)
-	{		
+	{
 		rc = sqlite3_prepare_v2(_db, "SELECT ID, STARTNODE, ENDNODE, PROPERTIES FROM EDGES WHERE STARTNODE=?;",
 			-1, &_getEdgeStatementStartNode, NULL);
 		if (rc != SQLITE_OK)
@@ -447,7 +398,7 @@ SpatialiteDatabaseConnection::getEdgesByStartNodeID(boost::uint64_t startNodeID)
 
 
 QVector<boost::shared_ptr<RoutingEdge> >
-SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
+SQLiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 {
     QVector<boost::shared_ptr<RoutingEdge> > edgeList;
       
@@ -504,7 +455,7 @@ SpatialiteDatabaseConnection::getEdgesByEndNodeID(boost::uint64_t endNodeID)
 
 
 boost::shared_ptr<RoutingEdge>
-SpatialiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
+SQLiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
 {
 	boost::shared_ptr<RoutingEdge> edge;
       
@@ -558,7 +509,7 @@ SpatialiteDatabaseConnection::getEdgeByEdgeID(boost::uint64_t edgeID)
 }
 
 
-bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
+bool SQLiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
 {
     int rc;
     if(_saveEdgeStatement == NULL)
@@ -594,7 +545,7 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge)
 }
 
 
-bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, const QString& name)
+bool SQLiteDatabaseConnection::saveEdge(const RoutingEdge &edge, const QString& name)
 {
     if (!saveEdge(edge))
         return false;
@@ -630,7 +581,7 @@ bool SpatialiteDatabaseConnection::saveEdge(const RoutingEdge &edge, const QStri
     return true;
 }
 
-bool SpatialiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
+bool SQLiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost::uint64_t endNodeID)
 {
     int rc;
     if(_deleteEdgeStatement == NULL)
@@ -663,7 +614,7 @@ bool SpatialiteDatabaseConnection::deleteEdge(boost::uint64_t startNodeID, boost
     return true;
 }
 
-QString SpatialiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
+QString SQLiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
 {
     QString streetname = "";
       
@@ -708,7 +659,7 @@ QString SpatialiteDatabaseConnection::getStreetName(const RoutingEdge &edge)
     return streetname;
 }
 
-bool SpatialiteDatabaseConnection::beginTransaction()
+bool SQLiteDatabaseConnection::beginTransaction()
 {
     char* errorMessage;
     //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
@@ -725,7 +676,7 @@ bool SpatialiteDatabaseConnection::beginTransaction()
     else
 		return true;
 }
-bool SpatialiteDatabaseConnection::endTransaction()
+bool SQLiteDatabaseConnection::endTransaction()
 {
     char* errorMessage;
     //Wenn die Callback-Funktion NULL ist (3.Parameter) wird sie nicht aufgerufen.
@@ -745,25 +696,25 @@ bool SpatialiteDatabaseConnection::endTransaction()
 
 namespace biker_tests
 {
-    int testSpatialiteDatabaseConnection()
+    int testSQLiteDatabaseConnection()
     {
-        SpatialiteDatabaseConnection connection;
-        QFile file("spatialitetest.db");
+        SQLiteDatabaseConnection connection;
+        QFile file("sqlitetest.db");
         
-        std::cerr << "Removing database test file \"spatialitetest.db\"..." << std::endl;
+        std::cerr << "Removing database test file \"sqlitetest.db\"..." << std::endl;
         if (file.exists())
             file.remove();
         
-        std::cerr << "Opening \"spatialitetest.db\"..." << std::endl;
-        connection.open("spatialitetest.db");
+        std::cerr << "Opening \"sqlitetest.db\"..." << std::endl;
+        connection.open("sqlitetest.db");
         CHECK(connection.isDBOpen());
         
         std::cerr << "Closing database..." << std::endl;
         connection.close();
         CHECK(!connection.isDBOpen());
         
-        std::cerr << "Reopening \"spatialitetest.db\"..." << std::endl;
-        connection.open("spatialitetest.db");
+        std::cerr << "Reopening \"sqlitetest.db\"..." << std::endl;
+        connection.open("sqlitetest.db");
         CHECK(connection.isDBOpen());
         
         RoutingNode node(25, 51.0, 7.0);
@@ -857,5 +808,3 @@ namespace biker_tests
         return EXIT_SUCCESS;
     }
 }
-
-#endif //SPATIALITE_FOUND

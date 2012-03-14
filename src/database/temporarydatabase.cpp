@@ -92,53 +92,28 @@ void TemporaryOSMDatabaseConnection::open(QString dbConnectionString)
         return;
     }
     
-    //Zeiger auf die Fehlernachricht von SQLite. Speicher wird von Sqlite
-    //selbst geholt und verwaltet, nur wieder freigeben ist nötig.
-    char* errorMessage;
-    
-    //Bekommt den Dateinamen von Spatialite direkt von CMake :).
-    std::string spatialiteFilename;
-    spatialiteFilename = QUOTEME(SPATIALITE_LIB);
-    
-    //Erlaube das Laden von Erweiterungen
-    rc = sqlite3_enable_load_extension(_db, 1);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to enable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
-    //Lade die Erweiterung
-    rc = sqlite3_load_extension(_db, spatialiteFilename.c_str(), 0, &errorMessage);
-    
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to load spatialite. Filename: \"" << spatialiteFilename
-            << ", Error message: \"" << errorMessage << "\"" << std::endl;
-        sqlite3_free(errorMessage);
-        return;
-    }
-    
-    //Verbiete das laden von Erweiterungen wieder (Sicherheitsfeature?)
-    rc = sqlite3_enable_load_extension(_db, 0);
-    if (rc != SQLITE_OK)
-    {
-        _dbOpen = false;
-        sqlite3_close(_db);
-        std::cerr << "Failed to disable loading of sqlite3 extensions." << std::endl;
-        return;
-    }
-    
     //Erstelle Tabellen nur, wenn die Datei vorher nicht existierte.
     //Grund: IF NOT EXISTS gibt es nicht für virtuelle Tabellen.
     if (!dbExisted)
         _dbOpen = createTables();
     else
+    {
         _dbOpen = true;
+        
+        QStringList statements;
+        statements << "PRAGMA page_size = 4096;";
+        statements << "PRAGMA max_page_count = 2147483646;";
+        statements << "PRAGMA cache_size=500000;";
+        statements << "PRAGMA synchronous=OFF;";
+        statements << "PRAGMA journal_mode=MEMORY;";
+        statements << "PRAGMA temp_store = MEMORY;";
+        
+        QStringList::const_iterator it;
+        for (it = statements.constBegin(); it != statements.constEnd(); it++)
+        {
+            execCreateTableStatement(it->toStdString());
+        }
+    }
 }
 
 bool TemporaryOSMDatabaseConnection::isDBOpen()
@@ -152,6 +127,13 @@ bool TemporaryOSMDatabaseConnection::createTables()
 	
     //Liste von auszuführenden Statements erstellen
 	QStringList statements;
+    statements << "PRAGMA page_size = 4096;";
+    statements << "PRAGMA max_page_count = 2147483646;";
+    statements << "PRAGMA cache_size=500000;";
+    statements << "PRAGMA synchronous=OFF;";
+    statements << "PRAGMA journal_mode=MEMORY;";
+    statements << "PRAGMA temp_store = MEMORY;";
+    
 	statements << "CREATE TABLE IF NOT EXISTS PROPERTIES(PROPERTYID INTEGER PRIMARY KEY, KEY VARCHAR, VALUE VARCHAR);";
     
     statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER PRIMARY KEY, LAT DOUBLE NOT NULL, LON DOUBLE NOT NULL);";
@@ -163,13 +145,13 @@ bool TemporaryOSMDatabaseConnection::createTables()
     statements << "CREATE TABLE IF NOT EXISTS TURNRESTRICTIONS(FROMID INTEGER NOT NULL, VIAID INTEGER NOT NULL, TOID INTEGER NOT NULL, LEFT BOOLEAN, RIGHT BOOLEAN, STRAIGHT BOOLEAN, UTURN BOOLEAN, PRIMARY KEY(FROMID, VIAID, TOID));";
     
     //Alle Statements der Liste ausführen in einer Transaktion
-    retVal = this->beginTransaction();
+    //retVal = this->beginTransaction();
 	QStringList::const_iterator it;
 	for (it = statements.constBegin(); it != statements.constEnd(); it++)
 	{
 		retVal &= execCreateTableStatement(it->toStdString());
 	}
-	retVal &= this->endTransaction();
+	//retVal &= this->endTransaction();
     
 	return retVal;
 }

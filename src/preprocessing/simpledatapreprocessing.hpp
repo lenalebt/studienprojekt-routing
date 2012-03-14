@@ -4,7 +4,6 @@
 #include <boost/cstdint.hpp>
 #include "gpsposition.hpp"
 #include "database.hpp"
-#include "spatialitedatabase.hpp"
 #include "blockingqueue.hpp"
 #include "routingedge.hpp"
 #include "routingnode.hpp"
@@ -20,6 +19,9 @@
 #include "temporarydatabase.hpp"
 #include <QtConcurrentRun>
 #include <QString>
+#include "spatialitedatabase.hpp"
+#include "sqlitedatabase.hpp"
+
 /**
  * @brief Diese Klasse macht "einfache" Datenvorverarbeitung, d.h. legt
  *      die OSM-Daten fast 1:1 in die Datenbank ab, ohne eine komplette
@@ -47,7 +49,9 @@ private:
     BlockingQueue<boost::shared_ptr<OSMTurnRestriction> > _turnRestrictionQueue;
     
     boost::shared_ptr<OSMParser> _osmParser;
-    boost::shared_ptr<PBFParser> _pbfParser;
+    #ifdef PROTOBUF_FOUND
+        boost::shared_ptr<PBFParser> _pbfParser;
+    #endif
     
     boost::shared_ptr<DatabaseConnection> _finalDBConnection;
     TemporaryOSMDatabaseConnection _tmpDBConnection;
@@ -78,6 +82,7 @@ private:
      * @return Ob es sich um eine Straße handelt.
      */
     bool isStreet(const OSMWay& way);
+    bool isPassable(const OSMWay& way);
     
 public:    
     SimpleDataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb);
