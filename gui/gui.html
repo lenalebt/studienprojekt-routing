@@ -12,6 +12,7 @@
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
         var thisLink = "";
+        var settingsShown = 0;
         var pointlist = [];
         var markerlist = [];
         var lastmarker = [];
@@ -394,7 +395,22 @@
         }
         function getLink()
         {
-            document.getElementById("tag").href= thisLink;
+                document.getElementById("tag").href= thisLink;
+        }
+        function setSettings()
+        {
+            if(settingsShown == 0)
+            {
+                settingsShown = 1;
+                document.all.map.style.width = "79%";
+                document.all.allSettings.style.visibility = "visible";
+            }
+            else
+            {
+                settingsShown = 0;
+                document.all.map.style.width = "100%";
+                document.all.allSettings.style.visibility = "hidden";
+            }
         }
         function getCheckedRoutingAlgorithm()
         {
@@ -445,7 +461,7 @@
         <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
         <button id="b2" type="reset" onclick="calcRoute()">Recalculate Route</button>
         <a id = "tag">Link zur GPX-Datei</a>
-        <button id="b3" type="button" onclick="">Settings</button>
+        <button id="b3" type="button" onclick="setSettings()">Settings</button>
         <button id="b4" type="button" onclick="about()">About</button>
     </div>
     <div id = "allSettings">
@@ -475,10 +491,14 @@
         <form name="routingmetricsettings">
             <table>
                 <tr><td>Einstellungen: </td></tr>
-                <tr><td>Maximalleistung (in Watt):<input name="maxpower" type="text" value="150.0"></td></tr>
-                <tr><td>Minimalgeschwindigkeit (in km/h):<input name="minspeed" type="text" value="12.0"></td></tr>
-                <tr><td>Gewicht (in kg, mit Fahrrad):<input name="weight" type="text" value="90.0"></td></tr>
-                <tr><td>Schiebegeschwindigkeit (in km/h):<input name="pushbikespeed" type="text" value="2.5"></td></tr>
+                <tr><td>Maximalleistung (in Watt):</td></tr>
+                <tr><td><input name="maxpower" type="text" value="150.0" size="15"></td></tr>
+                <tr><td>Minimalgeschwindigkeit (in km/h):</td></tr>
+                <tr><td><input name="minspeed" type="text" value="12.0" size="15"></td></tr>
+                <tr><td>Gewicht (in kg, mit Fahrrad):</td></tr>
+                <tr><td><input name="weight" type="text" value="90.0" size="15"></td></tr>
+                <tr><td>Schiebegeschwindigkeit (in km/h):</td></tr>
+                <tr><td><input name="pushbikespeed" type="text" value="2.5" size="15"></td></tr>
             </table>
         </form>
     </div>

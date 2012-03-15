@@ -1,4 +1,5 @@
             html, body {
+                background-color: #cccccc;
                 margin: 0;
                 width: 100%;
                 height: 100%;
@@ -6,7 +7,7 @@
             }
             #map {
                 margin: 0;
-                width: 79%;
+                width: 100%;
                 height: 100%;
                 z-index: 2;
                 float:left;
@@ -43,4 +44,7 @@
             position: absolute;
             top: 10px;
             left: 80%;
+            z-index: 1;
+            height: 95%;
+            visibility: hidden;
             }
