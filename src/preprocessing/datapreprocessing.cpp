@@ -10,12 +10,12 @@ DataPreprocessing::DataPreprocessing(boost::shared_ptr<DatabaseConnection> final
     #endif
     _finalDBConnection(finaldb)
 {
-    
+
 }
 
 DataPreprocessing::~DataPreprocessing()
 {
-    
+
 }
 
 bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
@@ -26,14 +26,14 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     QString tmpFilename = tmpFile.fileName();
     tmpFile.close();
     tmpFile.remove();
-    _tmpDBConnection.open(tmpFilename);    
-    
+    _tmpDBConnection.open(tmpFilename);
+
     //Prueft, ob .osm oder .pbf am Ende vorhanden
     if(fileToParse.endsWith(".osm"))
     {
         _osmParser.reset(new OSMParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
-        QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);        
-        preprocess();        
+        QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);
+        preprocess();
 
         createRoutingGraph();
         std::cerr << "creating indexes..." << std::endl;
@@ -672,9 +672,18 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
 void DataPreprocessing::createRoutingGraph()
 {
     boost::uint64_t edgeID = 0;
-    QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
+    //QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
+    QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(firstVal, firstVal + 1000000000, maxCount);
+
+    //Falls keine Knoten mehr vorhanden sind, springe raus
+    if(osmNodes.size() == 0)
+    {
+        return;
+    }
+
     for(int i = 0; i < osmNodes.size(); i++)
     {
+        tmpCoun = i;
         QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(osmNodes[i]->getID());
         QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
         QVector<int> sectors;
@@ -742,7 +751,7 @@ void DataPreprocessing::createRoutingGraph()
             _finalDBConnection->saveNode(rNode);
         }
     }
-    QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);    
+    QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);
     boost::uint64_t propForward = 0;
     boost::uint64_t propBackward = 0;
     bool edgeForward = true;
@@ -769,7 +778,7 @@ void DataPreprocessing::createRoutingGraph()
         }
 
         for(int j = 0; j < tmpOsmEdges.size(); j++)
-        {            
+        {
             OSMEdge osmEdge = *tmpOsmEdges[j];
             QVector<OSMProperty> osmProp = osmEdge.getProperties();
 
@@ -786,22 +795,11 @@ void DataPreprocessing::createRoutingGraph()
         }
     }
 
-    //for(all wayIDs aufsteigend)
-    //{
-    //    -hole alle OSMEdges mit gleicher WayID aus tmpDB;
-    //    -(fuer wayID) erstelle Vorwaertseigenschaften;
-    //    -(fuer wayID) erstelle Rueckwaertseigenschaften;
-    //    if(Strasse kann vorwaerts befahren werden)
-    //    {
-    //        lege vorwaertsKanten mit Vorwaertseigenschaft als RoutingEdge in finalDB ab;
-    //    }
-    //    if(Strasse kann rueckwaerts befahren werden)
-    //    {
-    //        lege rueckwaertsKanten mit Rueckwaertseigenschaft als RoutingEdge in finalDB ab;
-    //    }
-    //}
-
-
+    if(tmpCount == 9999)
+    {
+        firstVal = firstVall + tmpCount;
+        createRoutingGraph();
+    }
 
     //QVector<OSMProperty>::const_iterator it;
     //for (it = properties.constBegin(); it != properties.constEnd(); it++)
@@ -933,15 +931,15 @@ int DataPreprocessing::getSector(double angle)
 }
 
 namespace biker_tests
-{    
+{
     int testDataPreprocessing()
     {
         QFile file("rub.db");
-        
+
         std::cerr << "Removing database test file \"rub.db\"..." << std::endl;
         if (file.exists())
             file.remove();
-        
+
         #ifdef SPATIALITE_FOUND
             boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
         #else
