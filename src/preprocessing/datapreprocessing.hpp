@@ -66,7 +66,7 @@ private:
     void categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward,boost::uint64_t& propBackward);
 
     /**
-     * @brief Skaliert eine Winkel(Gradmaß) auf den Wertebereich mod 128 und gibt den nächsten geraden Wert <= dem ermittelten Wert zurück.
+     * @brief Skaliert einen Winkel(Gradmaß) auf den Wertebereich mod 128 und gibt den nächsten geraden Wert <= dem ermittelten Wert zurück.
      *
      *
      * @param angle Ein Winkel im Gradmaß.

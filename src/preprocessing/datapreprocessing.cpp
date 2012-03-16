@@ -671,6 +671,7 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
 
 void DataPreprocessing::createRoutingGraph()
 {
+    boost::uint64_t edgeID = 0;
     QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
     for(int i = 0; i < osmNodes.size(); i++)
     {
@@ -678,7 +679,7 @@ void DataPreprocessing::createRoutingGraph()
         QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
         QVector<int> sectors;
 
-        if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2) //Krezung
+        if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2) //Kreuzung
         {
             RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
             _finalDBConnection->saveNode(rNode);
@@ -741,26 +742,64 @@ void DataPreprocessing::createRoutingGraph()
             _finalDBConnection->saveNode(rNode);
         }
     }
-    QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);
+    QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);    
+    boost::uint64_t propForward = 0;
+    boost::uint64_t propBackward = 0;
+    bool edgeForward = true;
+    bool edgeBackward = true;
     for(int i = 0 ; i < wayIDs.size(); i++)
     {
         QVector< boost::shared_ptr< OSMEdge > > tmpOsmEdges = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(i);
-        for(int j = 0; j < tmpOsmEdges.size(); j++)
+
+        //da alle edges in der way die gleichen eigenschaften haben, eine kante rausholen und mittels
+        //categorize vor-, bzw rueckwaertseigenschafen berechnen lassen
+        categorize(tmpOsmEdges[0]->getProperties(), propForward, propBackward);
+
+        routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(0, 0, 0));
+        routingEdge->setProperties(propForward);
+        if(routingEdge->getAccess() == ACCESS_NOT_USABLE_FOR_BIKES)
         {
+            edgeForward = false;
+        }
+
+        routingEdge->setProperties(propBackward);
+        if(routingEdge->getAccess() == ACCESS_NOT_USABLE_FOR_BIKES)
+        {
+            edgeBackward = false;
+        }
+
+        for(int j = 0; j < tmpOsmEdges.size(); j++)
+        {            
             OSMEdge osmEdge = *tmpOsmEdges[j];
             QVector<OSMProperty> osmProp = osmEdge.getProperties();
 
-            //TODO: fuer alle wayIDs vorwaerts- und rueckwaertseigenschaften erstellen
-            if(osmEdge.getForward())
+            if(edgeForward)
             {
-                //vorwärtskanten mit vorwärtseigenschaft als routingEdge in finalDB speichern
+                RoutingEdge rEdge(edgeID++, tmpOsmEdges[i]->getStartNodeID(), tmpOsmEdges[i]->getEndNodeID(), propForward);
+                _finalDBConnection->saveEdge(rEdge);
             }
-            else
+            if(edgeBackward)
             {
-                //rückwärtskanten mit rückwärtseigenschaft als routingEdge in finalDB speichern
+                RoutingEdge rEdge(edgeID++, tmpOsmEdges[i]->getStartNodeID(), tmpOsmEdges[i]->getEndNodeID(), propBackward);
+                _finalDBConnection->saveEdge(rEdge);
             }
         }
     }
+
+    //for(all wayIDs aufsteigend)
+    //{
+    //    -hole alle OSMEdges mit gleicher WayID aus tmpDB;
+    //    -(fuer wayID) erstelle Vorwaertseigenschaften;
+    //    -(fuer wayID) erstelle Rueckwaertseigenschaften;
+    //    if(Strasse kann vorwaerts befahren werden)
+    //    {
+    //        lege vorwaertsKanten mit Vorwaertseigenschaft als RoutingEdge in finalDB ab;
+    //    }
+    //    if(Strasse kann rueckwaerts befahren werden)
+    //    {
+    //        lege rueckwaertsKanten mit Rueckwaertseigenschaft als RoutingEdge in finalDB ab;
+    //    }
+    //}
 
 
 
