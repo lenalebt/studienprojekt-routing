@@ -7,8 +7,14 @@
  */
 
 /**
- * @mainpage Einleitung
- * @brief Biker ist ein Programm zum Berechnen von Fahrradrouten.
+ * @mainpage Biker
+ * @brief Biker ein Programm zum Berechnen von Fahrradrouten.
+ * 
+ * Biker ist kein einseitiger Routenserver - sondern ein
+ * zweiseitiger! Außerdem gibt es viele Möglichkeiten, de Berechnung
+ * einer Route zu beeinflussen.
+ * Um die Berechnung zu beschleunigen, wird nicht nur von einer,
+ * sondern von zwei Seiten gleichzeitig eine Route berechnet.
  * 
  * @section get Bezugsquelle
  * Um den Quellcode des Projekts zu beziehen gibt es 2 Wege:
@@ -107,15 +113,26 @@
  * \todo Datenaufbereitung aufschreiben (->Benutzung)
  * 
  * @subsubsection serverstart Starten des Servers
- * Zum Starten des Servers
- * \todo Serverstart aufschreiben
+ * Zum Starten des Servers rufen Sie Biker mit einer Option auf, die
+ * die Datenbankdatei auswählt:
+ * @code
+ * ./biker [--dbfile=file.db] [--dbbackend=(spatialite|sqlite)]
+ * @endcode
+ * Wird <code>dbfile</code> nicht angegeben, wird von <code>database.db</code>
+ * ausgegangen. Wird <code>dbbackend</code> nicht angegeben, wird von
+ * <code>spatialite</code> ausgegangen.
  * 
  * @subsection tests Tests
+ * Biker hat für jedes Modul Unit-Tests, die die Programmfunktionen testen.
  * Um alle Tests auszuführen, tippt man im build-Verzeichnis des Programms:
  * @code
  * make test
  * @endcode
- * Dann werden alle Tests ausgeführt.
+ * Dann werden alle Tests ausgeführt, man erhält am Ende eine Auflistung
+ * aller fehlgeschlagenen Tests. Normal sollte kein Test fehlschlagen -
+ * sollte doch einmal ein Test fehlschlagen, bitten wir um Einsendung
+ * der Datei <code>build/Testing/Temporary/LastTest.log</code>. Sie hilft
+ * uns, die aufgetretetenen Fehler zu verstehen und zu beheben.
  * 
  * Einzelne Tests werden aufgerufen, indem man das Programm mit
  * dem Parameter "--test" aufruft. Beispiel:
@@ -125,10 +142,12 @@
  * biker --test srtmprovider
  * @endcode
  * 
- * @section todo Todo
- * lalala
- * @todo Text schreiben, der das Projekt beschreibt.
- * @todo Programm von Anfang an mit i18n/l10n ausstatten?
+ * @section functions_properties Funktionen und Eigenschaften
+ *  - Leistungsbezogene Metrik
+ * @todo Funktionen und Eigenschaften
+ * 
+ * @section functions_properties_planned Geplante Funktionen und Eigenschaften
+ * @todo Geplante Funktionen und Eigenschaften
  */
 
 /**

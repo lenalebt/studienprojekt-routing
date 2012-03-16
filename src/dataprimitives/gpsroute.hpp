@@ -168,9 +168,9 @@ public:
     * @brief Erstellt eine leere Route.
     *
     */
-    GPSRoute()
+    GPSRoute() :
+        route(), duration(0.0)
     {
-        route = QList<GPSPosition>();
     }
     /**
     * @brief Erstellt eine Route mit einem Element.
@@ -218,9 +218,26 @@ public:
      */
     GPSRoute& operator<<(const GPSRoute& otherRoute)
     {
+        this->setDuration(this->getDuration() + otherRoute.getDuration());
         route << otherRoute.get();
         return *this;
     }
+    
+    /**
+     * @brief Gibt, sofern gesetzt, zurück wie lang man braucht um diese
+     *      Route zu befahren.
+     * 
+     * Die Dauer muss vorher über setDuration() gesetzt werden, da sie nur
+     * in Zusammenhang mit einer Routingmetrik berechnet werden kann.
+     * 
+     * @return Die Dauer, um eine Route zu befahren.
+     */
+    double getDuration() const {return duration;}
+    
+    /**
+     * @brief Setzt die Dauer, die man benötigt, um die Route zu befahren.
+     */
+    void setDuration(double duration) {this->duration = duration;}
 private:
     /**
      * @brief gibt die Liste zurück.
@@ -231,6 +248,9 @@ private:
        return route;
     }
     QList<GPSPosition> route;
+    
+    //Dauer in Sekunden
+    double duration;
 };
 
 
