@@ -45,8 +45,8 @@
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
-            -moz-border-radius: 10px;
             -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
             }
             #settingsNew{
             position: absolute;
@@ -57,8 +57,8 @@
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
-            -moz-border-radius: 10px;
             -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
             }
             #settingsBikers{
             position: absolute;
@@ -69,8 +69,8 @@
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
-            -moz-border-radius: 10px;
             -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
             }
             #settingsPowermetric{
             position: absolute;
@@ -81,8 +81,8 @@
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
-            -moz-border-radius: 10px;
             -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
             }
             #allSettings{
             position: absolute;
@@ -93,6 +93,6 @@
             visibility: hidden;
             background-color: #cccccc;
             opacity: 0.8;
-            -moz-border-radius: 10px;
             -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
             }
