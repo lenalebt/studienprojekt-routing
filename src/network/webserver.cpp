@@ -628,7 +628,7 @@ void BikerHttpRequestProcessor::processRequest()
             {
                 std::cerr << "found route." << std::endl
                     << "  length: " << route.calcLength()/1000.0 << "km" << std::endl
-                    << "  duration: " << route.getDuration()/60.0 << "min" << std::endl
+                    << "  duration: " << route.getDuration() << "s" << std::endl
                     << "  has " << route.getSize() << " points." << std::endl;
             }
             

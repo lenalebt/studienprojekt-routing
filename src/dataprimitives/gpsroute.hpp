@@ -176,9 +176,9 @@ public:
     * @brief Erstellt eine Route mit einem Element.
     * @param firstPosition das erste Element in der Liste.
     */
-    GPSRoute(GPSPosition firstPosition)
+    GPSRoute(GPSPosition firstPosition) :
+        route(), duration(0.0)
     {
-        route = QList<GPSPosition>();
         route << firstPosition;
     }
 

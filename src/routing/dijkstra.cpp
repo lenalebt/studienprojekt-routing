@@ -196,7 +196,10 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
             boost::uint64_t activeNodeID = activeNodeLongID;
             GPSRoute route;
             if (_metric->getMeasurementUnit() == SECONDS)
+            {
                 route.setDuration(nodeCosts.getValue(activeNodeID));
+                std::cerr << "duration: " << nodeCosts.getValue(activeNodeID) << std::endl;
+            }
             else
             {
                 //TODO: Kanten mit Zeit bewerten!
