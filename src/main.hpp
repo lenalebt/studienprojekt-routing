@@ -122,6 +122,10 @@
  * ausgegangen. Wird <code>dbbackend</code> nicht angegeben, wird von
  * <code>spatialite</code> ausgegangen.
  * 
+ * @section benutzung_gui GUI: Aufruf und Benutzung
+ * @todo GUI-Benutzung in ein paar Sätzen aufschreiben, und wie man
+ * die Seite im Webbrowser findet
+ * 
  * @subsection tests Tests
  * Biker hat für jedes Modul Unit-Tests, die die Programmfunktionen testen.
  * Um alle Tests auszuführen, tippt man im build-Verzeichnis des Programms:
