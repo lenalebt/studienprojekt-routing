@@ -345,7 +345,7 @@
                 urlparameters += "&minspeed=" + document.routingmetricsettings.minspeed.value/3.6;
                 urlparameters += "&weight=" + document.routingmetricsettings.weight.value;
                 urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
-                
+                urlparameters += "&detourperheightmeter=" + document.routingmetricsimpleheightsettings.adddistance.value;
                 url += "?" + urlparameters;
             }
             thisLink = url;
@@ -404,12 +404,17 @@
                 settingsShown = 1;
                 //document.all.map.style.width = "79%";
                 document.all.allSettings.style.visibility = "visible";
+                clickMetric();
             }
             else
             {
                 settingsShown = 0;
                 //document.all.map.style.width = "100%";
                 document.all.allSettings.style.visibility = "hidden";
+                document.all.settingsSimpleheight.style.visibility = "hidden";
+                document.all.settingsPowermetric.style.visibility = "hidden";
+                document.all.settingsNew.style.visibility = "hidden";
+                document.all.settingsBikers.style.visibility = "hidden";
             }
         }
         function getCheckedRoutingAlgorithm()
@@ -440,6 +445,38 @@
                 {
                     return document.algorithm.algorithm[i].value;
                 }
+            }
+        }
+        function clickMetric()
+        {
+            var help = getCheckedRoutingMetric();
+            if(help == "bike/euclidian")
+            {
+                document.all.settingsSimpleheight.style.visibility = "hidden";
+                document.all.settingsPowermetric.style.visibility = "hidden";
+                document.all.settingsNew.style.visibility = "hidden";
+                document.all.settingsBikers.style.visibility = "hidden";
+            }
+            else if(help == "bike/simpleheight")
+            {
+                document.all.settingsSimpleheight.style.visibility = "visible";
+                document.all.settingsPowermetric.style.visibility = "hidden";
+                document.all.settingsNew.style.visibility = "hidden";
+                document.all.settingsBikers.style.visibility = "hidden";
+            }
+            else if (help == "bike/power")
+            {
+                document.all.settingsPowermetric.style.visibility = "visible";
+                document.all.settingsSimpleheight.style.visibility = "hidden";
+                document.all.settingsNew.style.visibility = "hidden";
+                document.all.settingsBikers.style.visibility = "visible";
+            }
+            else if (help == "bike/platzhalter")
+            {
+                document.all.settingsPowermetric.style.visibility = "visible";
+                document.all.settingsSimpleheight.style.visibility = "hidden";
+                document.all.settingsNew.style.visibility = "visible";
+                document.all.settingsBikers.style.visibility = "visible";
             }
         }
         function getCheckedRoutingMetric()
@@ -481,13 +518,15 @@
         <form name="routingmetric">
             <table>
                 <tr><td>Routingmetriken: </td></tr>
-                <tr><td><input type="radio" name="routingmetric" value="bike/euclidian"> euklidische Entfernung</td></tr>
-                <tr><td><input type="radio" name="routingmetric" value="bike/simpleheight"> einfache Höhenvermeidung</td></tr>
-                <tr><td><input type="radio" name="routingmetric" value="bike/power" checked> Leistungsmetrik</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/euclidian" onclick="clickMetric()"> euklidische Entfernung</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/simpleheight" onclick="clickMetric()"> einfache Höhenvermeidung</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/power" onclick="clickMetric()" checked> Leistungsmetrik</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/platzhalter" onclick="clickMetric()"> Platzhalter</td></tr>
             </table>
         </form>
     </div>
-    <div id="settings">
+    </div>
+    <div id="settingsPowermetric">
         <form name="routingmetricsettings">
             <table>
                 <tr><td>Einstellungen: </td></tr>
@@ -502,6 +541,34 @@
             </table>
         </form>
     </div>
-   </div>
+    <div id="settingsSimpleheight">
+        <form name="routingmetricsimpleheightsettings">
+            <table>
+                <tr><td>Einstellungen: </td></tr>
+                <tr><td>Umweg / Höhenmeter:</td></tr>
+                <tr><td><input name="adddistance" type="text" value="10.0" size="15"></td></tr>
+            </table>
+        </form>
+    </div>
+    <div id="settingsBikers">
+        <form name="routingmetricbikers">
+            <table>
+                <tr><td><input type="radio" name="bikers" value="1"> <img src="/img/std_biker.png" width="10" height="10" alt="" /></td>
+                <td><input type="radio" name="bikers" value="2"> <img src="/img/std_biker.png" width="10" height="10" alt="" /></td>
+                <td><input type="radio" name="bikers" value="3"> <img src="/img/std_biker.png" width="10" height="10" alt="" /></td>
+                <td><input type="radio" name="bikers" value="4"> <img src="/img/std_biker.png" width="10" height="10" alt="" /></td></tr>
+            </table>
+        </form>
+    </div>
+    <div id="settingsNew">
+        <form name="routingmetricnewsettings">
+            <table>
+                <tr><td>Platzhalter 1:</td></tr>
+                <tr><td><input name="addparam" type="text" value="10.0" size="15"></td></tr>
+                <tr><td>Platzhalter 2:</td></tr>
+                <tr><td><input name="addparam" type="text" value="10.0" size="15"></td></tr>
+            </table>
+        </form>
+    </div>
   </body>
 </html>
