@@ -27,15 +27,15 @@ QString GPSRoute::exportGPXString(boost::shared_ptr<AltitudeProvider> provider)
     //zusätzliche Daten, wie Zeit & Entfernung
     QDomElement rootExtensions = doc.createElement("extensions");
     QDomElement  rootDistance = doc.createElement("distance");
-    QDomText distanceText = doc.createTextNode(locale.toString(route.calcLength(), 'f', 9));
+    QDomText distanceText = doc.createTextNode(locale.toString(route.calcLength(), 'f', 9).replace(",",""));
     rootDistance.appendChild(distanceText);
     rootExtensions.appendChild(rootDistance);
-    /*
-     * für eventuelle spätere Verwendung auskommentiert
-     * QDomElement rootTime = doc.createElement("time");
-     * rootTime.setNodeValue(locale.toString(//Funktions Aufruf für die gesammt Zeit);
-     * rootExtensions.appendChild(rootTime);
-     */
+    
+    QDomElement rootTime = doc.createElement("time");
+    QDomText timeText = doc.createTextNode(locale.toString(route.getDuration(), 'f', 9).replace(",",""));
+    rootTime.appendChild(timeText);
+    rootExtensions.appendChild(rootTime);
+    
     root.appendChild(rootExtensions);
     //Wegpunkte einfügen
     QDomElement wptPoint;
@@ -48,7 +48,7 @@ QString GPSRoute::exportGPXString(boost::shared_ptr<AltitudeProvider> provider)
         if (provider.get() != 0)
         {
             QDomElement elevation = doc.createElement("ele");
-            QDomText elevationText = doc.createTextNode(locale.toString(provider->getAltitude(route[i]), 'f', 6));
+            QDomText elevationText = doc.createTextNode(locale.toString(provider->getAltitude(route[i]), 'f', 6).replace(",",""));
             elevation.appendChild(elevationText);
             wptPoint.appendChild(elevation);
         }
@@ -68,13 +68,13 @@ QString GPSRoute::exportGPXString(boost::shared_ptr<AltitudeProvider> provider)
         rtePoint.setAttribute("lon", locale.toString(route[i].getLon(), 'f', 9));
         QDomElement extensions = doc.createElement("extensions");
         QDomElement distance = doc.createElement("distance");
-        QDomText distanceElementText = doc.createTextNode(locale.toString(route[i].calcDistance(help), 'f', 9));
+        QDomText distanceElementText = doc.createTextNode(locale.toString(route[i].calcDistance(help), 'f', 9).replace(",",""));
         distance.appendChild(distanceElementText);
         extensions.appendChild(distance);
         if (provider.get() != 0)
         {
             QDomElement elevation = doc.createElement("ele");
-            QDomText elevationText = doc.createTextNode(locale.toString(provider->getAltitude(route[i]), 'f', 6));
+            QDomText elevationText = doc.createTextNode(locale.toString(provider->getAltitude(route[i]), 'f', 6).replace(",",""));
             elevation.appendChild(elevationText);
             rtePoint.appendChild(elevation);
         }
