@@ -16,8 +16,12 @@
         var pointlist = [];
         var markerlist = [];
         var lastmarker = [];
-        var iconSize = new OpenLayers.Size(20, 20);
+        var iconSizeLarge = new OpenLayers.Size(20, 20);
+        var iconSize = new OpenLayers.Size(15, 15);
         var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
+        var markerStart = new OpenLayers.Icon("img/marker-green.png", iconSizeLarge, iconOffset);
+        var markerEnd = new OpenLayers.Icon("img/marker-red.png", iconSizeLarge, iconOffset);
+        var markerInBetween = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
         var markerRed = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
         var markerBlue = new OpenLayers.Icon("img/marker-blue.png", iconSize, iconOffset);
         var markerCyan = new OpenLayers.Icon("img/marker-cyan.png", iconSize, iconOffset);
@@ -25,7 +29,7 @@
         var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
         var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
         var markerNone = new OpenLayers.Icon("", iconSize, iconOffset);
-        var iconlist = [markerGreen, markerCyan, markerBlue, markerPurple, markerRed, markerYellow];
+        var iconlist = [markerBlue, markerPurple, markerRed, markerYellow, markerGreen, markerCyan];
         var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
@@ -273,21 +277,45 @@
                 map.addLayer(markers);
                 //alert("added");
                 var iconindex;
-                var help = 0.0;
+                var help = 0;
                 for(var index = 0; index < markerlist.length; index ++)
                 {
                     iconindex = index % iconlist.length;
-                    help = index / iconlist.length;
-                    if(help < 1.0)
+                    //help = index / iconlist.length;
+                    if(index == 0)
                     {
-                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
-                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerStart);
                         markers.addMarker(lastmarker[index]);
+                    }
+                    else if (index >=1 && index <= markerlist.length-2)
+                    {
+                        if(help == 0)
+                        {
+                            lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerInBetween);
+                            markers.addMarker(lastmarker[index]);
+                            help = 1;
+                        }
+                        else
+                        {
+                            lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerInBetween.clone());
+                            markers.addMarker(lastmarker[index]);
+                        } 
+                        //if(help < 1.0)
+                        //{
+                        //    lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
+                        //    //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        //    markers.addMarker(lastmarker[index]);
+                        //}
+                        //else
+                        //{
+                        //   lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        //    //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        //    markers.addMarker(lastmarker[index]);
+                        //}
                     }
                     else
                     {
-                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
-                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerEnd);
                         markers.addMarker(lastmarker[index]);
                     }
                     //alert(iconindex);
@@ -551,10 +579,10 @@
     <div id="settingsBikers">
         <form name="routingmetricbikers">
             <table>
-                <tr><td><input type="radio" name="bikers" value="1"> <img src="/img/std_biker.png" width="10" height="10" alt="" /></td>
-                <td><input type="radio" name="bikers" value="2"> <img src="/img/std_biker.png" width="10" height="10" alt="" /></td>
-                <td><input type="radio" name="bikers" value="3"> <img src="/img/std_biker.png" width="10" height="10" alt="" /></td>
-                <td><input type="radio" name="bikers" value="4"> <img src="/img/std_biker.png" width="10" height="10" alt="" /></td></tr>
+                <tr><td><input type="radio" name="bikers" value="1"> <img src="/img/stdBiker.png" width="10" height="10" alt="" /></td>
+                <td><input type="radio" name="bikers" value="2"> <img src="/img/stdBiker.png" width="10" height="10" alt="" /></td>
+                <td><input type="radio" name="bikers" value="3"> <img src="/img/stdBiker.png" width="10" height="10" alt="" /></td>
+                <td><input type="radio" name="bikers" value="4"> <img src="/img/stdBiker.png" width="10" height="10" alt="" /></td></tr>
             </table>
         </form>
     </div>
