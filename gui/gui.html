@@ -169,7 +169,7 @@
                         geolocationstyle
                     )
                 ]);
-                map.zoomToExtent(vector.getDataExtent());
+                map.zoomToExtent(vectorLayer.getDataExtent());
             });
             geolocate.deactivate();
             geolocate.activate();
@@ -402,19 +402,17 @@
             if(settingsShown == 0)
             {
                 settingsShown = 1;
-                //document.all.map.style.width = "79%";
-                document.all.allSettings.style.visibility = "visible";
+                document.getElementById("allSettings").style.visibility = "visible";
                 clickMetric();
             }
             else
             {
                 settingsShown = 0;
-                //document.all.map.style.width = "100%";
-                document.all.allSettings.style.visibility = "hidden";
-                document.all.settingsSimpleheight.style.visibility = "hidden";
-                document.all.settingsPowermetric.style.visibility = "hidden";
-                document.all.settingsNew.style.visibility = "hidden";
-                document.all.settingsBikers.style.visibility = "hidden";
+                document.getElementById("allSettings").style.visibility = "hidden";
+                document.getElementById("settingsSimpleheight").style.visibility = "hidden";
+                document.getElementById("settingsPowermetric").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikers").style.visibility = "hidden";
             }
         }
         function getCheckedRoutingAlgorithm()
@@ -452,31 +450,31 @@
             var help = getCheckedRoutingMetric();
             if(help == "bike/euclidian")
             {
-                document.all.settingsSimpleheight.style.visibility = "hidden";
-                document.all.settingsPowermetric.style.visibility = "hidden";
-                document.all.settingsNew.style.visibility = "hidden";
-                document.all.settingsBikers.style.visibility = "hidden";
+                document.getElementById("settingsSimpleheight").style.visibility = "hidden";
+                document.getElementById("settingsPowermetric").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikers").style.visibility = "hidden";
             }
             else if(help == "bike/simpleheight")
             {
-                document.all.settingsSimpleheight.style.visibility = "visible";
-                document.all.settingsPowermetric.style.visibility = "hidden";
-                document.all.settingsNew.style.visibility = "hidden";
-                document.all.settingsBikers.style.visibility = "hidden";
+                document.getElementById("settingsSimpleheight").style.visibility = "visible";
+                document.getElementById("settingsPowermetric").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikers").style.visibility = "hidden";
             }
             else if (help == "bike/power")
             {
-                document.all.settingsPowermetric.style.visibility = "visible";
-                document.all.settingsSimpleheight.style.visibility = "hidden";
-                document.all.settingsNew.style.visibility = "hidden";
-                document.all.settingsBikers.style.visibility = "visible";
+                document.getElementById("settingsPowermetric").style.visibility = "visible";
+                document.getElementById("settingsSimpleheight").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikers").style.visibility = "visible";
             }
             else if (help == "bike/platzhalter")
             {
-                document.all.settingsPowermetric.style.visibility = "visible";
-                document.all.settingsSimpleheight.style.visibility = "hidden";
-                document.all.settingsNew.style.visibility = "visible";
-                document.all.settingsBikers.style.visibility = "visible";
+                document.getElementById("settingsPowermetric").style.visibility = "visible";
+                document.getElementById("settingsSimpleheight").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "visible";
+                document.getElementById("settingsBikers").style.visibility = "visible";
             }
         }
         function getCheckedRoutingMetric()
