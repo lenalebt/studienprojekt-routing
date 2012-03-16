@@ -20,9 +20,10 @@ GPSRoute Router::calculateShortestRoute(QVector<GPSPosition> pointList)
             std::cerr << "route part not in cache, calculating..." << std::endl;
             GPSRoute routepart = calculateShortestRoute(pointList[i], pointList[i+1]);
             route << routepart;
-            RouteCache::getInstance()->addRoute(route, pointList[i], pointList[i+1], _metric->getParameterDetails());
+            RouteCache::getInstance()->addRoute(routepart, pointList[i], pointList[i+1], _metric->getParameterDetails());
         }
     }
+    std::cerr << "route ready - delivering now..." << std::endl;
     return route;
 }
 

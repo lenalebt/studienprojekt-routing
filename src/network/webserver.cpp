@@ -624,6 +624,10 @@ void BikerHttpRequestProcessor::processRequest()
                 this->send404();
                 return;
             }
+            else
+            {
+                std::cerr << "found route, length: " << route.calcLength()/1000.0 << "km" << std::endl;
+            }
             
             //Antwort entsprechend des Routentypen senden.
             if (routeDataType == "gpx")
