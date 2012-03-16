@@ -4,6 +4,7 @@
                 width: 100%;
                 height: 100%;
                 z-index: 2;
+                 font-size: small;
             }
             #map {
                 margin: 0;
@@ -31,22 +32,64 @@
             }
             #radioAlgorithm{
             
-            
             }
             #radioRoutingmetric{
             
-            
             }
-            #settings{
-            
+            #settingsSimpleheight{
+            position: absolute;
+            visibility: hidden;
+            left: 75%;
+            right: 5%;
+            top: 50%;
+            z-index: 3;
+            background-color: #cccccc;
+            opacity: 0.8;
+            -moz-border-radius: 10px;
+            -khtml-border-radius: 10px;
+            }
+            #settingsNew{
+            position: absolute;
+            visibility: hidden;
+            left: 55%;
+            right: 27%;
+            top: 70%;
+            z-index: 3;
+            background-color: #cccccc;
+            opacity: 0.8;
+            -moz-border-radius: 10px;
+            -khtml-border-radius: 10px;
+            }
+            #settingsBikers{
+            position: absolute;
+            visibility: hidden;
+            left: 75%;
+            right: 5%;
+            top: 85%;
+            z-index: 3;
+            background-color: #cccccc;
+            opacity: 0.8;
+            -moz-border-radius: 10px;
+            -khtml-border-radius: 10px;
+            }
+            #settingsPowermetric{
+            position: absolute;
+            visibility: hidden;
+            left: 75%;
+            right: 5%;
+            top: 52%;
+            z-index: 3;
+            background-color: #cccccc;
+            opacity: 0.8;
+            -moz-border-radius: 10px;
+            -khtml-border-radius: 10px;
             }
             #allSettings{
             position: absolute;
-            top: 10px;
             left: 75%;
             right: 5%;
+            top: 2%;
             z-index: 3;
-            height: 95%;
             visibility: hidden;
             background-color: #cccccc;
             opacity: 0.8;
