@@ -135,6 +135,7 @@ void PowerRoutingMetric::init()
      *  - Oberflächenfaktor (0.1 - 3, 0.1-Schritte)
      *  - Geschwindigkeit (0-25m/s, 0.25m/s-Schritte) oder Leistung (0-1000W, 10W-Schritte)
      */
+    /* //Wird noch nicht benutzt, das was folgt...
     powerarray = new double**[30];
     speedarray = new double**[30];
     for (int i = 0; i < 30; i++)
@@ -158,7 +159,7 @@ void PowerRoutingMetric::init()
                 speedarray[i][s][p] = getSpeed(power, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
             }
         }
-    }
+    }*/
     
     maxSpeed = getSpeed(maxPower, 0.0, 0.5, haltungskorrekturfaktor, weight) * 1.5;
     std::cerr << "maxSpeed: " << maxSpeed << std::endl;
@@ -198,76 +199,6 @@ void PowerRoutingMetric::init()
     */
 }
 
-void PowerRoutingMetric::test()
-{
-    std::cerr << "Test für PowerRoutingMetric" << std::endl;
-    
-    std::cerr << "getSpeed(150, 0.01, 1, 0.5, 100)=" << getSpeed(150, 0.01, 1, 0.5, 100) << std::endl;
-    std::cerr << "getSpeed(150, 0.0, 1, 0.5, 100)=" << getSpeed(150, 0.0, 1, 0.5, 100) << std::endl;
-    std::cerr << "getSpeed(150, -0.01, 1, 0.5, 100)=" << getSpeed(150, -0.01, 1, 0.5, 100) << std::endl;
-    
-    /*
-    float***** powerArray;
-    float***** speedArray;
-    
-    powerArray = new float****[50];
-    speedArray = new float****[50];
-    
-    for (int i = 0; i < 50; i++)
-    {
-        powerArray[i] = new float***[30];
-        speedArray[i] = new float***[30];
-        
-        float speed = 0.3 * i;
-        float power = 15.0 * i;
-        for (int j = 0; j < 30; j++)
-        {
-            powerArray[i][j] = new float**[20];
-            speedArray[i][j] = new float**[20];
-            
-            float inclination = 0.5 * j;
-            //std::cerr << inclination << std::endl;
-            for (int k = 0; k < 20; k++)
-            {
-                powerArray[i][j][k] = new float*[4];
-                speedArray[i][j][k] = new float*[4];
-                
-                float surfaceFactor = 0.1 * k;
-                //std::cerr << surfaceFactor << std::endl;
-                for (int l = 0; l < 4; l++)
-                {
-                    float haltungskorrekturfaktor;
-                    switch (l)
-                    {
-                        case 0: haltungskorrekturfaktor = 0.5;
-                                break;
-                        case 1: haltungskorrekturfaktor = 0.4;
-                                break;
-                        case 2: haltungskorrekturfaktor = 0.3;
-                                break;
-                        case 3: haltungskorrekturfaktor = 0.25;
-                                break;
-                        default:haltungskorrekturfaktor = 0.5;
-                                break;
-                    }
-                    for (int m = 0; m < 20; m++)
-                    {
-                        float weight = m * 10;
-                        
-                        powerArray[i][j][k][l] = new float[20];
-                        speedArray[i][j][k][l] = new float[20];
-                        
-                        powerArray[i][j][k][l][m] = getPower(speed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
-                        speedArray[i][j][k][l][m] = getSpeed(power, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
-                    }
-                }
-            }
-        }
-    }
-    */
-    
-}
-
 namespace biker_tests
 {
     int testRoutingMetrics()
@@ -287,7 +218,8 @@ namespace biker_tests
         
         PowerRoutingMetric prm(zeroProvider, 100, 200, 4, 0.5);
         //CHECK_EQ(prm.rateEdge(edge, startNode, endNode), startNode.calcDistance(endNode));
-        prm.test();
+        //prm.test();
+        //TODO
         return EXIT_SUCCESS;
     }
 }

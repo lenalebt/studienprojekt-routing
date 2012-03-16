@@ -215,13 +215,13 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
 }
 
 DijkstraRouter::DijkstraRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric) :
-    _db(db), _metric(metric)
+    Router(metric), _db(db)
 {
     
 }
 
 MultithreadedDijkstraRouter::MultithreadedDijkstraRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric) :
-    _dbA(dbA), _dbB(dbB), _metric(metric)
+    Router(metric), _dbA(dbA), _dbB(dbB)
 {
     
 }

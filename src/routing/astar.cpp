@@ -216,14 +216,13 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
 }
 
 AStarRouter::AStarRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric) :
-    _db(db), _metric(metric)
+    Router(metric), _db(db)
 {
     
 }
 
-
 MultithreadedAStarRouter::MultithreadedAStarRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric) :
-    _dbA(dbA), _dbB(dbB), _metric(metric)
+    Router(metric), _dbA(dbA), _dbB(dbB)
 {
     
 }
