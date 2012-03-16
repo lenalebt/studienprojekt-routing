@@ -392,8 +392,10 @@ public:
         //std::cerr << "speed: " << speed << std::endl;
         
         //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
-        //std::cerr << "time: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
-        return streetTypeFactor * (distance / speed) + timePunishment;
+        //std::cerr << "time1: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
+        //std::cerr << "time2: " << (distance / speed) << "s" << std::endl;
+        //return streetTypeFactor * (distance / speed) + timePunishment;
+        return (distance/speed);
         
         //TODO: Vorlieben bei Kanten nach Radweg etc anpassen und hinzufügen
         

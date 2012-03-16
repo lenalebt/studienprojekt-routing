@@ -198,7 +198,6 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
             if (_metric->getMeasurementUnit() == SECONDS)
             {
                 route.setDuration(nodeCosts.getValue(activeNodeID));
-                std::cerr << "duration: " << nodeCosts.getValue(activeNodeID) << std::endl;
             }
             else
             {

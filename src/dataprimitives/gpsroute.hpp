@@ -157,7 +157,8 @@ public:
      * @brief Kopiert eine Route.
      * @param r die Route, dei Kopiert werden soll.
      */
-    GPSRoute(const GPSRoute& r)
+    GPSRoute(const GPSRoute& r) :
+        duration(r.duration)
     {
         for (int index = 0; index < r.getSize(); index++)
         {
