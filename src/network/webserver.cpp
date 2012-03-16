@@ -559,6 +559,7 @@ void BikerHttpRequestProcessor::processRequest()
                 double maxPower = 150.0;
                 double minSpeed = 2.5;
                 double pushBikeSpeed = 0.5;
+                double haltungskorrekturfaktor = 0.5;
                 
                 if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
                     weight = numberRegExp.cap(1).toDouble();
@@ -568,7 +569,9 @@ void BikerHttpRequestProcessor::processRequest()
                     minSpeed = numberRegExp.cap(1).toDouble();
                 if (numberRegExp.indexIn(_parameterMap["pushbikespeed"]) != -1)
                     pushBikeSpeed = numberRegExp.cap(1).toDouble();
-                metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed, pushBikeSpeed));
+                if (numberRegExp.indexIn(_parameterMap["haltungskorrekturfaktor"]) != -1)
+                    haltungskorrekturfaktor = numberRegExp.cap(1).toDouble();
+                metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed, pushBikeSpeed, haltungskorrekturfaktor));
             }
             else
             {
