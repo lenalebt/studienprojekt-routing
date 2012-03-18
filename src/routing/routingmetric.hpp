@@ -232,13 +232,13 @@ private:
     
 public:
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
-        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5)
+        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5), maxSpeed(-1.0)
     {
         init();
     }
-    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed, double haltungskorrekturfaktor)
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed, double haltungskorrekturfaktor, double maxSpeed = -1.0)
         : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(haltungskorrekturfaktor),
-            pushBikeSpeed(pushBikeSpeed)
+            pushBikeSpeed(pushBikeSpeed), maxSpeed(maxSpeed)
     {
         init();
     }
@@ -389,6 +389,8 @@ public:
             
             //speed = minSpeed;
         }
+        if (speed > maxSpeed)
+            speed = maxSpeed;
         //std::cerr << "speed: " << speed << std::endl;
         
         //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)

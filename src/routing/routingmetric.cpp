@@ -161,7 +161,8 @@ void PowerRoutingMetric::init()
         }
     }*/
     
-    maxSpeed = getSpeed(maxPower, 0.0, 0.5, haltungskorrekturfaktor, weight) * 1.5;
+    maxSpeed = (maxSpeed < 0.0) ? (getSpeed(maxPower, 0.0, 0.5, haltungskorrekturfaktor, weight) * 1.5) : maxSpeed;
+    
     std::cerr << "maxSpeed: " << maxSpeed << std::endl;
     std::cerr << "minSpeed: " << minSpeed << std::endl;
     std::cerr << "pushBikeSpeed: " << pushBikeSpeed << std::endl;

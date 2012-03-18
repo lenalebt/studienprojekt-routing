@@ -498,19 +498,20 @@ void BikerHttpRequestProcessor::processRequest()
         
         //this->send102();
         
+        boost::shared_ptr<RoutingMetric> metric;
+        boost::shared_ptr<Router> router;
+        boost::shared_ptr<DatabaseConnection> dbA;
+        boost::shared_ptr<DatabaseConnection> dbB;
+        boost::shared_ptr<AltitudeProvider> altitudeProvider;
+        
+        #ifdef ZZIP_FOUND
+            altitudeProvider.reset(new SRTMProvider());
+        #else
+            altitudeProvider.reset(new ZeroAltitudeProvider());
+        #endif
+        
         if ((routeType == "bicycle") || (routeType == "bike"))
         {
-            boost::shared_ptr<RoutingMetric> metric;
-            boost::shared_ptr<Router> router;
-            boost::shared_ptr<DatabaseConnection> dbA;
-            boost::shared_ptr<DatabaseConnection> dbB;
-            boost::shared_ptr<AltitudeProvider> altitudeProvider;
-            
-            #ifdef ZZIP_FOUND
-                altitudeProvider.reset(new SRTMProvider());
-            #else
-                altitudeProvider.reset(new ZeroAltitudeProvider());
-            #endif
             //altitudeProvider.reset(new ZeroAltitudeProvider());
             
             //Routingmetrik festlegen anhand der Benutzerwahl
@@ -552,7 +553,7 @@ void BikerHttpRequestProcessor::processRequest()
                     efficiency = numberRegExp.cap(1).toDouble();
                 metric.reset(new SimplePowerRoutingMetric(altitudeProvider, weight, efficiency));
             }
-            else if (routeModifier == "power")
+            else if ((routeModifier == "power") || (routeModifier == ""))
             {
                 double weight = 90.0;
                 //double maxPower = 140.0;
@@ -560,6 +561,7 @@ void BikerHttpRequestProcessor::processRequest()
                 double minSpeed = 2.5;
                 double pushBikeSpeed = 0.5;
                 double haltungskorrekturfaktor = 0.5;
+                double maxSpeed = -1.0;
                 
                 if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
                     weight = numberRegExp.cap(1).toDouble();
@@ -567,11 +569,13 @@ void BikerHttpRequestProcessor::processRequest()
                     maxPower = numberRegExp.cap(1).toDouble();
                 if (numberRegExp.indexIn(_parameterMap["minspeed"]) != -1)
                     minSpeed = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["maxspeed"]) != -1)
+                    maxSpeed = numberRegExp.cap(1).toDouble();
                 if (numberRegExp.indexIn(_parameterMap["pushbikespeed"]) != -1)
                     pushBikeSpeed = numberRegExp.cap(1).toDouble();
                 if (numberRegExp.indexIn(_parameterMap["haltungskorrekturfaktor"]) != -1)
                     haltungskorrekturfaktor = numberRegExp.cap(1).toDouble();
-                metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed, pushBikeSpeed, haltungskorrekturfaktor));
+                metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed, pushBikeSpeed, haltungskorrekturfaktor, maxSpeed));
             }
             else
             {
@@ -579,71 +583,19 @@ void BikerHttpRequestProcessor::processRequest()
                 this->send405();
                 return;
             }
-            
-            #ifdef SPATIALITE_FOUND
-                if (ProgramOptions::getInstance()->dbBackend == "spatialite")
-                {
-                    dbA.reset(new SpatialiteDatabaseConnection());
-                    dbB.reset(new SpatialiteDatabaseConnection());
-                }
-                else 
-            #endif
-            if (ProgramOptions::getInstance()->dbBackend == "sqlite")
-            {
-                dbA.reset(new SQLiteDatabaseConnection());
-                dbB.reset(new SQLiteDatabaseConnection());
-            }
-            //Datenbank ist die globale DB...
-            dbA->open(ProgramOptions::getInstance()->dbFilename.c_str());
-            dbB->open(ProgramOptions::getInstance()->dbFilename.c_str());
-            
-            //TODO: Testen, ob das mit dem Cache überhaupt was bringt...
-            dbA = boost::shared_ptr<DatabaseConnection>(new DatabaseRAMCache(dbA, ProgramOptions::getInstance()->dbCacheSize));
-            dbB = boost::shared_ptr<DatabaseConnection>(new DatabaseRAMCache(dbB, ProgramOptions::getInstance()->dbCacheSize));
-            
-            //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-A* oder Mehrthread-Dijkstra - je nach Metrik.
-            if (_parameterMap["algorithm"] == "multithreadeddijkstra")
-                router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
-            else if (_parameterMap["algorithm"] == "dijkstra")
-                router.reset(new DijkstraRouter(dbA, metric));
-            else if (_parameterMap["algorithm"] == "astar")
-                router.reset(new AStarRouter(dbA, metric));
-            else if (_parameterMap["algorithm"] == "multithreadedastar")
-                router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
-            else
-            {
-                if (metric->getMeasurementUnit() == DISTANCE)
-                    router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
-                else
-                    router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
-            }
-            
-            //Route berechnen
-            GPSRoute route = router->calculateShortestRoute(routePointList);
-            //Keine Route gefunden? 404 senden.
-            if (route.isEmpty())
-            {
-                std::cerr << "no route found." << std::endl;
-                this->send404();
-                return;
-            }
-            else
-            {
-                std::cerr << "found route." << std::endl
-                    << "  length: " << route.calcLength()/1000.0 << "km" << std::endl
-                    << "  duration: " << route.getDuration()/60.0 << "min" << std::endl
-                    << "  has " << route.getSize() << " points." << std::endl;
-            }
-            
-            //Antwort entsprechend des Routentypen senden.
-            if (routeDataType == "gpx")
-                this->sendFile(route.exportGPXString(altitudeProvider));
-            else if (routeDataType == "js")
-                this->sendFile(route.exportJSONString());
-            else
-                std::cerr << "route datatype \"" << routeDataType  << 
-                    "\" not supported." << std::endl;
+        }
+        else if (routeType == "car")
+        {
+            //TODO
+            this->send405();
             return;
+        }
+        else if (routeType == "foot")
+        {
+            if ((routeModifier == "euclidian") || (routeModifier == "") || (routeModifier == "shortest") || (routeModifier == "fastest"))
+            {
+                metric.reset(new EuclidianRoutingMetric(altitudeProvider));
+            }
         }
         else
         {
@@ -652,6 +604,69 @@ void BikerHttpRequestProcessor::processRequest()
             return;
         }
         
+        #ifdef SPATIALITE_FOUND
+            if (ProgramOptions::getInstance()->dbBackend == "spatialite")
+            {
+                dbA.reset(new SpatialiteDatabaseConnection());
+                dbB.reset(new SpatialiteDatabaseConnection());
+            }
+            else 
+        #endif
+        if (ProgramOptions::getInstance()->dbBackend == "sqlite")
+        {
+            dbA.reset(new SQLiteDatabaseConnection());
+            dbB.reset(new SQLiteDatabaseConnection());
+        }
+        //Datenbank ist die globale DB...
+        dbA->open(ProgramOptions::getInstance()->dbFilename.c_str());
+        dbB->open(ProgramOptions::getInstance()->dbFilename.c_str());
+        
+        //TODO: Testen, ob das mit dem Cache überhaupt was bringt...
+        dbA = boost::shared_ptr<DatabaseConnection>(new DatabaseRAMCache(dbA, ProgramOptions::getInstance()->dbCacheSize));
+        dbB = boost::shared_ptr<DatabaseConnection>(new DatabaseRAMCache(dbB, ProgramOptions::getInstance()->dbCacheSize));
+        
+        //Routingalgorithmus heraussuchen, je nach Angabe. Standard: Mehrthread-A* oder Mehrthread-Dijkstra - je nach Metrik.
+        if (_parameterMap["algorithm"] == "multithreadeddijkstra")
+            router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
+        else if (_parameterMap["algorithm"] == "dijkstra")
+            router.reset(new DijkstraRouter(dbA, metric));
+        else if (_parameterMap["algorithm"] == "astar")
+            router.reset(new AStarRouter(dbA, metric));
+        else if (_parameterMap["algorithm"] == "multithreadedastar")
+            router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
+        else
+        {
+            if (metric->getMeasurementUnit() == DISTANCE)
+                router.reset(new MultithreadedAStarRouter(dbA, dbB, metric));
+            else
+                router.reset(new MultithreadedDijkstraRouter(dbA, dbB, metric));
+        }
+        
+        //Route berechnen
+        GPSRoute route = router->calculateShortestRoute(routePointList);
+        //Keine Route gefunden? 404 senden.
+        if (route.isEmpty())
+        {
+            std::cerr << "no route found." << std::endl;
+            this->send404();
+            return;
+        }
+        else
+        {
+            std::cerr << "found route." << std::endl
+                << "  length: " << route.calcLength()/1000.0 << "km" << std::endl
+                << "  duration: " << route.getDuration()/60.0 << "min" << std::endl
+                << "  has " << route.getSize() << " points." << std::endl;
+        }
+        
+        //Antwort entsprechend des Routentypen senden.
+        if (routeDataType == "gpx")
+            this->sendFile(route.exportGPXString(altitudeProvider));
+        else if (routeDataType == "js")
+            this->sendFile(route.exportJSONString());
+        else
+            std::cerr << "route datatype \"" << routeDataType  << 
+                "\" not supported." << std::endl;
         return;
     }
 }

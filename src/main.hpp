@@ -16,6 +16,14 @@
  * Um die Berechnung zu beschleunigen, wird nicht nur von einer,
  * sondern von zwei Seiten gleichzeitig eine Route berechnet.
  * 
+ * Der Fokus dieses Projekts liegt auf der vielseitigen Einstellbarkeit
+ * der Routenoptionen. Dies führt dazu, dass das Berechnen der Route
+ * länger dauert, als in Projekten, die nur ein paar wenige Routenoptionen
+ * anbieten. Ebenso ist die GUI nur ein Beiwerk, um den Routenserver
+ * verwenden zu können: Dieser ist API-kompatibel mit CloudMade.
+ * 
+ * 
+ * 
  * @section get Bezugsquelle
  * Um den Quellcode des Projekts zu beziehen gibt es 2 Wege:
  * 
