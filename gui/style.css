@@ -29,6 +29,7 @@
             position: absolute;
             top: 90%;
             left: 10%;
+            max-width:50%;
             }
             #radioAlgorithm{
             
@@ -39,60 +40,69 @@
             #settingsSimpleheight{
             position: absolute;
             visibility: hidden;
-            left: 75%;
-            right: 5%;
-            top: 50%;
+            left: 80%;
+            right: 3%;
+            top: 42%;
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
+            overflow: auto;
             -khtml-border-radius: 10px;
             -moz-border-radius: 10px;
             }
             #settingsNew{
             position: absolute;
             visibility: hidden;
-            left: 55%;
-            right: 27%;
-            top: 70%;
+            left: 80%;
+            right: 3%;
+            top: 85%;
+            max-height: 14%;
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
+            overflow: auto;
             -khtml-border-radius: 10px;
             -moz-border-radius: 10px;
             }
             #settingsBikers{
             position: absolute;
             visibility: hidden;
-            left: 75%;
-            right: 5%;
-            top: 85%;
+            left: 65%;
+            max-width: 12%;
+            top: 90%;
+            max-height: 9%;
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
+            overflow: auto;
             -khtml-border-radius: 10px;
             -moz-border-radius: 10px;
             }
             #settingsPowermetric{
             position: absolute;
             visibility: hidden;
-            left: 75%;
-            right: 5%;
-            top: 52%;
+            left: 80%;
+            right: 3%;
+            top: 47%;
+            max-height: 36%;
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
+            overflow: auto;
             -khtml-border-radius: 10px;
             -moz-border-radius: 10px;
             }
             #allSettings{
             position: absolute;
-            left: 75%;
-            right: 5%;
-            top: 2%;
+            left: 80%;
+            right: 3%;
+            top: 1%;
+            max-height: 44%;
             z-index: 3;
             visibility: hidden;
             background-color: #cccccc;
             opacity: 0.8;
+            overflow: auto;
             -khtml-border-radius: 10px;
             -moz-border-radius: 10px;
             }
