@@ -115,7 +115,7 @@ QString GPSRoute::exportJSONString()
     QLocale locale(QLocale::C);//sonst schreibt er in eine GPX-Datei Kommas statt Punkte
     QString all;
     //Version
-    all.append("{\"version\":1.0,");
+    all.append("{\"version\":\"0.3\",");
     //Status
     all.append("\"status\":0,");
     //Routen-Zusammenfassung (eventuell verfeinern)
