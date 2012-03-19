@@ -69,6 +69,7 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
 
 bool DataPreprocessing::preprocess()
 {
+    std::cerr << "parsing nodes..." << std::endl;
     //Nodes in tmp DB speichern
     _tmpDBConnection.beginTransaction();
     int nodeCount = 0;
@@ -85,11 +86,11 @@ bool DataPreprocessing::preprocess()
     }
     _tmpDBConnection.endTransaction();
 
+    std::cerr << "parsing ways..." << std::endl;
     //alle Edges bearbeiten
     //_finalDBConnection->beginTransaction(); ist hier noch nicht noetig
     boost::uint64_t edgeID=0;
     QSet<boost::uint64_t> nodeIDSet;
-    std::cerr << "Parsing Ways..." << std::endl;
     _tmpDBConnection.beginTransaction();
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
@@ -110,6 +111,7 @@ bool DataPreprocessing::preprocess()
     }
     _tmpDBConnection.endTransaction();
 
+    std::cerr << "parsing turn restrictions..." << std::endl;
     //Die Queues müssen alle geleert werden, sonst kann das Programm nicht beendet werden!
     while (_turnRestrictionQueue.dequeue(_osmTurnRestriction))
     {
@@ -685,6 +687,9 @@ void DataPreprocessing::createRoutingGraph()
     boost::uint64_t maxValue = 18446744073709551615ull;
 
     _finalDBConnection->beginTransaction();
+    _tmpDBConnection.beginTransaction();
+
+    std::cerr << "creating junctions and edges..." << std::endl;
 
     while(firstVal <= maxValue)
     {
@@ -692,13 +697,13 @@ void DataPreprocessing::createRoutingGraph()
         lastVal = firstVal + (maxValue>>10);
         if (lastVal<(maxValue>>10))  //Wenn es einen Ueberlauf gab...
             lastVal = maxValue;
-
+std::cerr << "index: " <<firstVal << std::endl;
         QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(firstVal, lastVal, maxCount);
 
         for(int i = 0; i < osmNodes.size(); i++)
         {           
-            QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(osmNodes[i]->getID());
-            QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
+            QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
+            QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(osmNodes[i]->getID());
             QVector<int> sectors;
 
             if((osmEdgesIncome.size() > 2) && (osmEdgesOutgoing.size() > 2)) //Kreuzung
@@ -709,12 +714,14 @@ void DataPreprocessing::createRoutingGraph()
                 for(int j = 0; j < osmEdgesOutgoing.size(); j++)
                 {
                     sectors << setNodeBorderingLongID(osmEdgesOutgoing[j], rNode);
+                    std::cerr << *osmEdgesOutgoing[j] << "." <<  std::endl;
                     _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
 
                 }
                 for(int j = 0; j < osmEdgesIncome.size(); j++)
                 {
                     sectors << setNodeBorderingLongID(osmEdgesIncome[j], rNode);
+                    std::cerr << *osmEdgesIncome[j] << "." << std::endl;
                     _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
                 }                
 
@@ -749,14 +756,14 @@ void DataPreprocessing::createRoutingGraph()
                 for( int j = 0; j < osmEdgesIncome.size(); j++)
                 {
                     osmEdgesIncome[j]->setEndNodeID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getEndNodeID()));
-
+std::cerr << *osmEdgesIncome[j] << std::endl;
                     _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
                 }
 
                 for( int j = 0; j < osmEdgesOutgoing.size(); j++)
                 {
                     osmEdgesOutgoing[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getStartNodeID()));
-
+std::cerr << *osmEdgesOutgoing[j] << std::endl;
                     _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
                 }
                 RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
@@ -772,7 +779,18 @@ void DataPreprocessing::createRoutingGraph()
 
         if(firstVal == 0)
             break;
+
+        _finalDBConnection->endTransaction();
+        _finalDBConnection->beginTransaction();
+        _tmpDBConnection.endTransaction();
+        _tmpDBConnection.beginTransaction();
     }
+
+    _tmpDBConnection.endTransaction();
+    _finalDBConnection->endTransaction();
+    _finalDBConnection->beginTransaction();
+
+    std::cerr << "saving edges to final database..." << std::endl;
 
     while(firstVal <= maxValue)
     {
@@ -794,7 +812,7 @@ void DataPreprocessing::createRoutingGraph()
 
             //da alle edges in der way die gleichen eigenschaften haben, eine kante rausholen und propFor- und propBackward mittels
             //categorize vor-, bzw rueckwaertseigenschafen berechnen lassen
-            categorize(tmpOsmEdges[0]->getProperties(), propForward, propBackward);
+            categorize(_tmpDBConnection.getOSMPropertyListByWayID(wayIDs[i]), propForward, propBackward);
 
             routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(0, 0, 0));
             routingEdge->setProperties(propForward);
@@ -843,6 +861,9 @@ void DataPreprocessing::createRoutingGraph()
             firstVal = lastVal + 1;
         if(firstVal == 0)
             break;
+
+        _finalDBConnection->endTransaction();
+        _finalDBConnection->beginTransaction();
     }
 
     _finalDBConnection->endTransaction();
