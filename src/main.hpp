@@ -16,6 +16,8 @@
  * Um die Berechnung zu beschleunigen, wird nicht nur von einer,
  * sondern von zwei Seiten gleichzeitig eine Route berechnet.
  * 
+ * \tableofcontents
+ * 
  * Der Fokus dieses Projekts liegt auf der vielseitigen Einstellbarkeit
  * der Routenoptionen. Dies führt dazu, dass das Berechnen der Route
  * länger dauert, als in Projekten, die nur ein paar wenige Routenoptionen
@@ -131,6 +133,21 @@
  * <code>spatialite</code> ausgegangen.
  * 
  * @section benutzung_gui GUI: Aufruf und Benutzung
+ * Um die GUI zu verwenden, muss sie im Webbrowser aufgerufen werden.
+ * Stellen Sie zuerst wie in \ref serverstart beschrieben sicher,
+ * dass der Server läuft.
+ * Die URL lautet
+ * @verbatim
+http://yourhostgoeshere:yourportgoeshere/files/gui.html
+@endverbatim
+ * Dabei ist <code>yourhostgoeshere</code> durch den Host zu ersetzen,
+ * auf dem der Server läuft. Wenn das Programm lokal ausgeführt wird,
+ * muss dort <code>localhost</code> stehen. <code>yourportgoeshere</code>
+ * ist, wenn er nicht geändert wurde, <code>8080</code>. Im normalen
+ * Testfall ergibt sich dann
+ * @verbatim
+http://localhost:8080/files/gui.html
+@endverbatim
  * @todo GUI-Benutzung in ein paar Sätzen aufschreiben, und wie man
  * die Seite im Webbrowser findet
  * 
