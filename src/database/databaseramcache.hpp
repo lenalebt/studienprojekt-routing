@@ -4,6 +4,9 @@
 #include "database.hpp"
 #include "tests.hpp"
 #include <boost/shared_ptr.hpp>
+#include <QCache>
+#include <QMutex>
+#include <QReadWriteLock>
 
 /**
  * @brief Implementiert einen RAM-Cache für Datenbankelemente.
@@ -16,17 +19,32 @@
  * @date 2011-12-23
  * @copyright GNU GPL v3
  * @ingroup database
- * @todo Ist bisher nur eine "Umleitung", kein Cache.
+ * @todo Cacht bisher noch nicht den Zugriff auf Knoten über eine Gebietsangabe, und keine Straßennamen (muss er das überhaupt?)
  */
 class DatabaseRAMCache : public DatabaseConnection
 {
 private:
+    static QReadWriteLock _startNodeEdgeCacheMutex;
+    static QCache<boost::uint64_t, QVector<boost::shared_ptr<RoutingEdge> > > _startNodeEdgeCache;
+    
+    static QReadWriteLock _endNodeEdgeCacheMutex;
+    static QCache<boost::uint64_t, QVector<boost::shared_ptr<RoutingEdge> > > _endNodeEdgeCache;
+    
+    static QReadWriteLock _idEdgeCacheMutex;
+    static QCache<boost::uint64_t, boost::shared_ptr<RoutingEdge> > _idEdgeCache;
+    
+    static QReadWriteLock _positionNodeCacheMutex;
+    static QCache<boost::uint64_t, QVector<boost::shared_ptr<RoutingNode> > > _positionNodeCache;
+    
+    static QReadWriteLock _idNodeCacheMutex;
+    static QCache<boost::uint64_t, boost::shared_ptr<RoutingNode> > _idNodeCache;
+    
     boost::shared_ptr<DatabaseConnection> _connection;
-    static boost::shared_ptr<DatabaseRAMCache> _globalCacheInstance;
+    
+    void clearEdgeCaches();
+    void clearNodeCaches();
 public:
-    static boost::shared_ptr<DatabaseRAMCache> getGlobalCacheInstance();
-    static void setGlobalCacheInstance(boost::shared_ptr<DatabaseRAMCache> instance);
-    DatabaseRAMCache(boost::shared_ptr<DatabaseConnection> connection);
+    DatabaseRAMCache(boost::shared_ptr<DatabaseConnection> connection, int cacheSize);
     ~DatabaseRAMCache();
     void close();
     void open(QString dbConnectionString);

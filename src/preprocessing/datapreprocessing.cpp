@@ -334,6 +334,10 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
                 definitelyDontUse = true;
                 break; //if the edge can't be passed by bike, there is no need for further categorization
             }
+            else if(osmValue == "unclassified"){
+                streetType = STREETTYPE_HIGHWAY_UNCLASSIFIED;
+
+            }
             else if(osmValue == "pedestrian" || osmValue == "footway"){
                 streetType = STREETTYPE_HIGHWAY_PEDESTRIAN;
                 isFootway = true;
@@ -523,8 +527,9 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
 
     }
     if(it < properties.constEnd() && access == ACCESS_NOT_USABLE_FOR_BIKES){ // Bikes can't pass. Now we check, if Pedestrians may.
+        QVector<OSMProperty>::const_iterator it2;
         if(!isFootway){
-            for (it; it != properties.constEnd(); it++){
+            for (it2 = it; it2 != properties.constEnd(); it2++){
                 QString osmKey = it->getKey();
                 QString osmValue = it->getValue();
                 if(osmKey == "foot"){

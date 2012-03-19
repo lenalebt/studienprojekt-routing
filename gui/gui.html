@@ -11,6 +11,7 @@
     <!--<script src="openlayers/OpenLayers.js"></script>-->
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
+        var thisLink = "";
         var pointlist = [];
         var markerlist = [];
         var lastmarker = [];
@@ -29,7 +30,7 @@
                 defaultHandlerOptions: {
                     'single': true,
                     'double': false,
-                    'pixelTolerance': 0,
+                    'pixelTolerance': 2,
                     'stopSingle': false,
                     'stopDouble': false
                 },
@@ -62,14 +63,19 @@
         var map, layer, gpxlayer;
         
         function init(){
+            var geolocate = new OpenLayers.Control.Geolocate({id: 'locate-control', geolocationOptions: {enableHighAccuracy: false, maximumAge: 0, timeout: 7000}});
+            
             map = new OpenLayers.Map('map',
                 {controls:[new OpenLayers.Control.ArgParser,
                 new OpenLayers.Control.Attribution,
                 new OpenLayers.Control.LayerSwitcher,
-                new OpenLayers.Control.Navigation,
+                new OpenLayers.Control.Navigation({dragPanOptions: {enableKinetic: true}}),
                 new OpenLayers.Control.MousePosition,
                 //new OpenLayers.Control.PanZoom,   //Einkommentieren bringt das Problem mit den doppelten Zoombuttons
                 new OpenLayers.Control.PanZoomBar,
+                new OpenLayers.Control.OverviewMap({maximized: false}),
+                geolocate,
+                new OpenLayers.Control.TouchNavigation({dragPanOptions: {enableKinetic: true}}),
                 new OpenLayers.Control.ScaleLine({geodesic:true})],
                 units:"m",
                 maxResolution:156543.0339,
@@ -79,7 +85,9 @@
             var osmdeutsch = new OpenLayers.Layer.OSM("OSM deutscher Stil", [
                "http://a.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
                "http://b.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
-               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],{attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>'});
+               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],
+               {attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>',
+                transitionEffect: 'resize'});
             map.addLayer(osmdeutsch);
             var osm=new OpenLayers.Layer.OSM(
                 "OSM Mapnik",
@@ -90,14 +98,17 @@
                 keyid:"mapnik",
                 displayOutsideMaxExtent:true,
                 wrapDateLine:true,
-                layerCode:"M"});
+                layerCode:"M",
+                transitionEffect: 'resize'}
+                );
             map.addLayer(osm);
-            oepnv = new OpenLayers.Layer.OSM("&Ouml;pnvkarte",
+            oepnv = new OpenLayers.Layer.OSM("&Ouml;PNVkarte",
                 "http://tile.memomaps.de/tilegen/${z}/${x}/${y}.png",
                 {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a><br>Original map can be seen at <a href=http://www.xn--pnvkarte-m4a.de>www.&ouml;pnvkarte.de</a>",
                  numZoomLevels: 19,
                  displayInLayerSwitcher:true,
-                 buffer:0}
+                 buffer:0,
+                 transitionEffect: 'resize'}
                 );
             map.addLayer(oepnv);
             var transport=new OpenLayers.Layer.OSM(
@@ -109,7 +120,8 @@
                 keyid:"transportmap",
                 displayOutsideMaxExtent:!0,
                 wrapDateLine:true,
-                layerCode:"T"});
+                layerCode:"T"},
+                {transitionEffect: 'resize'});
             map.addLayer(transport);
             var cyclemap=new OpenLayers.Layer.OSM(
                 "OSM Radfahrerkarte",
@@ -120,8 +132,46 @@
                 keyid:"cyclemap",
                 displayOutsideMaxExtent:true,
                 wrapDateLine:true,
-                layerCode:"C"});
+                layerCode:"C",
+                transitionEffect: 'resize'}
+                );
             map.addLayer(cyclemap);
+            var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {});
+            map.addLayer(vectorLayer);
+            var geolocationstyle = {
+                fillColor: '#000',
+                fillOpacity: 0.1,
+                strokeWidth: 0
+            };
+            geolocate.events.register("locationupdated", this, function(e) {
+                vectorLayer.removeAllFeatures();
+                vectorLayer.addFeatures([
+                    new OpenLayers.Feature.Vector(
+                        e.point,
+                        {},
+                        {
+                            graphicName: 'star',
+                            strokeColor: '#f00',
+                            strokeWidth: 1,
+                            fillOpacity: 0,
+                            pointRadius: 7
+                        }
+                    ),
+                    new OpenLayers.Feature.Vector(
+                        OpenLayers.Geometry.Polygon.createRegularPolygon(
+                            new OpenLayers.Geometry.Point(e.point.x, e.point.y),
+                            e.position.coords.accuracy / 2,
+                            50,
+                            0
+                        ),
+                        {},
+                        geolocationstyle
+                    )
+                ]);
+                map.zoomToExtent(vector.getDataExtent());
+            });
+            geolocate.deactivate();
+            geolocate.activate();
             /*var mapquestaerial=new OpenLayers.Layer.OSM(
                 "Mapquest Aerial",
                 ["http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
@@ -212,7 +262,15 @@
                 displayInLayerSwitcher:false
 			});
 			map.addLayer(gpxlayer);
-            {
+        }
+        function setMarkers()
+        {
+                markers.destroy();
+                //alert("destroy");
+                markers = new OpenLayers.Layer.Markers( "Markers" );
+                //alert("new");
+                map.addLayer(markers);
+                //alert("added");
                 var iconindex;
                 var help = 0.0;
                 for(var index = 0; index < markerlist.length; index ++)
@@ -222,11 +280,13 @@
                     if(help < 1.0)
                     {
                         lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
+                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
                         markers.addMarker(lastmarker[index]);
                     }
                     else
                     {
                         lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
                         markers.addMarker(lastmarker[index]);
                     }
                     //alert(iconindex);
@@ -234,15 +294,14 @@
                     //alert(pointlist[index]);
                     //alert(help.isDrawn());
                 }
-            }
+                
         }
-        
         function calcRoute()
         {
             //alert("pointlist has " + pointlist.length + " items");
             var urlstart = "../1341253652/api/0.3/";
             var urlend = "/" + getCheckedRoutingMetric() + ".gpx";
-            var url;
+            var url = "";
             if (pointlist.length == 1)
             {
                 markers.addMarker(new OpenLayers.Marker(markerlist[0], iconlist[0]));
@@ -276,10 +335,10 @@
                         }
                         url = url + urlend;
                 }
+                
                 //alert(url);
                 urlparameters = "";
-                if (getCheckedRoutingAlgorithm() != "standard")
-                    urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
+                urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
                 //ACHTUNG! Erlaubt code und Parameter Injection.
                 urlparameters += "&maxpower=" + document.routingmetricsettings.maxpower.value;
                 urlparameters += "&minspeed=" + document.routingmetricsettings.minspeed.value/3.6;
@@ -287,9 +346,11 @@
                 urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
                 
                 url += "?" + urlparameters;
-                
-                displayGPX(url);
             }
+            thisLink = url;
+            displayGPX(url);
+            setMarkers();
+            getLink()
         }
         function resetRoute()
         {
@@ -298,7 +359,7 @@
             markerlist = [];
             pointlist = [];
             //markers = new OpenLayers.Layer.Markers( "Markers" );
-            markers.redraw();
+            //markers.redraw();
             //map.addLayer(markers);
             calcRoute();
         }
@@ -321,9 +382,30 @@
                 pointlist.splice(pointlist.length -1, 1);
                 //markers.redraw();
                 calcRoute();
-            } else
+            }
+        }
+        function getLink()
+        {
+            document.getElementById("tag").href= thisLink;
+        }
+        function getCheckedRoutingAlgorithm()
+        {
+            for(i=0; i<document.algorithm.algorithm.length; i++)
             {
-                resetRoute();
+                if(document.algorithm.algorithm[i].checked == true)
+                {
+                    return document.algorithm.algorithm[i].value;
+                }
+            }
+        }
+        function getCheckedRoutingMetric()
+        {
+            for(i=0; i<document.routingmetric.routingmetric.length; i++)
+            {
+                if(document.routingmetric.routingmetric[i].checked == true)
+                {
+                    return document.routingmetric.routingmetric[i].value;
+                }
             }
         }
         function getCheckedRoutingAlgorithm()
@@ -378,6 +460,9 @@
             Gewicht (in kg, mit Fahrrad):<input name="weight" type="text" value="90.0">
             Schiebegeschwindigkeit (in km/h):<input name="pushbikespeed" type="text" value="2.5">
         </form>
+    </div>
+    <div>
+        <a id = "tag">Link zur GPX-Datei</a> 
     </div>
     <div>
     Erklärung hier hin vielleicht?
