@@ -725,6 +725,7 @@ void DataPreprocessing::createRoutingGraph()
                         {
                             if (*endNodeSector % 2 == 0)
                                 continue;
+                            rEdge.setID(edgeID++);
                             rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
                             rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
                             rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
