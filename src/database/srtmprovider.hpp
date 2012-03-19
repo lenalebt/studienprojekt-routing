@@ -117,14 +117,15 @@ private:
     QString _srtmFileList;
     QUrl _url;
     int index;
-    QCache<int, SRTMTile> tileCache;
+
+    static QCache<int, SRTMTile> tileCache;
     
-    QReadWriteLock lock;
+    static QReadWriteLock lock;
     
     void loadFileList();
     void createFileList();
     bool fillTile(int index, SRTMTile **tile);
-    bool downloadZipFile(QString fileName, QFile &ZipFile);
+    bool downloadZipFile(int fileIndex, QString fileName, QFile &ZipFile);
 
     
     int latLonToIndex(int lat, int lon){ 
@@ -168,19 +169,19 @@ public:
      */
     void downloadUrl(QUrl &dUrl, QByteArray &data);
     
-    SRTMProvider() : _cachedir(""), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/"), lock(QReadWriteLock::Recursive)
+    SRTMProvider() : _cachedir(""), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/")
     {
         _cachedir = QDir::homePath() + "/.biker/srtm/";
     }
     
-    SRTMProvider(QString cachedir) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/"), lock(QReadWriteLock::Recursive) {}
+    SRTMProvider(QString cachedir) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url("http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/") {}
     
-    SRTMProvider(QUrl url) : _cachedir(""), _srtmFileList("srtmfile"), _url(url), lock(QReadWriteLock::Recursive)
+    SRTMProvider(QUrl url) : _cachedir(""), _srtmFileList("srtmfile"), _url(url)
     {
         _cachedir = QDir::homePath() + "/.biker/srtm/";
     }
     
-    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url(url), lock(QReadWriteLock::Recursive) {}
+    SRTMProvider(QString cachedir, QUrl url) : _cachedir(cachedir), _srtmFileList("srtmfile"), _url(url)  {}
     
     ~SRTMProvider();
 };
