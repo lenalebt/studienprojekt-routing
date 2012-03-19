@@ -228,6 +228,14 @@ void HttpRequestProcessor::send400()
     writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Bad request</title></head><body><p>400 Bad Request</p></body></html>");
     _socket->flush();
 }
+void HttpRequestProcessor::send403()
+{
+    writeString(_socket, "HTTP/1.");
+    writeString(_socket, _httpVersion);
+    writeString(_socket, " 403 Access forbidden\n\n");
+    writeString(_socket, "<!DOCTYPE html>\n<html><head><title>Access forbidden</title></head><body><p>403 Access forbidden</p></body></html>");
+    _socket->flush();
+}
 void HttpRequestProcessor::send404()
 {
     writeString(_socket, "HTTP/1.");
@@ -444,6 +452,16 @@ void BikerHttpRequestProcessor::processRequest()
             apiKey = cloudmadeApiKeyRegExp.cap(1).toLower();
             apiVersion = cloudmadeApiKeyRegExp.cap(2).toInt();
             //API-Key gefunden. Falls uns der interessiert, hier was damit machen!
+            
+            if (ProgramOptions::getInstance()->webserver_apikey != "")
+            {
+                if (ProgramOptions::getInstance()->webserver_apikey != apiKey.toStdString())
+                {
+                    std::cerr << "api key \"" << apiKey << "\" is not valid." << std::endl;
+                    this->send403();
+                    return;
+                }
+            }
             
             if (apiVersion != 3)
             {

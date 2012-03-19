@@ -147,6 +147,13 @@ protected:
     void send400();
     
     /**
+     * @brief Schickt eine 403-Nachricht mit kleiner Webseite an den Peer (403 Access forbidden).
+     * 
+     * Die Verbindung sollte nach dem Versenden geschlossen werden.
+     */
+    void send403();
+    
+    /**
      * @brief Schickt eine 404-Nachricht mit kleiner Webseite an den Peer (404 not found).
      * 
      * Die Verbindung sollte nach dem Versenden geschlossen werden.

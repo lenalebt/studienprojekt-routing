@@ -42,6 +42,7 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
         ("threadpoolsize", po::value<unsigned int>(&(programOptions->threads_threadpool_size))->default_value(20u), "set maximum thread pool size for standard purposes")
         ("no-start-webserver", "do not start webserver")
         ("webserver-public-html-folder,d", po::value<std::string>(&(programOptions->webserver_public_html_folder))->default_value("./gui/"), "set public html folder of webserver")
+        ("webserver-api-key,k", po::value<std::string>(&(programOptions->webserver_apikey))->default_value(""), "set admissable API key (kind of a \"server password\")")
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(20u), "set maximum thread pool size of webserver")
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
