@@ -672,6 +672,7 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
 void DataPreprocessing::createRoutingGraph()
 {
     boost::uint64_t edgeID = 0;
+    boost::uint64_t innerEdgeID = 0;
     //QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
 
     boost::uint64_t firstVal = 0;
@@ -714,8 +715,7 @@ void DataPreprocessing::createRoutingGraph()
                 {
                     //erstelle neue innere Kanten zu allen ausgehenden Kanten
                     //Dabei: Fuege Turntypes zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
-                    //TODO: testen. ist dafuer da, die inneren kanten einer kreuzung zu erstellen.
-                    //TODO: rEdge braucht noch eine ID.
+                    //TODO: testen. ist dafuer da, die inneren kanten einer kreuzung zu erstellen.                    
                     RoutingEdge rEdge;
                     for(QVector<int>::iterator startNodeSector = sectors.begin(); startNodeSector != sectors.end(); startNodeSector++)
                     {
@@ -725,7 +725,7 @@ void DataPreprocessing::createRoutingGraph()
                         {
                             if (*endNodeSector % 2 == 0)
                                 continue;
-                            rEdge.setID(edgeID++);
+                            rEdge.setID(innerEdgeID++);
                             rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
                             rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
                             rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
