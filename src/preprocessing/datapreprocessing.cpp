@@ -674,9 +674,6 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
 void DataPreprocessing::createRoutingGraph()
 {
     boost::uint64_t edgeID = 0;
-    //boost::uint64_t innerEdgeID = 0;
-    //QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
-
     boost::uint64_t firstVal = 0;
     boost::uint64_t lastVal = 0;
     boost::uint32_t maxCount = 100;
@@ -690,8 +687,8 @@ void DataPreprocessing::createRoutingGraph()
         lastVal = firstVal + (maxValue>>10);
         if (lastVal<(maxValue>>10))  //Wenn es einen Ueberlauf gab...
             lastVal = maxValue;
+
         QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(firstVal, lastVal, maxCount);
-        std::cerr << "firstVal: " << firstVal << std::endl;
 
         for(int i = 0; i < osmNodes.size(); i++)
         {           
@@ -706,14 +703,12 @@ void DataPreprocessing::createRoutingGraph()
 
                 for(int j = 0; j < osmEdgesOutgoing.size(); j++)
                 {
-
                     sectors << setNodeBorderingLongID(osmEdgesOutgoing[j], rNode);
                     _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
 
                 }
                 for(int j = 0; j < osmEdgesIncome.size(); j++)
                 {
-
                     sectors << setNodeBorderingLongID(osmEdgesIncome[j], rNode);
                     _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
                 }                
@@ -774,49 +769,75 @@ void DataPreprocessing::createRoutingGraph()
             break;
     }
 
-    QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);
-    boost::uint64_t propForward = 0;
-    boost::uint64_t propBackward = 0;
-    bool edgeForward = true;
-    bool edgeBackward = true;
-
-    for(int i = 0 ; i < wayIDs.size(); i++)
+    while(firstVal <= maxValue)
     {
-        QVector< boost::shared_ptr< OSMEdge > > tmpOsmEdges = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(i);
+        //gehe in 10K schritten durch die nodes
+        lastVal = firstVal + (maxValue>>10);
+        if (lastVal<(maxValue>>10))  //Wenn es einen Ueberlauf gab...
+            lastVal = maxValue;
 
-        //da alle edges in der way die gleichen eigenschaften haben, eine kante rausholen und mittels
-        //categorize vor-, bzw rueckwaertseigenschafen berechnen lassen
-        categorize(tmpOsmEdges[0]->getProperties(), propForward, propBackward);
+        QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(firstVal, lastVal, maxCount);
 
-        routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(0, 0, 0));
-        routingEdge->setProperties(propForward);
-        if(routingEdge->getAccess() == ACCESS_NOT_USABLE_FOR_BIKES)
+        for(int i = 0 ; i < wayIDs.size(); i++)
         {
-            edgeForward = false;
-        }
+            boost::uint64_t propForward = 0;
+            boost::uint64_t propBackward = 0;
+            bool edgeForward = true;
+            bool edgeBackward = true;
+            //std::cerr << "iterating over wayIDs" << std::endl;
+            QVector< boost::shared_ptr< OSMEdge > > tmpOsmEdges = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(wayIDs[i]);
 
-        routingEdge->setProperties(propBackward);
-        if(routingEdge->getAccess() == ACCESS_NOT_USABLE_FOR_BIKES)
-        {
-            edgeBackward = false;
-        }
+            //da alle edges in der way die gleichen eigenschaften haben, eine kante rausholen und propFor- und propBackward mittels
+            //categorize vor-, bzw rueckwaertseigenschafen berechnen lassen
+            categorize(tmpOsmEdges[0]->getProperties(), propForward, propBackward);
 
-        for(int j = 0; j < tmpOsmEdges.size(); j++)
-        {
-            //OSMEdge osmEdge = *tmpOsmEdges[j];
-            //QVector<OSMProperty> osmProp = osmEdge.getProperties();
+            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(0, 0, 0));
+            routingEdge->setProperties(propForward);
 
-            if(edgeForward)
+            if(routingEdge->getAccess() == ACCESS_NOT_USABLE_FOR_BIKES)
             {
-                RoutingEdge rEdge(edgeID++, tmpOsmEdges[i]->getStartNodeID(), tmpOsmEdges[i]->getEndNodeID(), propForward);
-                _finalDBConnection->saveEdge(rEdge);
+                edgeForward = false;
             }
-            if(edgeBackward)
+            else
             {
-                RoutingEdge rEdge(edgeID++, tmpOsmEdges[i]->getStartNodeID(), tmpOsmEdges[i]->getEndNodeID(), propBackward);
-                _finalDBConnection->saveEdge(rEdge);
+                edgeForward = true;
+            }
+
+            routingEdge->setProperties(propBackward);
+            if(routingEdge->getAccess() == ACCESS_NOT_USABLE_FOR_BIKES)
+            {
+                edgeBackward = false;
+            }
+            else
+            {
+                edgeBackward = true;
+            }
+
+            for(int j = 0; j < tmpOsmEdges.size(); j++)
+            {
+                //OSMEdge osmEdge = *tmpOsmEdges[j];
+                //QVector<OSMProperty> osmProp = osmEdge.getProperties();
+                if(edgeForward)
+                {
+                    RoutingEdge rEdge(edgeID++, tmpOsmEdges[j]->getStartNodeID(), tmpOsmEdges[j]->getEndNodeID(), propForward);
+                    _finalDBConnection->saveEdge(rEdge);
+                }
+                if(edgeBackward)
+                {
+                    RoutingEdge rEdge(edgeID++, tmpOsmEdges[j]->getStartNodeID(), tmpOsmEdges[j]->getEndNodeID(), propBackward);
+                    _finalDBConnection->saveEdge(rEdge);
+                }
             }
         }
+
+        if(wayIDs.size() > 0)
+        {
+            firstVal = wayIDs[wayIDs.size() - 1] + 1;
+        }
+        else
+            firstVal = lastVal + 1;
+        if(firstVal == 0)
+            break;
     }
 
     _finalDBConnection->endTransaction();
