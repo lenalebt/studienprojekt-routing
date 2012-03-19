@@ -672,7 +672,7 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
 void DataPreprocessing::createRoutingGraph()
 {
     boost::uint64_t edgeID = 0;
-    boost::uint64_t innerEdgeID = 0;
+    //boost::uint64_t innerEdgeID = 0;
     //QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
 
     boost::uint64_t firstVal = 0;
@@ -728,17 +728,16 @@ void DataPreprocessing::createRoutingGraph()
                         {
                             if (*endNodeSector % 2 == 0)
                                 continue;
-                            rEdge.setID(innerEdgeID++);
+                            rEdge.setID(edgeID++);
                             rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
                             rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
                             rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
                             rEdge.setStreetType(STREETTYPE_UNKNOWN);
                             //TODO: Evtl noch andere Eigenschaften setzen?
+                            _finalDBConnection->saveEdge(rEdge);
                         }
                     }
-                    _finalDBConnection->saveEdge(rEdge);
                 }
-
             }
             else if((osmEdgesIncome.size() >= 1) && (osmEdgesOutgoing.size() >= 1) ) // Keine Kreuzung
             {
