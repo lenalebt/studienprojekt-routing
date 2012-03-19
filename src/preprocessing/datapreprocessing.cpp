@@ -673,89 +673,102 @@ void DataPreprocessing::createRoutingGraph()
 {
     boost::uint64_t edgeID = 0;
     //QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(1, 10000);
-    QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(firstVal, firstVal + 1000000000, maxCount);
 
-    //Falls keine Knoten mehr vorhanden sind, springe raus
-    if(osmNodes.size() == 0)
+    boost::uint64_t firstVal = 0;
+    boost::uint64_t lastVal = 0;
+    boost::uint32_t maxCount = 10000;
+    boost::uint64_t maxValue = 18446744073709551615ull;
+
+    while(firstVal <= maxValue)
     {
-        return;
-    }
+        //gehe in 10K schritten durch die nodes
+        lastVal = firstVal + 1000000000ull;
+        if (lastVal<1000000000ull)  //Wenn es einen Ueberlauf gab...
+            lastVal = maxValue;
+        QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(firstVal, lastVal, maxCount);
 
-    for(int i = 0; i < osmNodes.size(); i++)
-    {
-        tmpCoun = i;
-        QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(osmNodes[i]->getID());
-        QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
-        QVector<int> sectors;
-
-        if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2) //Kreuzung
+        for(int i = 0; i < osmNodes.size(); i++)
         {
-            RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
-            _finalDBConnection->saveNode(rNode);
+            QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(osmNodes[i]->getID());
+            QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
+            QVector<int> sectors;
 
-            sectors << setNodeBorderingLongID(osmEdgesIncome[i], rNode);
-
-            for(int j = 0; j < osmEdgesOutgoing.size(); j++)
+            if(osmEdgesIncome.size() > 2 && osmEdgesOutgoing.size() > 2) //Kreuzung
             {
-                _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
-            }
-            for(int j = 0; j < osmEdgesIncome.size(); j++)
-            {
-                _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
-            }
+                RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
+                _finalDBConnection->saveNode(rNode);
 
-            //handle turnRestrictions here
+                sectors << setNodeBorderingLongID(osmEdgesIncome[i], rNode);
 
-            for(int j = 0; j < osmEdgesIncome.size(); j++)
-            {
-                //erstelle neue innere Kanten zu allen ausgehenden Kanten
-                //Dabei: Fuege Turntypes zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
-                //TODO: testen. ist dafuer da, die inneren kanten einer kreuzung zu erstellen.
-                //TODO: rEdge braucht noch eine ID.
-                RoutingEdge rEdge;
-                for(QVector<int>::iterator startNodeSector = sectors.begin(); startNodeSector != sectors.end(); startNodeSector++)
+                for(int j = 0; j < osmEdgesOutgoing.size(); j++)
                 {
-                    if (*startNodeSector % 2 == 1)
-                        continue;
-                    for(QVector<int>::iterator endNodeSector = sectors.begin(); endNodeSector != sectors.end(); endNodeSector++)
-                    {
-                        if (*endNodeSector % 2 == 0)
-                            continue;
-                        rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
-                        rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
-                        rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
-                        rEdge.setStreetType(STREETTYPE_UNKNOWN);
-                        //TODO: Evtl noch andere Eigenschaften setzen?
-                    }
+                    _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
                 }
-                _finalDBConnection->saveEdge(rEdge);
-            }
+                for(int j = 0; j < osmEdgesIncome.size(); j++)
+                {
+                    _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
+                }
 
+                //handle turnRestrictions
+                for(int j = 0; j < osmEdgesIncome.size(); j++)
+                {
+                    //erstelle neue innere Kanten zu allen ausgehenden Kanten
+                    //Dabei: Fuege Turntypes zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
+                    //TODO: testen. ist dafuer da, die inneren kanten einer kreuzung zu erstellen.
+                    //TODO: rEdge braucht noch eine ID.
+                    RoutingEdge rEdge;
+                    for(QVector<int>::iterator startNodeSector = sectors.begin(); startNodeSector != sectors.end(); startNodeSector++)
+                    {
+                        if (*startNodeSector % 2 == 1)
+                            continue;
+                        for(QVector<int>::iterator endNodeSector = sectors.begin(); endNodeSector != sectors.end(); endNodeSector++)
+                        {
+                            if (*endNodeSector % 2 == 0)
+                                continue;
+                            rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
+                            rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
+                            rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
+                            rEdge.setStreetType(STREETTYPE_UNKNOWN);
+                            //TODO: Evtl noch andere Eigenschaften setzen?
+                        }
+                    }
+                    _finalDBConnection->saveEdge(rEdge);
+                }
+
+            }
+            else if((osmEdgesIncome.size() >= 1) && (osmEdgesOutgoing.size() >= 1) ) // Keine Kreuzung
+            {
+                for( int j = 0; j < osmEdgesIncome.size(); j++)
+                {
+                    osmEdgesIncome[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getStartNodeID()));
+
+                    _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
+                }
+
+                for( int j = 0; j < osmEdgesOutgoing.size(); j++)
+                {
+                    osmEdgesOutgoing[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getEndNodeID()));
+
+                    _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
+                }
+                RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
+                _finalDBConnection->saveNode(rNode);
+            }
         }
-        else if((osmEdgesIncome.size() >= 1) && (osmEdgesOutgoing.size() >= 1) ) // Keine Kreuzung
+        if (osmNodes.size()>0)
         {
-            for( int j = 0; j < osmEdgesIncome.size(); j++)
-            {
-                osmEdgesIncome[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getStartNodeID()));
-
-                _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
-            }
-
-            for( int j = 0; j < osmEdgesOutgoing.size(); j++)
-            {
-                osmEdgesOutgoing[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getEndNodeID()));
-
-                _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
-            }
-            RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
-            _finalDBConnection->saveNode(rNode);
+            firstVal = osmNodes[osmNodes.size()-1]->getID() + 1;
         }
+        else
+            firstVal = lastVal + 1;
     }
+
     QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(1, 10000);
     boost::uint64_t propForward = 0;
     boost::uint64_t propBackward = 0;
     bool edgeForward = true;
     bool edgeBackward = true;
+
     for(int i = 0 ; i < wayIDs.size(); i++)
     {
         QVector< boost::shared_ptr< OSMEdge > > tmpOsmEdges = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(i);
@@ -779,8 +792,8 @@ void DataPreprocessing::createRoutingGraph()
 
         for(int j = 0; j < tmpOsmEdges.size(); j++)
         {
-            OSMEdge osmEdge = *tmpOsmEdges[j];
-            QVector<OSMProperty> osmProp = osmEdge.getProperties();
+            //OSMEdge osmEdge = *tmpOsmEdges[j];
+            //QVector<OSMProperty> osmProp = osmEdge.getProperties();
 
             if(edgeForward)
             {
@@ -793,12 +806,6 @@ void DataPreprocessing::createRoutingGraph()
                 _finalDBConnection->saveEdge(rEdge);
             }
         }
-    }
-
-    if(tmpCount == 9999)
-    {
-        firstVal = firstVall + tmpCount;
-        createRoutingGraph();
     }
 
     //QVector<OSMProperty>::const_iterator it;

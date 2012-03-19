@@ -45,10 +45,6 @@ private:
     boost::shared_ptr<OSMNode> _osmNode;
     boost::shared_ptr<OSMWay> _osmWay;
     boost::shared_ptr<OSMTurnRestriction> _osmTurnRestriction;
-
-    boost::uint64_t firstVal = 1;
-    boost::uint32_t maxCount = 10000;
-    boost::uint64_t tmpCount = 0;
     
     boost::shared_ptr<RoutingNode> routingNode;
     boost::shared_ptr<RoutingEdge> routingEdge;
