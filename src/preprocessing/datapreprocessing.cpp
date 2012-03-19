@@ -699,14 +699,17 @@ void DataPreprocessing::createRoutingGraph()
                 RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
                 _finalDBConnection->saveNode(rNode);
 
-                sectors << setNodeBorderingLongID(osmEdgesIncome[i], rNode);
+                //sectors << setNodeBorderingLongID(osmEdgesIncome[i], rNode);
 
                 for(int j = 0; j < osmEdgesOutgoing.size(); j++)
                 {
+                    sectors << setNodeBorderingLongID(osmEdgesOutgoing[j], rNode);
                     _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
+
                 }
                 for(int j = 0; j < osmEdgesIncome.size(); j++)
                 {
+                    sectors << setNodeBorderingLongID(osmEdgesIncome[j], rNode);
                     _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
                 }
 
