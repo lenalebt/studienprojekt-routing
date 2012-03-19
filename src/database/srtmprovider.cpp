@@ -77,9 +77,9 @@ double SRTMProvider::getAltitude(double lat, double lon)
 }
 
 
-bool SRTMProvider::downloadZipFile(QString fileName, QFile &zipFile){
+bool SRTMProvider::downloadZipFile(int fileIndex, QString fileName, QFile &zipFile){ //Bugfixversuch: fileIndex
 
-    QString altZipUrl =  _url.toString() + fileList[index]; //Url bis .hgt.zip
+    QString altZipUrl =  _url.toString() + fileList[fileIndex]; //Url bis .hgt.zip // //Bugfixversuch: fileIndex
     altZipUrl.toAscii().constData();
     QUrl srtmUrl(altZipUrl);
     QByteArray data;
@@ -87,7 +87,7 @@ bool SRTMProvider::downloadZipFile(QString fileName, QFile &zipFile){
     downloadUrl(srtmUrl, data); // Zipfile soll nun runtergeladen werden.
 
     if(data.isEmpty()){
-        std::cout << "Fehler beim downloaden der Daten für " << fileList[index] << "." << std::endl;
+        std::cout << "Fehler beim downloaden der Daten für " << fileList[fileIndex] << "." << std::endl;
         return false; // download failed
     }
 
@@ -116,7 +116,9 @@ bool SRTMProvider::fillTile(int index, SRTMTile **tile){
 
         QFile zipFile(fileName);
 
-        if(!zipFile.open(QIODevice::ReadOnly) && !downloadZipFile(fileName, zipFile)){
+        int fileIndex = index; //Bugfixversuch: fileIndex
+
+        if(!zipFile.open(QIODevice::ReadOnly) && !downloadZipFile(fileIndex, fileName, zipFile)){ //Bugfixversuch: fileIndex
 
             return tileFilled;
 

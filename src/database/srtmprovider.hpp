@@ -125,7 +125,7 @@ private:
     void loadFileList();
     void createFileList();
     bool fillTile(int index, SRTMTile **tile);
-    bool downloadZipFile(QString fileName, QFile &ZipFile);
+    bool downloadZipFile(int fileIndex, QString fileName, QFile &ZipFile);
 
     
     int latLonToIndex(int lat, int lon){ 
