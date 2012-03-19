@@ -119,7 +119,6 @@ private:
     int index;
 
     static QCache<int, SRTMTile> tileCache;
-    
     static QReadWriteLock lock;
     
     void loadFileList();
