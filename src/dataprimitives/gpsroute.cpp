@@ -115,11 +115,14 @@ QString GPSRoute::exportJSONString()
     QLocale locale(QLocale::C);//sonst schreibt er in eine GPX-Datei Kommas statt Punkte
     QString all;
     //Version
-    all.append("{\"version\":\"0.3\",");
+    all.append("{\"version\":0.3,");
     //Status
     all.append("\"status\":0,");
     //Routen-Zusammenfassung (eventuell verfeinern)
-    all.append("\"route_summary\":{},");
+    all.append("\"route_summary\":{");
+    all.append("\"total_distance\": " + locale.toString(route.calcLength(), 'f', 9).replace(",","") + ", ");
+    all.append("\"total_time\": " + locale.toString(route.getDuration(), 'f', 9).replace(",",""));
+    all.append("},");
     //Routen-Geometrie
     all.append("\"route_geometry\":[");
     //Wegpunkte

@@ -12,7 +12,8 @@
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
         // Initalisierung der zugreifbaren Variablen 
-        var routeLayer = null;
+        var routeLayer = "";
+        //var noRouteLayer = 0;
         var xmlHttp = null;
         var thisLink = "";
         var settingsShown = 0;
@@ -145,6 +146,7 @@
             map.addLayer(cyclemap);
             routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
             map.addLayer(routeLayer);
+            //noRouteLayer = 1;
             xmlHttp = new XMLHttpRequest();
             var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {displayInLayerSwitcher:false});
             map.addLayer(vectorLayer);
@@ -234,7 +236,6 @@
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
             
             map.addLayer(markers);
-            
             //var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
             //      .transform(
             //        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
@@ -261,8 +262,12 @@
         // Funktion zum Anzeigen der JSON-Datei
         function displayJSON(jsonfile)
         {
+            //
             if (jsonfile == "")
+            {
                 return;
+            }
+            
             //alert(jsonfile);
             xmlHttp.open('GET', jsonfile, false);
             xmlHttp.send();
@@ -277,9 +282,11 @@
                     //    }
                     //    else{alert("readystate = " + xmlHttp.readyState);}
                     var jsonRoute = JSON.parse(xmlHttp.responseText);
-                    //"{\"version\":\"0.3\",\"status\":0,\"route_summary\":{},\"route_geometry\":[[51.443359375,7.255579948],[51.443332672,7.255686283],[51.443344116,7.255809784],[51.443389893,7.255942345],[51.443706512,7.256940365],[51.443584442,7.257035732],[51.443641663,7.257212162],[51.443595886,7.257271767],[51.443653107,7.257495403],[51.443695068,7.257628918],[51.443714142,7.257884979],[51.443683624,7.257968903],[51.443660736,7.258131981],[51.443675995,7.258408546],[51.443759918,7.258531094],[51.443870544,7.258547306],[51.443916321,7.258600712],[51.444110870,7.259222507],[51.444110870,7.259222507],[51.444076538,7.259338856],[51.444099426,7.259451389],[51.444133759,7.259503365],[51.444263458,7.259594917],[51.444313049,7.259674549],[51.444305420,7.259967327],[51.444347382,7.260162830],[51.444393158,7.260304928],[51.444816589,7.259983540],[51.444850922,7.260039806],[51.444923401,7.259994507],[51.444934845,7.260047436],[51.444992065,7.260219574],[51.445159912,7.260096073],[51.445331573,7.260557175],[51.445377350,7.260514736],[51.445507050,7.260873795],[51.445388794,7.260986805],[51.445442200,7.261174202],[51.445209503,7.261363506],[51.445236206,7.261446953],[51.445236206,7.261446953],[51.445243835,7.261479378],[51.444992065,7.261680603],[51.444980621,7.261658669],[51.445011139,7.261635303],[51.445064545,7.261713028],[51.445106506,7.261785507],[51.445365906,7.262567043],[51.445415497,7.262731075],[51.445442200,7.262814522],[51.445758820,7.263802528],[51.446121216,7.264935493],[51.445991516,7.265042305],[51.446037292,7.265192032],[51.446083069,7.265154362],[51.446083069,7.265154362],[51.446361542,7.266045094],[51.446308136,7.266088486],[51.446521759,7.266702175],[51.446655273,7.267156124],[51.446792603,7.267556190],[51.446811676,7.267549038],[51.446876526,7.267507076],[51.446941376,7.267464638],[51.446979523,7.267568111],[51.447174072,7.267395973],[51.447139740,7.267297745],[51.447113037,7.267211437],[51.447616577,7.266767502],[51.447616577,7.266767502],[51.447113037,7.267211437],[51.447139740,7.267297745],[51.447174072,7.267395973],[51.447360992,7.267231464],[51.447750092,7.268370628],[51.447807312,7.268320084],[51.447860718,7.268265724],[51.448001862,7.268138885],[51.448020935,7.268149376],[51.448352814,7.267828941],[51.448200226,7.268768311],[51.448326111,7.268652916],[51.448474884,7.268515110],[51.448608398,7.268389702],[51.448657990,7.268496037],[51.448902130,7.269065857],[51.449050903,7.269396782],[51.449108124,7.269561291],[51.449226379,7.269886494],[51.449291229,7.270258427],[51.449329376,7.270563602],[51.449321747,7.270674706],[51.449337006,7.270827770],[51.449356079,7.270925522],[51.449413300,7.270931721],[51.449462891,7.270971775],[51.449485779,7.270998955],[51.449504852,7.271034241],[51.449531555,7.271115303],[51.449604034,7.271329403],[51.449638367,7.271561623],[51.449825287,7.272096634],[51.45,7.27267]],\"route_instructions\":[]}");
                     //xmlHttp.responseText);
                     if (jsonRoute) {
+                        //alert("Zeit in Minuten: " + jsonRoute.route_summary.total_time/60.0);
+                        document.getElementById("time").innerHTML = Math.round(jsonRoute.route_summary.total_time/60.0) + " min";
+                        document.getElementById("distance").innerHTML = Math.round(jsonRoute.route_summary.total_distance)/1000.0 + " km";
                         var points = [];
                         for (var i = 0; i < jsonRoute.route_geometry.length; i++) {
                             var point = new OpenLayers.Geometry.Point(
@@ -298,17 +305,15 @@
                         });
                         //alert("2");
                         if (routeLayer != null)
+                        {
                             map.removeLayer(routeLayer);
-                        //alert("3");    
+                        }
                         routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
                         map.addLayer(routeLayer);
+                        //alert("3");    
                         routeLayer.addFeatures(feature);
                         //alert("4");
                     }
-                    //else
-                        //alert("Did not get valid JSON response.");
-                //}
-            //}
         }
         // Funktion zum Anzeigen der GPX-Datei
         function displayGPX(gpxfile)
@@ -411,6 +416,7 @@
                 urlparameters += "&weight=" + document.routingmetricsettings.weight.value;
                 urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
                 urlparameters += "&detourperheightmeter=" + document.routingmetricsimpleheightsettings.adddistance.value;
+                urlparameters += "&haltungskorrekturfaktor=" + document.routingmetricbikers.bikers.value;
                 url += "?" + urlparameters;
             }
             thisLink = url;
@@ -433,6 +439,16 @@
             lastmarker = [];
             markerlist = [];
             pointlist = [];
+            calcRoute();
+        }
+        function resetRouteJSON()
+        {
+            lastmarker = [];
+            markerlist = [];
+            pointlist = [];
+            map.removeLayer(routeLayer);
+            routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
+            map.addLayer(routeLayer);
             calcRouteJson();
         }
         // Funktion zum Entfernen des letzten Elements
@@ -443,6 +459,26 @@
                 lastmarker.splice(lastmarker.length - 1, 1);
                 markerlist.splice(markerlist.length - 1 , 1);
                 pointlist.splice(pointlist.length -1, 1);
+                calcRoute();
+            }
+        }
+        function removeLastElementJSON()
+        {
+            if(pointlist.length > 2)
+            {
+                lastmarker.splice(lastmarker.length - 1, 1);
+                markerlist.splice(markerlist.length - 1 , 1);
+                pointlist.splice(pointlist.length -1, 1);
+                calcRouteJson();
+            }
+            else
+            {
+                lastmarker.splice(lastmarker.length - 1, 1);
+                markerlist.splice(markerlist.length - 1 , 1);
+                pointlist.splice(pointlist.length -1, 1);
+                map.removeLayer(routeLayer);
+                routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
+                map.addLayer(routeLayer);
                 calcRouteJson();
             }
         }
@@ -552,9 +588,9 @@
   <body onload="init()">
     <div id="map" class="smallmap"></div>
     <div id= "controlButton">
-        <button id="b1" type="reset" onclick="resetRoute()">Reset</button>
-        <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
-        <button id="b2" type="reset" onclick="calcRoute()">Recalculate Route</button>
+        <button id="b1" type="reset" onclick="resetRouteJSON()">Reset</button>
+        <button id="b2" type="reset" onclick="removeLastElementJSON()">Remove last Marker</button>
+        <button id="b2" type="reset" onclick="calcRouteJson()">Recalculate Route</button>
         <a id = "tag">Link zur GPX-Datei</a>
         <button id="b3" type="button" onclick="setSettings()">Settings</button>
         <button id="b4" type="button" onclick="about()">About</button>
@@ -611,10 +647,10 @@
     <div id="settingsBikers">
         <form name="routingmetricbikers">
             <table>
-                <tr><td><input type="radio" name="bikers" value="1"> <img src="img/133212667.png" width="30" height="30" alt=""></td>
-                <td><input type="radio" name="bikers" value="2"> <img src="img/biker_erect.png" width="30" height="30" alt=""></td>
-                <td><input type="radio" name="bikers" value="3"> <img src="img/biker_low.png" width="30" height="30" alt=""></td>
-                <td><input type="radio" name="bikers" value="4"> <img src="img/stdbiker.png" width="30" height="30" alt=""></td></tr>
+                <tr><td><input type="radio" name="bikers" value="1"> <img src="img/biker_erect.png" width="30" height="30" value="0.5" alt=""></td>
+                <td><input type="radio" name="bikers" value="2"> <img src="img/133212667.png" width="30" height="30" value = "0.4" alt="" checked></td>
+                <td><input type="radio" name="bikers" value="3"> <img src="img/biker_low.png" width="30" height="30" value = "0.3" alt=""></td>
+                <td><input type="radio" name="bikers" value="4"> <img src="img/biker_lower.png" width="30" height="30" value = "0.25" alt=""></td></tr>
             </table>
         </form>
     </div>
@@ -629,8 +665,14 @@
         </form>
     </div>
     <div id="display">
-        Distance: <br>
-        Time: 
+        <table>
+            <tr><td>Distance</td></tr> 
+            <tr><td><div id="distance">0.0 km</div></td></tr>
+            <!--<tr><td><input name="distance" type="text" value="0.0" size="10"></td></tr>-->
+            <tr><td>Time </td></tr>
+            <tr><td><div id="time">0 min</div></td></tr>
+            <!--<tr><td><input name="time" type="text" value="0.0" size="10"></td></tr>-->
+        </table>
     </div>
   </body>
 </html>
