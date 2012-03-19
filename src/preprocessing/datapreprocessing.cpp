@@ -899,16 +899,16 @@ int DataPreprocessing::setNodeBorderingLongID(boost::shared_ptr<OSMEdge> edge, c
         std::cerr << "weird things happened while doing junction calculations." << std::endl;
     }
 
-    OSMNode secondNode;
+    OSMNode* secondNode;
     if (cache.contains(shortSecondNodeID))
-        secondNode = *cache[shortSecondNodeID];
+        secondNode = cache[shortSecondNodeID];
     else
     {
-        secondNode = *(_tmpDBConnection.getOSMNodeByID(shortSecondNodeID));
-        cache.insert(shortSecondNodeID, &secondNode);
+        secondNode = new OSMNode(*(_tmpDBConnection.getOSMNodeByID(shortSecondNodeID)));
+        cache.insert(shortSecondNodeID, secondNode);
     }
 
-    int sector = getSector(junction.calcCourseAngle(secondNode));
+    int sector = getSector(junction.calcCourseAngle(*secondNode));
     if(junctionAtStartNode)
     {
         edge->setStartNodeID(RoutingNode::convertIDToLongFormat(edge->getStartNodeID()) + sector + 0);
