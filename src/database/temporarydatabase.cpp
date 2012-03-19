@@ -133,6 +133,28 @@ bool TemporaryOSMDatabaseConnection::isDBOpen()
     return _dbOpen;
 }
 
+//bool TemporaryOSMDatabaseConnection::createIndexes()
+//{
+//        bool retVal = true;
+
+//    //Liste von auszuführenden Statements erstellen
+//    QStringList statements;
+//    statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODEID);";
+//    statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODEID);";
+//    statements << "CREATE INDEX IF NOT EXISTS TURNRESTRICTIONS_VIAID_INDEX ON TURNRESTRICTIONS(VIAID);";
+
+//    //Alle Statements der Liste ausführen in einer Transaktion
+//    retVal = this->beginTransaction();
+//        QStringList::const_iterator it;
+//        for (it = statements.constBegin(); it != statements.constEnd(); it++)
+//        {
+//                retVal &= execCreateTableStatement(it->toStdString());
+//        }
+//    retVal &= this->endTransaction();
+
+//        return retVal;
+//}
+
 bool TemporaryOSMDatabaseConnection::createTables()
 {
 	bool retVal = true;
@@ -146,7 +168,7 @@ bool TemporaryOSMDatabaseConnection::createTables()
     statements << "PRAGMA journal_mode=MEMORY;";
     statements << "PRAGMA temp_store = MEMORY;";
     
-	statements << "CREATE TABLE IF NOT EXISTS PROPERTIES(PROPERTYID INTEGER PRIMARY KEY, KEY VARCHAR, VALUE VARCHAR);";
+    statements << "CREATE TABLE IF NOT EXISTS PROPERTIES(PROPERTYID INTEGER PRIMARY KEY, KEY VARCHAR, VALUE VARCHAR);";
     
     statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER PRIMARY KEY, LAT DOUBLE NOT NULL, LON DOUBLE NOT NULL);";
     statements << "CREATE TABLE IF NOT EXISTS NODEPROPERTYID(NODEID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(NODEID, PROPERTYID));";
@@ -193,7 +215,7 @@ bool TemporaryOSMDatabaseConnection::createIndexes()
 	}
 	retVal &= this->endTransaction();
     
-	return retVal;
+        return retVal;
 }
 
 bool TemporaryOSMDatabaseConnection::execCreateTableStatement(std::string paramCreateTableStatement)
@@ -980,6 +1002,7 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge)
     }
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
+    //std::cerr << edge.getStartNodeID() << " " << edge.getID() << " " << edge.getEndNodeID() << " "  <<  edge.getForward() << " " << std::endl;
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 1, edge.getStartNodeID());
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 2, edge.getID());
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 3, edge.getEndNodeID());

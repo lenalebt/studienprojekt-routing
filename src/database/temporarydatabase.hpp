@@ -72,6 +72,12 @@ private:
     bool createTables();
     
     /**
+     * @brief Erstellt die Tabellen in der Datenbank
+     * @return Ob die Tabellen erstellt werden konnten
+     */
+    //bool createIndexes();
+
+    /**
      * @brief Führt die Statements aus, die die Tabellen erstellen sollen
      * @param paramCreateTableStatement Das CREATE TABLE-Statement, das ausgeführt
      *      werden soll.
