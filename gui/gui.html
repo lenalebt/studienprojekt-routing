@@ -11,6 +11,10 @@
     <!--<script src="openlayers/OpenLayers.js"></script>-->
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
+        // Initalisierung der zugreifbaren Variablen 
+        var routeLayer = "";
+        //var noRouteLayer = 0;
+        var xmlHttp = null;
         var thisLink = "";
         var settingsShown = 0;
         var pointlist = [];
@@ -19,6 +23,8 @@
         var iconSizeLarge = new OpenLayers.Size(20, 20);
         var iconSize = new OpenLayers.Size(15, 15);
         var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
+        var map, layer, gpxlayer;
+        // Initalisierung der Marker
         var markerStart = new OpenLayers.Icon("img/marker-green.png", iconSizeLarge, iconOffset);
         var markerEnd = new OpenLayers.Icon("img/marker-red.png", iconSizeLarge, iconOffset);
         var markerInBetween = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
@@ -28,8 +34,7 @@
         var markerGreen = new OpenLayers.Icon("img/marker-green.png", iconSize, iconOffset);
         var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
         var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
-        var markerNone = new OpenLayers.Icon("", iconSize, iconOffset);
-        var iconlist = [markerBlue, markerPurple, markerRed, markerYellow, markerGreen, markerCyan];
+        //var iconlist = [markerBlue, markerPurple, markerRed, markerYellow, markerGreen, markerCyan];
         var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
@@ -60,13 +65,11 @@
                     pointlist[pointlist.length] = lonlat;
                     var lonlatSimple = map.getLonLatFromViewPortPx(e.xy);
                     markerlist[markerlist.length] = lonlatSimple;
-                    calcRoute();
+                    calcRouteJson();
                 }
 
             });
-        
-        var map, layer, gpxlayer;
-        
+         // Initalisurungs Funktion      
         function init(){
             var geolocate = new OpenLayers.Control.Geolocate({id: 'locate-control', geolocationOptions: {enableHighAccuracy: false, maximumAge: 0, timeout: 7000}});
             
@@ -141,6 +144,10 @@
                 transitionEffect: 'resize'}
                 );
             map.addLayer(cyclemap);
+            routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
+            map.addLayer(routeLayer);
+            //noRouteLayer = 1;
+            xmlHttp = new XMLHttpRequest();
             var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {displayInLayerSwitcher:false});
             map.addLayer(vectorLayer);
             var geolocationstyle = {
@@ -229,12 +236,11 @@
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
             
             map.addLayer(markers);
-            
-            var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
-                  .transform(
-                    new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-                    map.getProjectionObject() // to Spherical Mercator Projection
-                  );
+            //var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
+            //      .transform(
+            //        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+            //        map.getProjectionObject() // to Spherical Mercator Projection
+            //      );
             //markers.addMarker(new OpenLayers.Marker(lonLat, markerCyan));
             
             map.setCenter(
@@ -253,10 +259,65 @@
             map.addControl(click);
             click.activate();
         }
-        
+        // Funktion zum Anzeigen der JSON-Datei
+        function displayJSON(jsonfile)
+        {
+            //
+            if (jsonfile == "")
+            {
+                return;
+            }
+            
+            //alert(jsonfile);
+            xmlHttp.open('GET', jsonfile, false);
+            xmlHttp.send();
+            xmlHttp.readyState = 4;
+            //xmlHttp.onreadystatechange = function() {
+                //if (xmlHttp.readyState == 4) {
+                    //TODO: JSON malen
+                    //
+                    
+                    //if (xmlHttp.readyState==4) {
+                    //    alert(xmlHttp.responseText);
+                    //    }
+                    //    else{alert("readystate = " + xmlHttp.readyState);}
+                    var jsonRoute = JSON.parse(xmlHttp.responseText);
+                    //xmlHttp.responseText);
+                    if (jsonRoute) {
+                        //alert("Zeit in Minuten: " + jsonRoute.route_summary.total_time/60.0);
+                        document.getElementById("time").innerHTML = Math.round(jsonRoute.route_summary.total_time/60.0) + " min";
+                        document.getElementById("distance").innerHTML = Math.round(jsonRoute.route_summary.total_distance)/1000.0 + " km";
+                        var points = [];
+                        for (var i = 0; i < jsonRoute.route_geometry.length; i++) {
+                            var point = new OpenLayers.Geometry.Point(
+                                    jsonRoute.route_geometry[i][1], 
+                                    jsonRoute.route_geometry[i][0]);
+                            points.push(point.transform(
+                                new OpenLayers.Projection("EPSG:4326"),
+                                map.getProjectionObject()));
+                        }
+                        var geometry = new OpenLayers.Geometry.LineString(points);
+                        //alert("1");
+                        var feature = new OpenLayers.Feature.Vector(geometry, null, {
+                            strokeColor: "#0033ff",
+                            strokeOpacity: 0.7,
+                            strokeWidth: 5
+                        });
+                        //alert("2");
+                        if (routeLayer != null)
+                        {
+                            map.removeLayer(routeLayer);
+                        }
+                        routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
+                        map.addLayer(routeLayer);
+                        //alert("3");    
+                        routeLayer.addFeatures(feature);
+                        //alert("4");
+                    }
+        }
+        // Funktion zum Anzeigen der GPX-Datei
         function displayGPX(gpxfile)
         {
-            //alert("displaygpx");
             if (gpxlayer != null)
                 map.removeLayer(gpxlayer);
             // Add the Layer with the GPX Track
@@ -268,20 +329,16 @@
 			});
 			map.addLayer(gpxlayer);
         }
+        // Funktion zum (neu-)Setzen der Marker
         function setMarkers()
         {
                 markers.destroy();
-                //alert("destroy");
                 markers = new OpenLayers.Layer.Markers( "Markers" );
-                //alert("new");
                 map.addLayer(markers);
-                //alert("added");
                 var iconindex;
                 var help = 0;
                 for(var index = 0; index < markerlist.length; index ++)
                 {
-                    iconindex = index % iconlist.length;
-                    //help = index / iconlist.length;
                     if(index == 0)
                     {
                         lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerStart);
@@ -300,42 +357,29 @@
                             lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerInBetween.clone());
                             markers.addMarker(lastmarker[index]);
                         } 
-                        //if(help < 1.0)
-                        //{
-                        //    lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
-                        //    //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
-                        //    markers.addMarker(lastmarker[index]);
-                        //}
-                        //else
-                        //{
-                        //   lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
-                        //    //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
-                        //    markers.addMarker(lastmarker[index]);
-                        //}
                     }
                     else
                     {
                         lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerEnd);
                         markers.addMarker(lastmarker[index]);
                     }
-                    //alert(iconindex);
-                    //alert(index);
-                    //alert(pointlist[index]);
-                    //alert(help.isDrawn());
                 }
                 
         }
+        // Funktion, die die Werte an den Server weitergibt (via Json)
+        function calcRouteJson()
+        {
+            var url = calcRoute();
+            url = url.replace(/.gpx/g , ".js");
+            displayJSON(url);
+        }
+        // Funktion, die die Werte an den Server weitergibt (via GPX)
         function calcRoute()
         {
-            //alert("pointlist has " + pointlist.length + " items");
             var urlstart = "../1341253652/api/0.3/";
             var urlend = "/" + getCheckedRoutingMetric() + ".gpx";
             var url = "";
-            if (pointlist.length == 1)
-            {
-                markers.addMarker(new OpenLayers.Marker(markerlist[0], iconlist[0]));
-            }
-            else if (pointlist.length > 1)
+            if (pointlist.length > 1)
             {
                 if(pointlist.length == 2)
                 {
@@ -343,7 +387,6 @@
                 }
                 else
                 {
-                    //alert("call displaygpx");
                     url = urlstart;
                     for (var index = 0; index <= pointlist.length - 1; index++)
                         {
@@ -365,7 +408,6 @@
                         url = url + urlend;
                 }
                 
-                //alert(url);
                 urlparameters = "";
                 urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
                 //ACHTUNG! Erlaubt code und Parameter Injection.
@@ -374,13 +416,15 @@
                 urlparameters += "&weight=" + document.routingmetricsettings.weight.value;
                 urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
                 urlparameters += "&detourperheightmeter=" + document.routingmetricsimpleheightsettings.adddistance.value;
+                urlparameters += "&haltungskorrekturfaktor=" + document.routingmetricbikers.bikers.value;
                 url += "?" + urlparameters;
             }
             thisLink = url;
-            displayGPX(url);
+            getLink();
             setMarkers();
-            getLink()
+            return url;
         }
+        // Ausgabe über den "About" Button
         function about()
         {
             //TODO : Erklärung überarberarbeiten
@@ -389,42 +433,61 @@
            + "MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="+"http://www.mapquest.com/"+">guckst du</a>)<br>"
         + "Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>");
         }
+        // Funktion zum Reseten der Route
         function resetRoute()
         {
-            //map.removeLayer(markers);
             lastmarker = [];
             markerlist = [];
             pointlist = [];
-            //markers = new OpenLayers.Layer.Markers( "Markers" );
-            //markers.redraw();
-            //map.addLayer(markers);
             calcRoute();
         }
+        function resetRouteJSON()
+        {
+            lastmarker = [];
+            markerlist = [];
+            pointlist = [];
+            map.removeLayer(routeLayer);
+            routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
+            map.addLayer(routeLayer);
+            calcRouteJson();
+        }
+        // Funktion zum Entfernen des letzten Elements
         function removeLastElement()
         {
             if(pointlist.length >= 1)
             {
-                //map.removeLayer(markers);
-                //lastmarker[lastmarker.length - 1].destroy();
-                //var copy = [];
-                //for (var index = 0; index <= lastmarker.length -1; index ++)
-                //{
-                 //   copy[index] = lastmarker[index];
-                //}
-                //lastmarker = "";
-                //lastmarker = copy;
-                //map.addLayer(markers);
                 lastmarker.splice(lastmarker.length - 1, 1);
                 markerlist.splice(markerlist.length - 1 , 1);
                 pointlist.splice(pointlist.length -1, 1);
-                //markers.redraw();
                 calcRoute();
             }
         }
+        function removeLastElementJSON()
+        {
+            if(pointlist.length > 2)
+            {
+                lastmarker.splice(lastmarker.length - 1, 1);
+                markerlist.splice(markerlist.length - 1 , 1);
+                pointlist.splice(pointlist.length -1, 1);
+                calcRouteJson();
+            }
+            else
+            {
+                lastmarker.splice(lastmarker.length - 1, 1);
+                markerlist.splice(markerlist.length - 1 , 1);
+                pointlist.splice(pointlist.length -1, 1);
+                map.removeLayer(routeLayer);
+                routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
+                map.addLayer(routeLayer);
+                calcRouteJson();
+            }
+        }
+        // Funktion verweist auf die Adresse der GPX-Datei
         function getLink()
         {
                 document.getElementById("tag").href= thisLink;
         }
+        // Funktion zeigt oder verbirgt die Setting-Abschnitte
         function setSettings()
         {
             if(settingsShown == 0)
@@ -443,6 +506,7 @@
                 document.getElementById("settingsBikers").style.visibility = "hidden";
             }
         }
+        //
         function getCheckedRoutingAlgorithm()
         {
             for(i=0; i<document.algorithm.algorithm.length; i++)
@@ -453,6 +517,7 @@
                 }
             }
         }
+        //
         function getCheckedRoutingMetric()
         {
             for(i=0; i<document.routingmetric.routingmetric.length; i++)
@@ -463,6 +528,7 @@
                 }
             }
         }
+        //
         function getCheckedRoutingAlgorithm()
         {
             for(i=0; i<document.algorithm.algorithm.length; i++)
@@ -473,6 +539,7 @@
                 }
             }
         }
+        // Funktion schaltet je nach Metrik die Formulare auf Sichtbar / Unsichtbar
         function clickMetric()
         {
             var help = getCheckedRoutingMetric();
@@ -505,6 +572,7 @@
                 document.getElementById("settingsBikers").style.visibility = "visible";
             }
         }
+        //
         function getCheckedRoutingMetric()
         {
             for(i=0; i<document.routingmetric.routingmetric.length; i++)
@@ -520,9 +588,9 @@
   <body onload="init()">
     <div id="map" class="smallmap"></div>
     <div id= "controlButton">
-        <button id="b1" type="reset" onclick="resetRoute()">Reset</button>
-        <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
-        <button id="b2" type="reset" onclick="calcRoute()">Recalculate Route</button>
+        <button id="b1" type="reset" onclick="resetRouteJSON()">Reset</button>
+        <button id="b2" type="reset" onclick="removeLastElementJSON()">Remove last Marker</button>
+        <button id="b2" type="reset" onclick="calcRouteJson()">Recalculate Route</button>
         <a id = "tag">Link zur GPX-Datei</a>
         <button id="b3" type="button" onclick="setSettings()">Settings</button>
         <button id="b4" type="button" onclick="about()">About</button>
@@ -579,10 +647,10 @@
     <div id="settingsBikers">
         <form name="routingmetricbikers">
             <table>
-                <tr><td><input type="radio" name="bikers" value="1"> <img src="img/stdBiker.png" width="20" height="20" alt="" /></td>
-                <td><input type="radio" name="bikers" value="2"> <img src="img/stdBiker.png" width="20" height="20" alt="" /></td>
-                <td><input type="radio" name="bikers" value="3"> <img src="img/stdBiker.png" width="20" height="20" alt="" /></td>
-                <td><input type="radio" name="bikers" value="4"> <img src="img/stdBiker.png" width="20" height="20" alt="" /></td></tr>
+                <tr><td><input type="radio" name="bikers" value="1"> <img src="img/biker_erect.png" width="30" height="30" value="0.5" alt=""></td>
+                <td><input type="radio" name="bikers" value="2"> <img src="img/133212667.png" width="30" height="30" value = "0.4" alt="" checked></td>
+                <td><input type="radio" name="bikers" value="3"> <img src="img/biker_low.png" width="30" height="30" value = "0.3" alt=""></td>
+                <td><input type="radio" name="bikers" value="4"> <img src="img/biker_lower.png" width="30" height="30" value = "0.25" alt=""></td></tr>
             </table>
         </form>
     </div>
@@ -595,6 +663,16 @@
                 <tr><td><input name="addparam" type="text" value="10.0" size="15"></td></tr>
             </table>
         </form>
+    </div>
+    <div id="display">
+        <table>
+            <tr><td>Distance</td></tr> 
+            <tr><td><div id="distance">0.0 km</div></td></tr>
+            <!--<tr><td><input name="distance" type="text" value="0.0" size="10"></td></tr>-->
+            <tr><td>Time </td></tr>
+            <tr><td><div id="time">0 min</div></td></tr>
+            <!--<tr><td><input name="time" type="text" value="0.0" size="10"></td></tr>-->
+        </table>
     </div>
   </body>
 </html>

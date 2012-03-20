@@ -42,7 +42,7 @@
             visibility: hidden;
             left: 80%;
             right: 3%;
-            top: 42%;
+            top: 49%;
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
@@ -67,10 +67,10 @@
             #settingsBikers{
             position: absolute;
             visibility: hidden;
-            left: 65%;
-            max-width: 12%;
-            top: 90%;
-            max-height: 9%;
+            right: 22%;
+            max-width: 13%;
+            top: 85%;
+            max-height: 13%;
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
@@ -83,8 +83,8 @@
             visibility: hidden;
             left: 80%;
             right: 3%;
-            top: 47%;
-            max-height: 36%;
+            top: 49%;
+            max-height: 34%;
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
@@ -97,9 +97,23 @@
             left: 80%;
             right: 3%;
             top: 1%;
-            max-height: 44%;
+            max-height: 46%;
             z-index: 3;
             visibility: hidden;
+            background-color: #cccccc;
+            opacity: 0.8;
+            overflow: auto;
+            -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
+            }
+            #display{
+            position: absolute;
+            left: 3%;
+            max-width: 25%;
+            top: 65%;
+            max-height: 25%;
+            z-index: 3;
+            visibility: visible;
             background-color: #cccccc;
             opacity: 0.8;
             overflow: auto;
