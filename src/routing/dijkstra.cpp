@@ -119,7 +119,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         
         std::cerr << "finished, search space contains " << nodeMap.size() << " nodes." << std::endl;
         
-        std::cerr << activeNodeShortID << " " << endNodeShortID << std::endl;
+        //std::cerr << activeNodeShortID << " " << endNodeShortID << std::endl;
         
         /*std::cerr << "nodemap: ";
         for (QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> >::iterator it = nodeMap.begin(); it != nodeMap.end(); it++)

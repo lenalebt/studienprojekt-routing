@@ -111,13 +111,16 @@ bool DataPreprocessing::preprocess()
     }
     _tmpDBConnection.endTransaction();
 
+    _tmpDBConnection.beginTransaction();
     std::cerr << "parsing turn restrictions..." << std::endl;
     //Die Queues müssen alle geleert werden, sonst kann das Programm nicht beendet werden!
     while (_turnRestrictionQueue.dequeue(_osmTurnRestriction))
     {
         _tmpDBConnection.saveOSMTurnRestriction(*_osmTurnRestriction);
     }
-
+    _tmpDBConnection.endTransaction();
+    
+    std::cerr << "creating indexes for temporary database..." << std::endl;
     _tmpDBConnection.createIndexes();
     return true;
 }
@@ -723,7 +726,7 @@ void DataPreprocessing::createRoutingGraph()
                 {
                     boost::uint64_t oldStartNode = osmEdgesOutgoing[j]->getStartNodeID();
                     sectors << setNodeBorderingLongID(osmEdgesOutgoing[j], rNode);
-                    std::cerr << *osmEdgesOutgoing[j] << "." <<  std::endl;
+                    //std::cerr << *osmEdgesOutgoing[j] << "." <<  std::endl;
                     _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j], oldStartNode);
 
                 }
@@ -731,7 +734,7 @@ void DataPreprocessing::createRoutingGraph()
                 {
                     boost::uint64_t oldEndNode = osmEdgesIncome[j]->getEndNodeID();
                     sectors << setNodeBorderingLongID(osmEdgesIncome[j], rNode);
-                    std::cerr << *osmEdgesIncome[j] << "." << std::endl;
+                    //std::cerr << *osmEdgesIncome[j] << "." << std::endl;
                     _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j], oldEndNode);
                 }                
 
@@ -741,9 +744,12 @@ void DataPreprocessing::createRoutingGraph()
                     //erstelle neue innere Kanten zu allen ausgehenden Kanten
                     //Dabei: Fuege Turntypes zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
                     //TODO: testen. ist dafuer da, die inneren kanten einer kreuzung zu erstellen.                    
-                    std::cerr << "sectors: " << sectors.size() << std::endl;
-                    for (QVector<int>::iterator it = sectors.begin(); it != sectors.end(); it++)
-                        std::cerr << *it << ",";
+                    /*if (osmNodes[i]->getID()==RoutingNode::convertIDToShortFormat(4611686025386215424))
+                    {
+                        std::cerr << "sectors: " << sectors.size() << std::endl;
+                        for (QVector<int>::iterator it = sectors.begin(); it != sectors.end(); it++)
+                            std::cerr << *it << ",";
+                    }*/
                     RoutingEdge rEdge;
                     for(QVector<int>::iterator startNodeSector = sectors.begin(); startNodeSector != sectors.end(); startNodeSector++)
                     {
@@ -754,14 +760,16 @@ void DataPreprocessing::createRoutingGraph()
                             if (*endNodeSector % 2 == 0)
                                 continue;
                             rEdge.setID(edgeID++);
-                            std::cerr << *startNodeSector << " to " << *endNodeSector << std::endl;
-                            rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
-                            rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
+                            /*if (osmNodes[i]->getID()==RoutingNode::convertIDToShortFormat(4611686025386215424))
+                                std::cerr << *startNodeSector << " to " << *endNodeSector << std::endl;*/
+                            rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
+                            rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
                             //rEdge.setTurnType(TURNTYPE_STRAIGHTCROSS);
                             rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
                             rEdge.setStreetType(STREETTYPE_UNKNOWN);
                             //TODO: Evtl noch andere Eigenschaften setzen? Ampel etc?
-                            std::cerr << rEdge << std::endl;
+                            /*if (osmNodes[i]->getID()==RoutingNode::convertIDToShortFormat(4611686025386215424))
+                                std::cerr << rEdge << std::endl;*/
                             _finalDBConnection->saveEdge(rEdge);
                         }
                     }

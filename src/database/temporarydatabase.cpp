@@ -215,7 +215,7 @@ bool TemporaryOSMDatabaseConnection::createIndexes()
 	}
 	retVal &= this->endTransaction();
     
-        return retVal;
+    return retVal;
 }
 
 bool TemporaryOSMDatabaseConnection::execCreateTableStatement(std::string paramCreateTableStatement)

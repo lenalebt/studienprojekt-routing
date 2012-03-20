@@ -250,6 +250,12 @@ public:
         double distance = startNode.calcDistance(endNode);
         double inclination = heightDifference / distance;
         
+        //std::cerr << edge << std::endl;
+        
+        //std::cerr << "inclination: " << inclination << std::endl;
+        //std::cerr << "distance: " << distance << std::endl;
+        //std::cerr << "heightDifference: " << heightDifference << std::endl;
+        
         //TODO: Faktor anpassen je nach Eigenschaften der Kante
         double surfaceFactor = 1;
         double streetTypeFactor = 1;
@@ -280,14 +286,16 @@ public:
                     case STREETTYPE_HIGHWAY_RESIDENTIAL:    streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
                     case STREETTYPE_HIGHWAY_SECONDARY:      streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.15 : 1.15); break;
                     case STREETTYPE_HIGHWAY_SERVICE:        streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
+                    case STREETTYPE_HIGHWAY_UNCLASSIFIED:
                     case STREETTYPE_HIGHWAY_TERTIARY:       streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.1 : 1.1); break;
                     case STREETTYPE_HIGHWAY_TRACK:          streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.5 : 2.0); break;
                     case STREETTYPE_UNKNOWN:
                     default:                                streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.8 : 2.5); break;
                 }
                 break;
-            default:        streetTypeFactor = 100.0;
-                            break;
+            case ACCESS_FOOT_ONLY:          return distance / pushBikeSpeed; break;
+            default:                        streetTypeFactor = 100.0;
+                                            break;
         }
         switch (edge.getCyclewayType())
         {
@@ -343,7 +351,7 @@ public:
             default:                                surfaceFactor *= 1.3; break;
             
         }
-        switch (edge.getTurnType())
+        /*switch (edge.getTurnType())
         {
             case TURNTYPE_LEFTCROSS:        timePunishment += 5.0; break;
             case TURNTYPE_RIGHTCROSS:       timePunishment += 2.0; break;
@@ -351,7 +359,7 @@ public:
             case TURNTYPE_UTURNCROSS:       timePunishment += 5.0; break;
             case TURNTYPE_STRAIGHT:
             default:                        timePunishment += 0.0; break;
-        }
+        }*/
         if (edge.hasStairs())
         {
             //Bestrafung für eine Treppe: Länge * 2 in Sekunden + 5 Sekunden
