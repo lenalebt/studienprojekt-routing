@@ -11,6 +11,39 @@
 #include <boost/cstdint.hpp>
 
 /**
+ * @page webservicedocumentation Dokumentation des Webservers
+ * 
+ * @tableofcontents
+ * 
+ * Hier wird beschrieben, wie der Webserver zu behandeln ist, und welche
+ * Funktionen er bietet. Zusätzlich wird die API des zur Verfügung gestellten
+ * Webservices beschrieben.
+ * 
+ * @section webserver_functions Funktionen des Webservers
+ * 
+ * @subsection webserver_functions_files Ausliefern von Dateien
+ * Der Webserver kann Dateien ausliefern, die in einem bestimmten Verzeichnis
+ * abgelegt sind. Dieses Verzeichnis kann man beim Start des Programms
+ * angeben mit dem Parameter
+ * <code>--webserver-public-html-folder</code> (siehe auch
+ * <code>biker --help</code>). Standardmäßig ist dieser Ordner eingestellt
+ * auf ein Verzeichnis <code>./gui/</code> relativ zum Arbeitsverzeichnis
+ * des Programms. Alle Dateien, die in diesem Verzeichnis liegen, werden
+ * vom Webserver ausgeliefert. Die Dateien sind erreichbar über
+ * @verbatim
+http://server/files/
+@endverbatim
+ * gefolgt von dem Dateinamen. Es ist möglich, Unterordner zu verwenden.
+ * @todo Aufschreiben, wie Dateien ausgeliefert werden, und wo das alles so liegt
+ * @todo beschreiben was "server" bedeuten soll
+ * @subsubsection webserver_security Sicherheitsfeatures
+ * @todo Sicherheitsfeatures aufschrieben
+ * @subsection webserver_functions_routes Ausliefern von Routen
+ * @todo Aufschreiben, wie die API des Webservices funktioniert
+ * @author Lena Brüder
+ */
+
+/**
  * @brief Diese Klasse stellt einen nebenläufig arbeitenden
  *      Http-Server dar, der jeden Request als eigenen Thread
  *      abarbeitet.
@@ -145,6 +178,13 @@ protected:
      * Die Verbindung sollte nach dem Versenden geschlossen werden.
      */
     void send400();
+    
+    /**
+     * @brief Schickt eine 403-Nachricht mit kleiner Webseite an den Peer (403 Access forbidden).
+     * 
+     * Die Verbindung sollte nach dem Versenden geschlossen werden.
+     */
+    void send403();
     
     /**
      * @brief Schickt eine 404-Nachricht mit kleiner Webseite an den Peer (404 not found).

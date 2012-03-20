@@ -1,9 +1,18 @@
-            html, body, #map {
+            html, body {
+                background-color: #cccccc;
                 margin: 0;
                 width: 100%;
-                height: 95%;
+                height: 100%;
+                z-index: 2;
+                 font-size: small;
             }
-
+            #map {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 2;
+                float:left;
+            }
             #text {
                 position: absolute;
                 bottom: 1em;
@@ -12,4 +21,88 @@
                 z-index: 20000;
                 background-color: white;
                 padding: 0 0.5em 0.5em 0.5em;
+            }
+            div{
+            z-index: 3;
+            }
+            #controlButton{
+            position: absolute;
+            top: 90%;
+            left: 10%;
+            max-width:50%;
+            }
+            #radioAlgorithm{
+            
+            }
+            #radioRoutingmetric{
+            
+            }
+            #settingsSimpleheight{
+            position: absolute;
+            visibility: hidden;
+            left: 80%;
+            right: 3%;
+            top: 42%;
+            z-index: 3;
+            background-color: #cccccc;
+            opacity: 0.8;
+            overflow: auto;
+            -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
+            }
+            #settingsNew{
+            position: absolute;
+            visibility: hidden;
+            left: 80%;
+            right: 3%;
+            top: 85%;
+            max-height: 14%;
+            z-index: 3;
+            background-color: #cccccc;
+            opacity: 0.8;
+            overflow: auto;
+            -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
+            }
+            #settingsBikers{
+            position: absolute;
+            visibility: hidden;
+            left: 65%;
+            max-width: 12%;
+            top: 90%;
+            max-height: 9%;
+            z-index: 3;
+            background-color: #cccccc;
+            opacity: 0.8;
+            overflow: auto;
+            -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
+            }
+            #settingsPowermetric{
+            position: absolute;
+            visibility: hidden;
+            left: 80%;
+            right: 3%;
+            top: 47%;
+            max-height: 36%;
+            z-index: 3;
+            background-color: #cccccc;
+            opacity: 0.8;
+            overflow: auto;
+            -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
+            }
+            #allSettings{
+            position: absolute;
+            left: 80%;
+            right: 3%;
+            top: 1%;
+            max-height: 44%;
+            z-index: 3;
+            visibility: hidden;
+            background-color: #cccccc;
+            opacity: 0.8;
+            overflow: auto;
+            -khtml-border-radius: 10px;
+            -moz-border-radius: 10px;
             }

@@ -196,6 +196,14 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
         {
             boost::uint64_t activeNodeID = activeNodeLongID;
             GPSRoute route;
+            if (_metric->getMeasurementUnit() == SECONDS)
+                route.setDuration(nodeCosts[activeNodeLongID]);
+            else
+            {
+                //TODO: Kanten mit Zeit bewerten!
+                route.setDuration(nodeCosts[activeNodeLongID]/4.0);
+            }
+            
             while (activeNodeID != 0)
             {
                 route.insertForward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
@@ -216,14 +224,13 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
 }
 
 AStarRouter::AStarRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric) :
-    _db(db), _metric(metric)
+    Router(metric), _db(db)
 {
     
 }
 
-
 MultithreadedAStarRouter::MultithreadedAStarRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric) :
-    _dbA(dbA), _dbB(dbB), _metric(metric)
+    Router(metric), _dbA(dbA), _dbB(dbB)
 {
     
 }
@@ -341,6 +348,14 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
         {
             boost::uint64_t activeNodeID = closedList->getOverlappingElement();
             GPSRoute route;
+            if (_metric->getMeasurementUnit() == SECONDS)
+                route.setDuration(nodeCosts[activeNodeID]);
+            else
+            {
+                //TODO: Kanten mit Zeit bewerten!
+                route.setDuration(nodeCosts[activeNodeID]/4.0);
+            }
+            
             while (activeNodeID != 0)
             {
                 route.insertForward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
@@ -472,6 +487,14 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNo
         {
             boost::uint64_t activeNodeID = closedList->getOverlappingElement();
             GPSRoute route;
+            if (_metric->getMeasurementUnit() == SECONDS)
+                route.setDuration(nodeCosts[activeNodeID]);
+            else
+            {
+                //TODO: Kanten mit Zeit bewerten!
+                route.setDuration(nodeCosts[activeNodeID]/4.0);
+            }
+            
             while (activeNodeID != 0)
             {
                 route.insertBackward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);

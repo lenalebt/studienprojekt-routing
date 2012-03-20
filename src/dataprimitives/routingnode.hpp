@@ -68,8 +68,8 @@ public:
     {
         if (RoutingNode::isIDInLongFormat(id))
             return id;
-        boost::uint64_t mask = 0x00FFFFFFFFFFFFFFllu;
-        boost::uint64_t mark = 0x4000000000000000llu;
+        boost::uint64_t mask = 0x00FFFFFFFFFFFFFFull;
+        boost::uint64_t mark = 0x4000000000000000ull;
         return ((id & mask) << 8) | mark;
     }
     
@@ -88,7 +88,7 @@ public:
     {
         if (!RoutingNode::isIDInLongFormat(id))
             return id;
-        boost::uint64_t mark = 0x4000000000000000llu;
+        boost::uint64_t mark = 0x4000000000000000ull;
         return ((id & ~mark) >> 8);
     }
     
@@ -99,7 +99,7 @@ public:
      */
     bool isIDInLongFormat() const
     {
-        boost::uint64_t mark = 0x4000000000000000llu;
+        boost::uint64_t mark = 0x4000000000000000ull;
         return (id & mark);
     }
     
@@ -112,7 +112,7 @@ public:
      */
     static inline bool isIDInLongFormat(const boost::uint64_t id)
     {
-        boost::uint64_t mark = 0x4000000000000000llu;
+        boost::uint64_t mark = 0x4000000000000000ull;
         return (id & mark);
     }
     

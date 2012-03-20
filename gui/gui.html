@@ -12,11 +12,16 @@
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
         var thisLink = "";
+        var settingsShown = 0;
         var pointlist = [];
         var markerlist = [];
         var lastmarker = [];
-        var iconSize = new OpenLayers.Size(20, 20);
+        var iconSizeLarge = new OpenLayers.Size(20, 20);
+        var iconSize = new OpenLayers.Size(15, 15);
         var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
+        var markerStart = new OpenLayers.Icon("img/marker-green.png", iconSizeLarge, iconOffset);
+        var markerEnd = new OpenLayers.Icon("img/marker-red.png", iconSizeLarge, iconOffset);
+        var markerInBetween = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
         var markerRed = new OpenLayers.Icon("img/marker-red.png", iconSize, iconOffset);
         var markerBlue = new OpenLayers.Icon("img/marker-blue.png", iconSize, iconOffset);
         var markerCyan = new OpenLayers.Icon("img/marker-cyan.png", iconSize, iconOffset);
@@ -24,7 +29,7 @@
         var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
         var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
         var markerNone = new OpenLayers.Icon("", iconSize, iconOffset);
-        var iconlist = [markerGreen, markerCyan, markerBlue, markerPurple, markerRed, markerYellow];
+        var iconlist = [markerBlue, markerPurple, markerRed, markerYellow, markerGreen, markerCyan];
         var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
@@ -136,7 +141,7 @@
                 transitionEffect: 'resize'}
                 );
             map.addLayer(cyclemap);
-            var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {});
+            var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {displayInLayerSwitcher:false});
             map.addLayer(vectorLayer);
             var geolocationstyle = {
                 fillColor: '#000',
@@ -168,7 +173,7 @@
                         geolocationstyle
                     )
                 ]);
-                map.zoomToExtent(vector.getDataExtent());
+                map.zoomToExtent(vectorLayer.getDataExtent());
             });
             geolocate.deactivate();
             geolocate.activate();
@@ -272,21 +277,45 @@
                 map.addLayer(markers);
                 //alert("added");
                 var iconindex;
-                var help = 0.0;
+                var help = 0;
                 for(var index = 0; index < markerlist.length; index ++)
                 {
                     iconindex = index % iconlist.length;
-                    help = index / iconlist.length;
-                    if(help < 1.0)
+                    //help = index / iconlist.length;
+                    if(index == 0)
                     {
-                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
-                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerStart);
                         markers.addMarker(lastmarker[index]);
+                    }
+                    else if (index >=1 && index <= markerlist.length-2)
+                    {
+                        if(help == 0)
+                        {
+                            lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerInBetween);
+                            markers.addMarker(lastmarker[index]);
+                            help = 1;
+                        }
+                        else
+                        {
+                            lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerInBetween.clone());
+                            markers.addMarker(lastmarker[index]);
+                        } 
+                        //if(help < 1.0)
+                        //{
+                        //    lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex]);
+                        //    //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        //    markers.addMarker(lastmarker[index]);
+                        //}
+                        //else
+                        //{
+                        //   lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
+                        //    //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        //    markers.addMarker(lastmarker[index]);
+                        //}
                     }
                     else
                     {
-                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], iconlist[iconindex].clone());
-                        //lastmarker[index].events.register('mousedown', lastmarker[index], function(evt) { alert(this.icon.url); OpenLayers.Event.stop(evt); });
+                        lastmarker[index] = new OpenLayers.Marker(markerlist[index], markerEnd);
                         markers.addMarker(lastmarker[index]);
                     }
                     //alert(iconindex);
@@ -344,13 +373,21 @@
                 urlparameters += "&minspeed=" + document.routingmetricsettings.minspeed.value/3.6;
                 urlparameters += "&weight=" + document.routingmetricsettings.weight.value;
                 urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
-                
+                urlparameters += "&detourperheightmeter=" + document.routingmetricsimpleheightsettings.adddistance.value;
                 url += "?" + urlparameters;
             }
             thisLink = url;
             displayGPX(url);
             setMarkers();
             getLink()
+        }
+        function about()
+        {
+            //TODO : Erklärung überarberarbeiten
+            // anmerkung: leider kann man den Titel des Fensters nicht bearbeiten
+            alert("Erklärung hier hin vielleicht? Google-Karten kann man evtl nutzen, steht <a href="+"http://code.google.com/intl/de-DE/apis/maps/documentation/javascript/"+">hier</a>;<br>" 
+           + "MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="+"http://www.mapquest.com/"+">guckst du</a>)<br>"
+        + "Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>");
         }
         function resetRoute()
         {
@@ -386,7 +423,25 @@
         }
         function getLink()
         {
-            document.getElementById("tag").href= thisLink;
+                document.getElementById("tag").href= thisLink;
+        }
+        function setSettings()
+        {
+            if(settingsShown == 0)
+            {
+                settingsShown = 1;
+                document.getElementById("allSettings").style.visibility = "visible";
+                clickMetric();
+            }
+            else
+            {
+                settingsShown = 0;
+                document.getElementById("allSettings").style.visibility = "hidden";
+                document.getElementById("settingsSimpleheight").style.visibility = "hidden";
+                document.getElementById("settingsPowermetric").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikers").style.visibility = "hidden";
+            }
         }
         function getCheckedRoutingAlgorithm()
         {
@@ -416,6 +471,38 @@
                 {
                     return document.algorithm.algorithm[i].value;
                 }
+            }
+        }
+        function clickMetric()
+        {
+            var help = getCheckedRoutingMetric();
+            if(help == "bike/euclidian")
+            {
+                document.getElementById("settingsSimpleheight").style.visibility = "hidden";
+                document.getElementById("settingsPowermetric").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikers").style.visibility = "hidden";
+            }
+            else if(help == "bike/simpleheight")
+            {
+                document.getElementById("settingsSimpleheight").style.visibility = "visible";
+                document.getElementById("settingsPowermetric").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikers").style.visibility = "hidden";
+            }
+            else if (help == "bike/power")
+            {
+                document.getElementById("settingsPowermetric").style.visibility = "visible";
+                document.getElementById("settingsSimpleheight").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikers").style.visibility = "visible";
+            }
+            else if (help == "bike/platzhalter")
+            {
+                document.getElementById("settingsPowermetric").style.visibility = "visible";
+                document.getElementById("settingsSimpleheight").style.visibility = "hidden";
+                document.getElementById("settingsNew").style.visibility = "visible";
+                document.getElementById("settingsBikers").style.visibility = "visible";
             }
         }
         function getCheckedRoutingMetric()
@@ -432,46 +519,82 @@
   </head>
   <body onload="init()">
     <div id="map" class="smallmap"></div>
-    <div>
+    <div id= "controlButton">
         <button id="b1" type="reset" onclick="resetRoute()">Reset</button>
         <button id="b2" type="reset" onclick="removeLastElement()">Remove last Marker</button>
         <button id="b2" type="reset" onclick="calcRoute()">Recalculate Route</button>
+        <a id = "tag">Link zur GPX-Datei</a>
+        <button id="b3" type="button" onclick="setSettings()">Settings</button>
+        <button id="b4" type="button" onclick="about()">About</button>
     </div>
-    <div>
+    <div id = "allSettings">
+    <div id ="radioAlgorithm">
         <form name="algorithm">
-            <input type="radio" name="algorithm" value="astar"> A*
-            <input type="radio" name="algorithm" value="dijkstra"> Dijkstra
-            <input type="radio" name="algorithm" value="multithreadedastar"> Mehrthread-A*
-            <input type="radio" name="algorithm" value="multithreadeddijkstra"> Mehrthread-Dijkstra
-            <input type="radio" name="algorithm" value="standard" checked> Standardalgorithmus<br>
+            <table>
+                <tr><td>Algorithmenauswahl: </td></tr>
+                <tr><td><input type="radio" name="algorithm" value="astar"> A*</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="dijkstra"> Dijkstra</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="multithreadedastar"> Mehrthread-A*</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="multithreadeddijkstra"> Mehrthread-Dijkstra</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="standard" checked> Standardalgorithmus</td></tr>
+            </table>
         </form>
     </div>
-    <div>
+    <div id = "radioRoutingmetric">
         <form name="routingmetric">
-            <input type="radio" name="routingmetric" value="bike/euclidian"> euklidische Entfernung
-            <input type="radio" name="routingmetric" value="bike/simpleheight"> einfache Höhenvermeidung
-            <input type="radio" name="routingmetric" value="bike/power" checked> Leistungsmetrik
+            <table>
+                <tr><td>Routingmetriken: </td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/euclidian" onclick="clickMetric()"> euklidische Entfernung</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/simpleheight" onclick="clickMetric()"> einfache Höhenvermeidung</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/power" onclick="clickMetric()" checked> Leistungsmetrik</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/platzhalter" onclick="clickMetric()"> Platzhalter</td></tr>
+            </table>
         </form>
     </div>
-    <div>
+    </div>
+    <div id="settingsPowermetric">
         <form name="routingmetricsettings">
-            Maximalleistung (in Watt):<input name="maxpower" type="text" value="150.0">
-            Minimalgeschwindigkeit (in km/h):<input name="minspeed" type="text" value="12.0">
-            Gewicht (in kg, mit Fahrrad):<input name="weight" type="text" value="90.0">
-            Schiebegeschwindigkeit (in km/h):<input name="pushbikespeed" type="text" value="2.5">
+            <table>
+                <tr><td>Einstellungen: </td></tr>
+                <tr><td>Maximalleistung (in Watt):</td></tr>
+                <tr><td><input name="maxpower" type="text" value="150.0" size="15"></td></tr>
+                <tr><td>Minimalgeschwindigkeit (in km/h):</td></tr>
+                <tr><td><input name="minspeed" type="text" value="12.0" size="15"></td></tr>
+                <tr><td>Gewicht (in kg, mit Fahrrad):</td></tr>
+                <tr><td><input name="weight" type="text" value="90.0" size="15"></td></tr>
+                <tr><td>Schiebegeschwindigkeit (in km/h):</td></tr>
+                <tr><td><input name="pushbikespeed" type="text" value="2.5" size="15"></td></tr>
+            </table>
         </form>
     </div>
-    <div>
-        <a id = "tag">Link zur GPX-Datei</a> 
+    <div id="settingsSimpleheight">
+        <form name="routingmetricsimpleheightsettings">
+            <table>
+                <tr><td>Einstellungen: </td></tr>
+                <tr><td>Umweg / Höhenmeter:</td></tr>
+                <tr><td><input name="adddistance" type="text" value="10.0" size="15"></td></tr>
+            </table>
+        </form>
     </div>
-    <div>
-    Erklärung hier hin vielleicht?
-    
-    Google-Karten kann man evtl nutzen, steht <a href="http://code.google.com/intl/de-DE/apis/maps/documentation/javascript/">hier</a><br>
-    
-    MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="http://www.mapquest.com/">guckst du</a>)<br>
-    
-    Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>
+    <div id="settingsBikers">
+        <form name="routingmetricbikers">
+            <table>
+                <tr><td><input type="radio" name="bikers" value="1"> <img src="img/stdBiker.png" width="20" height="20" alt="" /></td>
+                <td><input type="radio" name="bikers" value="2"> <img src="img/stdBiker.png" width="20" height="20" alt="" /></td>
+                <td><input type="radio" name="bikers" value="3"> <img src="img/stdBiker.png" width="20" height="20" alt="" /></td>
+                <td><input type="radio" name="bikers" value="4"> <img src="img/stdBiker.png" width="20" height="20" alt="" /></td></tr>
+            </table>
+        </form>
+    </div>
+    <div id="settingsNew">
+        <form name="routingmetricnewsettings">
+            <table>
+                <tr><td>Platzhalter 1:</td></tr>
+                <tr><td><input name="addparam" type="text" value="10.0" size="15"></td></tr>
+                <tr><td>Platzhalter 2:</td></tr>
+                <tr><td><input name="addparam" type="text" value="10.0" size="15"></td></tr>
+            </table>
+        </form>
     </div>
   </body>
 </html>

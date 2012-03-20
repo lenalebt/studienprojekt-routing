@@ -146,6 +146,8 @@ public:
         else
             return p1.calcDistance(p2);
     }
+    
+    virtual QString getParameterDetails() {return "none";}
 }; 
 
 class EuclidianRoutingMetric : public RoutingMetric
@@ -157,6 +159,7 @@ public:
     EuclidianRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) : RoutingMetric(provider) {}
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+    QString getParameterDetails() {return "euclidian";}
 };
 
 class SimpleHeightRoutingMetric : public RoutingMetric
@@ -169,6 +172,7 @@ public:
     SimpleHeightRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float detourPerHeightMeter) : RoutingMetric(provider), _detourPerHeightMeter(detourPerHeightMeter) {}
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+    QString getParameterDetails() {return QString("simpleheight,detour=%1").arg(_detourPerHeightMeter);}
 };
 
 class AdvancedHeightRoutingMetric : public RoutingMetric
@@ -182,6 +186,7 @@ public:
     AdvancedHeightRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, float detourPerHeightMeter, float extrapunishment) : RoutingMetric(provider), _extrapunishment(extrapunishment), _detourPerHeightMeter(detourPerHeightMeter) {}
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
+    QString getParameterDetails() {return QString("advancedheight,detour=%1,extrapunishment=%2").arg(_detourPerHeightMeter).arg(_extrapunishment);}
 };
 
 class PowerRoutingMetric : public RoutingMetric
@@ -227,13 +232,13 @@ private:
     
 public:
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
-        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5)
+        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5), maxSpeed(-1.0)
     {
         init();
     }
-    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed)
-        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(0.5),
-            pushBikeSpeed(pushBikeSpeed)
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed, double haltungskorrekturfaktor, double maxSpeed = -1.0)
+        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(haltungskorrekturfaktor),
+            pushBikeSpeed(pushBikeSpeed), maxSpeed(maxSpeed)
     {
         init();
     }
@@ -384,11 +389,15 @@ public:
             
             //speed = minSpeed;
         }
+        if (speed > maxSpeed)
+            speed = maxSpeed;
         //std::cerr << "speed: " << speed << std::endl;
         
         //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
-        //std::cerr << "time: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
-        return streetTypeFactor * (distance / speed) + timePunishment;
+        //std::cerr << "time1: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
+        //std::cerr << "time2: " << (distance / speed) << "s" << std::endl;
+        //return streetTypeFactor * (distance / speed) + timePunishment;
+        return (distance/speed);
         
         //TODO: Vorlieben bei Kanten nach Radweg etc anpassen und hinzufügen
         
@@ -402,7 +411,7 @@ public:
         return (p1.calcDistance(p2) / maxSpeed);
     }
     MeasurementUnit getMeasurementUnit() {return SECONDS;}
-    void test();
+    QString getParameterDetails() {return QString("power,maxpower=%1,weight=%2,minspeed=%3,haltungskorrekturfaktor=%4,pushbikespeed=%5,maxspeed=%6").arg(maxPower).arg(weight).arg(minSpeed).arg(haltungskorrekturfaktor).arg(pushBikeSpeed).arg(maxSpeed);}
 };
 
 class SimplePowerRoutingMetric : public RoutingMetric

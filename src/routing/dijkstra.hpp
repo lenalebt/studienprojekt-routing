@@ -46,7 +46,6 @@ class DijkstraRouter : public Router
 {
 private:
     boost::shared_ptr<DatabaseConnection> _db;
-    boost::shared_ptr<RoutingMetric> _metric;
     
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
@@ -83,7 +82,6 @@ class MultithreadedDijkstraRouter : public Router
 private:
     boost::shared_ptr<DatabaseConnection> _dbA;
     boost::shared_ptr<DatabaseConnection> _dbB;
-    boost::shared_ptr<RoutingMetric> _metric;
     
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
     /**

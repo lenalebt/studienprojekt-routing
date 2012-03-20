@@ -195,6 +195,15 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         {
             boost::uint64_t activeNodeID = activeNodeLongID;
             GPSRoute route;
+            if (_metric->getMeasurementUnit() == SECONDS)
+            {
+                route.setDuration(nodeCosts.getValue(activeNodeID));
+            }
+            else
+            {
+                //TODO: Kanten mit Zeit bewerten!
+                route.setDuration(nodeCosts.getValue(activeNodeID)/4.0);
+            }
             while (activeNodeID != 0)
             {
                 route.insertForward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
@@ -215,13 +224,13 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
 }
 
 DijkstraRouter::DijkstraRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric) :
-    _db(db), _metric(metric)
+    Router(metric), _db(db)
 {
     
 }
 
 MultithreadedDijkstraRouter::MultithreadedDijkstraRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric) :
-    _dbA(dbA), _dbB(dbB), _metric(metric)
+    Router(metric), _dbA(dbA), _dbB(dbB)
 {
     
 }
@@ -336,6 +345,14 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadA(const Routin
         {
             boost::uint64_t activeNodeID = closedList->getOverlappingElement();
             GPSRoute route;
+            if (_metric->getMeasurementUnit() == SECONDS)
+                route.setDuration(nodeCosts.getValue(activeNodeID));
+            else
+            {
+                //TODO: Kanten mit Zeit bewerten!
+                route.setDuration(nodeCosts.getValue(activeNodeID)/4.0);
+            }
+            
             while (activeNodeID != 0)
             {
                 route.insertForward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
@@ -457,6 +474,14 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const Routin
         {
             boost::uint64_t activeNodeID = closedList->getOverlappingElement();
             GPSRoute route;
+            if (_metric->getMeasurementUnit() == SECONDS)
+                route.setDuration(nodeCosts.getValue(activeNodeID));
+            else
+            {
+                //TODO: Kanten mit Zeit bewerten!
+                route.setDuration(nodeCosts.getValue(activeNodeID)/4.0);
+            }
+            
             while (activeNodeID != 0)
             {
                 route.insertBackward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
