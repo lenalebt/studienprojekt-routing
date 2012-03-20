@@ -1002,7 +1002,7 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge,
     }
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
-    std::cerr << edge.getStartNodeID() << " " << edge.getID() << " " << edge.getEndNodeID() << " "  <<  edge.getForward() << " " << std::endl;
+    //std::cerr << edge.getStartNodeID() << " " << edge.getID() << " " << edge.getEndNodeID() << " "  <<  edge.getForward() << " " << std::endl;
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 1, edge.getStartNodeID());
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 2, edge.getID());
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 3, oldStartNodeID);

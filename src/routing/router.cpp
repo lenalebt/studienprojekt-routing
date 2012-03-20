@@ -20,7 +20,8 @@ GPSRoute Router::calculateShortestRoute(QVector<GPSPosition> pointList)
             std::cerr << "route part not in cache, calculating..." << std::endl;
             GPSRoute routepart = calculateShortestRoute(pointList[i], pointList[i+1]);
             route << routepart;
-            RouteCache::getInstance()->addRoute(routepart, pointList[i], pointList[i+1], _metric->getParameterDetails());
+            if (!routepart.isEmpty())
+                RouteCache::getInstance()->addRoute(routepart, pointList[i], pointList[i+1], _metric->getParameterDetails());
         }
     }
     std::cerr << "route ready - delivering now..." << std::endl;
@@ -74,6 +75,17 @@ GPSRoute Router::calculateShortestRoute(const GPSPosition& startPosition, const 
         }
         //startNode ist der Knoten mit der kürzesten Entfernung zu startPosition.
         
+        boost::uint64_t startNodeLongID = RoutingNode::convertIDToLongFormat(startNode.getID());
+        for (int i=0; i<256; i++)
+        {
+            if ((_dbA->getEdgesByStartNodeID(startNodeLongID + i)).size()>0)
+            {
+                startNode.setID(startNodeLongID + i);
+                break;
+            }
+        }
+        //Nun ist die ID ins lange Format überführt, auf einem Punkt an dem es Kanten gibt (ausgehend).
+        
         nodeList = _dbB->getNodes(endPosition, 50.0);
         if (nodeList.isEmpty())
         {
@@ -102,6 +114,17 @@ GPSRoute Router::calculateShortestRoute(const GPSPosition& startPosition, const 
             }
         }
         //endNode ist der Knoten mit der kürzesten Entfernung zu endPosition.
+        
+        boost::uint64_t endNodeLongID = RoutingNode::convertIDToLongFormat(endNode.getID());
+        for (int i=0; i<256; i++)
+        {
+            if ((_dbA->getEdgesByEndNodeID(endNodeLongID + i)).size()>0)
+            {
+                endNode.setID(endNodeLongID + i);
+                break;
+            }
+        }
+        //Nun ist die ID ins lange Format überführt, auf einem Punkt an dem es Kanten gibt (ausgehend).
         
         return calculateShortestRoute(startNode, endNode);
     }

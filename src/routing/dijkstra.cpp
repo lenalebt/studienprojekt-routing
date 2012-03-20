@@ -39,11 +39,12 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         
         boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
+        /*
         QVector<boost::shared_ptr<RoutingNode> > nodes = _db->getNodes(startNode, startNode.calcDistance(endNode)/1.5);
         for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodes.constBegin(); it != nodes.constEnd(); it++)
         {
             nodeMap.insert(RoutingNode::convertIDToShortFormat((*it)->getID()), *it);
-        }
+        }*/
         //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
         //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
         
@@ -54,11 +55,12 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
             activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
             activeNode = nodeMap[activeNodeShortID];
             closedList.addElement(activeNodeLongID);
+            std::cerr << "active: " << activeNodeLongID << std::endl;
             
             //Wenn der jetzt abschließend zu betrachtende Knoten der Endkonten ist: Fertig.
             if (activeNodeShortID == endNodeShortID)
             {
-                //std::cerr << "found endnode!";
+                std::cerr << "found endnode!";
                 break;
             }
             
@@ -117,6 +119,13 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         
         std::cerr << "finished, search space contains " << nodeMap.size() << " nodes." << std::endl;
         
+        std::cerr << activeNodeShortID << " " << endNodeShortID << std::endl;
+        
+        std::cerr << "nodemap: ";
+        for (QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> >::iterator it = nodeMap.begin(); it != nodeMap.end(); it++)
+        {
+            std::cerr << (**it).getID() << ",";
+        }
         if (activeNodeShortID == endNodeShortID)
         {
             boost::uint64_t activeNodeID = activeNodeLongID;
