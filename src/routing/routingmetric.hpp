@@ -248,7 +248,7 @@ public:
         if (heightDifference < 0)
             heightDifference = 0;
         double distance = startNode.calcDistance(endNode);
-        double inclination = heightDifference / distance;
+        double inclination = (distance==0) ? 0.0 : heightDifference / distance;
         
         /*std::cerr << std::endl << edge << startNode << endNode << std::endl;
         
@@ -293,7 +293,7 @@ public:
                     default:                                streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.8 : 2.5); break;
                 }
                 break;
-            case ACCESS_FOOT_ONLY:          return distance / pushBikeSpeed; break;
+            case ACCESS_FOOT_ONLY:          return (distance / pushBikeSpeed); break;
             default:                        streetTypeFactor = 100.0;
                                             break;
         }
@@ -351,15 +351,15 @@ public:
             default:                                surfaceFactor *= 1.3; break;
             
         }
-        /*switch (edge.getTurnType())
+        switch (edge.getTurnType())
         {
             case TURNTYPE_LEFTCROSS:        timePunishment += 5.0; break;
             case TURNTYPE_RIGHTCROSS:       timePunishment += 2.0; break;
             case TURNTYPE_STRAIGHTCROSS:    timePunishment += 0.0; break;
-            case TURNTYPE_UTURNCROSS:       timePunishment += 5.0; break;
+            case TURNTYPE_UTURNCROSS:       timePunishment += 7.0; break;
             case TURNTYPE_STRAIGHT:
             default:                        timePunishment += 0.0; break;
-        }*/
+        }
         if (edge.hasStairs())
         {
             //Bestrafung für eine Treppe: Länge * 2 in Sekunden + 5 Sekunden

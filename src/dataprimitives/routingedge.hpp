@@ -79,9 +79,9 @@
 
 #define TURNTYPE_STRAIGHT		0 //no crossing
 #define TURNTYPE_RIGHTCROSS		2
-#define TURNTYPE_STRAIGHTCROSS          1
+#define TURNTYPE_STRAIGHTCROSS          3
 #define TURNTYPE_LEFTCROSS		4
-#define TURNTYPE_UTURNCROSS		3
+#define TURNTYPE_UTURNCROSS		1
 
 #define ACCESS_YES			0 // at least for bikes
 #define ACCESS_PERMISSIVE		1
