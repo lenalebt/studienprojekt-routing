@@ -44,8 +44,6 @@ template class NodeCostLessAndQHashFunctor<boost::uint64_t, double>;
  */
 class DijkstraRouter : public Router
 {
-private:
-    boost::shared_ptr<DatabaseConnection> _db;
 protected:
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
@@ -80,8 +78,6 @@ public:
 class MultithreadedDijkstraRouter : public Router
 {
 private:
-    boost::shared_ptr<DatabaseConnection> _dbA;
-    boost::shared_ptr<DatabaseConnection> _dbB;
     
     /**
      * @brief Berechnet eine Route vom Startpunkt aus in Richtung Ziel.

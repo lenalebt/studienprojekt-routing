@@ -44,8 +44,6 @@ template class NodeCostLessAndQHashFunctorStar<boost::uint64_t, double>;
  */
 class AStarRouter : public Router
 {
-private:
-    boost::shared_ptr<DatabaseConnection> _db;
 protected:
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
@@ -66,8 +64,6 @@ public:
 class MultithreadedAStarRouter : public Router
 {
 private:
-    boost::shared_ptr<DatabaseConnection> _dbA;
-    boost::shared_ptr<DatabaseConnection> _dbB;
     
     /**
      * @brief Berechnet eine Route vom Startpunkt aus in Richtung Ziel.
