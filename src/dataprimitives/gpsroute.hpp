@@ -34,9 +34,9 @@ public:
     {
         double length = 0.0;
         for (int index = 1; index < route.size(); index++)
-            {
-                length = length + route.at(index).calcDistance(route.at(index - 1));
-            }
+        {
+            length = length + route.at(index).calcDistance(route.at(index - 1));
+        }
         return length;
     }
     /**

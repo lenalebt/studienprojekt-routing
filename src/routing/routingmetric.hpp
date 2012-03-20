@@ -250,11 +250,11 @@ public:
         double distance = startNode.calcDistance(endNode);
         double inclination = heightDifference / distance;
         
-        //std::cerr << edge << std::endl;
+        /*std::cerr << std::endl << edge << startNode << endNode << std::endl;
         
-        //std::cerr << "inclination: " << inclination << std::endl;
-        //std::cerr << "distance: " << distance << std::endl;
-        //std::cerr << "heightDifference: " << heightDifference << std::endl;
+        std::cerr << "inclination: " << inclination << std::endl;
+        std::cerr << "distance: " << distance << std::endl;
+        std::cerr << "heightDifference: " << heightDifference << std::endl;*/
         
         //TODO: Faktor anpassen je nach Eigenschaften der Kante
         double surfaceFactor = 1;
@@ -399,11 +399,11 @@ public:
         }
         if (speed > maxSpeed)
             speed = maxSpeed;
-        //std::cerr << "speed: " << speed << std::endl;
+        /*std::cerr << "speed: " << speed << std::endl;
         
         //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
-        //std::cerr << "time1: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
-        //std::cerr << "time2: " << (distance / speed) << "s" << std::endl;
+        std::cerr << "time1: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
+        std::cerr << "time2: " << (distance / speed) << "s" << std::endl;*/
         return streetTypeFactor * (distance / speed) + timePunishment;
         //return (distance/speed);
         

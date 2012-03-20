@@ -38,7 +38,11 @@ double GPSPosition::calcDistance(const GPSPosition& p2) const
     if (*this == p2)
         return 0.0;
     else
-        return calcXi(p2)*EARTH_RADIUS;
+    {
+        double retVal = calcXi(p2)*EARTH_RADIUS;
+        //auf NaN testen, und im Ernstfall einfach 0 zurückgeben.
+        return (retVal == retVal) ? retVal : 0.0;
+    }
 }
 
 /**

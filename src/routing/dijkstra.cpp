@@ -60,7 +60,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
             //Wenn der jetzt abschließend zu betrachtende Knoten der Endkonten ist: Fertig.
             if (activeNodeShortID == endNodeShortID)
             {
-                std::cerr << "found endnode!";
+                //std::cerr << "found endnode!";
                 break;
             }
             
