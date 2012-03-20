@@ -409,14 +409,14 @@
                 }
                 
                 urlparameters = "";
-                urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
+                urlparameters += "algorithm=" + getCheckedRoutingAlgorithm();
                 //ACHTUNG! Erlaubt code und Parameter Injection.
                 urlparameters += "&maxpower=" + document.routingmetricsettings.maxpower.value;
                 urlparameters += "&minspeed=" + document.routingmetricsettings.minspeed.value/3.6;
                 urlparameters += "&weight=" + document.routingmetricsettings.weight.value;
                 urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
                 urlparameters += "&detourperheightmeter=" + document.routingmetricsimpleheightsettings.adddistance.value;
-                urlparameters += "&haltungskorrekturfaktor=" + document.routingmetricbikers.bikers.value;
+                urlparameters += "&haltungskorrekturfaktor=" + getCheckedHaltungskorrekturfaktor();
                 url += "?" + urlparameters;
             }
             thisLink = url;
@@ -529,13 +529,13 @@
             }
         }
         //
-        function getCheckedRoutingAlgorithm()
+        function getCheckedHaltungskorrekturfaktor()
         {
-            for(i=0; i<document.algorithm.algorithm.length; i++)
+            for(i=0; i<document.routingmetricbikers.bikers.length; i++)
             {
-                if(document.algorithm.algorithm[i].checked == true)
+                if(document.routingmetricbikers.bikers[i].checked == true)
                 {
-                    return document.algorithm.algorithm[i].value;
+                    return document.routingmetricbikers.bikers[i].value;
                 }
             }
         }
@@ -573,16 +573,7 @@
             }
         }
         //
-        function getCheckedRoutingMetric()
-        {
-            for(i=0; i<document.routingmetric.routingmetric.length; i++)
-            {
-                if(document.routingmetric.routingmetric[i].checked == true)
-                {
-                    return document.routingmetric.routingmetric[i].value;
-                }
-            }
-        }
+
     </script>
   </head>
   <body onload="init()">
@@ -647,10 +638,10 @@
     <div id="settingsBikers">
         <form name="routingmetricbikers">
             <table>
-                <tr><td><input type="radio" name="bikers" value="1"> <img src="img/biker_erect.png" width="30" height="30" value="0.5" alt=""></td>
-                <td><input type="radio" name="bikers" value="2"> <img src="img/133212667.png" width="30" height="30" value = "0.4" alt="" checked></td>
-                <td><input type="radio" name="bikers" value="3"> <img src="img/biker_low.png" width="30" height="30" value = "0.3" alt=""></td>
-                <td><input type="radio" name="bikers" value="4"> <img src="img/biker_lower.png" width="30" height="30" value = "0.25" alt=""></td></tr>
+                <tr><td><input type="radio" name="bikers" value="0.5" checked> <img src="img/biker_erect.png" width="30" height="30" value="0.5" alt=""></td>
+                <td><input type="radio" name="bikers" value="0.4"> <img src="img/133212667.png" width="30" height="30" value = "0.4" alt=""></td>
+                <td><input type="radio" name="bikers" value="0.3"> <img src="img/biker_low.png" width="30" height="30" value = "0.3" alt=""></td>
+                <td><input type="radio" name="bikers" value="0.25"> <img src="img/biker_lower.png" width="30" height="30" value = "0.25" alt=""></td></tr>
             </table>
         </form>
     </div>
