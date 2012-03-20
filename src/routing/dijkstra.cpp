@@ -461,9 +461,9 @@ namespace biker_tests
         GPSRoute route;
         CHECK(route.isEmpty());
         
-        DijkstraRouter router(db, metric);
+        Router* router = new DijkstraRouter(db, metric);
         std::cerr << "routing...." << std::endl;
-        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        route = router->calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
         
         CHECK(!route.isEmpty());
         route.exportGPX("dijkstra.gpx");
@@ -491,9 +491,9 @@ namespace biker_tests
         GPSRoute route;
         CHECK(route.isEmpty());
         
-        MultithreadedDijkstraRouter router(dbA, dbB, metric);
+        Router* router = new MultithreadedDijkstraRouter(dbA, dbB, metric);
         std::cerr << "routing...." << std::endl;
-        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        route = router->calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
         
         CHECK(!route.isEmpty());
         route.exportGPX("multithreadeddijkstra.gpx");

@@ -473,9 +473,9 @@ namespace biker_tests
         GPSRoute route;
         CHECK(route.isEmpty());
         
-        AStarRouter router(db, metric);
+        Router* router = new AStarRouter(db, metric);
         std::cerr << "routing...." << std::endl;
-        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        route = router->calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
         
         CHECK(!route.isEmpty());
         route.exportGPX("astar.gpx");
@@ -503,9 +503,9 @@ namespace biker_tests
         GPSRoute route;
         CHECK(route.isEmpty());
         
-        MultithreadedAStarRouter router(dbA, dbB, metric);
+        Router* router = new MultithreadedAStarRouter(dbA, dbB, metric);
         std::cerr << "routing...." << std::endl;
-        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        route = router->calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
         
         CHECK(!route.isEmpty());
         route.exportGPX("multithreadedastar.gpx");

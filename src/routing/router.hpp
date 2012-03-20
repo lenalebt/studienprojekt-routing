@@ -23,8 +23,6 @@
  */
 class Router
 {
-private:
-    
 protected:
     boost::shared_ptr<RoutingMetric> _metric;
     boost::shared_ptr<DatabaseConnection> _db;
