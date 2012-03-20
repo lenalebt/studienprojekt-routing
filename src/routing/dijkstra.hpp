@@ -46,11 +46,11 @@ class DijkstraRouter : public Router
 {
 private:
     boost::shared_ptr<DatabaseConnection> _db;
-    
+protected:
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
     DijkstraRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric);
-    GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
+    //GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
 /**
@@ -83,7 +83,6 @@ private:
     boost::shared_ptr<DatabaseConnection> _dbA;
     boost::shared_ptr<DatabaseConnection> _dbB;
     
-    GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
     /**
      * @brief Berechnet eine Route vom Startpunkt aus in Richtung Ziel.
      * 
@@ -102,6 +101,8 @@ private:
      * @return Die Route vom gemeinsamen Punkt zum Endpunkt
      */
     GPSRoute calculateShortestRouteThreadB(const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
+protected:
+    GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
     /**
      * @brief Erstellt einen neuen Router, der den Algorithmus von Dijkstra
@@ -117,7 +118,7 @@ public:
      * @param metric Die Routingmetrik, die zum Bewerten von Kanten verwendet werden soll
      */
     MultithreadedDijkstraRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric);
-    GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
+    //GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
 namespace biker_tests

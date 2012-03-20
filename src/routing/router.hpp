@@ -8,6 +8,7 @@
 #include <QVector>
 #include <QReadWriteLock>
 #include <QCache>
+#include "database.hpp"
 
 /**
  * @brief Von diesem Interface erben alle Klassen, die eine Route in einem
@@ -26,8 +27,14 @@ private:
     
 protected:
     boost::shared_ptr<RoutingMetric> _metric;
+    boost::shared_ptr<DatabaseConnection> _db;
+    boost::shared_ptr<DatabaseConnection> _dbA;
+    boost::shared_ptr<DatabaseConnection> _dbB;
+    virtual GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)=0;
 public:
     Router(boost::shared_ptr<RoutingMetric> metric) : _metric(metric) {}
+    Router(boost::shared_ptr<RoutingMetric> metric, boost::shared_ptr<DatabaseConnection> db) : _metric(metric), _db(db), _dbA(db), _dbB(db) {}
+    Router(boost::shared_ptr<RoutingMetric> metric, boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB) : _metric(metric), _db(dbA), _dbA(dbA), _dbB(dbB) {}
     /**
      * @brief Berechnet eine Route in einem Graphen.
      * 
@@ -37,7 +44,7 @@ public:
      * @param endPosition Das Ziel der Route
      * @return Eine Route vom Start zum Ziel, die nach der angegebenen RoutingMetric die beste ist.
      */
-    virtual GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)=0;
+    virtual GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
     
     /**
      * @brief Berechnet eine Route in einem Graphen über Transitpunkte.

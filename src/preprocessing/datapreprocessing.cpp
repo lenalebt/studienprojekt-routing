@@ -680,6 +680,8 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
 
 void DataPreprocessing::createRoutingGraph()
 {
+    std::cerr << "creating routing graph:" << std::endl;
+    
     boost::uint64_t edgeID = 0;
     boost::uint64_t firstVal = 0;
     boost::uint64_t lastVal = 0;
@@ -713,16 +715,18 @@ std::cerr << "index: " <<firstVal << std::endl;
 
                 for(int j = 0; j < osmEdgesOutgoing.size(); j++)
                 {
+                    boost::uint64_t oldStartNode = osmEdgesOutgoing[j]->getStartNodeID();
                     sectors << setNodeBorderingLongID(osmEdgesOutgoing[j], rNode);
                     std::cerr << *osmEdgesOutgoing[j] << "." <<  std::endl;
-                    _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
+                    _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j], oldStartNode);
 
                 }
                 for(int j = 0; j < osmEdgesIncome.size(); j++)
                 {
+                    boost::uint64_t oldEndNode = osmEdgesIncome[j]->getEndNodeID();
                     sectors << setNodeBorderingLongID(osmEdgesIncome[j], rNode);
                     std::cerr << *osmEdgesIncome[j] << "." << std::endl;
-                    _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
+                    _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j], oldEndNode);
                 }                
 
                 //handle turnRestrictions
@@ -755,16 +759,18 @@ std::cerr << "index: " <<firstVal << std::endl;
             {
                 for( int j = 0; j < osmEdgesIncome.size(); j++)
                 {
+                    boost::uint64_t oldEndNode = osmEdgesIncome[j]->getEndNodeID();
                     osmEdgesIncome[j]->setEndNodeID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getEndNodeID()));
-std::cerr << *osmEdgesIncome[j] << std::endl;
-                    _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j]);
+                    std::cerr << *osmEdgesIncome[j] << std::endl;
+                    _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j], oldEndNode);
                 }
 
                 for( int j = 0; j < osmEdgesOutgoing.size(); j++)
                 {
+                    boost::uint64_t oldStartNode = osmEdgesOutgoing[j]->getStartNodeID();
                     osmEdgesOutgoing[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getStartNodeID()));
-std::cerr << *osmEdgesOutgoing[j] << std::endl;
-                    _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j]);
+                    std::cerr << *osmEdgesOutgoing[j] << std::endl;
+                    _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j], oldStartNode);
                 }
                 RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
                 _finalDBConnection->saveNode(rNode);

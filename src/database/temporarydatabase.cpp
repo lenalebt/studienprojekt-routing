@@ -988,12 +988,12 @@ bool TemporaryOSMDatabaseConnection::saveOSMEdge(const OSMEdge& edge)
     }
     return true;
 }
-bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge)
+bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge, boost::uint64_t oldStartNodeID)
 {
     int rc;
     if(_updateOSMEdgeStartNodeStatement == NULL)
     {
-        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET STARTNODEID=@STARTNODEID WHERE (WAYID=@WAYID AND ENDNODEID=@ENDNODEID AND FORWARD=@FORWARD);", -1, &_updateOSMEdgeStartNodeStatement, NULL);
+        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET STARTNODEID=@STARTNODEID WHERE (WAYID=@WAYID AND STARTNODEID=@OLDSTARTNODEID AND ENDNODEID=@ENDNODEID AND FORWARD=@FORWARD);", -1, &_updateOSMEdgeStartNodeStatement, NULL);
         if (rc != SQLITE_OK)
         {	
             std::cerr << "Failed to create updateOSMEdgeStartNodeStatement." << " Resultcode: " << rc << std::endl;
@@ -1002,11 +1002,12 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge)
     }
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
-    //std::cerr << edge.getStartNodeID() << " " << edge.getID() << " " << edge.getEndNodeID() << " "  <<  edge.getForward() << " " << std::endl;
+    std::cerr << edge.getStartNodeID() << " " << edge.getID() << " " << edge.getEndNodeID() << " "  <<  edge.getForward() << " " << std::endl;
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 1, edge.getStartNodeID());
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 2, edge.getID());
-    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 3, edge.getEndNodeID());
-    sqlite3_bind_int(_updateOSMEdgeStartNodeStatement, 4, edge.getForward());
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 3, oldStartNodeID);
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 4, edge.getEndNodeID());
+    sqlite3_bind_int(_updateOSMEdgeStartNodeStatement, 5, edge.getForward());
     
     // Statement ausfuehren
     rc = sqlite3_step(_updateOSMEdgeStartNodeStatement);
@@ -1024,12 +1025,12 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge)
     
     return true;
 }
-bool TemporaryOSMDatabaseConnection::updateOSMEdgeEndNode(const OSMEdge& edge)
+bool TemporaryOSMDatabaseConnection::updateOSMEdgeEndNode(const OSMEdge& edge, boost::uint64_t oldEndNodeID)
 {
     int rc;
     if(_updateOSMEdgeEndNodeStatement == NULL)
     {
-        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET ENDNODEID=@ENDNODEID WHERE WAYID=@WAYID AND STARTNODEID=@STARTNODEID AND FORWARD=@FORWARD;", -1, &_updateOSMEdgeEndNodeStatement, NULL);
+        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET ENDNODEID=@ENDNODEID WHERE (WAYID=@WAYID AND STARTNODEID=@STARTNODEID AND ENDNODEID=@OLDENDNODEID AND FORWARD=@FORWARD);", -1, &_updateOSMEdgeEndNodeStatement, NULL);
         if (rc != SQLITE_OK)
         {	
             std::cerr << "Failed to create updateOSMEdgeEndNodeStatement." << " Resultcode: " << rc << std::endl;
@@ -1041,7 +1042,8 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeEndNode(const OSMEdge& edge)
     sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 1, edge.getEndNodeID());
     sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 2, edge.getID());
     sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 3, edge.getStartNodeID());
-    sqlite3_bind_int(_updateOSMEdgeEndNodeStatement, 4, edge.getForward());
+    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 4, oldEndNodeID);
+    sqlite3_bind_int(_updateOSMEdgeEndNodeStatement, 5, edge.getForward());
     
     // Statement ausfuehren
     rc = sqlite3_step(_updateOSMEdgeEndNodeStatement);
@@ -1458,10 +1460,10 @@ namespace biker_tests
         OSMEdge edge3(12, true, 15, 16);
         edge3.setStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNodeID()));
         CHECK(connection.saveOSMEdge(edge3));
-        CHECK(connection.updateOSMEdgeStartNode(edge3));
+        CHECK(connection.updateOSMEdgeStartNode(edge3, RoutingNode::convertIDToShortFormat(edge3.getStartNodeID())));
         CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNodeID()))[0] ));
         edge3.setEndNodeID(RoutingNode::convertIDToLongFormat(edge3.getEndNodeID()));
-        CHECK(connection.updateOSMEdgeEndNode(edge3));
+        CHECK(connection.updateOSMEdgeEndNode(edge3, RoutingNode::convertIDToShortFormat(edge3.getEndNodeID())));
         CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNodeID()))[0] ));
         CHECK(connection.endTransaction());
         

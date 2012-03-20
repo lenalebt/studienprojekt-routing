@@ -196,17 +196,19 @@ public:
     /**
      * @brief Ändert Daten einer OSMEdge in der temporären Datenbank: StartNode ändert sich.
      * @param edge Die OSMEdge, die verändert wird.
+     * @param oldStartNode Die vorherige Startnode der OSMEdge - wichtig, da die Anfrage sonst nicht immer erfolgreich ist
      * @return Ob das Verändern in der Datenbank erfolgreich war, oder nicht
      * @remarks Eigenschaften der Kante werden nicht mit gespeichert.
      */
-    bool updateOSMEdgeStartNode(const OSMEdge& edge);
+    bool updateOSMEdgeStartNode(const OSMEdge& edge, boost::uint64_t oldStartNodeID);
     /**
      * @brief Ändert Daten einer OSMEdge in der temporären Datenbank: EndNode ändert sich.
      * @param edge Die OSMEdge, die verändert wird.
+     * @param oldEndNode Die vorherige Endnode der OSMEdge - wichtig, da die Anfrage sonst nicht immer erfolgreich ist
      * @return Ob das Verändern in der Datenbank erfolgreich war, oder nicht
      * @remarks Eigenschaften der Kante werden nicht mit gespeichert.
      */
-    bool updateOSMEdgeEndNode(const OSMEdge& edge);
+    bool updateOSMEdgeEndNode(const OSMEdge& edge, boost::uint64_t oldEndNodeID);
     /**
      * @brief Legt eine OSMTurnRestriction in der temporären Datenbank ab.
      * @param turnResriction Die OSMTurnRestriction, die abgelegt wird.
