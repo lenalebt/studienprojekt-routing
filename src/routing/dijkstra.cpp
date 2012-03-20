@@ -55,7 +55,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
             activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
             activeNode = nodeMap[activeNodeShortID];
             closedList.addElement(activeNodeLongID);
-            std::cerr << "active: " << activeNodeLongID << std::endl;
+            //std::cerr << "active: " << activeNodeLongID << std::endl;
             
             //Wenn der jetzt abschließend zu betrachtende Knoten der Endkonten ist: Fertig.
             if (activeNodeShortID == endNodeShortID)
@@ -121,11 +121,11 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         
         std::cerr << activeNodeShortID << " " << endNodeShortID << std::endl;
         
-        std::cerr << "nodemap: ";
+        /*std::cerr << "nodemap: ";
         for (QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> >::iterator it = nodeMap.begin(); it != nodeMap.end(); it++)
         {
             std::cerr << (**it).getID() << ",";
-        }
+        }*/
         if (activeNodeShortID == endNodeShortID)
         {
             boost::uint64_t activeNodeID = activeNodeLongID;
