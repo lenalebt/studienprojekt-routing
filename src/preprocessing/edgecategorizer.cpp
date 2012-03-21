@@ -21,11 +21,11 @@ void EdgeCategorizer::categorize(const QVector<OSMProperty> properties, boost::u
     boost::uint8_t streetType = STREETTYPE_UNKNOWN;
     boost::uint8_t cyclewayType = CYCLEWAYTYPE_NO_CYCLEWAY;
     boost::uint8_t streetSurfaceType = STREETSURFACETYPE_UNKNOWN;
-    boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;    
+    boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;
     boost::uint8_t access = ACCESS_UNKNOWN;
 
 
-    boost::shared_ptr<RoutingEdge> routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(0, 0, 0));
+    routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(0, 0, 0));
 
 
     //////////////////////////////////////////////////////
