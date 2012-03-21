@@ -29,7 +29,7 @@
  * herunterzuladen (<code>->database.db</code>),
  * das Programm mittels <code>biker</code> zu starten,
  * und einen Webbrowser auf die Adresse
- * <code>http://localhost:8080/files/gui.html</code> zu leiten.
+ * <a href="http://localhost:8080/files/gui.html">http://localhost:8080/files/gui.html</a> zu leiten.
  * 
  * Da das Programm vor allem auch lokal funktionieren soll, und nicht nur
  * als Serverdienst auf einem entfernten Rechner, ist ein integrierter
@@ -99,15 +99,47 @@ http://server/files/
  *  <tr><td><code>algorithm=value</code></td><td>Hier wird der zur Berechnung verwendete Algorithmus angegeben.
  *      Mögliche Werte: <code>standard</code> wählt abhängig von der verwendeten Metrik einen geeigneten Algorithmus aus.
  *      <table>
-     *      <tr><td><code>dijkstra</code></td><td>wählt den Algorithmus von Dijkstra.</td></tr>
-     *      <tr><td><code>astar</code></td><td>wählt den A*-Algorithmus.</td></tr>
-     *      <tr><td><code>multithreadeddijkstra</code></td><td>wählt eine Version von Dijkstra, die mit 2 Threads arbeitet. Auf geeigneter Hardware (>2 Prozessoren, viel RAM für Datenbankcaching)
-     *      etwa 4x schneller als Dijkstra - auf weniger gut geeigneter Hardware (1 Prozessor, wenig Speicher, langsame Festplatte) immerhin noch 2x schneller.</td></tr>
-     *      <tr><td><code>multithreadedastar</code></td><td>wählt eine Version von A*, die mit 2 Threads arbeitet.</td></tr>
+ *          <tr><th>value</th><th>Erklärung</th></tr>
+ *          <tr><td><code>dijkstra</code></td><td>wählt den Algorithmus von Dijkstra.</td></tr>
+ *          <tr><td><code>astar</code></td><td>wählt den A*-Algorithmus.</td></tr>
+ *          <tr><td><code>multithreadeddijkstra</code></td><td>wählt eine Version von Dijkstra, die mit 2 Threads arbeitet. Auf geeigneter Hardware (>2 Prozessoren, viel RAM für Datenbankcaching)
+ *          etwa 4x schneller als Dijkstra - auf weniger gut geeigneter Hardware (1 Prozessor, wenig Speicher, langsame Festplatte) immerhin noch 2x schneller.</td></tr>
+ *          <tr><td><code>multithreadedastar</code></td><td>wählt eine Version von A*, die mit 2 Threads arbeitet.</td></tr>
  *      </table>
  *      </td></tr>
  *  <tr><td><code>parameter=value</code></td><td>Diese Parameter sind abhängig von der Routingmetrik und bei der entsprechenden Metrik erklärt.</td></tr>
  * </table>
+ * 
+ * @subsubsection routingmetric_power Leistungsmetrik
+ * <table>
+ *  <tr><th>Parametername</th><th>Erklärung</th></tr>
+ *  <tr><td>maxpower</td><td>2</td></tr>
+ *  <tr><td>minspeed</td><td>2</td></tr>
+ *  <tr><td>weight</td><td>2</td></tr>
+ *  <tr><td>?</td><td>2</td></tr>
+ *  <tr><td>haltungskorrekturfaktor</td><td>2</td></tr>
+ * </table>
+ * @subsubsection routingmetric_simpleheight einfache Höhenvermeidung
+ * <table>
+ *  <tr><th>Parametername</th><th>Erklärung</th></tr>
+ *  <tr><td>detourperheightmeter</td><td>Bestrafung pro gefahrenem Höhenmeter, in Metern.
+ *          Diese Bestrafung wird einfach zu der Entfernung hinzugerechnet, die 2 Punkte voneinander haben.
+ *          Ein guter Wert für die Praxis ist <code>100.0</code>, was 100m entspricht.</td></tr>
+ *  <tr><td>1</td><td>2</td></tr>
+ *  <tr><td>1</td><td>2</td></tr>
+ *  <tr><td>1</td><td>2</td></tr>
+ * </table>
+ * Diese Metrik hat einen Parameter
+ * @subsubsection routingmetric_advancedheight erweiterte Höhenvermeidung
+ * @subsubsection routingmetric_euclidian einfache Entfernungsmetrik
+ * Diese Metrik hat keine Parameter. Sie bezieht lediglich die reine Entfernung
+ * von Punkten in die Berechnung ein und ist damit für Fahrräder denkbar ungeeignet.
+ * Sie ist hauptsächlich für einfache Tests vorhanden, und kann sich möglicherweise
+ * für Fußgängerrouting eignen. Allerdings werden die Eigenschaften der Straße
+ * überhaupt nicht beachtet. Da Autobahnen und autobahnähnliche Straßen nicht
+ * in die Datenbank mit aufgenommen werden, werden wahrscheinlich nicht zu viele
+ * Fehler gemacht - man sollte jedoch im Kopf behalten, dass diese Metrik nur für
+ * Testzwecke gedacht ist.
  * 
  * @todo Auf die Parameter der einzelnen Routingmetriken eingehen!
  * @subsubsection webserver_functions_routes_cloudmade_differences Unterschiede zur Cloudmade-API
