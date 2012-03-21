@@ -13,6 +13,8 @@ EdgeCategorizer::EdgeCategorizer(BlockingQueue<boost::shared_ptr<OSMWay> >* inQu
 
 void EdgeCategorizer::categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward, boost::uint64_t& propBackward)
 {
+    static boost::shared_ptr<RoutingEdge> routingEdge;
+    
     bool hasTrafficLights = false;
     bool hasTrafficCalmingBumps = false;
     bool hasStopSign = false;
