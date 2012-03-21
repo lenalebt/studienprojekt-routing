@@ -157,7 +157,6 @@ public:
      * @return <code>1</code>, wenn es sich um eine Einbahnstraße handelt, <code>0</code>
      *      wenn nicht. <code>-1</code>, wenn die Einbahnstraße in umgekehrter Richtung
      *      gültig ist.
-     * @todo Evtl. weitere Wegtypen hinzufügen.
      */
     int isOneway();
 
@@ -172,7 +171,6 @@ public:
      *      handelt, <code>0</code>
      *      wenn nicht. <code>-1</code>, wenn die Einbahnstraße in umgekehrter Richtung
      *      gültig ist.
-     * @todo
      */
     int isOneWayForBikes();
     

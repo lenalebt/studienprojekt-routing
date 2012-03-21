@@ -1,10 +1,6 @@
 #include "osmway.hpp"
 #include "QVectorIterator"
 
-/**
- * @bug Fügt nur die Edges in eine Richtung ein und achtet nicht
- *  auf Einbahnstraßen (und deren Richtung! Kann umgekehrt sein!)
- */
 QVector<OSMEdge> OSMWay::getEdgeList(){
     QVector<OSMEdge> edgeList;
     OSMEdge newEdge(wayID, properties);    

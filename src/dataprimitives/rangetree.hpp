@@ -525,7 +525,6 @@ public:
      * Es werden die Größen aller Kinder mit berücksichtigt.
      * 
      * @return 
-     * @todo 
      */
     size_t sizeInBytes()
     {

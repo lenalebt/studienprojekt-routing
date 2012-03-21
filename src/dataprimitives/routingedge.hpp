@@ -133,9 +133,6 @@
  * @author Lena Brüder
  * @date 2011-11-01
  * @copyright GNU GPL v3
- * @todo Evtl. Rampen an Treppen dazu. Stufenanzahl in Schritten (1, 5, 10, 20, ...)
- * @todo verkehrsberuhigende sachen in mehr sachen aufteilen. 2 kategorien? umfahrbar/nicht
- * @todo Flag, ob Kante erlaubt für: Fahrrad, Fußgänger (gibt große Straßen wo Fußgänger nicht lang dürfen!)
  */
 class RoutingEdge
 {
@@ -173,7 +170,6 @@ public:
     /**
      * @brief Setzt die ID der Kante auf den entsprechenden Wert.
      * @param id Die neue ID der Kante.
-     * @return 
      */
     void setID(const boost::uint64_t id) {this->_id = id;}
     
@@ -186,7 +182,6 @@ public:
     /**
      * @brief Setzt die ID des Startknotens auf den entsprechenden Wert.
      * @param startNodeID Die neue ID des Startknotens.
-     * @return 
      */
     void setStartNodeID(const boost::uint64_t startNodeID) {this->_startNodeID = startNodeID;}
     
@@ -232,7 +227,6 @@ public:
     /**
      * @brief Gibt an, ob an der entsprechenden Kante Treppen sind
      * @return Ob an der Kante Treppen sind
-     * @todo Evtl. sind Treppen ein eigener Straßentyp?
      */
     bool hasStairs() const {return _properties.stairs;}
     /**
@@ -274,19 +268,16 @@ public:
     /**
      * @brief Gibt den Typ der Straße an der Kante an.
      * @return Den Typ der Straße
-     * @todo Evtl einen Enum für den Straßentyp machen
      */
     boost::uint8_t getStreetType() const {return _properties.streetType;}
     /**
      * @brief Gibt den Typ des Radwegs an der Kante an.
      * @return Den Typ des Radwegs
-     * @todo Evtl einen Enum für den Radwegtyp machen
      */
     boost::uint8_t getCyclewayType() const {return _properties.cyclewayType;}
     /**
      * @brief Gibt den Typ des Straßenbelags an
      * @return Den Typ des Straßenbelags
-     * @todo Evtl einen Enum für den Belagstyp machen
      */
     boost::uint8_t getStreetSurfaceType() const {return _properties.streetSurfaceType;}
     /**
@@ -344,6 +335,8 @@ public:
      * Eigenschaft kann geprüft werden, ob eine Kante Abkürzung ist, oder
      * nicht.
      * 
+     * @remarks Diese Funktion wird erst für Highway/Contraction Hierarchies benötigt,
+     *      und ist daher noch leer.
      * @return Das Abkürzungslevel dieser Kante.
      * @todo Implementierung in einer abgeleiteten Klasse, die das hier auch speichert.
      */
@@ -359,6 +352,8 @@ public:
      * Diese Implementierung gibt immer Null für das Level zurück, und
      * speichert den Wert auch nicht.
      * 
+     * @remarks Diese Funktion wird erst für Highway/Contraction Hierarchies benötigt,
+     *      und ist daher noch leer.
      * @param level Das Abkürzungslevel dieser Kante.
      * @todo Implementierung in einer abgeleiteten Klasse, die das hier auch speichert.
      */

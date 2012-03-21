@@ -26,6 +26,15 @@ double GPSPosition::calcCourseAngle(const GPSPosition& p2) const
     }
 }
 
+/**
+ * @bug Wenn man einen Punkt hier reingibt, bei dem die Breitengrade gleich sind,
+ * tritt ein Fehler auf: Es wird eigentlich NaN zurückgegeben. Um den Fehler erst
+ * einmal weniger schlimm zu machen, bis eine "richtige" Lösung gefunden ist, wird
+ * in der Funktion auf Rückgabe von NaN überprüft (<code>retVal==retVal</code>),
+ * und im Ernstfall wird <code>0.0</code> zurückgegeben.
+ * Sonderfall: Die Punkte sind gleich, dann wird ganz normal und erlaubterweise direkt
+ * 0.0 zurückgegeben.
+ */
 double GPSPosition::calcDistance(const GPSPosition& p2) const
 {
     if (!p2.isInitialized())

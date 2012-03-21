@@ -18,10 +18,6 @@
  * @author Lena Brueder
  * @date 2011-11-03
  * @copyright GNU GPL v3
- * @todo Möglicherweise muss man sich noch Gedanken machen, wie man hier
- *      mit mehreren Threads zugreifen kann. Muss man das Interface ändern?
- *      Evtl reicht es, einen Wrapper zu schreiben, der das Interface threadsicher
- *      macht.
  */
 class DatabaseConnection
 {

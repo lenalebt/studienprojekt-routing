@@ -235,7 +235,6 @@ public:
      * @param maxCount Die Anzahl der Knoten, die maximal gleichzeitig
      *      geladen werden. Bei 0 existiert kein Limit.
      * @return Eine Liste der entsprechenden Knoten
-     * @todo testen
      */
     QVector<boost::shared_ptr<OSMNode> > getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, int maxCount=1000);
     
@@ -290,7 +289,7 @@ public:
      * @brief Lädt eine OSMTurnRestriction aus der DB über die Angabe der via-ID (Knoten).
      * @param viaID Die ID des Via-Knotens (der in der Mitte).
      * @return Eine Liste mit entsprechenden Abbiegebeschränkungen
-     * @todo Sollte in der To- und from-ID Knoten zurueckgeben
+     * @todo Sollte in der To- und from-ID Knoten zurueckgeben, tut es aber so nicht.
      */
     QVector<boost::shared_ptr<OSMTurnRestriction> > getOSMTurnRestrictionByViaID(boost::uint64_t viaID);
     

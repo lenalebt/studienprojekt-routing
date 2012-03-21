@@ -183,7 +183,6 @@ namespace biker_tests
      * Achtet auf Unterschiede zwischen unixoiden Dateiangaben und Windows.
      * 
      * @return 
-     * @todo Tests!
      */
     std::string basename(std::string filename);
 
