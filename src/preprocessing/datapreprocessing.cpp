@@ -686,6 +686,8 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
  *      Es landen einfach /alle/ Knoten in der DB am Ende. Wie kann man das verhindern, 
  *      ohne viel Speicher zu verwenden und sich zu merken, was man schon alles in die
  *      DB legte, bzw. ohne nochmal durch die ganze DB durchzuwandern?
+ * @todo Umstellen auf Benutzung des EdgeCategorizers, so wie aktuell ist der Code davon an
+ *      2 Stellen einfach reinkopiert.
  */
 void DataPreprocessing::createRoutingGraph()
 {
