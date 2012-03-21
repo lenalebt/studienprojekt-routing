@@ -45,9 +45,6 @@ enum MeasurementUnit
  * @author Thorsten Scheller
  * @date 2012-1-23
  * @copyright GNU GPL v3
- * @todo Fehlt: Beim Erzeugen einer Instanz soll immer gleich ein
- *      AltitudeProvider mit übergeben werden können. Fabrikmethoden
- *      verwenden?
  */
 class RoutingMetric
 {

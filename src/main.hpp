@@ -8,6 +8,9 @@
 
 /**
  * @mainpage Biker
+ * 
+ * @tableofcontents
+ * 
  * @brief Biker ein Programm zum Berechnen von Fahrradrouten.
  * 
  * Biker ist kein einseitiger Routenserver - sondern ein
@@ -15,8 +18,6 @@
  * einer Route zu beeinflussen.
  * Um die Berechnung zu beschleunigen, wird nicht nur von einer,
  * sondern von zwei Seiten gleichzeitig eine Route berechnet.
- * 
- * \tableofcontents
  * 
  * Der Fokus dieses Projekts liegt auf der vielseitigen Einstellbarkeit
  * der Routenoptionen. Dies führt dazu, dass das Berechnen der Route
@@ -114,7 +115,7 @@
  * sind solche Unterscheidungen nicht möglich. Die einfache Vorverarbeitung
  * ist schneller bearbeitet als die normale.
  * @code
- * biker --[simple-]parse=datei.osm[.pbf] --dbfile=datei.db [--dbbackend=sqlite|spatialite]
+ * biker --[simple-]parse=file.osm[.pbf] --dbfile=file.db [--dbbackend=sqlite|spatialite]
  * @endcode
  * Angaben in eckigen Klammern sind optional. Standardmäßig wird Spatialite
  * als Datenbankbackend verwendet, wenn Unterstützung dafür eincompiliert wurde,
@@ -176,6 +177,7 @@ http://localhost:8080/files/gui.html
  * @todo Funktionen und Eigenschaften
  * 
  * @section functions_properties_planned Geplante Funktionen und Eigenschaften
+ *  - Unterstützung der CGI-Schnittstelle eines Webservers
  * @todo Geplante Funktionen und Eigenschaften
  */
 

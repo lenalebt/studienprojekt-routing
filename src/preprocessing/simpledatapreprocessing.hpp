@@ -31,7 +31,6 @@
  * @author Sebastian Koehlert, Lena Brüder
  * @date 2011-12-21
  * @copyright GNU GPL v3
- * @todo Kantenkategorisierung, evtl. Graphen ausdünnen?.
  */
 
 class SimpleDataPreprocessing

@@ -289,6 +289,7 @@ bool HttpRequestProcessor::preprocessRequest()
     if (httpHelloRegExp.indexIn(line) == -1)
     {
         std::cerr << "not well-formed: \"" << line << "\"" << std::endl;
+        this->send400();
         return false;
     }
     
@@ -299,8 +300,8 @@ bool HttpRequestProcessor::preprocessRequest()
     QString parameters = httpHelloRegExp.cap(3);
     
     std::cerr << "requestPath: " << _requestPath << std::endl
-        << "httpVersion: 1." << _httpVersion << std::endl
-        << "parameters: " << parameters << std::endl;
+        << "parameters: " << parameters << std::endl
+        << "httpVersion: 1." << _httpVersion << std::endl;
     
     //Erst Parameter abfragen, dann können in der Zwischenzeit Daten
     //für die Header reinkommen. Müsste so rum schneller sein.
@@ -322,7 +323,10 @@ bool HttpRequestProcessor::preprocessRequest()
         httpHeaderCount++;
         //mehr als 127 Header-Zeilen wollen wir nicht verarbeiten: Da ist sicher jemand böses am Werk...
         if (httpHeaderCount>127)
+        {
+            this->send400();
             return false;
+        }
         if (httpHeader.indexIn(line) != -1)
         {
             _headerMap[httpHeader.cap(1)] = httpHeader.cap(2);
