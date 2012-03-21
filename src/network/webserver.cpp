@@ -537,11 +537,11 @@ void BikerHttpRequestProcessor::processRequest()
             //altitudeProvider.reset(new ZeroAltitudeProvider());
             
             //Routingmetrik festlegen anhand der Benutzerwahl
-            if (routeModifier == "euclidian")
+            if ((routeModifier == "euclidian"))
             {
                 metric.reset(new EuclidianRoutingMetric(altitudeProvider));
             }
-            else if (routeModifier == "simpleheight")
+            else if ((routeModifier == "simpleheight") || (routeModifier == "shortest"))
             {
                 float detourPerHeightMeter = 100.0f;
                 if (numberRegExp.indexIn(_parameterMap["detourperheightmeter"]) != -1)
@@ -575,14 +575,14 @@ void BikerHttpRequestProcessor::processRequest()
                     efficiency = numberRegExp.cap(1).toDouble();
                 metric.reset(new SimplePowerRoutingMetric(altitudeProvider, weight, efficiency));
             }
-            else if ((routeModifier == "power") || (routeModifier == ""))
+            else if ((routeModifier == "power") || (routeModifier == "") || (routeModifier == "fastest"))
             {
                 double weight = 90.0;
                 //double maxPower = 140.0;
                 double maxPower = 150.0;
                 double minSpeed = 2.5;
                 double pushBikeSpeed = 0.5;
-                double haltungskorrekturfaktor = 0.5;
+                double haltungskorrekturfaktor = 0.4;
                 double maxSpeed = -1.0;
                 
                 if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
