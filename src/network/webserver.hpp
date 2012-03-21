@@ -21,9 +21,25 @@
  * Webserver in das Programm integriert wurde.
  * 
  * @section webserver_why Warum wurde ein Webserver in das Programm integriert?
- * @todo Schreiben, warum. Gründe in etwa: DAU-Freundlichkeit, einrichten
- * eines Webserver kann viele Menschen überfordern. Das Programm soll vor allem
- * lokal laufen können - aber eben nicht <i>müssen</i>.
+ * Der integrierte Webserver hat vor allem Vorteile für Benutzer, die nicht
+ * sehr erfahren mit der Einrichtung eines Webservers haben. Dies sind
+ * für einen normalen PC-Benutzer keine Standardkenntnisse. Ziel war, das
+ * Starten des Programms möglichst einfach zu gestalten. Im Idealfall
+ * ist nur nötig, nach der Installation des Programms eine Datenbank
+ * herunterzuladen (<code>->database.db</code>),
+ * das Programm mittels <code>biker</code> zu starten,
+ * und einen Webbrowser auf die Adresse
+ * <code>http://localhost:8080/files/gui.html</code> zu leiten.
+ * 
+ * Da das Programm vor allem auch lokal funktionieren soll, und nicht nur
+ * als Serverdienst auf einem entfernten Rechner, ist ein integrierter
+ * Webserver von Vorteil.
+ * 
+ * Für die Zukunft wäre trotzdem wünschenswert, auch die CGI-Schnittstelle
+ * eines normalen Webservers zu unterstützen (siehe auch
+ * \ref functions_properties_planned). Ein besser getesteter Webserver ist
+ * für einen öffentlich verfügbaren Service eine deutlich bessere Wahl,
+ * als der integrierte.
  * 
  * @section webserver_functions Funktionen des Webservers
  * 
@@ -43,14 +59,58 @@ http://server/files/
  * Dabei bezeichnet <code>server</code> die Serveradresse, wie in
  * \ref benutzung_gui beschrieben.
  * 
- * Anfragen, die nicht mit <code>files</code> beginnen, werden als dynamische
+ * Es werden aus Sicherheitsgründen nicht einfach alle Dateien ausgeliefert,
+ * näheres ist in \ref webserver_security.
+ * 
+ * 
+ * Anfragen, die nicht mit <code>/files/</code> beginnen, werden als dynamische
  * Requests behandelt und wie in \ref webserver_functions_routes
  * beschrieben behandelt.
  * 
- * 
- * @todo Aufschreiben, wie Dateien ausgeliefert werden, und wo das alles so liegt
- * 
  * @subsection webserver_functions_routes Ausliefern von Routen
+ * Die Routing-API verhält sich zum großen Teil so, wie die API zum Erstellen
+ * von Routen von Cloudmade, die unter
+ * <a href="http://developers.cloudmade.com/wiki/routing-http-api/Documentation">Cloudmade Routing API Documentation</a>
+ * beschrieben ist. Dennoch gibt es ein paar Unterschiede, die in \ref webserver_functions_routes_cloudmade_differences
+ * beschrieben werden.
+ * 
+ * @code
+ * http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,[transit_point1,...,transit_pointN],end_point/route_type[/route_type_modifier].output_format[?algorithm=value&parameter=value]
+ * @endcode
+ * 
+ * <table>
+ *  <tr><th>Befehlsteil</th><th>Funktion</th></tr>
+ *  <tr><td><code>yourhostgoeshere</code></td><td>An dieser Stelle wird der Host eingetragen, auf dem der Service läuft.</td></tr>
+ *  <tr><td><code>yourportgoeshere</code></td><td>Hier wird der Port angegeben, auf dem der Service lauscht.</td></tr>
+ *  <tr><td><code>yourapikeygoeshere</code></td><td>Hier muss ein Key angegeben werden, der aus alphanumerischen Zeichen besteht. Es sind alle Buchstaben und Zahlen erlaubt. Es müssen zwischen 1 und 64 Zeichen angegeben werden.
+ *      Standardmäßig akzeptiert der Server alle Keys, er kann jedoch beschränkt werden durch den Aufrufparameter <code>--webserver-api-key</code> beim Starten des Programms.</td></tr>
+ *  <tr><td><code>start_point</code></td><td>Der Startpunkt der Route, zuerst Breiten- und dann Längengrad. Beispiel: <code>51.0,7.2</code></td></tr>
+ *  <tr><td><code>transit_pointN</code></td><td>Ein Zwischenpunkt in der Route, Format wie bei <code>start_point</code>. Transitpunkte werden durch Komma getrennt,
+ *      alle Transitpunkte werden in eckige Klammern eingeschlossen. Beispiel: <code>[51.0,7.2,51.2,7.3]</code></td></tr>
+ *  <tr><td><code>end_point</code></td><td>Der Endpunkt, Format wie bei <code>start_point</code>.</td></tr>
+ *  <tr><td><code>output_format</code></td><td>Das Ausgabeformat der Route. Hier ist erlaubt: <code>js</code>,<code>gpx</code></td></tr>
+ *  <tr><td><code>route_type</code></td><td>Typ der Route. Hier ist vornehmlich <code>bike</code>
+ *      oder <code>bicycle</code> vorgesehen, aber auch <code>foot</code> und <code>car</code> ist
+ *      möglich. Dabei werden die letztgenannten Typen eher stiefmütterlich behandelt, es sollten keine
+ *      allzu großen Erwartungen an sie gestellt werden. Hier ist die Cloudmade-API wesentlich besser geeignet.</td></tr>
+ *  <tr><td><code>route_modifier</code></td><td>Muss nicht angegeben werden, wird nur bei Routen vom Typ <code>bike</code> oder <code>bicycle</code>
+ *      beachtet und sonst ignoriert. Mögliche Werte: <code>power</code>, <code>simpleheight</code>, <code>advancedheight</code>, <code>euclidian</code>.
+ *      Es ist möglich, dass sich die Liste der erlaubten Metriken erweitert.</td></tr>
+ *  <tr><td><code>algorithm=value</code></td><td>Hier wird der zur Berechnung verwendete Algorithmus angegeben.
+ *      Mögliche Werte: <code>standard</code> wählt abhängig von der verwendeten Metrik einen geeigneten Algorithmus aus.
+ *      <table>
+     *      <tr><td><code>dijkstra</code></td><td>wählt den Algorithmus von Dijkstra.</td></tr>
+     *      <tr><td><code>astar</code></td><td>wählt den A*-Algorithmus.</td></tr>
+     *      <tr><td><code>multithreadeddijkstra</code></td><td>wählt eine Version von Dijkstra, die mit 2 Threads arbeitet. Auf geeigneter Hardware (>2 Prozessoren, viel RAM für Datenbankcaching)
+     *      etwa 4x schneller als Dijkstra - auf weniger gut geeigneter Hardware (1 Prozessor, wenig Speicher, langsame Festplatte) immerhin noch 2x schneller.</td></tr>
+     *      <tr><td><code>multithreadedastar</code></td><td>wählt eine Version von A*, die mit 2 Threads arbeitet.</td></tr>
+ *      </table>
+ *      </td></tr>
+ *  <tr><td><code>parameter=value</code></td><td>Diese Parameter sind abhängig von der Routingmetrik und bei der entsprechenden Metrik erklärt.</td></tr>
+ * </table>
+ * 
+ * @subsubsection webserver_functions_routes_cloudmade_differences Unterschiede zur Cloudmade-API
+ * 
  * @todo Aufschreiben, wie die API des Webservices funktioniert
  * @subsection webserver_security Sicherheitsfeatures
  * Da ein Webserver, der einfach alle Dateien eines Ordners ausliefern kann, ein
