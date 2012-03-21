@@ -253,35 +253,40 @@
                 return;
             }
             xmlHttp.open('GET', jsonfile, false);
-            xmlHttp.send();
-            xmlHttp.readyState = 4;
-            var jsonRoute = JSON.parse(xmlHttp.responseText);
-            if (jsonRoute) {
-                document.getElementById("time").innerHTML = Math.round(jsonRoute.route_summary.total_time/60.0) + " min";
-                document.getElementById("distance").innerHTML = Math.round(jsonRoute.route_summary.total_distance)/1000.0 + " km";
-                var points = [];
-                for (var i = 0; i < jsonRoute.route_geometry.length; i++) {
-                    var point = new OpenLayers.Geometry.Point(
-                    jsonRoute.route_geometry[i][1], 
-                    jsonRoute.route_geometry[i][0]);
-                    points.push(point.transform(
-                        new OpenLayers.Projection("EPSG:4326"),
-                        map.getProjectionObject()));
+            //xmlHttp.send();
+            //xmlHttp.readyState = 4;
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState==4) {
+                    var jsonRoute = JSON.parse(xmlHttp.responseText);
+                    if (jsonRoute) {
+                        document.getElementById("time").innerHTML = Math.round(jsonRoute.route_summary.total_time/60.0) + " min";
+                        document.getElementById("distance").innerHTML = Math.round(jsonRoute.route_summary.total_distance)/1000.0 + " km";
+                        var points = [];
+                        for (var i = 0; i < jsonRoute.route_geometry.length; i++) {
+                            var point = new OpenLayers.Geometry.Point(
+                            jsonRoute.route_geometry[i][1], 
+                            jsonRoute.route_geometry[i][0]);
+                            points.push(point.transform(
+                                new OpenLayers.Projection("EPSG:4326"),
+                                map.getProjectionObject()));
                         }
-                    var geometry = new OpenLayers.Geometry.LineString(points);
-                    var feature = new OpenLayers.Feature.Vector(geometry, null, {
-                        strokeColor: "#0033ff",
-                        strokeOpacity: 0.7,
-                        strokeWidth: 5
-                    });
-                    if (routeLayer != null)
-                    {
-                        map.removeLayer(routeLayer);
+                        var geometry = new OpenLayers.Geometry.LineString(points);
+                        var feature = new OpenLayers.Feature.Vector(geometry, null, {
+                            strokeColor: "#0033ff",
+                            strokeOpacity: 0.7,
+                            strokeWidth: 5
+                        });
+                        if (routeLayer != null)
+                        {
+                            map.removeLayer(routeLayer);
+                        }
+                        routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
+                        map.addLayer(routeLayer);
+                        routeLayer.addFeatures(feature);
                     }
-                    routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
-                    map.addLayer(routeLayer);
-                    routeLayer.addFeatures(feature);
                 }
+            }
+            xmlHttp.send();
         }
         // Funktion zum Anzeigen der GPX-Datei
         function displayGPX(gpxfile)
