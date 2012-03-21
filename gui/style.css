@@ -42,7 +42,7 @@
             visibility: hidden;
             left: 80%;
             right: 3%;
-            top: 49%;
+            top: 52%;
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
@@ -83,8 +83,8 @@
             visibility: hidden;
             left: 80%;
             right: 3%;
-            top: 49%;
-            max-height: 34%;
+            top: 52%;
+            max-height: 35%;
             z-index: 3;
             background-color: #cccccc;
             opacity: 0.8;
@@ -92,12 +92,12 @@
             -khtml-border-radius: 10px;
             -moz-border-radius: 10px;
             }
-            #allSettings{
+            #mainSettings{
             position: absolute;
             left: 80%;
             right: 3%;
-            top: 1%;
-            max-height: 46%;
+            top: 5%;
+            max-height: 45%;
             z-index: 3;
             visibility: hidden;
             background-color: #cccccc;
