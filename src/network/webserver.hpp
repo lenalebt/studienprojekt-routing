@@ -352,6 +352,7 @@ namespace biker_tests
 {
     /**
      * @ingroup tests
+     * @relates HttpServerThread
      */
     int testWebServer();
 }

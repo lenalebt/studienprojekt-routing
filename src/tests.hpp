@@ -135,6 +135,7 @@ beispieltest.cpp:17: false == true?                                             
     #define LINESTR(a,b)           std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?"
 #endif
 
+
 #define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
@@ -186,7 +187,21 @@ namespace biker_tests
      */
     std::string basename(std::string filename);
 
-
+    /**
+     * @brief Überprüft, ob die beiden übergebenen Parameter gleich sind, und gibt die Nachricht
+     *      <code>message</code> aus, wenn sie es nicht sind.
+     * 
+     * Von dieser Funktion muss für jeden Typen, der verglichen werden soll,
+     * eine Implementierung existieren. Es reicht in den meisten Fällen aus, wenn
+     * in der Datei <code>tests.cpp</code> zu instantiieren, wie dies schon mit
+     * einigen anderen Funktionen dort der Fall ist.
+     * 
+     * @param a Das Element a, das mit Element b verglichen wird
+     * @param b Das Element b, das mit Element a verglichen wird
+     * @param message Die Nachricht, die bei fehlgeschlagenem Vergleich auf der Konsole ausgegeben werden soll.
+     * @return Ob der Vergleich erfolgreich war, oder nicht.
+     * @todo 
+     */
     template<typename S, typename T>
     bool check_equality(std::string message, S a, T b);
 }
