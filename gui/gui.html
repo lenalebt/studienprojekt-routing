@@ -377,14 +377,14 @@
                 }
                 
                 urlparameters = "";
-                urlparameters += "algorithm=" + getCheckedRoutingAlgorithm()
+                urlparameters += "algorithm=" + getCheckedRoutingAlgorithm();
                 //ACHTUNG! Erlaubt code und Parameter Injection.
                 urlparameters += "&maxpower=" + document.routingmetricsettings.maxpower.value;
                 urlparameters += "&minspeed=" + document.routingmetricsettings.minspeed.value/3.6;
                 urlparameters += "&weight=" + document.routingmetricsettings.weight.value;
                 urlparameters += "&pushbikespeed=" + document.routingmetricsettings.pushbikespeed.value/3.6;
                 urlparameters += "&detourperheightmeter=" + document.routingmetricsimpleheightsettings.adddistance.value;
-                urlparameters += "&haltungskorrekturfaktor=" + document.routingmetricbikers.bikers.value;
+                urlparameters += "&haltungskorrekturfaktor=" + getCheckedHaltungskorrekturfaktor();
                 url += "?" + urlparameters;
             }
             thisLink = url;
@@ -513,6 +513,17 @@
                 }
             }
         }
+        //
+        function getCheckedHaltungskorrekturfaktor()
+        {
+            for(i=0; i<document.routingmetricbikers.bikers.length; i++)
+            {
+                if(document.routingmetricbikers.bikers[i].checked == true)
+                {
+                    return document.routingmetricbikers.bikers[i].value;
+                }
+            }
+        }
         // Funktion schaltet je nach Metrik die Formulare auf Sichtbar / Unsichtbar
         function clickMetric()
         {
@@ -546,6 +557,7 @@
                 document.getElementById("settingsBikers").style.visibility = "visible";
             }
         }
+        //
     </script>
   </head>
   <body onload="init()">

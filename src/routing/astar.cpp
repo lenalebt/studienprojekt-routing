@@ -7,81 +7,6 @@
 #include <QtConcurrentRun>
 #include "dijkstra.hpp"
 
-GPSRoute AStarRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
-{
-    if (!_db->isDBOpen())
-    {
-        std::cerr << "database file is closed." << std::endl;
-        return GPSRoute();
-    }
-    else
-    {
-        RoutingNode startNode, endNode;
-        QVector<boost::shared_ptr<RoutingNode> > nodeList;
-        
-        //Suche zuerst den Startknoten raus, dann den Endknoten. Umkreissuche.
-        nodeList = _db->getNodes(startPosition, 50.0);
-        if (nodeList.isEmpty())
-        {
-            nodeList = _db->getNodes(startPosition, 500.0);
-            if (nodeList.isEmpty())
-            {
-                nodeList = _db->getNodes(startPosition, 5000.0);
-                if (nodeList.isEmpty())
-                {
-                    std::cerr << "did not find a matching starting point." << std::endl;
-                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
-                    return GPSRoute();
-                }
-            }
-        }
-        //nodeList nach nächstem Knoten durchsuchen.
-        float minDistance = std::numeric_limits<float>::max();
-        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
-            it != nodeList.constEnd(); it++)
-        {
-            float distance = (*it)->calcDistance(startPosition);
-            if (distance < minDistance)
-            {
-                startNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
-                minDistance = distance;
-            }
-        }
-        //startNode ist der Knoten mit der kürzesten Entfernung zu startPosition.
-        
-        nodeList = _db->getNodes(endPosition, 50.0);
-        if (nodeList.isEmpty())
-        {
-            nodeList = _db->getNodes(endPosition, 500.0);
-            if (nodeList.isEmpty())
-            {
-                nodeList = _db->getNodes(endPosition, 5000.0);
-                if (nodeList.isEmpty())
-                {
-                    std::cerr << "did not find a matching end point" << std::endl;
-                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
-                    return GPSRoute();
-                }
-            }
-        }
-        //nodeList nach nächstem Knoten durchsuchen.
-        minDistance = std::numeric_limits<float>::max();
-        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
-            it != nodeList.constEnd(); it++)
-        {
-            float distance = (*it)->calcDistance(endPosition);
-            if (distance < minDistance)
-            {
-                endNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
-                minDistance = distance;
-            }
-        }
-        //endNode ist der Knoten mit der kürzesten Entfernung zu endPosition.
-        
-        return calculateShortestRoute(startNode, endNode);
-    }
-}
-
 GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
 {
     if (!_db->isDBOpen())
@@ -224,13 +149,13 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
 }
 
 AStarRouter::AStarRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric) :
-    Router(metric), _db(db)
+    Router(metric, db)
 {
     
 }
 
 MultithreadedAStarRouter::MultithreadedAStarRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric) :
-    Router(metric), _dbA(dbA), _dbB(dbB)
+    Router(metric, dbA, dbB)
 {
     
 }
@@ -507,86 +432,6 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNo
     }
 }
 
-GPSRoute MultithreadedAStarRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
-{
-    if (!_dbA->isDBOpen())
-    {
-        std::cerr << "database file A is closed." << std::endl;
-        return GPSRoute();
-    }
-    else if (!_dbB->isDBOpen())
-    {
-        std::cerr << "database file B is closed." << std::endl;
-        return GPSRoute();
-    }
-    else
-    {
-        RoutingNode startNode, endNode;
-        QVector<boost::shared_ptr<RoutingNode> > nodeList;
-        
-        //Suche zuerst den Startknoten raus, dann den Endknoten. Umkreissuche.
-        nodeList = _dbA->getNodes(startPosition, 50.0);
-        if (nodeList.isEmpty())
-        {
-            nodeList = _dbA->getNodes(startPosition, 500.0);
-            if (nodeList.isEmpty())
-            {
-                nodeList = _dbA->getNodes(startPosition, 5000.0);
-                if (nodeList.isEmpty())
-                {
-                    std::cerr << "did not find a matching starting point." << std::endl;
-                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
-                    return GPSRoute();
-                }
-            }
-        }
-        //nodeList nach nächstem Knoten durchsuchen.
-        float minDistance = std::numeric_limits<float>::max();
-        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
-            it != nodeList.constEnd(); it++)
-        {
-            float distance = (*it)->calcDistance(startPosition);
-            if (distance < minDistance)
-            {
-                startNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
-                minDistance = distance;
-            }
-        }
-        //startNode ist der Knoten mit der kürzesten Entfernung zu startPosition.
-        
-        nodeList = _dbB->getNodes(endPosition, 50.0);
-        if (nodeList.isEmpty())
-        {
-            nodeList = _dbB->getNodes(endPosition, 500.0);
-            if (nodeList.isEmpty())
-            {
-                nodeList = _dbB->getNodes(endPosition, 5000.0);
-                if (nodeList.isEmpty())
-                {
-                    std::cerr << "did not find a matching end point" << std::endl;
-                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
-                    return GPSRoute();
-                }
-            }
-        }
-        //nodeList nach nächstem Knoten durchsuchen.
-        minDistance = std::numeric_limits<float>::max();
-        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
-            it != nodeList.constEnd(); it++)
-        {
-            float distance = (*it)->calcDistance(endPosition);
-            if (distance < minDistance)
-            {
-                endNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
-                minDistance = distance;
-            }
-        }
-        //endNode ist der Knoten mit der kürzesten Entfernung zu endPosition.
-        
-        return calculateShortestRoute(startNode, endNode);
-    }
-}
-
 GPSRoute MultithreadedAStarRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
 {
     //QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
@@ -628,9 +473,9 @@ namespace biker_tests
         GPSRoute route;
         CHECK(route.isEmpty());
         
-        AStarRouter router(db, metric);
+        Router* router = new AStarRouter(db, metric);
         std::cerr << "routing...." << std::endl;
-        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        route = router->calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
         
         CHECK(!route.isEmpty());
         route.exportGPX("astar.gpx");
@@ -658,9 +503,9 @@ namespace biker_tests
         GPSRoute route;
         CHECK(route.isEmpty());
         
-        MultithreadedAStarRouter router(dbA, dbB, metric);
+        Router* router = new MultithreadedAStarRouter(dbA, dbB, metric);
         std::cerr << "routing...." << std::endl;
-        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        route = router->calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
         
         CHECK(!route.isEmpty());
         route.exportGPX("multithreadedastar.gpx");

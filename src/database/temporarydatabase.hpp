@@ -72,6 +72,12 @@ private:
     bool createTables();
     
     /**
+     * @brief Erstellt die Tabellen in der Datenbank
+     * @return Ob die Tabellen erstellt werden konnten
+     */
+    //bool createIndexes();
+
+    /**
      * @brief Führt die Statements aus, die die Tabellen erstellen sollen
      * @param paramCreateTableStatement Das CREATE TABLE-Statement, das ausgeführt
      *      werden soll.
@@ -190,17 +196,19 @@ public:
     /**
      * @brief Ändert Daten einer OSMEdge in der temporären Datenbank: StartNode ändert sich.
      * @param edge Die OSMEdge, die verändert wird.
+     * @param oldStartNode Die vorherige Startnode der OSMEdge - wichtig, da die Anfrage sonst nicht immer erfolgreich ist
      * @return Ob das Verändern in der Datenbank erfolgreich war, oder nicht
      * @remarks Eigenschaften der Kante werden nicht mit gespeichert.
      */
-    bool updateOSMEdgeStartNode(const OSMEdge& edge);
+    bool updateOSMEdgeStartNode(const OSMEdge& edge, boost::uint64_t oldStartNodeID);
     /**
      * @brief Ändert Daten einer OSMEdge in der temporären Datenbank: EndNode ändert sich.
      * @param edge Die OSMEdge, die verändert wird.
+     * @param oldEndNode Die vorherige Endnode der OSMEdge - wichtig, da die Anfrage sonst nicht immer erfolgreich ist
      * @return Ob das Verändern in der Datenbank erfolgreich war, oder nicht
      * @remarks Eigenschaften der Kante werden nicht mit gespeichert.
      */
-    bool updateOSMEdgeEndNode(const OSMEdge& edge);
+    bool updateOSMEdgeEndNode(const OSMEdge& edge, boost::uint64_t oldEndNodeID);
     /**
      * @brief Legt eine OSMTurnRestriction in der temporären Datenbank ab.
      * @param turnResriction Die OSMTurnRestriction, die abgelegt wird.
@@ -227,7 +235,6 @@ public:
      * @param maxCount Die Anzahl der Knoten, die maximal gleichzeitig
      *      geladen werden. Bei 0 existiert kein Limit.
      * @return Eine Liste der entsprechenden Knoten
-     * @todo testen
      */
     QVector<boost::shared_ptr<OSMNode> > getOSMNodesByID(boost::uint64_t fromNodeID, boost::uint64_t toNodeID, int maxCount=1000);
     
@@ -282,7 +289,7 @@ public:
      * @brief Lädt eine OSMTurnRestriction aus der DB über die Angabe der via-ID (Knoten).
      * @param viaID Die ID des Via-Knotens (der in der Mitte).
      * @return Eine Liste mit entsprechenden Abbiegebeschränkungen
-     * @todo Sollte in der To- und from-ID Knoten zurueckgeben
+     * @todo Sollte in der To- und from-ID Knoten zurueckgeben, tut es aber so nicht.
      */
     QVector<boost::shared_ptr<OSMTurnRestriction> > getOSMTurnRestrictionByViaID(boost::uint64_t viaID);
     

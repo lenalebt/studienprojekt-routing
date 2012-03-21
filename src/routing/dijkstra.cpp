@@ -6,80 +6,6 @@
 #include "sqlitedatabase.hpp"
 #include <QtConcurrentRun>
 
-GPSRoute DijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
-{
-    if (!_db->isDBOpen())
-    {
-        std::cerr << "database file is closed." << std::endl;
-        return GPSRoute();
-    }
-    else
-    {
-        RoutingNode startNode, endNode;
-        QVector<boost::shared_ptr<RoutingNode> > nodeList;
-        
-        //Suche zuerst den Startknoten raus, dann den Endknoten. Umkreissuche.
-        nodeList = _db->getNodes(startPosition, 50.0);
-        if (nodeList.isEmpty())
-        {
-            nodeList = _db->getNodes(startPosition, 500.0);
-            if (nodeList.isEmpty())
-            {
-                nodeList = _db->getNodes(startPosition, 5000.0);
-                if (nodeList.isEmpty())
-                {
-                    std::cerr << "did not find a matching starting point." << std::endl;
-                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
-                    return GPSRoute();
-                }
-            }
-        }
-        //nodeList nach nächstem Knoten durchsuchen.
-        float minDistance = std::numeric_limits<float>::max();
-        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
-            it != nodeList.constEnd(); it++)
-        {
-            float distance = (*it)->calcDistance(startPosition);
-            if (distance < minDistance)
-            {
-                startNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
-                minDistance = distance;
-            }
-        }
-        //startNode ist der Knoten mit der kürzesten Entfernung zu startPosition.
-        
-        nodeList = _db->getNodes(endPosition, 50.0);
-        if (nodeList.isEmpty())
-        {
-            nodeList = _db->getNodes(endPosition, 500.0);
-            if (nodeList.isEmpty())
-            {
-                nodeList = _db->getNodes(endPosition, 5000.0);
-                if (nodeList.isEmpty())
-                {
-                    std::cerr << "did not find a matching end point" << std::endl;
-                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
-                    return GPSRoute();
-                }
-            }
-        }
-        //nodeList nach nächstem Knoten durchsuchen.
-        minDistance = std::numeric_limits<float>::max();
-        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
-            it != nodeList.constEnd(); it++)
-        {
-            float distance = (*it)->calcDistance(endPosition);
-            if (distance < minDistance)
-            {
-                endNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
-                minDistance = distance;
-            }
-        }
-        //endNode ist der Knoten mit der kürzesten Entfernung zu endPosition.
-        
-        return calculateShortestRoute(startNode, endNode);
-    }
-}
 
 GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
 {
@@ -113,11 +39,12 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         
         boost::uint64_t endNodeShortID = RoutingNode::convertIDToShortFormat(endNode.getID());
         
+        /*
         QVector<boost::shared_ptr<RoutingNode> > nodes = _db->getNodes(startNode, startNode.calcDistance(endNode)/1.5);
         for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodes.constBegin(); it != nodes.constEnd(); it++)
         {
             nodeMap.insert(RoutingNode::convertIDToShortFormat((*it)->getID()), *it);
-        }
+        }*/
         //TODO: Knoten vorladen, damit die DB nicht so oft gefragt werden muss (einmal am Stück ist schneller)
         //TODO: nodeMap evtl ersetzen durch den DatabaseRAMCache?
         
@@ -128,6 +55,7 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
             activeNodeShortID = RoutingNode::convertIDToShortFormat(activeNodeLongID);
             activeNode = nodeMap[activeNodeShortID];
             closedList.addElement(activeNodeLongID);
+            //std::cerr << "active: " << activeNodeLongID << std::endl;
             
             //Wenn der jetzt abschließend zu betrachtende Knoten der Endkonten ist: Fertig.
             if (activeNodeShortID == endNodeShortID)
@@ -191,13 +119,20 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
         
         std::cerr << "finished, search space contains " << nodeMap.size() << " nodes." << std::endl;
         
+        //std::cerr << activeNodeShortID << " " << endNodeShortID << std::endl;
+        
+        /*std::cerr << "nodemap: ";
+        for (QHash<boost::uint64_t, boost::shared_ptr<RoutingNode> >::iterator it = nodeMap.begin(); it != nodeMap.end(); it++)
+        {
+            std::cerr << (**it).getID() << ",";
+        }*/
         if (activeNodeShortID == endNodeShortID)
         {
             boost::uint64_t activeNodeID = activeNodeLongID;
             GPSRoute route;
             if (_metric->getMeasurementUnit() == SECONDS)
             {
-                route.setDuration(nodeCosts.getValue(activeNodeID));
+                route.setDuration(nodeCosts.getValue(activeNodeLongID));
             }
             else
             {
@@ -224,13 +159,13 @@ GPSRoute DijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, co
 }
 
 DijkstraRouter::DijkstraRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric) :
-    Router(metric), _db(db)
+    Router(metric, db)
 {
     
 }
 
 MultithreadedDijkstraRouter::MultithreadedDijkstraRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric) :
-    Router(metric), _dbA(dbA), _dbB(dbB)
+    Router(metric, dbA, dbB)
 {
     
 }
@@ -494,86 +429,6 @@ GPSRoute MultithreadedDijkstraRouter::calculateShortestRouteThreadB(const Routin
     }
 }
 
-GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition)
-{
-    if (!_dbA->isDBOpen())
-    {
-        std::cerr << "database file A is closed." << std::endl;
-        return GPSRoute();
-    }
-    else if (!_dbB->isDBOpen())
-    {
-        std::cerr << "database file B is closed." << std::endl;
-        return GPSRoute();
-    }
-    else
-    {
-        RoutingNode startNode, endNode;
-        QVector<boost::shared_ptr<RoutingNode> > nodeList;
-        
-        //Suche zuerst den Startknoten raus, dann den Endknoten. Umkreissuche.
-        nodeList = _dbA->getNodes(startPosition, 50.0);
-        if (nodeList.isEmpty())
-        {
-            nodeList = _dbA->getNodes(startPosition, 500.0);
-            if (nodeList.isEmpty())
-            {
-                nodeList = _dbA->getNodes(startPosition, 5000.0);
-                if (nodeList.isEmpty())
-                {
-                    std::cerr << "did not find a matching starting point." << std::endl;
-                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
-                    return GPSRoute();
-                }
-            }
-        }
-        //nodeList nach nächstem Knoten durchsuchen.
-        float minDistance = std::numeric_limits<float>::max();
-        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
-            it != nodeList.constEnd(); it++)
-        {
-            float distance = (*it)->calcDistance(startPosition);
-            if (distance < minDistance)
-            {
-                startNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
-                minDistance = distance;
-            }
-        }
-        //startNode ist der Knoten mit der kürzesten Entfernung zu startPosition.
-        
-        nodeList = _dbB->getNodes(endPosition, 50.0);
-        if (nodeList.isEmpty())
-        {
-            nodeList = _dbB->getNodes(endPosition, 500.0);
-            if (nodeList.isEmpty())
-            {
-                nodeList = _dbB->getNodes(endPosition, 5000.0);
-                if (nodeList.isEmpty())
-                {
-                    std::cerr << "did not find a matching end point" << std::endl;
-                    //Okay, im Umkreis von 5000m nix gefunden: Dann keine Route gefunden.
-                    return GPSRoute();
-                }
-            }
-        }
-        //nodeList nach nächstem Knoten durchsuchen.
-        minDistance = std::numeric_limits<float>::max();
-        for (QVector<boost::shared_ptr<RoutingNode> >::const_iterator it = nodeList.constBegin();
-            it != nodeList.constEnd(); it++)
-        {
-            float distance = (*it)->calcDistance(endPosition);
-            if (distance < minDistance)
-            {
-                endNode = **it;   //Doppelt dereferenzieren, weil in der Liste boost::shared_ptr stehen
-                minDistance = distance;
-            }
-        }
-        //endNode ist der Knoten mit der kürzesten Entfernung zu endPosition.
-        
-        return calculateShortestRoute(startNode, endNode);
-    }
-}
-
 GPSRoute MultithreadedDijkstraRouter::calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode)
 {
     //QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
@@ -615,9 +470,9 @@ namespace biker_tests
         GPSRoute route;
         CHECK(route.isEmpty());
         
-        DijkstraRouter router(db, metric);
+        Router* router = new DijkstraRouter(db, metric);
         std::cerr << "routing...." << std::endl;
-        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        route = router->calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
         
         CHECK(!route.isEmpty());
         route.exportGPX("dijkstra.gpx");
@@ -645,9 +500,9 @@ namespace biker_tests
         GPSRoute route;
         CHECK(route.isEmpty());
         
-        MultithreadedDijkstraRouter router(dbA, dbB, metric);
+        Router* router = new MultithreadedDijkstraRouter(dbA, dbB, metric);
         std::cerr << "routing...." << std::endl;
-        route = router.calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
+        route = router->calculateShortestRoute(GPSPosition(51.447, 7.2676), GPSPosition(51.4492, 7.2592));
         
         CHECK(!route.isEmpty());
         route.exportGPX("multithreadeddijkstra.gpx");

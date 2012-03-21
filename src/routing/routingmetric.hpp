@@ -45,9 +45,6 @@ enum MeasurementUnit
  * @author Thorsten Scheller
  * @date 2012-1-23
  * @copyright GNU GPL v3
- * @todo Fehlt: Beim Erzeugen einer Instanz soll immer gleich ein
- *      AltitudeProvider mit übergeben werden können. Fabrikmethoden
- *      verwenden?
  */
 class RoutingMetric
 {
@@ -232,13 +229,13 @@ private:
     
 public:
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
-        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5)
+        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5), maxSpeed(-1.0)
     {
         init();
     }
-    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed)
-        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(0.5),
-            pushBikeSpeed(pushBikeSpeed)
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed, double haltungskorrekturfaktor, double maxSpeed = -1.0)
+        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(haltungskorrekturfaktor),
+            pushBikeSpeed(pushBikeSpeed), maxSpeed(maxSpeed)
     {
         init();
     }
@@ -248,7 +245,13 @@ public:
         if (heightDifference < 0)
             heightDifference = 0;
         double distance = startNode.calcDistance(endNode);
-        double inclination = heightDifference / distance;
+        double inclination = (distance==0) ? 0.0 : heightDifference / distance;
+        
+        /*std::cerr << std::endl << edge << startNode << endNode << std::endl;
+        
+        std::cerr << "inclination: " << inclination << std::endl;
+        std::cerr << "distance: " << distance << std::endl;
+        std::cerr << "heightDifference: " << heightDifference << std::endl;*/
         
         //TODO: Faktor anpassen je nach Eigenschaften der Kante
         double surfaceFactor = 1;
@@ -280,14 +283,16 @@ public:
                     case STREETTYPE_HIGHWAY_RESIDENTIAL:    streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
                     case STREETTYPE_HIGHWAY_SECONDARY:      streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.15 : 1.15); break;
                     case STREETTYPE_HIGHWAY_SERVICE:        streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
+                    case STREETTYPE_HIGHWAY_UNCLASSIFIED:
                     case STREETTYPE_HIGHWAY_TERTIARY:       streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.1 : 1.1); break;
                     case STREETTYPE_HIGHWAY_TRACK:          streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.5 : 2.0); break;
                     case STREETTYPE_UNKNOWN:
                     default:                                streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.8 : 2.5); break;
                 }
                 break;
-            default:        streetTypeFactor = 100.0;
-                            break;
+            case ACCESS_FOOT_ONLY:          return (distance / pushBikeSpeed); break;
+            default:                        streetTypeFactor = 100.0;
+                                            break;
         }
         switch (edge.getCyclewayType())
         {
@@ -348,7 +353,7 @@ public:
             case TURNTYPE_LEFTCROSS:        timePunishment += 5.0; break;
             case TURNTYPE_RIGHTCROSS:       timePunishment += 2.0; break;
             case TURNTYPE_STRAIGHTCROSS:    timePunishment += 0.0; break;
-            case TURNTYPE_UTURNCROSS:       timePunishment += 5.0; break;
+            case TURNTYPE_UTURNCROSS:       timePunishment += 7.0; break;
             case TURNTYPE_STRAIGHT:
             default:                        timePunishment += 0.0; break;
         }
@@ -389,13 +394,15 @@ public:
             
             //speed = minSpeed;
         }
-        //std::cerr << "speed: " << speed << std::endl;
+        if (speed > maxSpeed)
+            speed = maxSpeed;
+        /*std::cerr << "speed: " << speed << std::endl;
         
         //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
-        //std::cerr << "time1: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
-        //std::cerr << "time2: " << (distance / speed) << "s" << std::endl;
-        //return streetTypeFactor * (distance / speed) + timePunishment;
-        return (distance/speed);
+        std::cerr << "time1: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
+        std::cerr << "time2: " << (distance / speed) << "s" << std::endl;*/
+        return streetTypeFactor * (distance / speed) + timePunishment;
+        //return (distance/speed);
         
         //TODO: Vorlieben bei Kanten nach Radweg etc anpassen und hinzufügen
         

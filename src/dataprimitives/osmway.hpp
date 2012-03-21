@@ -21,7 +21,7 @@
 class OSMWay
 {
 private:
-    boost::uint64_t id;
+    boost::uint64_t wayID;
     QVector<boost::uint64_t> memberIDList;
     QVector<OSMProperty> properties;
     /*
@@ -40,35 +40,35 @@ public:
     /**
      * @brief Erstellt einen Way mit Standardeigenschaften (keine) und ohne zugehörige Knoten.
      */
-    OSMWay() : id(0) {};
+    OSMWay() : wayID(0) {};
     /**
      * @brief Erstellt einen Way mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörige Knoten.
-     * @param id Die ID des Ways.
+     * @param wayID Die ID des Ways.
      */
-    OSMWay(boost::uint64_t id) : id(id) {};
+    OSMWay(boost::uint64_t wayID) : wayID(wayID) {};
     /**
      * @brief Erstellt einen Way mit angegebener ID und Eigenschaften, ohne zugehörige Knoten.
-     * @param id Die ID.
+     * @param wayID Die ID des Ways.
      * @param propList Die zugehörigen Eigenschaften des Ways.
      */
-    OSMWay(boost::uint64_t id, QVector<OSMProperty> propList) : id(id), properties(propList) {};
+    OSMWay(boost::uint64_t wayID, QVector<OSMProperty> propList) : wayID(wayID), properties(propList) {};
     /**
      * @brief Erstellt einen Way mit angegebener ID, Eigenschaften und zugehörigen Knoten.
-     * @param id Die ID.
+     * @param wayID Die ID des Ways.
      * @param memberIDList Die Liste der zugehörigen Knoten.
      * @param propList Die zugehörigen Eigenschaften des Ways.
      */
-    OSMWay(boost::uint64_t id, QVector<boost::uint64_t> memberIDList, QVector<OSMProperty> propList) : id(id), memberIDList(memberIDList), properties(propList) {};
+    OSMWay(boost::uint64_t wayID, QVector<boost::uint64_t> memberIDList, QVector<OSMProperty> propList) : wayID(wayID), memberIDList(memberIDList), properties(propList) {};
     /**
      * @brief Gibt die ID des Ways zurück.
-     * @return Die ID.
+     * @param wayID Die ID des Ways.
      */
-    boost::uint64_t getID() const {return id;}
+    boost::uint64_t getWayID() const {return wayID;}
     /**
      * @brief Setzt die ID des Ways.
-     * @param id Die ID des Ways.
+     * @param wayID Die ID des Ways.
      */
-    void setID(const boost::uint64_t id) {this->id = id;}
+    void setWayID(const boost::uint64_t wayID) {this->wayID = wayID;}
     /**
      * @brief Gibt die Liste der zugehörigen Knoten zurück.
      * @return Die Liste der zugehörigen Knoten.
@@ -110,7 +110,6 @@ public:
      * @return <code>1</code>, wenn es sich um eine Einbahnstraße handelt, <code>0</code>
      *      wenn nicht. <code>-1</code>, wenn die Einbahnstraße in umgekehrter Richtung
      *      gültig ist.
-     * @todo Evtl. weitere Wegtypen hinzufügen.
      */
     int isOneway();
     
@@ -125,7 +124,6 @@ public:
      *      handelt, <code>0</code>
      *      wenn nicht. <code>-1</code>, wenn die Einbahnstraße in umgekehrter Richtung
      *      gültig ist.
-     * @todo 
      */
     int isOnewayForBikes();
 };

@@ -5,6 +5,7 @@ ProgramOptions::ProgramOptions() :
     webserver_port(8080),
     webserver_threadpool_size(20),
     webserver_startWebserver(true),
+    webserver_apikey(""),
     
     threads_threadpool_size(20),
     

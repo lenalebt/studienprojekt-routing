@@ -6,6 +6,9 @@
 #include <iostream>
 
 #define EARTH_RADIUS 6371000
+#ifndef M_PI
+    #define M_PI 3.14159265358979
+#endif
 
 typedef double gps_float;
 
@@ -39,29 +42,29 @@ public:
      * @brief Gibt den Längengrad des Punktes zurück, in Grad.
      * @return den Längengrad in Grad
      */
-    virtual gps_float getLon() const {return this->lon;}
+    gps_float getLon() const {return this->lon;}
     /**
      * @brief Gibt den Breitengrad des Punktes zurück, in Grad.
      * @return den Breitengrad in Grad
      */
-    virtual gps_float getLat() const {return this->lat;}
+    gps_float getLat() const {return this->lat;}
     /**
      * @brief Gibt den Längengrad des Punktes zurück, in Bogenmaß.
      * @return den Längengrad in Bogenmaß
      */
-    virtual gps_float getRadLon() const {return deg2rad<gps_float>(this->lon);}
+    gps_float getRadLon() const {return deg2rad<gps_float>(this->lon);}
     /**
      * @brief Gibt den Breitengrad des Punktes zurück, in Bogenmaß.
      * @return den Breitengrad in Bogenmaß
      */
-    virtual gps_float getRadLat() const {return deg2rad<gps_float>(this->lat);}
+    gps_float getRadLat() const {return deg2rad<gps_float>(this->lat);}
     /**
      * @brief Setzt den Längengrad des Punktes in Grad.
      * @remarks Wenn der Winkel nicht in [-180°, 180°] liegt, wird er
      *      umgewandelt, dass er in dem Intervall liegt.
      * @param lon Längengrad in Grad
      */
-    virtual void setLon(const gps_float lon)
+    void setLon(const gps_float lon)
     {
         this->lon = lon;
         
@@ -80,7 +83,7 @@ public:
      *      einfach abgeschnitten.
      * @param lat Breitengrad in Grad
      */
-    virtual void setLat(const gps_float lat)
+    void setLat(const gps_float lat)
     {
         if (lat > 90.0)
             this->lat = 90.0;
@@ -95,7 +98,7 @@ public:
      *      umgewandelt, dass er in dem Intervall liegt.
      * @param lon Längengrad in Bogenmaß
      */
-    virtual void setRadLon(const gps_float lon)
+    void setRadLon(const gps_float lon)
     {
         this->lon = rad2deg<gps_float>(lon);
         
@@ -108,7 +111,7 @@ public:
      *      einfach abgeschnitten.
      * @param lat Breitengrad in Bogenmaß
      */
-    virtual void setRadLat(const gps_float lat)
+    void setRadLat(const gps_float lat)
     {
         this->lat = rad2deg<gps_float>(lat);
         
@@ -125,13 +128,13 @@ public:
      * @param p2 ein anderer Punkt
      * @return die Entfernung zwischen diesem und dem anderen Punkt.
      */
-    virtual double calcDistance(const GPSPosition& p2) const;
+    double calcDistance(const GPSPosition& p2) const;
     /**
      * @brief Berechnet den Kurswinkel (gegenüber Nord), gesehen vom Punkt auf p2 zu, in Grad.
      * @param p2 ein anderer Punkt
      * @return den Kurswinkel, gesehen vom Punkt auf p2 zu, in Grad
      */
-    virtual double calcCourseAngle(const GPSPosition& p2) const;
+    double calcCourseAngle(const GPSPosition& p2) const;
 
     /**
      * @brief Wegpunktprojektion.
@@ -141,13 +144,13 @@ public:
      * @param distance Die Entfernung vom Startpunkt
      * @return
      */
-    virtual GPSPosition calcPositionInDistance(const double courseAngle, const double distance) const;
+    GPSPosition calcPositionInDistance(const double courseAngle, const double distance) const;
     
     /**
      * @brief Gibt zurück, ob die Position noch auf (0.0/0.0) gesetzt ist.
      * @return <code>false</code>, wenn <code>lon==lat==0.0</code>, <code>true</code> sonst.
      */
-    virtual bool isInitialized() const;
+    bool isInitialized() const;
     
     /**
      * @brief Initialisiert eine GPSPosition mit den Werten <code>lon=0.0, lat=0.0</code>

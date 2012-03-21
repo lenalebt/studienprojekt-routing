@@ -44,13 +44,11 @@ template class NodeCostLessAndQHashFunctorStar<boost::uint64_t, double>;
  */
 class AStarRouter : public Router
 {
-private:
-    boost::shared_ptr<DatabaseConnection> _db;
-    
+protected:
     GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
     AStarRouter(boost::shared_ptr<DatabaseConnection> db, boost::shared_ptr<RoutingMetric> metric);
-    GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
+    //GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
 /**
@@ -60,16 +58,12 @@ public:
  * @author Lena Brüder
  * @date 2011-12-23
  * @copyright GNU GPL v3
- * @todo Umbauen, atm ist das nur der Mehrthreaddijkstra.
  * @ingroup routing
  */
 class MultithreadedAStarRouter : public Router
 {
 private:
-    boost::shared_ptr<DatabaseConnection> _dbA;
-    boost::shared_ptr<DatabaseConnection> _dbB;
     
-    GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
     /**
      * @brief Berechnet eine Route vom Startpunkt aus in Richtung Ziel.
      * 
@@ -88,6 +82,8 @@ private:
      * @return Die Route vom gemeinsamen Punkt zum Endpunkt
      */
     GPSRoute calculateShortestRouteThreadB(const RoutingNode& startNode, const RoutingNode& endNode, MultiThreadedHashClosedList* closedList);
+protected:
+    GPSRoute calculateShortestRoute(const RoutingNode& startNode, const RoutingNode& endNode);
 public:
     /**
      * @brief Erstellt einen neuen Router, der den A*-Algorithmus
@@ -103,7 +99,7 @@ public:
      * @param metric Die Routingmetrik, die zum Bewerten von Kanten verwendet werden soll
      */
     MultithreadedAStarRouter(boost::shared_ptr<DatabaseConnection> dbA, boost::shared_ptr<DatabaseConnection> dbB, boost::shared_ptr<RoutingMetric> metric);
-    GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
+    //GPSRoute calculateShortestRoute(const GPSPosition& startPosition, const GPSPosition& endPosition);
 };
 
 namespace biker_tests

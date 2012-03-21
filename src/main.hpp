@@ -8,6 +8,9 @@
 
 /**
  * @mainpage Biker
+ * 
+ * @tableofcontents
+ * 
  * @brief Biker ein Programm zum Berechnen von Fahrradrouten.
  * 
  * Biker ist kein einseitiger Routenserver - sondern ein
@@ -15,6 +18,14 @@
  * einer Route zu beeinflussen.
  * Um die Berechnung zu beschleunigen, wird nicht nur von einer,
  * sondern von zwei Seiten gleichzeitig eine Route berechnet.
+ * 
+ * Der Fokus dieses Projekts liegt auf der vielseitigen Einstellbarkeit
+ * der Routenoptionen. Dies führt dazu, dass das Berechnen der Route
+ * länger dauert, als in Projekten, die nur ein paar wenige Routenoptionen
+ * anbieten. Ebenso ist die GUI nur ein Beiwerk, um den Routenserver
+ * verwenden zu können: Dieser ist API-kompatibel mit CloudMade.
+ * 
+ * 
  * 
  * @section get Bezugsquelle
  * Um den Quellcode des Projekts zu beziehen gibt es 2 Wege:
@@ -104,7 +115,7 @@
  * sind solche Unterscheidungen nicht möglich. Die einfache Vorverarbeitung
  * ist schneller bearbeitet als die normale.
  * @code
- * biker --[simple-]parse=datei.osm[.pbf] --dbfile=datei.db [--dbbackend=sqlite|spatialite]
+ * biker --[simple-]parse=file.osm[.pbf] --dbfile=file.db [--dbbackend=sqlite|spatialite]
  * @endcode
  * Angaben in eckigen Klammern sind optional. Standardmäßig wird Spatialite
  * als Datenbankbackend verwendet, wenn Unterstützung dafür eincompiliert wurde,
@@ -123,6 +134,21 @@
  * <code>spatialite</code> ausgegangen.
  * 
  * @section benutzung_gui GUI: Aufruf und Benutzung
+ * Um die GUI zu verwenden, muss sie im Webbrowser aufgerufen werden.
+ * Stellen Sie zuerst wie in \ref serverstart beschrieben sicher,
+ * dass der Server läuft.
+ * Die URL lautet
+ * @verbatim
+http://yourhostgoeshere:yourportgoeshere/files/gui.html
+@endverbatim
+ * Dabei ist <code>yourhostgoeshere</code> durch den Host zu ersetzen,
+ * auf dem der Server läuft. Wenn das Programm lokal ausgeführt wird,
+ * muss dort <code>localhost</code> stehen. <code>yourportgoeshere</code>
+ * ist, wenn er nicht geändert wurde, <code>8080</code>. Im normalen
+ * Testfall ergibt sich dann
+ * @verbatim
+http://localhost:8080/files/gui.html
+@endverbatim
  * @todo GUI-Benutzung in ein paar Sätzen aufschreiben, und wie man
  * die Seite im Webbrowser findet
  * 
@@ -151,6 +177,7 @@
  * @todo Funktionen und Eigenschaften
  * 
  * @section functions_properties_planned Geplante Funktionen und Eigenschaften
+ *  - Unterstützung der CGI-Schnittstelle eines Webservers
  * @todo Geplante Funktionen und Eigenschaften
  */
 

@@ -11,6 +11,87 @@
 #include <boost/cstdint.hpp>
 
 /**
+ * @page webservicedocumentation Dokumentation des Webservers
+ * 
+ * @tableofcontents
+ * 
+ * Hier wird beschrieben, wie der Webserver zu behandeln ist, und welche
+ * Funktionen er bietet. Zusätzlich wird die API des zur Verfügung gestellten
+ * Webservices beschrieben, und aus welchen Gründen überhaupt ein
+ * Webserver in das Programm integriert wurde.
+ * 
+ * @section webserver_why Warum wurde ein Webserver in das Programm integriert?
+ * @todo Schreiben, warum. Gründe in etwa: DAU-Freundlichkeit, einrichten
+ * eines Webserver kann viele Menschen überfordern. Das Programm soll vor allem
+ * lokal laufen können - aber eben nicht <i>müssen</i>.
+ * 
+ * @section webserver_functions Funktionen des Webservers
+ * 
+ * @subsection webserver_functions_files Ausliefern von Dateien
+ * Der Webserver kann Dateien ausliefern, die in einem bestimmten Verzeichnis
+ * abgelegt sind. Dieses Verzeichnis kann man beim Start des Programms
+ * angeben mit dem Parameter
+ * <code>--webserver-public-html-folder</code> (siehe auch
+ * <code>biker --help</code>). Standardmäßig ist dieser Ordner eingestellt
+ * auf ein Verzeichnis <code>./gui/</code> relativ zum Arbeitsverzeichnis
+ * des Programms. Alle Dateien, die in diesem Verzeichnis liegen, werden
+ * vom Webserver ausgeliefert. Die Dateien sind erreichbar über
+ * @verbatim
+http://server/files/
+@endverbatim
+ * gefolgt von dem Dateinamen. Es ist möglich, Unterordner zu verwenden.
+ * Dabei bezeichnet <code>server</code> die Serveradresse, wie in
+ * \ref benutzung_gui beschrieben.
+ * 
+ * Anfragen, die nicht mit <code>files</code> beginnen, werden als dynamische
+ * Requests behandelt und wie in \ref webserver_functions_routes
+ * beschrieben behandelt.
+ * 
+ * 
+ * @todo Aufschreiben, wie Dateien ausgeliefert werden, und wo das alles so liegt
+ * 
+ * @subsection webserver_functions_routes Ausliefern von Routen
+ * @todo Aufschreiben, wie die API des Webservices funktioniert
+ * @subsection webserver_security Sicherheitsfeatures
+ * Da ein Webserver, der einfach alle Dateien eines Ordners ausliefern kann, ein
+ * potentielles Risiko für die Sicherheit eines Systems ist, sind ein paar
+ * Hürden für potentielle Angreifer eingebaut worden.
+ * 
+ * - Es werden nur Dateien ausgeliefert, die von jedem Benutzer des Systems
+ *   lesbar sind. Unter Unix bedeutet dies, dass alle Dateien mindestens o+r-Rechte
+ *   (<code>chmod o+r <i>datei</i></code>) besitzen müssen, damit der Webserver sie ausliefert.
+ *   Dateien, die diese Rechte nicht besitzen, werden nicht ausgeliefert, eine entsprechende
+ *   Anfrage wird mit <code>404 not found</code> beantwortet.
+ * 
+ * - Ebenso werden Anfragen an Ordner mit <code>404 not found</code> beantwortet. Directory Listings
+ *   werden nicht erstellt.
+ * 
+ * - Es werden nur <code>GET</code>-Anfragen beantwortet. Andere Anfragen erhalten
+ *   <code>405 Method not allowed</code> als Antwort.
+ * 
+ * - Anfragen, die ein <code>..</code> enthalten, werden mit <code>400 Bad request</code>
+ *   beantwortet. Dies soll sicherstellen, dass ein Angreifer nicht einfach in das
+ *   Dateisystem ausbrechen kann und andere Dateien auslesen, als die vorgesehenen.
+ * 
+ * - Es sind nur 127 Headerzeilen erlaubt. Wer mehr Headerzeilen angibt, wird als Angreifer
+ *   betrachtet. Auch hier erhält er <code>400 Bad request</code> als Antwort.
+ * 
+ * - Es ist nicht erlaubt, in einer Anfrage mehr als 4KiB Daten pro Zeile zu verschicken.
+ *   Dies schließt auch die Headerzeile ein.
+ *   Normale Anfragen an diesen Server sind viel kürzer. Wer so viele Daten pro Zeile in einem
+ *   Request an diesen Server schickt, wird mit <code>400 Bad request</code> begrüßt.
+ * 
+ * - Der Server bearbeitet nur Anfragen weiter, die sich mit einem korrekten HTTP-Header
+ *   melden. Auch hier: Ist dies nicht erfüllt, antwortet der Server mit <code>400 Bad request</code>.
+ * 
+ * Diese Features verstehen sich als zusätzliche Hürden für einen Angreifer.
+ * Natürlich können Programmfehler immer dazu führen, dass ein Programm
+ * dazu gebracht werden kann, Dinge zu tun, für die es nicht gedacht war.
+ * Solche Fehler werden nach Bekanntwerden so schnell wie möglich behoben.
+ * @author Lena Brüder
+ */
+
+/**
  * @brief Diese Klasse stellt einen nebenläufig arbeitenden
  *      Http-Server dar, der jeden Request als eigenen Thread
  *      abarbeitet.
@@ -24,6 +105,8 @@
  * @date 2012-01-01
  * @copyright GNU GPL v3
  * @ingroup network
+ * @todo eine Option <code>--no-serve-files</code> in den Server einbauen,
+ *  der verhindert dass Dateien ausgeliefert werden (->Sicherheit)
  */
 template <typename HttpRequestProcessorType>
 class HttpServer : public QTcpServer
@@ -147,6 +230,13 @@ protected:
     void send400();
     
     /**
+     * @brief Schickt eine 403-Nachricht mit kleiner Webseite an den Peer (403 Access forbidden).
+     * 
+     * Die Verbindung sollte nach dem Versenden geschlossen werden.
+     */
+    void send403();
+    
+    /**
      * @brief Schickt eine 404-Nachricht mit kleiner Webseite an den Peer (404 not found).
      * 
      * Die Verbindung sollte nach dem Versenden geschlossen werden.
@@ -262,6 +352,7 @@ namespace biker_tests
 {
     /**
      * @ingroup tests
+     * @relates HttpServerThread
      */
     int testWebServer();
 }

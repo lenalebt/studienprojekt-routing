@@ -133,6 +133,28 @@ bool TemporaryOSMDatabaseConnection::isDBOpen()
     return _dbOpen;
 }
 
+//bool TemporaryOSMDatabaseConnection::createIndexes()
+//{
+//        bool retVal = true;
+
+//    //Liste von auszuführenden Statements erstellen
+//    QStringList statements;
+//    statements << "CREATE INDEX IF NOT EXISTS EDGES_STARTNODE_INDEX ON EDGES(STARTNODEID);";
+//    statements << "CREATE INDEX IF NOT EXISTS EDGES_ENDNODE_INDEX ON EDGES(ENDNODEID);";
+//    statements << "CREATE INDEX IF NOT EXISTS TURNRESTRICTIONS_VIAID_INDEX ON TURNRESTRICTIONS(VIAID);";
+
+//    //Alle Statements der Liste ausführen in einer Transaktion
+//    retVal = this->beginTransaction();
+//        QStringList::const_iterator it;
+//        for (it = statements.constBegin(); it != statements.constEnd(); it++)
+//        {
+//                retVal &= execCreateTableStatement(it->toStdString());
+//        }
+//    retVal &= this->endTransaction();
+
+//        return retVal;
+//}
+
 bool TemporaryOSMDatabaseConnection::createTables()
 {
 	bool retVal = true;
@@ -146,7 +168,7 @@ bool TemporaryOSMDatabaseConnection::createTables()
     statements << "PRAGMA journal_mode=MEMORY;";
     statements << "PRAGMA temp_store = MEMORY;";
     
-	statements << "CREATE TABLE IF NOT EXISTS PROPERTIES(PROPERTYID INTEGER PRIMARY KEY, KEY VARCHAR, VALUE VARCHAR);";
+    statements << "CREATE TABLE IF NOT EXISTS PROPERTIES(PROPERTYID INTEGER PRIMARY KEY, KEY VARCHAR, VALUE VARCHAR);";
     
     statements << "CREATE TABLE IF NOT EXISTS NODES(ID INTEGER PRIMARY KEY, LAT DOUBLE NOT NULL, LON DOUBLE NOT NULL);";
     statements << "CREATE TABLE IF NOT EXISTS NODEPROPERTYID(NODEID INTEGER, PROPERTYID INTEGER, PRIMARY KEY(NODEID, PROPERTYID));";
@@ -193,7 +215,7 @@ bool TemporaryOSMDatabaseConnection::createIndexes()
 	}
 	retVal &= this->endTransaction();
     
-	return retVal;
+    return retVal;
 }
 
 bool TemporaryOSMDatabaseConnection::execCreateTableStatement(std::string paramCreateTableStatement)
@@ -910,8 +932,8 @@ bool TemporaryOSMDatabaseConnection::saveOSMEdge(const OSMEdge& edge)
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
     sqlite3_bind_int64(_saveOSMEdgeStatement, 1, edge.getID());
-    sqlite3_bind_int64(_saveOSMEdgeStatement, 2, edge.getStartNode());
-    sqlite3_bind_int64(_saveOSMEdgeStatement, 3, edge.getEndNode());
+    sqlite3_bind_int64(_saveOSMEdgeStatement, 2, edge.getStartNodeID());
+    sqlite3_bind_int64(_saveOSMEdgeStatement, 3, edge.getEndNodeID());
     sqlite3_bind_int(_saveOSMEdgeStatement, 4, edge.getForward());
     
     // Statement ausfuehren
@@ -966,12 +988,12 @@ bool TemporaryOSMDatabaseConnection::saveOSMEdge(const OSMEdge& edge)
     }
     return true;
 }
-bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge)
+bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge, boost::uint64_t oldStartNodeID)
 {
     int rc;
     if(_updateOSMEdgeStartNodeStatement == NULL)
     {
-        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET STARTNODEID=@STARTNODEID WHERE (WAYID=@WAYID AND ENDNODEID=@ENDNODEID AND FORWARD=@FORWARD);", -1, &_updateOSMEdgeStartNodeStatement, NULL);
+        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET STARTNODEID=@STARTNODEID WHERE (WAYID=@WAYID AND STARTNODEID=@OLDSTARTNODEID AND ENDNODEID=@ENDNODEID AND FORWARD=@FORWARD);", -1, &_updateOSMEdgeStartNodeStatement, NULL);
         if (rc != SQLITE_OK)
         {	
             std::cerr << "Failed to create updateOSMEdgeStartNodeStatement." << " Resultcode: " << rc << std::endl;
@@ -980,10 +1002,12 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge)
     }
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
-    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 1, edge.getStartNode());
+    //std::cerr << edge.getStartNodeID() << " " << edge.getID() << " " << edge.getEndNodeID() << " "  <<  edge.getForward() << " " << std::endl;
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 1, edge.getStartNodeID());
     sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 2, edge.getID());
-    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 3, edge.getEndNode());
-    sqlite3_bind_int(_updateOSMEdgeStartNodeStatement, 4, edge.getForward());
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 3, oldStartNodeID);
+    sqlite3_bind_int64(_updateOSMEdgeStartNodeStatement, 4, edge.getEndNodeID());
+    sqlite3_bind_int(_updateOSMEdgeStartNodeStatement, 5, edge.getForward());
     
     // Statement ausfuehren
     rc = sqlite3_step(_updateOSMEdgeStartNodeStatement);
@@ -1001,12 +1025,12 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeStartNode(const OSMEdge& edge)
     
     return true;
 }
-bool TemporaryOSMDatabaseConnection::updateOSMEdgeEndNode(const OSMEdge& edge)
+bool TemporaryOSMDatabaseConnection::updateOSMEdgeEndNode(const OSMEdge& edge, boost::uint64_t oldEndNodeID)
 {
     int rc;
     if(_updateOSMEdgeEndNodeStatement == NULL)
     {
-        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET ENDNODEID=@ENDNODEID WHERE WAYID=@WAYID AND STARTNODEID=@STARTNODEID AND FORWARD=@FORWARD;", -1, &_updateOSMEdgeEndNodeStatement, NULL);
+        rc = sqlite3_prepare_v2(_db, "UPDATE EDGES SET ENDNODEID=@ENDNODEID WHERE (WAYID=@WAYID AND STARTNODEID=@STARTNODEID AND ENDNODEID=@OLDENDNODEID AND FORWARD=@FORWARD);", -1, &_updateOSMEdgeEndNodeStatement, NULL);
         if (rc != SQLITE_OK)
         {	
             std::cerr << "Failed to create updateOSMEdgeEndNodeStatement." << " Resultcode: " << rc << std::endl;
@@ -1015,10 +1039,11 @@ bool TemporaryOSMDatabaseConnection::updateOSMEdgeEndNode(const OSMEdge& edge)
     }
 
     // Parameter an das Statement binden. Bei NULL beim Primary Key wird automatisch inkrementiert
-    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 1, edge.getEndNode());
+    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 1, edge.getEndNodeID());
     sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 2, edge.getID());
-    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 3, edge.getStartNode());
-    sqlite3_bind_int(_updateOSMEdgeEndNodeStatement, 4, edge.getForward());
+    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 3, edge.getStartNodeID());
+    sqlite3_bind_int64(_updateOSMEdgeEndNodeStatement, 4, oldEndNodeID);
+    sqlite3_bind_int(_updateOSMEdgeEndNodeStatement, 5, edge.getForward());
     
     // Statement ausfuehren
     rc = sqlite3_step(_updateOSMEdgeEndNodeStatement);
@@ -1433,13 +1458,13 @@ namespace biker_tests
         
         CHECK(connection.beginTransaction());
         OSMEdge edge3(12, true, 15, 16);
-        edge3.setStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNode()));
+        edge3.setStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNodeID()));
         CHECK(connection.saveOSMEdge(edge3));
-        CHECK(connection.updateOSMEdgeStartNode(edge3));
-        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNode()))[0] ));
-        edge3.setEndNodeID(RoutingNode::convertIDToLongFormat(edge3.getEndNode()));
-        CHECK(connection.updateOSMEdgeEndNode(edge3));
-        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNode()))[0] ));
+        CHECK(connection.updateOSMEdgeStartNode(edge3, RoutingNode::convertIDToShortFormat(edge3.getStartNodeID())));
+        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNodeID()))[0] ));
+        edge3.setEndNodeID(RoutingNode::convertIDToLongFormat(edge3.getEndNodeID()));
+        CHECK(connection.updateOSMEdgeEndNode(edge3, RoutingNode::convertIDToShortFormat(edge3.getEndNodeID())));
+        CHECK_EQ(edge3, *(connection.getOSMEdgesByStartNodeID(RoutingNode::convertIDToLongFormat(edge3.getStartNodeID()))[0] ));
         CHECK(connection.endTransaction());
         
         QVector<boost::shared_ptr<OSMEdge> > edgeList = connection.getOSMEdgesByStartNodeID(12);

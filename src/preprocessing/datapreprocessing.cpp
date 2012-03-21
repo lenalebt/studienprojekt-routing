@@ -1,4 +1,5 @@
-#include "datapreprocessing.hpp" 
+#include "datapreprocessing.hpp"
+#include <QSet>
 
 
 DataPreprocessing::DataPreprocessing(boost::shared_ptr<DatabaseConnection> finaldb)
@@ -9,12 +10,12 @@ DataPreprocessing::DataPreprocessing(boost::shared_ptr<DatabaseConnection> final
     #endif
     _finalDBConnection(finaldb)
 {
-    
+
 }
 
 DataPreprocessing::~DataPreprocessing()
 {
-    
+
 }
 
 bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
@@ -26,37 +27,39 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     tmpFile.close();
     tmpFile.remove();
     _tmpDBConnection.open(tmpFilename);
-    
+
     //Prueft, ob .osm oder .pbf am Ende vorhanden
     if(fileToParse.endsWith(".osm"))
     {
         _osmParser.reset(new OSMParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
         QFuture<bool> future = QtConcurrent::run(_osmParser.get(), &OSMParser::parse, fileToParse);
-        
-        saveNodeToTmpDatabase();
-        saveEdgeToTmpDatabase();        
-        saveTurnRestrictionToTmpDatabase();
-        
-        future.waitForFinished();
+        preprocess();
+
+        createRoutingGraph();
+        std::cerr << "creating indexes..." << std::endl;
+        _finalDBConnection->createIndexes();
+        _finalDBConnection->close();
+        _tmpDBConnection.close();
+        tmpFile.remove();
         return true;
     }
     #ifdef PROTOBUF_FOUND
-        else if (fileToParse.endsWith(".pbf"))
-        {
-            _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
-            QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
-            
-            saveNodeToTmpDatabase();
-            saveEdgeToTmpDatabase();
-            saveTurnRestrictionToTmpDatabase();
-            
-            std::cerr << "creating indexes" << std::endl;
-            _tmpDBConnection.createIndexes();
-            _finalDBConnection->createIndexes();
-            
-            future.waitForFinished();
-            return true;
-        }
+    else if (fileToParse.endsWith(".pbf"))
+    {
+        _pbfParser.reset(new PBFParser(&_nodeQueue, &_wayQueue, &_turnRestrictionQueue));
+        QFuture<bool> future = QtConcurrent::run(_pbfParser.get(), &PBFParser::parse, fileToParse);
+        preprocess();
+
+        createRoutingGraph();
+
+        std::cerr << "creating indexes..." << std::endl;
+
+        _finalDBConnection->createIndexes();
+        _finalDBConnection->close();
+        _tmpDBConnection.close();
+        tmpFile.remove();
+        return true;
+    }
     #endif
     else
     {
@@ -64,42 +67,31 @@ bool DataPreprocessing::startparser(QString fileToParse, QString dbFilename)
     }
 }
 
-/**
- * @todo Alle paar tausend/zehntausend Nodes die Transaktion schließen und wieder öffnen
- */
-void DataPreprocessing::saveNodeToTmpDatabase()
+bool DataPreprocessing::preprocess()
 {
-    std::cerr << "Parsing Nodes..." << std::endl;
-    _finalDBConnection->beginTransaction();
-    //_tmpDBConnection.beginTransaction();
-    //int nodeCount=0;
+    std::cerr << "parsing nodes..." << std::endl;
+    //Nodes in tmp DB speichern
+    _tmpDBConnection.beginTransaction();
+    int nodeCount = 0;
     while(_nodeQueue.dequeue(_osmNode))
     {
-        if(/*_tmpDBConnection.saveOSMNode(*_osmNode) == */true)
-        {
-        }
-        else
-        {
-            std::cerr << "node NOT saved to tmpdb" << std::endl;
-        }
-                
-        routingNode = boost::shared_ptr<RoutingNode>(new RoutingNode(_osmNode->getID(), _osmNode->getLat(), _osmNode->getLon()));
-        //saveNodeToDatabase(*routingNode);
-    }
-    _finalDBConnection->endTransaction();
-    //_tmpDBConnection.endTransaction();
-}
+        _tmpDBConnection.saveOSMNode(*_osmNode);
 
-/**
- * @todo Alle paar tausend/zehntausend Edges die Transaktion schließen und wieder öffnen
- */
-void DataPreprocessing::saveEdgeToTmpDatabase()
-{
-    std::cerr << "Parsing Ways..." << std::endl;
-    _finalDBConnection->beginTransaction();
+        if (++nodeCount == 100000)
+        {
+            nodeCount = 0;
+            _tmpDBConnection.endTransaction();
+            _tmpDBConnection.beginTransaction();
+        }
+    }
+    _tmpDBConnection.endTransaction();
+
+    std::cerr << "parsing ways..." << std::endl;
+    //alle Edges bearbeiten
+    //_finalDBConnection->beginTransaction(); ist hier noch nicht noetig
+    boost::uint64_t edgeID=0;
+    QSet<boost::uint64_t> nodeIDSet;
     _tmpDBConnection.beginTransaction();
-    //boost::uint64_t edgeID=0;
-    //TODO: nochmal ueberlegen, ob if-Abfrage nicht sinnvoller als while-loop
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
     {
@@ -107,76 +99,33 @@ void DataPreprocessing::saveEdgeToTmpDatabase()
         QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
         for(int i = 0; i < edgeList.size(); i++)
         {
-            if(/*_tmpDBConnection.saveOSMEdge(edgeList[i]) == */true)
-            {
-            }
-            else
-            {
-                std::cerr << "edge NOT saved" << std::endl;
-            }
-            //routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(edgeList[i].getID(), edgeList[i].getStartNode(), edgeList[i].getEndNode()));
-            
-            //TODO: Bevor in finale Datenbank gespeichert wird, Hier die Kategorisierung starten
-            //categorizeEdge(*routingEdge);
-            
-            //speichert routingEdge in die finale Datenbank
-            //_finalDBConnection->saveEdge(*routingEdge);
+            _tmpDBConnection.saveOSMEdge(edgeList[i]);
         }
+
         if (++wayCount == 100000)
         {
             wayCount = 0;
-            _finalDBConnection->endTransaction();
-            //_tmpDBConnection.endTransaction();
-            
-            _finalDBConnection->beginTransaction();
-            //_tmpDBConnection.beginTransaction();
+            _tmpDBConnection.endTransaction();
+            _tmpDBConnection.beginTransaction();
         }
     }
-    _finalDBConnection->endTransaction();
-    //_tmpDBConnection.endTransaction();
+    _tmpDBConnection.endTransaction();
+
+    _tmpDBConnection.beginTransaction();
+    std::cerr << "parsing turn restrictions..." << std::endl;
+    //Die Queues müssen alle geleert werden, sonst kann das Programm nicht beendet werden!
+    while (_turnRestrictionQueue.dequeue(_osmTurnRestriction))
+    {
+        _tmpDBConnection.saveOSMTurnRestriction(*_osmTurnRestriction);
+    }
+    _tmpDBConnection.endTransaction();
+    
+    std::cerr << "creating indexes for temporary database..." << std::endl;
+    _tmpDBConnection.createIndexes();
+    return true;
 }
 
-void DataPreprocessing::saveTurnRestrictionToTmpDatabase()
-{
-    while(_turnRestrictionQueue.dequeue(_osmTurnRestriction))
-    {
-        //~ _tmpDBConnection.saveTurnRestrictionToTmpDatabase(*_turnRestrictionQueue);
-    }
-}
-
-void DataPreprocessing::saveNodeToDatabase(const RoutingNode &node)
-{
-    if(_finalDBConnection->saveNode(node) == true)
-    {
-    }
-    else
-    {
-        std::cerr << "node NOT saved finalDB" << std::endl;
-    }
-}
-
-void DataPreprocessing::saveEdgeToDatabase(const RoutingEdge &edge)
-{
-    if(_finalDBConnection->saveEdge(edge))
-    {
-    }
-    else
-    {
-        std::cerr << "edge NOT saved to finalDB" << std::endl;
-    }
-}
-
-int DataPreprocessing::getSector(double angle)
-{
-    if(angle > 360){
-        int factor = int(angle / 360);
-        angle = angle - (factor * 360);
-    }
-    return (int(angle * 0.3555555))*2; // 0.355555555... = 128/360
-}
-
-
-void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward,boost::uint64_t& propBackward)
+void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost::uint64_t& propForward, boost::uint64_t& propBackward)
 {
     bool hasTrafficLights = false;
     bool hasTrafficCalmingBumps = false;
@@ -186,7 +135,7 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
     boost::uint8_t streetType = STREETTYPE_UNKNOWN;
     boost::uint8_t cyclewayType = CYCLEWAYTYPE_NO_CYCLEWAY;
     boost::uint8_t streetSurfaceType = STREETSURFACETYPE_UNKNOWN;
-    boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;    
+    boost::uint8_t streetSurfaceQuality = STREETSURFACEQUALITY_UNKNOWN;
     boost::uint8_t access = ACCESS_UNKNOWN;
 
 
@@ -732,16 +681,362 @@ void DataPreprocessing::categorize(const QVector<OSMProperty> properties, boost:
     return;
 }
 
+/**
+ * @todo Es landen noch zu viele Knoten in der DB - wie kann das sein? Vermutung:
+ *      Es landen einfach /alle/ Knoten in der DB am Ende. Wie kann man das verhindern, 
+ *      ohne viel Speicher zu verwenden und sich zu merken, was man schon alles in die
+ *      DB legte, bzw. ohne nochmal durch die ganze DB durchzuwandern?
+ * @todo Umstellen auf Benutzung des EdgeCategorizers, so wie aktuell ist der Code davon an
+ *      2 Stellen einfach reinkopiert.
+ */
+void DataPreprocessing::createRoutingGraph()
+{
+    std::cerr << "creating routing graph:" << std::endl;
+    
+    boost::uint64_t edgeID = 0;
+    boost::uint64_t firstVal = 0;
+    boost::uint64_t lastVal = 0;
+    boost::uint32_t maxCount = 100;
+    boost::uint64_t maxValue = 18446744073709551615ull;
+
+    _finalDBConnection->beginTransaction();
+    _tmpDBConnection.beginTransaction();
+
+    std::cerr << "creating junctions and edges..." << std::endl;
+
+    while(firstVal <= maxValue)
+    {
+        //gehe in 10K schritten durch die nodes
+        lastVal = firstVal + (maxValue>>10);
+        if (lastVal<(maxValue>>10))  //Wenn es einen Ueberlauf gab...
+            lastVal = maxValue;
+        std::cerr << "index: " <<firstVal << std::endl;
+        QVector<boost::shared_ptr<OSMNode> > osmNodes = _tmpDBConnection.getOSMNodesByID(firstVal, lastVal, maxCount);
+
+        for(int i = 0; i < osmNodes.size(); i++)
+        {           
+            QVector< boost::shared_ptr< OSMEdge > > osmEdgesIncome = _tmpDBConnection.getOSMEdgesByEndNodeIDWithoutProperties(osmNodes[i]->getID());
+            QVector< boost::shared_ptr< OSMEdge > > osmEdgesOutgoing = _tmpDBConnection.getOSMEdgesByStartNodeIDWithoutProperties(osmNodes[i]->getID());
+            QVector<int> sectors;
+
+            if((osmEdgesIncome.size() > 2) && (osmEdgesOutgoing.size() > 2)) //Kreuzung
+            {
+                RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
+                _finalDBConnection->saveNode(rNode);
+
+                for(int j = 0; j < osmEdgesOutgoing.size(); j++)
+                {
+                    boost::uint64_t oldStartNode = osmEdgesOutgoing[j]->getStartNodeID();
+                    sectors << setNodeBorderingLongID(osmEdgesOutgoing[j], rNode);
+                    //std::cerr << *osmEdgesOutgoing[j] << "." <<  std::endl;
+                    _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j], oldStartNode);
+
+                }
+                for(int j = 0; j < osmEdgesIncome.size(); j++)
+                {
+                    boost::uint64_t oldEndNode = osmEdgesIncome[j]->getEndNodeID();
+                    sectors << setNodeBorderingLongID(osmEdgesIncome[j], rNode);
+                    //std::cerr << *osmEdgesIncome[j] << "." << std::endl;
+                    _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j], oldEndNode);
+                }                
+
+                //handle turnRestrictions
+                //for(int j = 0; j < osmEdgesIncome.size(); j++)
+                //{
+                    //erstelle neue innere Kanten zu allen ausgehenden Kanten
+                    //Dabei: Fuege Turntypes zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
+                    //TODO: testen. ist dafuer da, die inneren kanten einer kreuzung zu erstellen.                    
+                    /*if (osmNodes[i]->getID()==RoutingNode::convertIDToShortFormat(4611686025386215424))
+                    {
+                        std::cerr << "sectors: " << sectors.size() << std::endl;
+                        for (QVector<int>::iterator it = sectors.begin(); it != sectors.end(); it++)
+                            std::cerr << *it << ",";
+                    }*/
+                    RoutingEdge rEdge;
+                    for(QVector<int>::iterator startNodeSector = sectors.begin(); startNodeSector != sectors.end(); startNodeSector++)
+                    {
+                        if (*startNodeSector % 2 == 1)
+                            continue;
+                        for(QVector<int>::iterator endNodeSector = sectors.begin(); endNodeSector != sectors.end(); endNodeSector++)
+                        {
+                            if (*endNodeSector % 2 == 0)
+                                continue;
+                            rEdge.setID(edgeID++);
+                            /*if (osmNodes[i]->getID()==RoutingNode::convertIDToShortFormat(4611686025386215424))
+                                std::cerr << *startNodeSector << " to " << *endNodeSector << std::endl;*/
+                            rEdge.setStartNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *endNodeSector);
+                            rEdge.setEndNodeID(RoutingNode::convertIDToLongFormat(osmNodes[i]->getID()) + *startNodeSector);
+                            //rEdge.setTurnType(TURNTYPE_STRAIGHTCROSS);
+                            rEdge.setTurnType(getTurnTypeBySectorNumbers(*startNodeSector, *endNodeSector));
+                            rEdge.setStreetType(STREETTYPE_UNKNOWN);
+                            //TODO: Evtl noch andere Eigenschaften setzen? Ampel etc?
+                            /*if (osmNodes[i]->getID()==RoutingNode::convertIDToShortFormat(4611686025386215424))
+                                std::cerr << rEdge << std::endl;*/
+                            _finalDBConnection->saveEdge(rEdge);
+                        }
+                    }
+                //}
+            }
+            else if((osmEdgesIncome.size() >= 1) && (osmEdgesOutgoing.size() >= 1) ) // Keine Kreuzung
+            {
+                for( int j = 0; j < osmEdgesIncome.size(); j++)
+                {
+                    boost::uint64_t oldEndNode = osmEdgesIncome[j]->getEndNodeID();
+                    osmEdgesIncome[j]->setEndNodeID(RoutingNode::convertIDToLongFormat(osmEdgesIncome[j]->getEndNodeID()));
+                    //std::cerr << *osmEdgesIncome[j] << std::endl;
+                    _tmpDBConnection.updateOSMEdgeEndNode(*osmEdgesIncome[j], oldEndNode);
+                }
+
+                for( int j = 0; j < osmEdgesOutgoing.size(); j++)
+                {
+                    boost::uint64_t oldStartNode = osmEdgesOutgoing[j]->getStartNodeID();
+                    osmEdgesOutgoing[j]->setStartNodeID(RoutingNode::convertIDToLongFormat(osmEdgesOutgoing[j]->getStartNodeID()));
+                    //std::cerr << *osmEdgesOutgoing[j] << std::endl;
+                    _tmpDBConnection.updateOSMEdgeStartNode(*osmEdgesOutgoing[j], oldStartNode);
+                }
+                RoutingNode rNode(osmNodes[i]->getID(), *osmNodes[i]);
+                _finalDBConnection->saveNode(rNode);
+            }
+        }
+        if (osmNodes.size()>0)
+        {
+            firstVal = osmNodes[osmNodes.size()-1]->getID() + 1;
+        }
+        else
+            firstVal = lastVal + 1;
+
+        if(firstVal == 0)
+            break;
+
+        _finalDBConnection->endTransaction();
+        _finalDBConnection->beginTransaction();
+        _tmpDBConnection.endTransaction();
+        _tmpDBConnection.beginTransaction();
+    }
+
+    _tmpDBConnection.endTransaction();
+    _finalDBConnection->endTransaction();
+    _finalDBConnection->beginTransaction();
+
+    std::cerr << "saving edges to final database..." << std::endl;
+
+    while(firstVal <= maxValue)
+    {
+        //gehe in 10K schritten durch die nodes
+        lastVal = firstVal + (maxValue>>10);
+        if (lastVal<(maxValue>>10))  //Wenn es einen Ueberlauf gab...
+            lastVal = maxValue;
+
+        QVector< boost::uint64_t > wayIDs = _tmpDBConnection.getWayIDsInRange(firstVal, lastVal, maxCount);
+
+        for(int i = 0 ; i < wayIDs.size(); i++)
+        {
+            boost::uint64_t propForward = 0;
+            boost::uint64_t propBackward = 0;
+            bool edgeForward = true;
+            bool edgeBackward = true;
+            //std::cerr << "iterating over wayIDs" << std::endl;
+            QVector< boost::shared_ptr< OSMEdge > > tmpOsmEdges = _tmpDBConnection.getOSMEdgesByWayIDWithoutProperties(wayIDs[i]);
+
+            //da alle edges in der way die gleichen eigenschaften haben, eine kante rausholen und propFor- und propBackward mittels
+            //categorize vor-, bzw rueckwaertseigenschafen berechnen lassen
+            categorize(_tmpDBConnection.getOSMPropertyListByWayID(wayIDs[i]), propForward, propBackward);
+
+            routingEdge = boost::shared_ptr<RoutingEdge>(new RoutingEdge(0, 0, 0));
+            routingEdge->setProperties(propForward);
+
+            if(routingEdge->getAccess() == ACCESS_NOT_USABLE_FOR_BIKES)
+            {
+                edgeForward = false;
+            }
+            else
+            {
+                edgeForward = true;
+            }
+
+            routingEdge->setProperties(propBackward);
+            if(routingEdge->getAccess() == ACCESS_NOT_USABLE_FOR_BIKES)
+            {
+                edgeBackward = false;
+            }
+            else
+            {
+                edgeBackward = true;
+            }
+
+            for(int j = 0; j < tmpOsmEdges.size(); j++)
+            {
+                //OSMEdge osmEdge = *tmpOsmEdges[j];
+                //QVector<OSMProperty> osmProp = osmEdge.getProperties();
+                if(edgeForward)
+                {
+                    RoutingEdge rEdge(edgeID++, tmpOsmEdges[j]->getStartNodeID(), tmpOsmEdges[j]->getEndNodeID(), propForward);
+                    _finalDBConnection->saveEdge(rEdge);
+                }
+                if(edgeBackward)
+                {
+                    RoutingEdge rEdge(edgeID++, tmpOsmEdges[j]->getStartNodeID(), tmpOsmEdges[j]->getEndNodeID(), propBackward);
+                    _finalDBConnection->saveEdge(rEdge);
+                }
+            }
+        }
+
+        if(wayIDs.size() > 0)
+        {
+            firstVal = wayIDs[wayIDs.size() - 1] + 1;
+        }
+        else
+            firstVal = lastVal + 1;
+        if(firstVal == 0)
+            break;
+
+        _finalDBConnection->endTransaction();
+        _finalDBConnection->beginTransaction();
+    }
+
+    _finalDBConnection->endTransaction();
+
+    //QVector<OSMProperty>::const_iterator it;
+    //for (it = properties.constBegin(); it != properties.constEnd(); it++)
+    //{
+        //QString osmKey = it->getKey();
+        //QString osmValue = it->getValue();
+
+    /*for( all OSMNODES, aufsteigend nach ID (tmpDB-funktion))
+    {
+        erzeuge Liste aller eingehenden OSMEdges
+        erzeuge Liste aller ausgehenden OSMEdges
+        if(# eingehende Kante > 2) && (# ausgehende Kante > 2)//Kreuzung
+        {
+            -ordne allen Kanten, abhaengig der Himmelsrichung, die neuen, langen IDs zu //Funktion noch in der Mache
+             //bei ausgehender Kante ersetze die StartID und bei eingehenden Kanten die EndID durch die langen IDs
+            -update die betrachteten Kanten in tmpDB
+            - Hier Abbiegebeschraenkung beachten
+            for(alle eingehenden Kanten)
+            {
+                erstelle neue innere Kanten zu allen ausgehenden Kanten
+                //Dabei: Fuege Datentypen zu den Kanten und lege neue kanten als RoutingEdge in finalDB ab
+            }
+            -lege OSMNode als RoutingNode in finalDB ab
+        }
+        else if(# eingehende & #ausgehende Kanten >= 1) //Keine Kreuzung
+        {
+            for(alle ein- und ausgehende Kanten)
+            {
+                -ersetze aktuelle KnotenID durch lange KnotenID
+                -Update Edge in tmpDB
+            }
+            -lege OSMNode als RoutingNode in finalDB ab
+        }
+    }
+    for(all wayIDs aufsteigend)
+    {
+        -hole alle OSMEdges mit gleicher WayID aus tmpDB;
+        -(fuer wayID) erstelle Vorwaertseigenschaften;
+        -(fuer wayID) erstelle Rueckwaertseigenschaften;
+        if(Strasse kann vorwaerts befahren werden)
+        {
+            lege vorwaertsKanten mit Vorwaertseigenschaft als RoutingEdge in finalDB ab;
+        }
+        if(Strasse kann rueckwaerts befahren werden)
+        {
+            lege rueckwaertsKanten mit Rueckwaertseigenschaft als RoutingEdge in finalDB ab;
+        }
+    }
+*/
+}
+
+bool DataPreprocessing::isStreet(const OSMWay& way)
+{
+    //Wenn ein "highway"-key gefunden wird, ist es eine Straße - sonst nicht.
+    QVector<OSMProperty> props = way.getProperties();
+    for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
+    {
+        if (it->getKey() == "highway")
+            return true;
+    }
+    return false;
+}
+
+int DataPreprocessing::setNodeBorderingLongID(boost::shared_ptr<OSMEdge> edge, const RoutingNode& junction)
+{
+    static QCache<boost::uint64_t, OSMNode > cache(1000);
+
+    bool junctionAtStartNode = false;
+    boost::uint64_t shortJunctionNodeID = (junction.isIDInLongFormat() ? RoutingNode::convertIDToShortFormat(junction.getID()) : junction.getID());
+    boost::uint64_t shortSecondNodeID = 0;
+
+    if (RoutingNode::convertIDToShortFormat(edge->getStartNodeID())==shortJunctionNodeID)
+    {
+        //Kreuzung am Startknoten
+        junctionAtStartNode = true;
+        shortSecondNodeID = RoutingNode::convertIDToShortFormat(edge->getEndNodeID());
+    }
+    else if (RoutingNode::convertIDToShortFormat(edge->getEndNodeID())==shortJunctionNodeID)
+    {
+        //Kreuzung am Endknoten
+        junctionAtStartNode = false;
+        shortSecondNodeID = RoutingNode::convertIDToShortFormat(edge->getStartNodeID());
+    }
+    else
+    {
+        //weird. irgendwas ist falsch.
+        std::cerr << "weird things happened while doing junction calculations." << std::endl;
+    }
+
+    OSMNode* secondNode;
+    if (cache.contains(shortSecondNodeID))
+        secondNode = cache[shortSecondNodeID];
+    else
+    {
+        secondNode = new OSMNode(*(_tmpDBConnection.getOSMNodeByID(shortSecondNodeID)));
+        cache.insert(shortSecondNodeID, secondNode);
+    }
+
+    int sector = getSector(junction.calcCourseAngle(*secondNode));
+    if(junctionAtStartNode)
+    {
+        edge->setStartNodeID(RoutingNode::convertIDToLongFormat(edge->getStartNodeID()) + sector + 0);
+        return sector;
+    }
+    else
+    {
+        edge->setEndNodeID(RoutingNode::convertIDToLongFormat(edge->getEndNodeID()) + sector + 1);
+        return sector+1;
+    }
+}
+
+int DataPreprocessing::getTurnTypeBySectorNumbers(int startSector, int endSector)
+{
+    //(((startSector - endSector) + 720 + 45) % 360) / 90
+
+    // 1: Bilde Winkeldifferenz zwischen start- und endSector
+    // 2: Drehe den Winkel so, dass Geradeaus von -45 bis +45 Grad liegt (Statt 0 bis 90 Grad)
+    // 3: Ordne den gedrehten Winkeln einen von 4 Sektoren zu (0-3)
+    // 4: Addiere 1 hinzu, damit das auf die Turntypes der routingEdge passt
+    //TODO: Das /2 muss da rein, weil sonst die Winkel zu groß sind (zwischen 0 uhnd 256), wir erwarten aber Sektornummern zwischen 0 und 128
+    return ((((startSector - endSector)/2 + 256 + 16) % 128) / 32) + 1;
+}
+
+int DataPreprocessing::getSector(double angle)
+{
+    if(angle > 360){
+        int factor = int(angle / 360);
+        angle = angle - (factor * 360);
+    }
+    return (int(angle * (128.0/360.0))*2); // 0.355555555... = 128/360
+}
+
 namespace biker_tests
-{    
+{
     int testDataPreprocessing()
     {
         QFile file("rub.db");
-        
+
         std::cerr << "Removing database test file \"rub.db\"..." << std::endl;
         if (file.exists())
             file.remove();
-        
+
         #ifdef SPATIALITE_FOUND
             boost::shared_ptr<SpatialiteDatabaseConnection> finalDB(new SpatialiteDatabaseConnection());
         #else

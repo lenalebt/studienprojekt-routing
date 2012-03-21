@@ -13,6 +13,7 @@ public:
     unsigned int webserver_port;
     unsigned int webserver_threadpool_size;
     bool webserver_startWebserver;
+    std::string webserver_apikey;
     
     //Threads
     unsigned int threads_threadpool_size;

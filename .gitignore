@@ -72,3 +72,6 @@ cmake_install.cmake
 CMakeFiles/
 Makefile
 !CMakeLists.txt
+
+#Dolphin-Kram
+.directory

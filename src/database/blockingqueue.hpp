@@ -21,7 +21,7 @@
  * @author Lena Brüder
  * @date 2011-11-07
  * @copyright GNU GPL v3
- * @ingroup database
+ * @ingroup dataprimitives
  */
 
 template <typename T>
@@ -138,6 +138,7 @@ namespace biker_tests
 {
     /**
      * @ingroup tests
+     * @relates BlockingQueue
      */
     int testBlockingQueue();
     /**

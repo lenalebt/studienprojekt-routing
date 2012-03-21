@@ -1,13 +1,9 @@
 #include "osmway.hpp"
 #include "QVectorIterator"
 
-/**
- * @bug Fügt nur die Edges in eine Richtung ein und achtet nicht
- *  auf Einbahnstraßen (und deren Richtung! Kann umgekehrt sein!)
- */
 QVector<OSMEdge> OSMWay::getEdgeList(){
     QVector<OSMEdge> edgeList;
-    OSMEdge newEdge(id, properties);    
+    OSMEdge newEdge(wayID, properties);    
     
     if (!memberIDList.isEmpty()){
         QVectorIterator<boost::uint64_t> i(memberIDList);
@@ -169,7 +165,7 @@ namespace biker_tests
     int testOSMWay()
     {
         OSMWay way(25);
-        CHECK_EQ_TYPE(way.getID(), 25, boost::uint64_t);
+        CHECK_EQ_TYPE(way.getWayID(), 25, boost::uint64_t);
         way.addMember(1);
         way.addMember(2);
         way.addMember(3);

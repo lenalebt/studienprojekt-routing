@@ -161,7 +161,8 @@ void PowerRoutingMetric::init()
         }
     }*/
     
-    maxSpeed = getSpeed(maxPower, 0.0, 0.5, haltungskorrekturfaktor, weight) * 1.5;
+    maxSpeed = (maxSpeed < 0.0) ? (getSpeed(maxPower, 0.0, 0.5, haltungskorrekturfaktor, weight) * 1.5) : maxSpeed;
+    
     std::cerr << "maxSpeed: " << maxSpeed << std::endl;
     std::cerr << "minSpeed: " << minSpeed << std::endl;
     std::cerr << "pushBikeSpeed: " << pushBikeSpeed << std::endl;
@@ -216,7 +217,7 @@ namespace biker_tests
         CHECK_EQ(shrm1.rateEdge(edge, startNode, endNode), startNode.calcDistance(endNode));
         CHECK_EQ(shrm2.rateEdge(edge, startNode, endNode), 60313.476152647061099);
         
-        PowerRoutingMetric prm(zeroProvider, 100, 200, 4, 0.5);
+        PowerRoutingMetric prm(zeroProvider, 100, 200, 4, 0.5, 0.5);
         //CHECK_EQ(prm.rateEdge(edge, startNode, endNode), startNode.calcDistance(endNode));
         //prm.test();
         //TODO

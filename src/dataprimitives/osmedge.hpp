@@ -22,8 +22,8 @@ class OSMEdge
 private:
     boost::uint64_t id;
     bool forward;
-    boost::uint64_t startNode;
-    boost::uint64_t endNode;
+    boost::uint64_t startNodeID;
+    boost::uint64_t endNodeID;
     QVector<OSMProperty> properties;
 
     static QVector<OSMProperty> onewayProperties();
@@ -42,19 +42,19 @@ public:
      * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörigen Knoten. Richtugn ist per default vorwärts (true).
      * @param id Die ID des Weges zu dem die Edge gehört.
      */
-    OSMEdge(boost::uint64_t id) : id(id), forward(true), startNode(0), endNode(0), properties() {};
+    OSMEdge(boost::uint64_t id) : id(id), forward(true), startNodeID(0), endNodeID(0), properties() {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Standardeigenschaften (keine) und ohne zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
      * @param forward Die Richtung der Kante in Bezug auf den zugehörigen Weg.
      */
-    OSMEdge(boost::uint64_t id, bool forward) : id(id), forward(forward), startNode(0), endNode(0), properties() {};
+    OSMEdge(boost::uint64_t id, bool forward) : id(id), forward(forward), startNodeID(0), endNodeID(0), properties() {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID und Eigenschaften, ohne zugehörige Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
      * @param propList Die zugehörigen Eigenschaften der Edge.
      */
-    OSMEdge(boost::uint64_t id, QVector<OSMProperty> propList) : id(id), forward(true), startNode(0), endNode(0), properties(propList) {};
+    OSMEdge(boost::uint64_t id, QVector<OSMProperty> propList) : id(id), forward(true), startNodeID(0), endNodeID(0), properties(propList) {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
@@ -62,7 +62,7 @@ public:
      * @param endNode Endknoten der Edge.
      * @param propList Die zugehörigen Eigenschaften der Edge.
      */
-    OSMEdge(boost::uint64_t id, boost::uint64_t startNode, boost::uint64_t endNode, QVector<OSMProperty> propList) : id(id), forward(true), startNode(startNode), endNode(endNode), properties(propList) {};
+    OSMEdge(boost::uint64_t id, boost::uint64_t startNode, boost::uint64_t endNode, QVector<OSMProperty> propList) : id(id), forward(true), startNodeID(startNode), endNodeID(endNode), properties(propList) {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
@@ -70,7 +70,7 @@ public:
      * @param startNode Startknoten der Edge.
      * @param endNode Endknoten der Edge.
      */
-    OSMEdge(boost::uint64_t id, bool forward, boost::uint64_t startNode, boost::uint64_t endNode) : id(id), forward(forward), startNode(startNode), endNode(endNode), properties() {};
+    OSMEdge(boost::uint64_t id, bool forward, boost::uint64_t startNode, boost::uint64_t endNode) : id(id), forward(forward), startNodeID(startNode), endNodeID(endNode), properties() {};
     /**
      * @brief Erstellt eine Edge mit angegebener ID, Eigenschaften und zugehörigen Knoten.
      * @param id Die ID des Weges zu dem die Edge gehört.
@@ -79,7 +79,7 @@ public:
      * @param endNode Endknoten der Edge.
      * @param propList Die zugehörigen Eigenschaften der Edge.
      */
-    OSMEdge(boost::uint64_t id, bool forward, boost::uint64_t startNode, boost::uint64_t endNode, QVector<OSMProperty> propList) : id(id), forward(forward), startNode(startNode), endNode(endNode), properties(propList) {};
+    OSMEdge(boost::uint64_t id, bool forward, boost::uint64_t startNode, boost::uint64_t endNode, QVector<OSMProperty> propList) : id(id), forward(forward), startNodeID(startNode), endNodeID(endNode), properties(propList) {};
     /**
      * @brief Gibt die ID des Weges zu dem die Edge gehört zurück.
      * @return Die ID des Weges zu dem die Edge gehört.
@@ -105,34 +105,34 @@ public:
      * @param startNode Startknoten der Edge.
      * @param endNode Endknoten der Edge.
      */
-    void setNodes(const boost::uint64_t startNode, const boost::uint64_t endNode) {this->startNode = startNode; this->endNode = endNode;}
+    void setNodes(const boost::uint64_t startNode, const boost::uint64_t endNode) {this->startNodeID = startNode; this->endNodeID = endNode;}
     
     /**
      * @brief Setzt den Startknoten der OSMEdge auf einen Wert.
      * @param startNodeID Die ID des Startknotens
      */
-    void setStartNodeID(boost::uint64_t startNodeID) {this->startNode = startNodeID;}
+    void setStartNodeID(boost::uint64_t startNodeID) {this->startNodeID = startNodeID;}
     /**
      * @brief Setzt den Endknoten der OSMEdge auf einen Wert.
      * @param startNodeID Die ID des Endknotens
      */
-    void setEndNodeID(boost::uint64_t endNodeID) {this->endNode = endNodeID;}
+    void setEndNodeID(boost::uint64_t endNodeID) {this->endNodeID = endNodeID;}
     
     /**
-     * @brief Gibt den zugehörigen Startknoten zurück.
+     * @brief Gibt die ID des zugehörigen Startknoten zurück.
      * @return Startknoten.
      */
-    boost::uint64_t getStartNode() const {return startNode;}
+    boost::uint64_t getStartNodeID() const {return startNodeID;}
     /**
-     * @brief Gibt den zugehörigen Endknoten zurück.
+     * @brief Gibt die ID des zugehörigen Endknoten zurück.
      * @return Endknoten.
      */
-    boost::uint64_t getEndNode() const {return endNode;}
+    boost::uint64_t getEndNodeID() const {return endNodeID;}
     /**
      * @brief Gibt in einer Liste die Zugehörigen Knoten in der Reichenfolge Startknoten, Endknoten zurück..
      * @return Liste der Knoten (Reihenfolde: Startknoten, Endknoten).
      */
-    QVector<boost::uint64_t> getNodes() const {QVector<boost::uint64_t> nodes; return nodes << startNode << endNode;}
+    QVector<boost::uint64_t> getNodes() const {QVector<boost::uint64_t> nodes; return nodes << startNodeID << endNodeID;}
     /**
      * @brief Fügt eine Eigenschaft zur Liste der Eigenschaften hinzu.
      * @param prop Die Eigenschaft, die hinzugefügt werden soll.
@@ -157,7 +157,6 @@ public:
      * @return <code>1</code>, wenn es sich um eine Einbahnstraße handelt, <code>0</code>
      *      wenn nicht. <code>-1</code>, wenn die Einbahnstraße in umgekehrter Richtung
      *      gültig ist.
-     * @todo Evtl. weitere Wegtypen hinzufügen.
      */
     int isOneway();
 
@@ -172,7 +171,6 @@ public:
      *      handelt, <code>0</code>
      *      wenn nicht. <code>-1</code>, wenn die Einbahnstraße in umgekehrter Richtung
      *      gültig ist.
-     * @todo
      */
     int isOneWayForBikes();
     

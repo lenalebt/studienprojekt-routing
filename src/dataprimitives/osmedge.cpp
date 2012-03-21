@@ -2,8 +2,8 @@
 
 bool operator==(const OSMEdge& e1, const OSMEdge& e2)
 {
-    if ((e1.getID() == e2.getID()) && (e1.getForward() == e2.getForward()) &&(e1.getStartNode() == e2.getStartNode()) &&
-        (e1.getEndNode() == e2.getEndNode()) && (e1.getProperties().size() == e2.getProperties().size()))
+    if ((e1.getID() == e2.getID()) && (e1.getForward() == e2.getForward()) &&(e1.getStartNodeID() == e2.getStartNodeID()) &&
+        (e1.getEndNodeID() == e2.getEndNodeID()) && (e1.getProperties().size() == e2.getProperties().size()))
     {
         QVector<OSMProperty> props1 = e1.getProperties();
         QVector<OSMProperty> props2 = e2.getProperties();
@@ -21,8 +21,8 @@ bool operator==(const OSMEdge& e1, const OSMEdge& e2)
 }
 std::ostream& operator<<(std::ostream& os, const OSMEdge& e)
 {
-    os << "wayid: " << e.getID() << " forward: " << e.getForward() << " startnode: " << e.getStartNode() << 
-        " endnode: " << e.getEndNode();
+    os << "wayid: " << e.getID() << " forward: " << e.getForward() << " startnode: " << e.getStartNodeID() << 
+        " endnode: " << e.getEndNodeID();
     QVector<OSMProperty> props = e.getProperties();
     for (QVector<OSMProperty>::const_iterator it = props.constBegin(); it != props.constEnd(); it++)
     {
@@ -180,8 +180,8 @@ namespace biker_tests
 		OSMEdge edge2(0, true, 1, 7,propList);		
 		
         CHECK_EQ_TYPE(edge2.getID(), 0, boost::uint64_t);
-        CHECK_EQ_TYPE(edge2.getStartNode(), 1, boost::uint64_t);
-        CHECK_EQ_TYPE(edge2.getEndNode(), 7, boost::uint64_t);
+        CHECK_EQ_TYPE(edge2.getStartNodeID(), 1, boost::uint64_t);
+        CHECK_EQ_TYPE(edge2.getEndNodeID(), 7, boost::uint64_t);
         CHECK_EQ(edge2.getProperties()[0], prop1);
         CHECK_EQ(edge2.getProperties()[1], prop2);
         
@@ -199,8 +199,8 @@ namespace biker_tests
 		
 		
 		CHECK_EQ_TYPE(edge2.getID(), 4, boost::uint64_t);
-        CHECK_EQ_TYPE(edge2.getStartNode(), 3, boost::uint64_t);
-        CHECK_EQ_TYPE(edge2.getEndNode(), 4, boost::uint64_t);
+        CHECK_EQ_TYPE(edge2.getStartNodeID(), 3, boost::uint64_t);
+        CHECK_EQ_TYPE(edge2.getEndNodeID(), 4, boost::uint64_t);
         CHECK_EQ(edge2.getProperties()[2], prop3);
 		
 
