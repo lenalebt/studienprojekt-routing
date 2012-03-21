@@ -1,4 +1,8 @@
 #include "filedownloader.hpp"
+#include <QDebug>
+#include <iostream>
+#include "webserver.hpp"
+#include "programoptions.hpp"
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,6 +55,18 @@ namespace biker_tests
 {
 	int testFileDownloader()
 	{
-		return EXIT_FAILURE;
+            FileDownloader fd;
+            QByteArray qba = fd.downloadURL(QUrl("http://www.openstreetmap.de/faq.html"));
+            CHECK(!qba.isNull());
+
+            ProgramOptions::getInstance()->webserver_public_html_folder = "./gui/";
+            HttpServerThread<BikerHttpRequestProcessor> server(8081);
+            server.startServer();
+            FileDownloader downloader;
+            QByteArray gui_html = downloader.downloadURL(QUrl("http://localhost:8081/files/gui.html"));
+            CHECK(gui_html.size()>0);
+
+
+            return EXIT_SUCCESS;
 	}
 }
