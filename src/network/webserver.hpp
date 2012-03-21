@@ -109,9 +109,10 @@ http://server/files/
  *  <tr><td><code>parameter=value</code></td><td>Diese Parameter sind abhängig von der Routingmetrik und bei der entsprechenden Metrik erklärt.</td></tr>
  * </table>
  * 
+ * @todo Auf die Parameter der einzelnen Routingmetriken eingehen!
  * @subsubsection webserver_functions_routes_cloudmade_differences Unterschiede zur Cloudmade-API
+ * @todo Die Unterschiede hinschreiben (z.B. Callbackfunktion, Einheiten, Sprache)
  * 
- * @todo Aufschreiben, wie die API des Webservices funktioniert
  * @subsection webserver_security Sicherheitsfeatures
  * Da ein Webserver, der einfach alle Dateien eines Ordners ausliefern kann, ein
  * potentielles Risiko für die Sicherheit eines Systems ist, sind ein paar
