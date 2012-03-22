@@ -114,7 +114,7 @@ public:
     void setStartNodeID(boost::uint64_t startNodeID) {this->startNodeID = startNodeID;}
     /**
      * @brief Setzt den Endknoten der OSMEdge auf einen Wert.
-     * @param startNodeID Die ID des Endknotens
+     * @param endNodeID Die ID des Endknotens
      */
     void setEndNodeID(boost::uint64_t endNodeID) {this->endNodeID = endNodeID;}
     

@@ -31,6 +31,7 @@ using namespace std;
  * @brief Parst die Kommandozeilenparameter.
  * @param argc Anzahl Aufrufargumente
  * @param argv Werte der Aufrufparameter
+ * @param programOptions Ein shared_ptr auf ein Einstellungsobjekt, in dem die EInstellungsne gespeichert werden
  * @return
  */
 int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions> programOptions)

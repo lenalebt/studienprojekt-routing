@@ -48,19 +48,16 @@ public:
     /**
      * @brief Fügt einen Knoten zur Liste der endgültig betrachteten Knoten hinzu.
      * @param elementID die ID des Knotens, der zur Liste der endgültig betrachteten Knoten hinzugefügt wird
-     * @param thread Gibt an, welcher Thread versucht einen Knoten in der ClosedList abzulegen.
      */
 	virtual void addElement(boost::uint64_t elementID)=0;
     /**
      * @brief Entfernt einen Knoten aus der Liste der endgültig betrachteten Knoten
      * @param elementID die ID des Knotens, der aus Liste der endgültig betrachteten Knoten entfernt wird
-     * @param thread Gibt an, welcher Thread versucht einen Knoten in der ClosedList abzulegen.
      */
 	virtual void removeElement(boost::uint64_t elementID)=0;
     /**
      * @brief Gibt zurück, wie viele Knoten in der Liste der endgültig betrachteten Knoten vorhanden sind
      * @return wie viele Knoten in der Liste der endgültig betrachteten Knoten vorhanden sind
-     * @param thread Gibt an, welcher Thread versucht einen Knoten in der ClosedList abzulegen.
      */
 	virtual int size() const=0;
     

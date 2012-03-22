@@ -183,6 +183,8 @@ http://localhost:8080/files/gui.html
  * @section functions_properties_planned Geplante Funktionen und Eigenschaften
  *  - Unterstützung der CGI-Schnittstelle eines Webservers
  * @todo Geplante Funktionen und Eigenschaften
+ * 
+ * @author Lena Brüder
  */
 
 /**
