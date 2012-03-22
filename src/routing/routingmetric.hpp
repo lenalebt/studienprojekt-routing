@@ -40,6 +40,9 @@ enum MeasurementUnit
  * 
  * Eine RoutingMetric kann Kanten so bewerten, wie sie es für richtig hält - 
  * einzige Voraussetzung ist, dass sie nur positive Werte für die Kosten zurückgibt.
+ * Wer eine eigene Routingmetrik implementieren möchte, muss von
+ * RoutingMetric erben, und mindestens die Funktionen rateEdge() und timeEdge()
+ * implementieren. Weitere Informationen finden sich dort.
  * 
  * @ingroup routing
  * @author Thorsten Scheller
@@ -60,7 +63,7 @@ public:
     * Die Kriterien, nach denen bewertet wird, hängen von der Implementierung der
     * Klasse ab. Die Funktion kann entweder Zeiten in Sekunden, oder eine
     * fiktive Bewertungseinheit zurückgeben. Welche Einheit der zurückgegebene Wert hat
-    * wird in der Funktion
+    * wird in der Funktion getMeasurementUnit() angegeben.
     *
     * @param edge Die Kante, die bewertet werden soll.
     * @param startNode Der Startknoten der Kante.
@@ -78,6 +81,7 @@ public:
      * In der Standardimplementierung wird die PotentialFunction in einer
      * intern verwalteten Liste abgelegt.
      * 
+     * @remarks Potentialfunktionen werden noch nicht unterstützt in der aktuellen Version.
      * @param potentialFunction Ein boost::shared_ptr auf eine beliebige Potentialfunktion.
      */
     virtual void addPotentialFunction(boost::shared_ptr<PotentialFunction> potentialFunction) 
@@ -87,7 +91,13 @@ public:
     /**
      * @brief Gibt an, in welcher Einheit die Bewertung von rateEdge() angegeben wird.
      * 
-     * Standardmäßig gibt diese Funktion DISTANCE zurück.
+     * Diese Funktion bestimmt, welcher Routingalgorithmus standardmäßig
+     * ausgewählt wird. Für DISTANCE wird eine A*-Version, für SECONDS wird
+     * eine Dijkstra-Version gewählt.
+     * 
+     * Standardmäßig gibt diese Funktion DISTANCE zurück. Damit beziehen sich die Werte
+     * der Metrik auf reale Entfernungen, und die Werte sind mindestens so groß wie
+     * die euklidische Distanz der beiden Endpunkte.
      * 
      * @return In welcher Einheit die Bewertung von rateEdge() angegeben wird.
      * @see MeasurementUnit
@@ -105,7 +115,9 @@ public:
     * Route zu befahren.
     *
     * @remarks Wenn in rateEdge() Sekunden zurückgegeben werden, ist diese
-    * Funktion identisch zu rateEdge().
+    * Funktion im Idealfall identisch zu rateEdge(). Sie muss es allerdings nicht sein,
+    * wenn die Bewertung der Route ungefähr Sekunden sind, sie aber durch andere Faktoren wie
+    * "grüne Strecken" etc. verändert wurde.
     * @param edge Die Kante, die bewertet werden soll.
     * @param startNode Der Startknoten der Kante.
     * @param endNode Der Endknoten der Kante.
