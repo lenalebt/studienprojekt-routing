@@ -91,14 +91,14 @@ http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,
  *  <tr><td><code>transit_pointN</code></td><td>Ein Zwischenpunkt in der Route, Format wie bei <code>start_point</code>. Transitpunkte werden durch Komma getrennt,
  *      alle Transitpunkte werden in eckige Klammern eingeschlossen. Beispiel: <code>[51.0,7.2,51.2,7.3]</code></td></tr>
  *  <tr><td><code>end_point</code></td><td>Der Endpunkt, Format wie bei <code>start_point</code>.</td></tr>
- *  <tr><td><code>output_format</code></td><td>Das Ausgabeformat der Route. Hier ist erlaubt: <code>js</code>,<code>gpx</code></td></tr>
+ *  <tr><td><code>output_format</code></td><td>Das Ausgabeformat der Route. Hier ist erlaubt: <code>js</code>, <code>gpx</code></td></tr>
  *  <tr><td><code>route_type</code></td><td>Typ der Route. Hier ist vornehmlich <code>bike</code>
  *      oder <code>bicycle</code> vorgesehen, aber auch <code>foot</code> und <code>car</code> ist
  *      möglich. Dabei werden die letztgenannten Typen eher stiefmütterlich behandelt, es sollten keine
  *      allzu großen Erwartungen an sie gestellt werden. Hier ist die Cloudmade-API wesentlich besser geeignet.</td></tr>
  *  <tr><td><code>route_modifier</code></td><td>Muss nicht angegeben werden, wird nur bei Routen vom Typ <code>bike</code> oder <code>bicycle</code>
  *      beachtet und sonst ignoriert. Mögliche Werte: <code>power</code>, <code>simpleheight</code>, <code>advancedheight</code>, <code>euclidian</code>.
- *      Es ist möglich, dass sich die Liste der erlaubten Metriken erweitert.</td></tr>
+ *      Es ist möglich, dass sich die Liste der erlaubten Metriken erweitert. Die Metriken sind weiter unten genauer erklärt.</td></tr>
  *  <tr><td><code>algorithm=value</code></td><td>Hier wird der zur Berechnung verwendete Algorithmus angegeben.
  *      Mögliche Werte: <code>standard</code> wählt abhängig von der verwendeten Metrik einen geeigneten Algorithmus aus.
  *      <table>
@@ -133,6 +133,8 @@ http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,
  *      <code>0.5</code>, <code>0.4</code>, <code>0.3</code>, <code>0.25</code>. Standardwert ist <code>0.4</code>.</td></tr>
  * </table>
  * @subsubsection routingmetric_simpleheight einfache Höhenvermeidung (simpleheight)
+ * Diese Metrik bestraft jeden gefahrenen Höhenmeter mit einem bestimmten Faktor. Dabei
+ * ist es egal, ob der Höhenmeter als Anstieg, oder als Abstieg gefahren wird.
  * <table>
  *  <tr><th>Parametername</th><th>Erklärung</th></tr>
  *  <tr><td>detourperheightmeter</td><td>Bestrafung pro gefahrenem Höhenmeter, in Metern.
@@ -140,9 +142,11 @@ http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,
  *          Ein guter Wert für die Praxis ist <code>100.0</code>, was 100m entspricht.
  *          Wird der Parameter nicht angegeben, wird von <code>100.0</code> ausgegangen.</td></tr>
  * </table>
- * Diese Metrik hat einen Parameter
+ * 
  * @subsubsection routingmetric_advancedheight erweiterte Höhenvermeidung (advancedheight)
- * @todo muss noch erklärt werden, oder entfernt.
+ * Diese Metrik funktioniert genau wie die \ref routingmetric_simpleheight, jedoch
+ * bestraft sie nur Anstiege, und nicht alle Höhenänderungen. Die Parameter sind identisch.
+ * 
  * @subsubsection routingmetric_euclidian einfache Entfernungsmetrik (euclidian)
  * Diese Metrik hat keine Parameter. Sie bezieht lediglich die reine Entfernung
  * von Punkten in die Berechnung ein und ist damit für Fahrräder denkbar ungeeignet.
@@ -154,6 +158,10 @@ http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,
  * Testzwecke gedacht ist.
  * 
  * @subsubsection webserver_functions_routes_cloudmade_differences Unterschiede zur Cloudmade-API
+ * Dieser Absatz bezieht sich sehr stark auf die API des Cloudmade-Routingservices. Es ist sinnvoll,
+ * zusätzlich die <a href="http://developers.cloudmade.com/wiki/routing-http-api/Documentation">Cloudmade Routing API Documentation</a>
+ * zu öffnen.
+ * 
  * - Es existiert keine Unterstützung für JSON-Callback-Funktionen.
  * 
  * - Es wird keine Routenbeschreibung ausgegeben, entsprechend hat das Setzen des <code>lang</code>-

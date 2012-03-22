@@ -14,9 +14,9 @@
  * @brief Biker ein Programm zum Berechnen von Fahrradrouten.
  * 
  * Biker ist kein einseitiger Routenserver - sondern ein
- * zweiseitiger! Außerdem gibt es viele Möglichkeiten, de Berechnung
+ * zweiseitiger! Außerdem gibt es viele Möglichkeiten, die Berechnung
  * einer Route zu beeinflussen.
- * Um die Berechnung zu beschleunigen, wird nicht nur von einer,
+ * Um die Berechnung zu beschleunigen wird nicht nur von einer,
  * sondern von zwei Seiten gleichzeitig eine Route berechnet.
  * 
  * Der Fokus dieses Projekts liegt auf der vielseitigen Einstellbarkeit
@@ -171,6 +171,10 @@ http://localhost:8080/files/gui.html
  * biker --test=srtmprovider
  * biker --test srtmprovider
  * @endcode
+ * 
+ * @section api_webserver API des Webservers
+ * Die Beschreibung der API des Webservers ist unter \ref webservicedocumentation
+ * zu finden.
  * 
  * @section functions_properties Funktionen und Eigenschaften
  *  - Leistungsbezogene Metrik
