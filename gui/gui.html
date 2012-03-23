@@ -13,7 +13,6 @@
     <script type="text/javascript">
         // Initalisierung der zugreifbaren Variablen 
         var routeLayer = "";
-        //var 
         var xmlHttp = null;
         var thisLink = "";
         var settingsShown = 0;
@@ -24,7 +23,7 @@
         var iconSize = new OpenLayers.Size(15, 15);
         var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
         var map, layer, gpxlayer;
-        // Initalisierung der Marker
+        // Initalisierung der Marker (in der Endgültigen Version werden nicht alle verwendet)
         var markerStart = new OpenLayers.Icon("img/marker-green.png", iconSizeLarge, iconOffset);
         var markerEnd = new OpenLayers.Icon("img/marker-red.png", iconSizeLarge, iconOffset);
         var markerInBetween = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
@@ -35,6 +34,7 @@
         var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
         var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
         var markers = new OpenLayers.Layer.Markers( "Markers" );
+        // 
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
                     'single': true,
@@ -609,7 +609,7 @@
                 <tr><td>Maximum Power (in Watt):</td></tr>
                 <tr><td><input name="maxpower" type="text" value="150.0" size="15"></td></tr>
                 <tr><td>Minimum Speed (in km/h):</td></tr>
-                <tr><td><input name="minspeed" type="text" value="12.0" size="15"></td></tr>
+                <tr><td><input name="minspeed" type="text" value="7.0" size="15"></td></tr>
                 <tr><td>Weight (in kg, incl. Bike):</td></tr>
                 <tr><td><input name="weight" type="text" value="90.0" size="15"></td></tr>
                 <tr><td>Walk Speed (in km/h):</td></tr>
