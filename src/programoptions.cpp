@@ -6,6 +6,7 @@ ProgramOptions::ProgramOptions() :
     webserver_threadpool_size(20),
     webserver_startWebserver(true),
     webserver_apikey(""),
+    webserver_no_serve_files(false),
     
     threads_threadpool_size(20),
     

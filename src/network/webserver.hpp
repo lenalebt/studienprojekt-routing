@@ -98,7 +98,7 @@ http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,
  *      möglich. Dabei werden die letztgenannten Typen eher stiefmütterlich behandelt, es sollten keine
  *      allzu großen Erwartungen an sie gestellt werden. Hier ist die Cloudmade-API wesentlich besser geeignet.</td></tr>
  *  <tr><td><code>route_modifier</code></td><td>Muss nicht angegeben werden, wird nur bei Routen vom Typ <code>bike</code> oder <code>bicycle</code>
- *      beachtet und sonst ignoriert. Mögliche Werte: <code>power</code>, <code>simpleheight</code>, <code>advancedheight</code>, <code>euclidian</code>.
+ *      beachtet und sonst ignoriert. Mögliche Werte: <code>power</code>, <code>simpleheight</code>, <code>advancedheight</code>, <code>euclidean</code>.
  *      Es ist möglich, dass sich die Liste der erlaubten Metriken erweitert. Die Metriken sind weiter unten genauer erklärt.</td></tr>
  *  <tr><td><code>algorithm=value</code></td><td>Hier wird der zur Berechnung verwendete Algorithmus angegeben.
  *      Mögliche Werte: <code>standard</code> wählt abhängig von der verwendeten Metrik einen geeigneten Algorithmus aus.
@@ -148,7 +148,7 @@ http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,
  * Diese Metrik funktioniert genau wie die \ref routingmetric_simpleheight, jedoch
  * bestraft sie nur Anstiege, und nicht alle Höhenänderungen. Die Parameter sind identisch.
  * 
- * @subsubsection routingmetric_euclidian einfache Entfernungsmetrik (euclidian)
+ * @subsubsection routingmetric_euclidean einfache Entfernungsmetrik (euclidean)
  * Diese Metrik hat keine Parameter. Sie bezieht lediglich die reine Entfernung
  * von Punkten in die Berechnung ein und ist damit für Fahrräder denkbar ungeeignet.
  * Sie ist hauptsächlich für einfache Tests vorhanden, und kann sich möglicherweise
@@ -173,7 +173,7 @@ http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,
  * 
  * - Die Angaben <code>shortest</code> und <code>fastest</code> für den <code>route_modifier</code>
  *      werden unterstützt, jedoch anders interpretiert. Für den <code>route_type</code>
- *      <code>foot</code> wird jeweils die Metrik <code>euclidian</code> ausgewählt. Bei
+ *      <code>foot</code> wird jeweils die Metrik <code>euclidean</code> ausgewählt. Bei
  *      <code>bike</code> wird für <code>fastest</code> <code>power</code>, und für
  *      <code>shortest</code> <code>simpleheight</code> ausgewählt, jeweils mit den angebenenen
  *      Parametern bzw. ihren Standardwerten..
@@ -209,6 +209,11 @@ http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,
  * 
  * - Der Server bearbeitet nur Anfragen weiter, die sich mit einem korrekten HTTP-Header
  *   melden. Auch hier: Ist dies nicht erfüllt, antwortet der Server mit <code>400 Bad request</code>.
+ * 
+ * - Dem Webserver kann mittels der Programmstartoption <code>--webserver-no-serve-files</code>
+ *   verboten werden, Dateien aus dem Dateisystem auszuliefern. In diesem Fall werden nur Routen
+ *   berechnet und zurückgeliefert, und alle anderen Anfragen erhalten <code>404 not found</code>
+ *   als Antwort.
  * 
  * Diese Features verstehen sich als zusätzliche Hürden für einen Angreifer.
  * Natürlich können Programmfehler immer dazu führen, dass ein Programm

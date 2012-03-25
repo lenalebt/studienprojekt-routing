@@ -462,7 +462,7 @@ namespace biker_tests
         #else
             boost::shared_ptr<SQLiteDatabaseConnection> db(new SQLiteDatabaseConnection());
         #endif
-        boost::shared_ptr<RoutingMetric> metric(new EuclidianRoutingMetric());
+        boost::shared_ptr<RoutingMetric> metric(new EuclideanRoutingMetric());
         db->open("rub.db");
         
         CHECK(db->isDBOpen());
@@ -490,7 +490,7 @@ namespace biker_tests
             boost::shared_ptr<SQLiteDatabaseConnection> dbA(new SQLiteDatabaseConnection());
             boost::shared_ptr<SQLiteDatabaseConnection> dbB(new SQLiteDatabaseConnection());
         #endif
-        boost::shared_ptr<RoutingMetric> metric(new EuclidianRoutingMetric());
+        boost::shared_ptr<RoutingMetric> metric(new EuclideanRoutingMetric());
         dbA->open("rub.db");
         dbB->open("rub.db");
         

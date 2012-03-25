@@ -46,6 +46,7 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
         ("webserver-api-key,k", po::value<std::string>(&(programOptions->webserver_apikey))->default_value(""), "set admissable API key (kind of a \"server password\")")
         ("webserver-port,p", po::value<unsigned int>(&(programOptions->webserver_port))->default_value(8080), "set port of webserver")
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(20u), "set maximum thread pool size of webserver")
+        ("webserver-no-serve-files", "do not allow serving files")
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
         ("simple-parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for simple parser")
         ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("database.db"), "set database filename for database operations")
@@ -142,6 +143,15 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
         programOptions->routeOutputAsGPX = false;
     else
         programOptions->routeOutputAsGPX = true;
+    
+    if (vm.count("webserver-no-serve-files"))
+    {
+        programOptions->webserver_no_serve_files = true;
+    }
+    else
+    {
+        programOptions->webserver_no_serve_files = false;
+    }
     
     return EXIT_SUCCESS;
 }
@@ -262,7 +272,7 @@ int main ( int argc, char* argv[] )
         #else
             altitudeProvider.reset(new ZeroAltitudeProvider());
         #endif
-        metric.reset(new EuclidianRoutingMetric(altitudeProvider));
+        metric.reset(new EuclideanRoutingMetric(altitudeProvider));
         
         router.reset(new DijkstraRouter(db, metric));
         

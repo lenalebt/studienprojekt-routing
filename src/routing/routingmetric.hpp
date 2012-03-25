@@ -159,18 +159,43 @@ public:
     virtual QString getParameterDetails() {return "none";}
 }; 
 
-class EuclidianRoutingMetric : public RoutingMetric
+/**
+ * @brief Diese Klasse implementiert eine einfache Routingmetrik, die nur die
+ *      euklidische Distanz der Endpunkte als Bewertung heranzieht.
+ * 
+ * 
+ * 
+ * @ingroup routing
+ * @author Lena Brueder
+ * @date 2012-03-25
+ * @copyright GNU GPL v3
+ */
+class EuclideanRoutingMetric : public RoutingMetric
 {
 private:
     
 public:
-    EuclidianRoutingMetric() {}
-    EuclidianRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) : RoutingMetric(provider) {}
+    EuclideanRoutingMetric() {}
+    EuclideanRoutingMetric(boost::shared_ptr<AltitudeProvider> provider) : RoutingMetric(provider) {}
     double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode);
-    QString getParameterDetails() {return "euclidian";}
+    QString getParameterDetails() {return "euclidean";}
 };
 
+/**
+ * @brief Diese Klasse implementiert eine Routingmetrik, die nur die
+ *      euklidische Distanz der Endpunkte und den Höhenunterschied dieser
+ *      als Bewertung heranzieht.
+ * 
+ * Jeder Höhenmeter wird mit einem Umweg bestraft, wie er in
+ * <code>detourPerHeightMeter</code> angegeben wird (Angaben in Metern).
+ * <code>100.0</code> ist ein guter Praxiswert
+ * 
+ * @ingroup routing
+ * @author Lena Brueder
+ * @date 2012-03-25
+ * @copyright GNU GPL v3
+ */
 class SimpleHeightRoutingMetric : public RoutingMetric
 {
 private:
@@ -198,6 +223,20 @@ public:
     QString getParameterDetails() {return QString("advancedheight,detour=%1,extrapunishment=%2").arg(_detourPerHeightMeter).arg(_extrapunishment);}
 };
 
+/**
+ * @brief Diese Klasse berechnet die Metrik aufgrund der Leistung, die benötigt
+ *      wird, um die Kante zu bewältigen.
+ * 
+ * Es wird der Untergrund und die Steigung
+ * einbezogen. Der Straßentyp hat auch Einfluss.
+ * Nähere Erklärungen sind auch unter \ref routingmetric_power
+ * zu finden.
+ * 
+ * @ingroup routing
+ * @author Lena Brueder
+ * @date 2012-03-25
+ * @copyright GNU GPL v3
+ */
 class PowerRoutingMetric : public RoutingMetric
 {
 private:

@@ -35,7 +35,7 @@
 // Klasse SRTMProvider //////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-QCache<int, SRTMTile> SRTMProvider::tileCache(25);
+QCache<int, SRTMTile> SRTMProvider::tileCache(100);
 QReadWriteLock SRTMProvider::lock(QReadWriteLock::Recursive);
 
 double SRTMProvider::getAltitude(const GPSPosition& pos)

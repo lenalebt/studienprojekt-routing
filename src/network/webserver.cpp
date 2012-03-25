@@ -413,37 +413,46 @@ void BikerHttpRequestProcessor::processRequest()
     
     if (_requestPath.startsWith("/files/"))
     {
-        //"/files/" entfernen!
-        QString _myRequestPath = _requestPath.remove(0, 7);
-        QDir mainDir((ProgramOptions::getInstance()->webserver_public_html_folder).c_str());
-        if ((ProgramOptions::getInstance()->webserver_public_html_folder == "") || !mainDir.exists())
+        if (! ProgramOptions::getInstance()->webserver_no_serve_files)
         {
+            //"/files/" entfernen!
+            QString _myRequestPath = _requestPath.remove(0, 7);
+            QDir mainDir((ProgramOptions::getInstance()->webserver_public_html_folder).c_str());
+            if ((ProgramOptions::getInstance()->webserver_public_html_folder == "") || !mainDir.exists())
+            {
+                this->send404();
+                return;
+            }
+            QFile file(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
+            QDir dir(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
+            
+            //Wenn die Datei existiert, und alle sie lesen dürfen (nicht nur
+            //    Benutzer oder Gruppe): Datei senden. Sonst: 404 Not found.
+            if ((!dir.exists()) && file.exists() && (file.permissions() & QFile::ReadOther))
+            {
+                std::cerr << "serving file: \"" << file.fileName() << "\"" << std::endl;
+                this->sendFile(file);
+            }
+            else
+            {
+                if (dir.exists())
+                    std::cerr << "file is a directory: \"" << file.fileName() << "\". Not serving." << std::endl;
+                else if (!file.exists())
+                    std::cerr << "file not found: \"" << file.fileName() << "\". Not serving." << std::endl;
+                else if (file.permissions() & QFile::ReadOther)
+                    std::cerr << "file does not have read permissions for everybody: \"" << file.fileName() << "\". Not serving." << std::endl;
+                
+                //In jedem Fall: 404 senden.
+                this->send404();
+            }
+            return;
+        }
+        else
+        {   //Dateien ausliefern durch Einstellungen verboten: Nicht ausliefern.
+            std::cerr << "webserver configured not to serve files." << std::endl;
             this->send404();
             return;
         }
-        QFile file(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
-        QDir dir(QString(ProgramOptions::getInstance()->webserver_public_html_folder.c_str()) + "/" + _myRequestPath);
-        
-        //Wenn die Datei existiert, und alle sie lesen dürfen (nicht nur
-        //    Benutzer oder Gruppe): Datei senden. Sonst: 404 Not found.
-        if ((!dir.exists()) && file.exists() && (file.permissions() & QFile::ReadOther))
-        {
-            std::cerr << "serving file: \"" << file.fileName() << "\"" << std::endl;
-            this->sendFile(file);
-        }
-        else
-        {
-            if (dir.exists())
-                std::cerr << "file is a directory: \"" << file.fileName() << "\". Not serving." << std::endl;
-            else if (!file.exists())
-                std::cerr << "file not found: \"" << file.fileName() << "\". Not serving." << std::endl;
-            else if (file.permissions() & QFile::ReadOther)
-                std::cerr << "file does not have read permissions for everybody: \"" << file.fileName() << "\". Not serving." << std::endl;
-            
-            //In jedem Fall: 404 senden.
-            this->send404();
-        }
-        return;
     }
     else
     {
@@ -550,9 +559,9 @@ void BikerHttpRequestProcessor::processRequest()
             //altitudeProvider.reset(new ZeroAltitudeProvider());
             
             //Routingmetrik festlegen anhand der Benutzerwahl
-            if ((routeModifier == "euclidian"))
+            if ((routeModifier == "euclidean"))
             {
-                metric.reset(new EuclidianRoutingMetric(altitudeProvider));
+                metric.reset(new EuclideanRoutingMetric(altitudeProvider));
             }
             else if ((routeModifier == "simpleheight") || (routeModifier == "shortest"))
             {
@@ -627,9 +636,9 @@ void BikerHttpRequestProcessor::processRequest()
         }
         else if (routeType == "foot")
         {
-            if ((routeModifier == "euclidian") || (routeModifier == "") || (routeModifier == "shortest") || (routeModifier == "fastest"))
+            if ((routeModifier == "euclidean") || (routeModifier == "") || (routeModifier == "shortest") || (routeModifier == "fastest"))
             {
-                metric.reset(new EuclidianRoutingMetric(altitudeProvider));
+                metric.reset(new EuclideanRoutingMetric(altitudeProvider));
             }
         }
         else

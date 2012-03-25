@@ -8,13 +8,13 @@ RoutingMetric::~RoutingMetric()
 }
 
 
-double EuclidianRoutingMetric::rateEdge(const RoutingEdge &edge, const RoutingNode &startNode, const RoutingNode &endNode)
+double EuclideanRoutingMetric::rateEdge(const RoutingEdge &edge, const RoutingNode &startNode, const RoutingNode &endNode)
 {
     return startNode.calcDistance(endNode);
 }
 
 
-double EuclidianRoutingMetric::timeEdge(const RoutingEdge &edge, const RoutingNode &startNode, const RoutingNode &endNode)
+double EuclideanRoutingMetric::timeEdge(const RoutingEdge &edge, const RoutingNode &startNode, const RoutingNode &endNode)
 {
     //Rechne mit 5m/s Fahrgeschwindigkeit
     return this->rateEdge(edge, startNode, endNode) / 5.0;
@@ -209,7 +209,7 @@ namespace biker_tests
         RoutingEdge edge(5, 1, 2);
         boost::shared_ptr<AltitudeProvider> srtmProvider(new SRTMProvider());
         boost::shared_ptr<AltitudeProvider> zeroProvider(new ZeroAltitudeProvider());
-        EuclidianRoutingMetric erm;
+        EuclideanRoutingMetric erm;
         CHECK_EQ(erm.rateEdge(edge, startNode, endNode), startNode.calcDistance(endNode));
         
         SimpleHeightRoutingMetric shrm1(zeroProvider, 100.0);
