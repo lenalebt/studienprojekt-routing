@@ -308,7 +308,7 @@ public:
     void setCyclewayType(const boost::uint8_t cyclewayType) {_properties.cyclewayType = cyclewayType;}
     /**
      * @brief Legt den Typ des Straßenbelags fest
-     * @param streetsurfaceType Der Typ des STraßenbelags
+     * @param streetSurfaceType Der Typ des STraßenbelags
      */
     void setStreetSurfaceType(const boost::uint8_t streetSurfaceType) {_properties.streetSurfaceType = streetSurfaceType;}
     /**

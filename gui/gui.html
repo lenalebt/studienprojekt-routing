@@ -7,24 +7,26 @@
     <title>Biker - a bike route planner</title>
     <link rel="stylesheet" href="openlayers/theme/default/style.css" type="text/css">
     <link rel="stylesheet" href="style.css" type="text/css">
-
     <!--<script src="openlayers/OpenLayers.js"></script>-->
     <script src="http://openlayers.org/api/OpenLayers.js"></script> 
     <script type="text/javascript">
         // Initalisierung der zugreifbaren Variablen 
-        var routeLayer = "";
-        //var 
         var xmlHttp = null;
         var thisLink = "";
         var settingsShown = 0;
+        // Listen für die hinzugefügten Marker
         var pointlist = [];
         var markerlist = [];
         var lastmarker = [];
+        // allgemeine Angaben für die Marker, wie z.B.: Größe
         var iconSizeLarge = new OpenLayers.Size(20, 20);
         var iconSize = new OpenLayers.Size(15, 15);
         var iconOffset = new OpenLayers.Pixel(-(iconSize.w/2), - iconSize.h);
+        // Layervariableln
+        var routeLayer = "";
         var map, layer, gpxlayer;
-        // Initalisierung der Marker
+        var markers = new OpenLayers.Layer.Markers( "Markers" );
+        // Initalisierung der Marker (in der Endgültigen Version werden nicht alle verwendet)
         var markerStart = new OpenLayers.Icon("img/marker-green.png", iconSizeLarge, iconOffset);
         var markerEnd = new OpenLayers.Icon("img/marker-red.png", iconSizeLarge, iconOffset);
         var markerInBetween = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
@@ -34,7 +36,7 @@
         var markerGreen = new OpenLayers.Icon("img/marker-green.png", iconSize, iconOffset);
         var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
         var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
-        var markers = new OpenLayers.Layer.Markers( "Markers" );
+        // Event Handler: es sollen nur Ereignisse ausgefügt werden, wenn man einmal mit der Maus auf die Kerte klickt 
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
                     'single': true,
@@ -43,7 +45,6 @@
                     'stopSingle': false,
                     'stopDouble': false
                 },
-
                 initialize: function(options) {
                     this.handlerOptions = OpenLayers.Util.extend(
                         {}, this.defaultHandlerOptions
@@ -57,7 +58,7 @@
                         }, this.handlerOptions
                     );
                 }, 
-
+                // Ausrechnung der Position des Klickens und Umformstierung 
                 trigger: function(e) {
                     var lonlat = map.getLonLatFromViewPortPx(e.xy);
                     lonlat.transform(new OpenLayers.Projection("EPSG:900913"), new OpenLayers.Projection("EPSG:4326"));
@@ -66,12 +67,11 @@
                     markerlist[markerlist.length] = lonlatSimple;
                     calcRouteJson();
                 }
-
             });
          // Initalisurungs Funktion      
         function init(){
             var geolocate = new OpenLayers.Control.Geolocate({id: 'locate-control', geolocationOptions: {enableHighAccuracy: false, maximumAge: 0, timeout: 7000}});
-            
+            // Maplayer wird initialisiert und mit Kontroll-/Steuerungsbuttons versehen
             map = new OpenLayers.Map('map',
                 {controls:[new OpenLayers.Control.ArgParser,
                 new OpenLayers.Control.Attribution,
@@ -89,6 +89,7 @@
                 numZoomLevels:20,
                 displayProjection:new OpenLayers.Projection("EPSG:4326")
                 });
+            // Auswahl verschiedener Karten wird ermöglicht + Auf die Karten verwiesen
             var osm=new OpenLayers.Layer.OSM(
                 "OSM Mapnik",
                 ["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
@@ -232,7 +233,7 @@
                 // used to be {type: G_SATELLITE_MAP, numZoomLevels: 22}
             );
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
-            
+            // verschiedene LAyer werden der Map hizugefügt und die Positionsbestimmung des Benutzers ermöglicht
             map.addLayer(markers);
             map.setCenter(
                 new OpenLayers.LonLat(7.2662, 51.447).transform(
@@ -248,17 +249,19 @@
         // Funktion zum Anzeigen der JSON-Datei
         function displayJSON(jsonfile)
         {
+            // eine LeereDatei braucht nicht angezeigt und bearbeitet zu werden
             if (jsonfile == "")
             {
                 return;
             }
-            xmlHttp.open('GET', jsonfile, false);
+            xmlHttp.open('GET', jsonfile, true);
             //xmlHttp.send();
             //xmlHttp.readyState = 4;
             xmlHttp.onreadystatechange = function () {
                 if (xmlHttp.readyState==4) {
                     var jsonRoute = JSON.parse(xmlHttp.responseText);
                     if (jsonRoute) {
+                        // Die Zeit und Entfernungs Elemente der GUI werden mit Werten aus der JSON Datei gefüllt
                         document.getElementById("time").innerHTML = Math.round(jsonRoute.route_summary.total_time/60.0) + " min";
                         document.getElementById("distance").innerHTML = Math.round(jsonRoute.route_summary.total_distance)/1000.0 + " km";
                         var points = [];
@@ -305,10 +308,11 @@
         // Funktion zum (neu-)Setzen der Marker
         function setMarkers()
         {
+                // zerstörung der bisherigen Markers Variable und Neuinitialisierung
                 markers.destroy();
                 markers = new OpenLayers.Layer.Markers( "Markers" );
                 map.addLayer(markers);
-                var iconindex;
+                // Hilfsvariable
                 var help = 0;
                 for(var index = 0; index < markerlist.length; index ++)
                 {
@@ -349,6 +353,7 @@
         // Funktion, die die Werte an den Server weitergibt (via GPX)
         function calcRoute()
         {
+            // Zusammenstellung der URL
             var urlstart = "../1341253652/api/0.3/";
             var urlend = "/" + getCheckedRoutingMetric() + ".gpx";
             var url = "";
@@ -400,15 +405,13 @@
         // Ausgabe über den "About" Button
         function about()
         {
-            //TODO : Erklärung überarberarbeiten
             // anmerkung: leider kann man den Titel des Fensters nicht bearbeiten
-            alert("Erklärung hier hin vielleicht? Google-Karten kann man evtl nutzen, steht <a href="+"http://code.google.com/intl/de-DE/apis/maps/documentation/javascript/"+">hier</a>;<br>" 
-           + "MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="+"http://www.mapquest.com/"+">guckst du</a>)<br>"
-        + "Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>");
+            alert("Over the course of the winter semestre 2011/2012, five students created this application: Lena Brüder, Sebastian Köhlert, Claudia Rudolph, Thorsten Scheller and Pia Triebel");
         }
         // Funktion zum Reseten der Route (GPX)
         function resetRoute()
         {
+            // Listen werden neu initialisiert und Route neu berechnet
             lastmarker = [];
             markerlist = [];
             pointlist = [];
@@ -417,46 +420,60 @@
         // Funktion zum Reseten der Route (JSON)
         function resetRouteJSON()
         {
+            // Listen werden neu initialisiert
             lastmarker = [];
             markerlist = [];
             pointlist = [];
+            // RouteLayer wird entfernt und neu initalisiert
             map.removeLayer(routeLayer);
             routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
             map.addLayer(routeLayer);
+            // Route wird neu berechnet
             calcRouteJson();
+            // da es keine Wegpunkte oder Marker aktuell gibt ist die Distanz zwischen diesen Null, ebenso die Zeit
             document.getElementById("time").innerHTML = "0 min";
             document.getElementById("distance").innerHTML = "0.0 km";
         }
         // Funktion zum Entfernen des letzten Elements (GPX-Modus)
         function removeLastElement()
         {
+            // wenn mindestens ein Element vorhanden ist
             if(pointlist.length >= 1)
             {
+                // entfernen des jeweils zuletzt eingefügten Elements
                 lastmarker.splice(lastmarker.length - 1, 1);
                 markerlist.splice(markerlist.length - 1 , 1);
                 pointlist.splice(pointlist.length -1, 1);
+                // Neuberechnung der Route
                 calcRoute();
             }
         }
         // Funktion zum Entfernen des letzten Elements (JSON)
         function removeLastElementJSON()
         {
+            // Wenn es mind. noch zwei Elemente gibt
             if(pointlist.length > 2)
             {
+                // entfernen des jeweils zuletzt eingefügten Elements
                 lastmarker.splice(lastmarker.length - 1, 1);
                 markerlist.splice(markerlist.length - 1 , 1);
                 pointlist.splice(pointlist.length -1, 1);
+                // Neuberechnung der Route
                 calcRouteJson();
             }
-            else
+            else //sonst
             {
+                // entfernen des jeweils zuletzt eingefügten Elements
                 lastmarker.splice(lastmarker.length - 1, 1);
                 markerlist.splice(markerlist.length - 1 , 1);
                 pointlist.splice(pointlist.length -1, 1);
+                // RouteLayer wird entfernt und neu initalisiert
                 map.removeLayer(routeLayer);
                 routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
                 map.addLayer(routeLayer);
+                // Route wird neu berechnet
                 calcRouteJson();
+                // falls nur noch ein Punkt sich in der Route befindet hat er keine Distanz/Zeit mehr
                 if(pointlist.length == 1)
                 {
                     document.getElementById("time").innerHTML = "0 min";
@@ -472,13 +489,14 @@
         // Funktion zeigt oder verbirgt die Setting-Abschnitte
         function setSettings()
         {
+            // wenn aktuell keine Einstellungen dargestellt werden, werden sie dargestellt
             if(settingsShown == 0)
             {
                 settingsShown = 1;
                 document.getElementById("mainSettings").style.visibility = "visible";
                 clickMetric();
             }
-            else
+            else // sonst werden sie alle versteckt
             {
                 settingsShown = 0;
                 document.getElementById("mainSettings").style.visibility = "hidden";
@@ -491,8 +509,10 @@
         // Funktion zum umkehren der Route
         function reverseRouteJson()
         {
+            // Listen werden umgedreht
             pointlist.reverse();
             markerlist.reverse();
+            // Marker werden neugesetzt und Route neu berechnet
             setMarkers();
             calcRouteJson();
         }
@@ -518,7 +538,7 @@
                 }
             }
         }
-        //
+        // Funktion zum Abfragen, welcher Hlatungskorrekturfaktor gewählt wurde
         function getCheckedHaltungskorrekturfaktor()
         {
             for(i=0; i<document.routingmetricbikers.bikers.length; i++)
@@ -529,7 +549,7 @@
                 }
             }
         }
-        // Funktion schaltet je nach Metrik die Formulare auf Sichtbar / Unsichtbar
+        // Funktion schaltet je nach Metrik die entsprechenden Formulare auf Sichtbar / Unsichtbar
         function clickMetric()
         {
             var help = getCheckedRoutingMetric();
@@ -562,11 +582,13 @@
                 document.getElementById("settingsBikers").style.visibility = "visible";
             }
         }
-        //
     </script>
   </head>
+  <!-- beim Aufruf der HTML-Seite wird die Javaskript init() Funktion ausgeführt -->
   <body onload="init()">
+    <!-- Div für die Karte -->
     <div id="map" class="smallmap"></div>
+    <!-- Div für die Button Leiste -->
     <div id= "controlButton">
         <button id="b1" type="reset" onclick="resetRouteJSON()">Reset</button>
         <button id="b2" type="reset" onclick="removeLastElementJSON()">Remove Last Marker</button>
@@ -577,6 +599,7 @@
         <button id="b4" type="button" onclick="about()">About</button>
     </div>
     <div id = "mainSettings">
+    <!-- Algorithmenauswahl per Radiobutton -->
     <div id ="radioAlgorithm">
         <form name="algorithm">
             <table>
@@ -589,6 +612,7 @@
             </table>
         </form>
     </div>
+    <!-- Metrikauswahl per Radiobutton -->
     <div id = "radioRoutingmetric">
         <form name="routingmetric">
             <table>
@@ -602,6 +626,7 @@
         </form>
     </div>
     </div>
+    <!-- Feineinstellungen für die Leistungsmetrik -->
     <div id="settingsPowermetric">
         <form name="routingmetricsettings">
             <table>
@@ -609,7 +634,7 @@
                 <tr><td>Maximum Power (in Watt):</td></tr>
                 <tr><td><input name="maxpower" type="text" value="150.0" size="15"></td></tr>
                 <tr><td>Minimum Speed (in km/h):</td></tr>
-                <tr><td><input name="minspeed" type="text" value="12.0" size="15"></td></tr>
+                <tr><td><input name="minspeed" type="text" value="7.0" size="15"></td></tr>
                 <tr><td>Weight (in kg, incl. Bike):</td></tr>
                 <tr><td><input name="weight" type="text" value="90.0" size="15"></td></tr>
                 <tr><td>Walk Speed (in km/h):</td></tr>
@@ -617,15 +642,17 @@
             </table>
         </form>
     </div>
+    <!-- Feineinstellungen für die einfache Höhenvermeidung -->
     <div id="settingsSimpleheight">
         <form name="routingmetricsimpleheightsettings">
             <table>
                 <tr><td>Settings: </td></tr>
                 <tr><td>Detour / Altitude:</td></tr>
-                <tr><td><input name="adddistance" type="text" value="10.0" size="15"></td></tr>
+                <tr><td><input name="adddistance" type="text" value="100.0" size="15"></td></tr>
             </table>
         </form>
     </div>
+    <!-- Haltungskorrekturfaktorauswahl per Radiobutton -->
     <div id="settingsBikers">
         <form name="routingmetricbikers">
             <table>
@@ -647,6 +674,7 @@
             </table>
         </form>
     </div>
+    <!-- Anzeigefeld für Distanz und Zeit -->
     <div id="display">
         <table>
             <tr><td>Distance</td></tr> 

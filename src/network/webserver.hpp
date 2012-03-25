@@ -22,14 +22,14 @@
  * 
  * @section webserver_why Warum wurde ein Webserver in das Programm integriert?
  * Der integrierte Webserver hat vor allem Vorteile für Benutzer, die nicht
- * sehr erfahren mit der Einrichtung eines Webservers haben. Dies sind
+ * sehr erfahren mit der Einrichtung eines Webservers sind. Dies sind
  * für einen normalen PC-Benutzer keine Standardkenntnisse. Ziel war, das
  * Starten des Programms möglichst einfach zu gestalten. Im Idealfall
  * ist nur nötig, nach der Installation des Programms eine Datenbank
  * herunterzuladen (<code>->database.db</code>),
  * das Programm mittels <code>biker</code> zu starten,
  * und einen Webbrowser auf die Adresse
- * <code>http://localhost:8080/files/gui.html</code> zu leiten.
+ * <a href="http://localhost:8080/files/gui.html">http://localhost:8080/files/gui.html</a> zu leiten.
  * 
  * Da das Programm vor allem auch lokal funktionieren soll, und nicht nur
  * als Serverdienst auf einem entfernten Rechner, ist ein integrierter
@@ -59,6 +59,9 @@ http://server/files/
  * Dabei bezeichnet <code>server</code> die Serveradresse, wie in
  * \ref benutzung_gui beschrieben.
  * 
+ * @todo Das stimmt nicht, es ist relativ zum aktuellen Verzeichnis des Benutzers,
+ *      sollte aber besser noch geändert werden auf relativ zum Arbeitsverzeichnis.
+ * 
  * Es werden aus Sicherheitsgründen nicht einfach alle Dateien ausgeliefert,
  * näheres ist in \ref webserver_security.
  * 
@@ -74,9 +77,10 @@ http://server/files/
  * beschrieben ist. Dennoch gibt es ein paar Unterschiede, die in \ref webserver_functions_routes_cloudmade_differences
  * beschrieben werden.
  * 
- * @code
- * http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,[transit_point1,...,transit_pointN],end_point/route_type[/route_type_modifier].output_format[?algorithm=value&parameter=value]
- * @endcode
+ * @verbatim
+http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,[transit_point1,...,transit_pointN],end_point/route_type[/route_type_modifier].output_format[?algorithm=value&parameter=value]
+@endverbatim
+ * @todo Diese URL wird noch nicht richtig nach Latex übersetzt und stoppt den Latex-Übersetzungsprozess!
  * 
  * <table>
  *  <tr><th>Befehlsteil</th><th>Funktion</th></tr>
@@ -88,30 +92,91 @@ http://server/files/
  *  <tr><td><code>transit_pointN</code></td><td>Ein Zwischenpunkt in der Route, Format wie bei <code>start_point</code>. Transitpunkte werden durch Komma getrennt,
  *      alle Transitpunkte werden in eckige Klammern eingeschlossen. Beispiel: <code>[51.0,7.2,51.2,7.3]</code></td></tr>
  *  <tr><td><code>end_point</code></td><td>Der Endpunkt, Format wie bei <code>start_point</code>.</td></tr>
- *  <tr><td><code>output_format</code></td><td>Das Ausgabeformat der Route. Hier ist erlaubt: <code>js</code>,<code>gpx</code></td></tr>
+ *  <tr><td><code>output_format</code></td><td>Das Ausgabeformat der Route. Hier ist erlaubt: <code>js</code>, <code>gpx</code></td></tr>
  *  <tr><td><code>route_type</code></td><td>Typ der Route. Hier ist vornehmlich <code>bike</code>
  *      oder <code>bicycle</code> vorgesehen, aber auch <code>foot</code> und <code>car</code> ist
  *      möglich. Dabei werden die letztgenannten Typen eher stiefmütterlich behandelt, es sollten keine
  *      allzu großen Erwartungen an sie gestellt werden. Hier ist die Cloudmade-API wesentlich besser geeignet.</td></tr>
  *  <tr><td><code>route_modifier</code></td><td>Muss nicht angegeben werden, wird nur bei Routen vom Typ <code>bike</code> oder <code>bicycle</code>
  *      beachtet und sonst ignoriert. Mögliche Werte: <code>power</code>, <code>simpleheight</code>, <code>advancedheight</code>, <code>euclidian</code>.
- *      Es ist möglich, dass sich die Liste der erlaubten Metriken erweitert.</td></tr>
+ *      Es ist möglich, dass sich die Liste der erlaubten Metriken erweitert. Die Metriken sind weiter unten genauer erklärt.</td></tr>
  *  <tr><td><code>algorithm=value</code></td><td>Hier wird der zur Berechnung verwendete Algorithmus angegeben.
  *      Mögliche Werte: <code>standard</code> wählt abhängig von der verwendeten Metrik einen geeigneten Algorithmus aus.
  *      <table>
-     *      <tr><td><code>dijkstra</code></td><td>wählt den Algorithmus von Dijkstra.</td></tr>
-     *      <tr><td><code>astar</code></td><td>wählt den A*-Algorithmus.</td></tr>
-     *      <tr><td><code>multithreadeddijkstra</code></td><td>wählt eine Version von Dijkstra, die mit 2 Threads arbeitet. Auf geeigneter Hardware (>2 Prozessoren, viel RAM für Datenbankcaching)
-     *      etwa 4x schneller als Dijkstra - auf weniger gut geeigneter Hardware (1 Prozessor, wenig Speicher, langsame Festplatte) immerhin noch 2x schneller.</td></tr>
-     *      <tr><td><code>multithreadedastar</code></td><td>wählt eine Version von A*, die mit 2 Threads arbeitet.</td></tr>
+ *          <tr><th>value</th><th>Erklärung</th></tr>
+ *          <tr><td><code>dijkstra</code></td><td>wählt den Algorithmus von Dijkstra.</td></tr>
+ *          <tr><td><code>astar</code></td><td>wählt den A*-Algorithmus.</td></tr>
+ *          <tr><td><code>multithreadeddijkstra</code></td><td>wählt eine Version von Dijkstra, die mit 2 Threads arbeitet. Auf geeigneter Hardware (>2 Prozessoren, viel RAM für Datenbankcaching)
+ *          etwa 4x schneller als Dijkstra - auf weniger gut geeigneter Hardware (1 Prozessor, wenig Speicher, langsame Festplatte) immerhin noch 2x schneller.</td></tr>
+ *          <tr><td><code>multithreadedastar</code></td><td>wählt eine Version von A*, die mit 2 Threads arbeitet.</td></tr>
  *      </table>
  *      </td></tr>
  *  <tr><td><code>parameter=value</code></td><td>Diese Parameter sind abhängig von der Routingmetrik und bei der entsprechenden Metrik erklärt.</td></tr>
  * </table>
  * 
- * @todo Auf die Parameter der einzelnen Routingmetriken eingehen!
+ * @subsubsection routingmetric_power Leistungsmetrik (power)
+ * <table>
+ *  <tr><th>Parametername</th><th>Erklärung</th></tr>
+ *  <tr><td>maxpower</td><td>Gibt die maximale Leistung in Watt an, die der Radfahrer aufbringen kann. Ein guter Wert ist das Körpergewicht, multipliziert mit 2.
+ *      Der Standardwert ist <code>150.0</code>, wenn der Parameter nicht angegeben wird, wird davon ausgegangen.</td></tr>
+ *  <tr><td>maxspeed</td><td>Die maximale Geschwindigkeit, mit der der Fahrer fahren wird, in m/s. Dies begrenzt effektiv die Leistung im Flachland
+ *      und ist vor allem im Zusammenhang mit Pedelecs praktisch, denn diese begrenzen die Geschwindigkeit auf 25km/h, haben aber
+ *      prinzipiell mehr Leistung zur Verfügung. Wird dieser Wert nicht angegeben, wird der Wert aus der Maximalleistung berechnet.</td></tr>
+ *  <tr><td>minspeed</td><td>Die Geschwindigkeit, ab der der Radfahrer lieber absteigt und schiebt, als weiter zu fahren. Der Wert
+ *      ist in m/s an den Server zu übergeben. Wird er nicht angegeben, wird mit <code>0.5</code> gerechnet.</td></tr>
+ *  <tr><td>weight</td><td>Das Gewicht des Fahrers in kg, einschließlich des Fahrrades und Gepäck. Wird kein Wert übergeben, wird von <code>90.0</code>
+ *      ausgegangen.</td></tr>
+ *  <tr><td>pushbikespeed</td><td>Die Geschwindigkeit, mit der der Fahrer sein Rad schiebt, in m/s. Wird dieser Wert heruntergesetzt, wird das Schieben
+ *      stärker vermieden - weil es dann teurer ist. Standardwert ist <code>2.5</code>.</td></tr>
+ *  <tr><td>haltungskorrekturfaktor</td><td>Dieser Faktor gibt an, wie aufrecht der Radfahrer auf seinem Fahrrad sitzt. Der Wert beeinflusst die
+ *      Berechnung des Luftwiderstands, und damit hauptsächlich die Berechnung der Zeit.
+ *      Geordnet von viel zu wenig Luftwiderstand sind folgende Werte praxistauglich:
+ *      <code>0.5</code>, <code>0.4</code>, <code>0.3</code>, <code>0.25</code>. Standardwert ist <code>0.4</code>.</td></tr>
+ * </table>
+ * @subsubsection routingmetric_simpleheight einfache Höhenvermeidung (simpleheight)
+ * Diese Metrik bestraft jeden gefahrenen Höhenmeter mit einem bestimmten Faktor. Dabei
+ * ist es egal, ob der Höhenmeter als Anstieg, oder als Abstieg gefahren wird.
+ * <table>
+ *  <tr><th>Parametername</th><th>Erklärung</th></tr>
+ *  <tr><td>detourperheightmeter</td><td>Bestrafung pro gefahrenem Höhenmeter, in Metern.
+ *          Diese Bestrafung wird einfach zu der Entfernung hinzugerechnet, die 2 Punkte voneinander haben.
+ *          Ein guter Wert für die Praxis ist <code>100.0</code>, was 100m entspricht.
+ *          Wird der Parameter nicht angegeben, wird von <code>100.0</code> ausgegangen.</td></tr>
+ * </table>
+ * 
+ * @subsubsection routingmetric_advancedheight erweiterte Höhenvermeidung (advancedheight)
+ * Diese Metrik funktioniert genau wie die \ref routingmetric_simpleheight, jedoch
+ * bestraft sie nur Anstiege, und nicht alle Höhenänderungen. Die Parameter sind identisch.
+ * 
+ * @subsubsection routingmetric_euclidian einfache Entfernungsmetrik (euclidian)
+ * Diese Metrik hat keine Parameter. Sie bezieht lediglich die reine Entfernung
+ * von Punkten in die Berechnung ein und ist damit für Fahrräder denkbar ungeeignet.
+ * Sie ist hauptsächlich für einfache Tests vorhanden, und kann sich möglicherweise
+ * für Fußgängerrouting eignen. Allerdings werden die Eigenschaften der Straße
+ * überhaupt nicht beachtet. Da Autobahnen und autobahnähnliche Straßen nicht
+ * in die Datenbank mit aufgenommen werden, werden wahrscheinlich nicht zu viele
+ * Fehler gemacht - man sollte jedoch im Kopf behalten, dass diese Metrik nur für
+ * Testzwecke gedacht ist.
+ * 
  * @subsubsection webserver_functions_routes_cloudmade_differences Unterschiede zur Cloudmade-API
- * @todo Die Unterschiede hinschreiben (z.B. Callbackfunktion, Einheiten, Sprache)
+ * Dieser Absatz bezieht sich sehr stark auf die API des Cloudmade-Routingservices. Es ist sinnvoll,
+ * zusätzlich die <a href="http://developers.cloudmade.com/wiki/routing-http-api/Documentation">Cloudmade Routing API Documentation</a>
+ * zu öffnen.
+ * 
+ * - Es existiert keine Unterstützung für JSON-Callback-Funktionen.
+ * 
+ * - Es wird keine Routenbeschreibung ausgegeben, entsprechend hat das Setzen des <code>lang</code>-
+ *      Parameters keinen Einfluss. Es schadet nicht, ihn anzugeben, er wird allerdings auch nicht beachtet.
+ * 
+ * - Alle Angaben sind immer im metrischen System gemacht. Die Angabe von <code>units</code>
+ *      hat keinen Einfluss.
+ * 
+ * - Die Angaben <code>shortest</code> und <code>fastest</code> für den <code>route_modifier</code>
+ *      werden unterstützt, jedoch anders interpretiert. Für den <code>route_type</code>
+ *      <code>foot</code> wird jeweils die Metrik <code>euclidian</code> ausgewählt. Bei
+ *      <code>bike</code> wird für <code>fastest</code> <code>power</code>, und für
+ *      <code>shortest</code> <code>simpleheight</code> ausgewählt, jeweils mit den angebenenen
+ *      Parametern bzw. ihren Standardwerten..
  * 
  * @subsection webserver_security Sicherheitsfeatures
  * Da ein Webserver, der einfach alle Dateien eines Ordners ausliefern kann, ein

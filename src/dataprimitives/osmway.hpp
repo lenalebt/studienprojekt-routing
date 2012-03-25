@@ -61,7 +61,7 @@ public:
     OSMWay(boost::uint64_t wayID, QVector<boost::uint64_t> memberIDList, QVector<OSMProperty> propList) : wayID(wayID), memberIDList(memberIDList), properties(propList) {};
     /**
      * @brief Gibt die ID des Ways zurück.
-     * @param wayID Die ID des Ways.
+     * @return Die ID des Ways.
      */
     boost::uint64_t getWayID() const {return wayID;}
     /**

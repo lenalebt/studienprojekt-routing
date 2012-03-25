@@ -10,7 +10,10 @@
  * @brief Hier werden alle Klassen und Funktionen und Dateien abgelegt,
  *      die für das Testen der Anwendung zuständig sind.
  * 
- * @subsection usage_testframework Verwendung des Testframeworks
+ * Mehr Informationen findet sich auf der Seite \ref usage_testframework_page.
+ * 
+ * @page usage_testframework_page Verwendung des Testframeworks
+ * @section usage_testframework Verwendung des Testframeworks
  * 
  * Das Testframework besteht hauptsächlich aus den 3 Makros
  * <code>CHECK</code>, <code>CHECK_EQ</code> und <code>CHECK_EQ_TYPE</code>.
@@ -118,6 +121,7 @@ beispieltest.cpp:17: false == true?                                             
  * Es bietet sich an, die Testfunktionen im Namespace biker_tests abzulegen.
  * Dies ist nicht zwingend nötig.
  * 
+ * @author Lena Brüder
  */
 
 /**

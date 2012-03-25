@@ -130,12 +130,13 @@ public:
      * @brief Diese Funktion exportiert die Route in das GPX-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
      * @param filename Name unter der die GPX-Datei gespeichert werden soll
+     * @param provider Der Höhenprovider, der für die Ausgabe der Höhenwerte verwendet werden soll
      */
     void exportGPX(const QString filename, boost::shared_ptr<AltitudeProvider> provider = boost::shared_ptr<AltitudeProvider>());//, GPSRoute& route);
     /**
      * @brief Diese Funktion exportiert die Route in einen QString mit  GPX-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
-     * @param route die Route, die ausgegeben werden soll
+     * @param provider Der Höhenprovider, der für die Ausgabe der Höhenwerte verwendet werden soll
      */
     QString exportGPXString(boost::shared_ptr<AltitudeProvider> provider = boost::shared_ptr<AltitudeProvider>());//(GPSRoute& route);
 
@@ -143,13 +144,11 @@ public:
      * @brief Diese Funktion exportiert die Route in das JSON-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
      * @param filename Name unter der die JSON-Datei gespeichert werden soll
-     * @param route die Route, die ausgegeben werden soll
      */
     void exportJSON(const QString filename);//, GPSRoute& route);
     /**
      * @brief Diese Funktion exportiert die Route in einen QString mit  JSON-Format, sodass sie
      * von anderen Applikationen benutzt werden kann.
-     * @param route die Route, die ausgegeben werden soll
      */
     QString exportJSONString();//GPSRoute& route);
 
