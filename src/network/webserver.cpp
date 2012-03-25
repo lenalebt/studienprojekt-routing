@@ -180,8 +180,15 @@ bool HttpRequestProcessor::sendFile(QFile& file)
             //64KB-Häppchen der Datei lesen und versenden
             bytesRead = file.read(data, 65536);
             if (bytesRead != -1)
+            {
                 bytesWritten = _socket->write(data, bytesRead);
-            _socket->flush();
+                _socket->waitForBytesWritten();
+                _socket->flush();
+                if (bytesRead != bytesWritten)
+                {
+                    std::cerr << "error while sending data" << std::endl;
+                }
+            }
         }
     }
     else
