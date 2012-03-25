@@ -48,7 +48,7 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
         ("webserver-threadpoolsize", po::value<unsigned int>(&(programOptions->webserver_threadpool_size))->default_value(20u), "set maximum thread pool size of webserver")
         ("webserver-no-serve-files", "do not allow serving files")
         ("parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for parser")
-        ("simple-parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for simple parser")
+        ("simple-parse", po::value<std::string>(&(programOptions->osmFilename))->implicit_value("input.osm"), "set filename to parse for simple parser (faster than --parse)")
         ("dbfile", po::value<std::string>(&(programOptions->dbFilename))->default_value("database.db"), "set database filename for database operations")
         #ifdef SPATIALITE_FOUND
             ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->default_value("spatialite"), "set database backend. possible values: spatialite, sqlite.")
@@ -56,9 +56,9 @@ int parseProgramOptions(int argc, char* argv[], boost::shared_ptr<ProgramOptions
             ("dbbackend", po::value<std::string>(&(programOptions->dbBackend))->default_value("sqlite"), "set database backend. possible values: sqlite.")
         #endif
         ("dbcachesize", po::value<unsigned int>(&(programOptions->dbCacheSize))->default_value(500000u), "set database cache size (in bytes per query statement, ~6x)")
-        ("route", po::value<std::string>(&(programOptions->routingStartPointString))->implicit_value("(0/0)"), "set routing startpoint.")
-        ("to", po::value<std::string>(&(programOptions->routingEndPointString))->implicit_value("(0/0)"), "set routing endpoint.")
-        ("json-output", "create routes as JSON instead of GPX.")
+        ("route", po::value<std::string>(&(programOptions->routingStartPointString))->implicit_value("(0/0)"), "set routing startpoint. this option allows for routing without starting a webserver. at the moment, it is not possible to change the routing metric or its options.")
+        ("to", po::value<std::string>(&(programOptions->routingEndPointString))->implicit_value("(0/0)"), "set routing endpoint. (see --route)")
+        ("json-output", "create routes as JSON instead of GPX. (see --route)")
         ;
     
     po::variables_map vm;
