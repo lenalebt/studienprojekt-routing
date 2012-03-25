@@ -407,15 +407,15 @@ private:
         }
         if (edge.hasTrafficCalmingBumps())
         {
-            timePunishment += 8.0;
+            timePunishment += 12.0;
         }
         if (edge.hasStopSign())
         {
-            timePunishment += 8.0;
+            timePunishment += 10.0;
         }
         if (edge.hasTrafficLights())
         {
-            timePunishment += 10.0;
+            timePunishment += 15.0;
         }
         
         power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
