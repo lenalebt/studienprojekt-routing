@@ -178,7 +178,7 @@ bool HttpRequestProcessor::sendFile(QFile& file)
         while ((file.bytesAvailable() > 0) && (bytesWritten != -1))
         {
             //64KB-Häppchen der Datei lesen und versenden
-            bytesRead = file.read(data, 65536);
+            bytesRead = file.read(data, 1023);
             if (bytesRead != -1)
             {
                 bytesWritten = _socket->write(data, bytesRead);
