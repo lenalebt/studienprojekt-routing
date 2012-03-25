@@ -277,26 +277,13 @@ private:
     double getPower(double speed, double inclination, double surfaceFactor, double haltungskorrekturfaktor, double weight);
     double getSpeed(double power, double inclination, double surfaceFactor, double haltungskorrekturfaktor, double weight);
     void init();
-    
-public:
-    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
-        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5), maxSpeed(-1.0)
+    void getCalculationValues(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode, double& heightDifference, double& distance, double& inclination, double& surfaceFactor, double& streetTypeFactor, double& timePunishment, double& speed, double& power)
     {
-        init();
-    }
-    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed, double haltungskorrekturfaktor, double maxSpeed = -1.0)
-        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(haltungskorrekturfaktor),
-            pushBikeSpeed(pushBikeSpeed), maxSpeed(maxSpeed)
-    {
-        init();
-    }
-    double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
-    {
-        double heightDifference = _altitudeProvider->getAltitude(endNode) - _altitudeProvider->getAltitude(startNode);
+        heightDifference = _altitudeProvider->getAltitude(endNode) - _altitudeProvider->getAltitude(startNode);
         if (heightDifference < 0)
             heightDifference = 0;
-        double distance = startNode.calcDistance(endNode);
-        double inclination = (distance==0) ? 0.0 : heightDifference / distance;
+        distance = startNode.calcDistance(endNode);
+        inclination = (distance==0) ? 0.0 : heightDifference / distance;
         
         /*std::cerr << std::endl << edge << startNode << endNode << std::endl;
         
@@ -305,9 +292,9 @@ public:
         std::cerr << "heightDifference: " << heightDifference << std::endl;*/
         
         //TODO: Faktor anpassen je nach Eigenschaften der Kante
-        double surfaceFactor = 1;
-        double streetTypeFactor = 1;
-        double timePunishment = 0;
+        surfaceFactor = 1;
+        streetTypeFactor = 1;
+        timePunishment = 0;
         switch (edge.getAccess())
         {
             case ACCESS_DESTINATION:
@@ -329,7 +316,7 @@ public:
                                                             {
                                                                 streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.5 : 2.0); break;
                                                             }
-                    case STREETTYPE_HIGHWAY_PEDESTRIAN:     return distance / pushBikeSpeed; break;
+                    case STREETTYPE_HIGHWAY_PEDESTRIAN:     speed = pushBikeSpeed; return; break;
                     case STREETTYPE_HIGHWAY_PRIMARY:        streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.2 : 1.2); break;
                     case STREETTYPE_HIGHWAY_RESIDENTIAL:    streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
                     case STREETTYPE_HIGHWAY_SECONDARY:      streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.15 : 1.15); break;
@@ -341,7 +328,7 @@ public:
                     default:                                streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.8 : 2.5); break;
                 }
                 break;
-            case ACCESS_FOOT_ONLY:          return (distance / pushBikeSpeed); break;
+            case ACCESS_FOOT_ONLY:          speed = pushBikeSpeed; return; break;
             default:                        streetTypeFactor = 100.0;
                                             break;
         }
@@ -430,10 +417,9 @@ public:
             timePunishment += 10.0;
         }
         
-        double power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
+        power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);
         //std::cerr << "power: " << power << std::endl;
         
-        double speed;
         if (power > maxPower)
         {
             //okay, zu viel Leistung: Schiiieben.
@@ -447,20 +433,48 @@ public:
         }
         if (speed > maxSpeed)
             speed = maxSpeed;
-        /*std::cerr << "speed: " << speed << std::endl;
-        
-        //TODO: Besser machen, hier rechne ich mehrmals im Kreis ;)
-        std::cerr << "time1: " << streetTypeFactor * (distance / speed) + timePunishment << "s" << std::endl;
-        std::cerr << "time2: " << (distance / speed) << "s" << std::endl;*/
+        /*std::cerr << "speed: " << speed << std::endl;*/
+    }
+    
+public:
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
+        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5), maxSpeed(-1.0)
+    {
+        init();
+    }
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed, double haltungskorrekturfaktor, double maxSpeed = -1.0)
+        : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(haltungskorrekturfaktor),
+            pushBikeSpeed(pushBikeSpeed), maxSpeed(maxSpeed)
+    {
+        init();
+    }
+    double rateEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
+    {
+        double heightDifference;
+        double distance;
+        double inclination;
+        double surfaceFactor;
+        double streetTypeFactor;
+        double timePunishment;
+        double speed;
+        double power;
+        getCalculationValues(edge, startNode, endNode, heightDifference, distance, inclination, surfaceFactor, streetTypeFactor, timePunishment, speed, power);
+
         return streetTypeFactor * (distance / speed) + timePunishment;
-        //return (distance/speed);
-        
-        //TODO: Vorlieben bei Kanten nach Radweg etc anpassen und hinzufügen
-        
     }
     double timeEdge(const RoutingEdge& edge, const RoutingNode& startNode, const RoutingNode& endNode)
     {
-        return rateEdge(edge, startNode, endNode);
+        double heightDifference;
+        double distance;
+        double inclination;
+        double surfaceFactor;
+        double streetTypeFactor;
+        double timePunishment;
+        double speed;
+        double power;
+        getCalculationValues(edge, startNode, endNode, heightDifference, distance, inclination, surfaceFactor, streetTypeFactor, timePunishment, speed, power);
+        
+        return (distance/speed);
     }
     double estimateDistance(const GPSPosition& p1, const GPSPosition& p2)
     {

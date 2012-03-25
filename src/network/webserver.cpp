@@ -218,9 +218,9 @@ bool HttpRequestProcessor::sendFile(const QString& content)
     _socket->flush();
     QByteArray data = content.toUtf8();
     //std::cerr << "content length: " << data.size() << std::endl;
-    for (int i=0; i<data.size(); i+=128)
+    for (int i=0; i<data.size(); i+=512)
     {
-        _socket->write(data.mid(i, 128));
+        _socket->write(data.mid(i, 512));
         _socket->waitForBytesWritten();
         _socket->flush();
     }
