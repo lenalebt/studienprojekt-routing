@@ -246,6 +246,7 @@ private:
     double haltungskorrekturfaktor;  //Bestimmt, wie aufrecht man sitzt auf dem Rad, realistische Werte:    Oberlenker: 0,5    Bremsgriff: 0.4    Unterlenker: 0.3    Triathlon: 0.25 
     double pushBikeSpeed;    //Geschwindigkeit, wenn das Rad geschoben wird
     double maxSpeed;     //Höchstgeschwindigkeit, errechnet sich aus der zur Verfügung stehenden Leistung
+    double noCyclewayPunishmentFactor;
     
     double*** powerarray;
     double*** speedarray;
@@ -350,7 +351,7 @@ private:
             case CYCLEWAYTYPE_MTB_HIGH:                     streetTypeFactor *= 1.0; break;
             case CYCLEWAYTYPE_NO_CYCLEWAY:
             case CYCLEWAYTYPE_UNKNOWN:
-            default:                                        streetTypeFactor *= 1.5; break;
+            default:                                        streetTypeFactor *= noCyclewayPunishmentFactor; break;
         }
         switch (edge.getStreetSurfaceQuality())
         {
@@ -438,13 +439,13 @@ private:
     
 public:
     PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider)
-        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5), maxSpeed(-1.0)
+        : RoutingMetric(provider), maxPower(350.0), weight(100.0), minSpeed(4.0), haltungskorrekturfaktor(0.5), pushBikeSpeed(0.5), maxSpeed(-1.0), noCyclewayPunishmentFactor(1.5)
     {
         init();
     }
-    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed, double haltungskorrekturfaktor, double maxSpeed = -1.0)
+    PowerRoutingMetric(boost::shared_ptr<AltitudeProvider> provider, double weight, double maxPower, double minSpeed, double pushBikeSpeed, double haltungskorrekturfaktor, double noCyclewayPunishmentFactor, double maxSpeed = -1.0)
         : RoutingMetric(provider), maxPower(maxPower), weight(weight), minSpeed(minSpeed), haltungskorrekturfaktor(haltungskorrekturfaktor),
-            pushBikeSpeed(pushBikeSpeed), maxSpeed(maxSpeed)
+            pushBikeSpeed(pushBikeSpeed), maxSpeed(maxSpeed), noCyclewayPunishmentFactor(noCyclewayPunishmentFactor)
     {
         init();
     }

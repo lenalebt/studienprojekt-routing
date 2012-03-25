@@ -120,20 +120,32 @@ GPSRoute AStarRouter::calculateShortestRoute(const RoutingNode& startNode, const
         if (activeNodeShortID == endNodeShortID)
         {
             boost::uint64_t activeNodeID = activeNodeLongID;
+            boost::uint64_t pred = 0;
             GPSRoute route;
-            if (_metric->getMeasurementUnit() == SECONDS)
-                route.setDuration(nodeCosts[activeNodeLongID]);
-            else
-            {
-                //TODO: Kanten mit Zeit bewerten!
-                route.setDuration(nodeCosts[activeNodeLongID]/4.0);
-            }
+            double duration = 0.0;
+            
             
             while (activeNodeID != 0)
             {
+                if ((pred != 0) && (RoutingNode::convertIDToShortFormat(activeNodeID) != RoutingNode::convertIDToShortFormat(pred)))
+                {
+                    QVector<boost::shared_ptr<RoutingEdge> > edges = _db->getEdgesByStartNodeID(activeNodeID);
+                    boost::shared_ptr<RoutingEdge> rEdge;
+                    for (QVector<boost::shared_ptr<RoutingEdge> >::iterator it = edges.begin(); it != edges.end(); it++)
+                    {
+                        if ((*it)->getEndNodeID() == pred)
+                        {
+                            rEdge = *it;
+                        }
+                    }
+                    duration += _metric->timeEdge(*rEdge, *nodeMap[RoutingNode::convertIDToShortFormat(pred)], *nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
+                }
+                
                 route.insertForward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
+                pred = activeNodeID;
                 activeNodeID = predecessor[activeNodeID];
             }
+            route.setDuration(duration);
             return route;
         }
         else
@@ -272,20 +284,30 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadA(const RoutingNo
         if (closedList->getOverlappingElement() != 0)
         {
             boost::uint64_t activeNodeID = closedList->getOverlappingElement();
+            boost::uint64_t pred = 0;
             GPSRoute route;
-            if (_metric->getMeasurementUnit() == SECONDS)
-                route.setDuration(nodeCosts[activeNodeID]);
-            else
-            {
-                //TODO: Kanten mit Zeit bewerten!
-                route.setDuration(nodeCosts[activeNodeID]/4.0);
-            }
-            
+            double duration = 0.0;
             while (activeNodeID != 0)
             {
+                if ((pred != 0) && (RoutingNode::convertIDToShortFormat(activeNodeID) != RoutingNode::convertIDToShortFormat(pred)))
+                {
+                    QVector<boost::shared_ptr<RoutingEdge> > edges = _db->getEdgesByStartNodeID(activeNodeID);
+                    boost::shared_ptr<RoutingEdge> rEdge;
+                    for (QVector<boost::shared_ptr<RoutingEdge> >::iterator it = edges.begin(); it != edges.end(); it++)
+                    {
+                        if ((*it)->getEndNodeID() == pred)
+                        {
+                            rEdge = *it;
+                        }
+                    }
+                    duration += _metric->timeEdge(*rEdge, *nodeMap[RoutingNode::convertIDToShortFormat(pred)], *nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
+                }
+                
                 route.insertForward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
+                pred = activeNodeID;
                 activeNodeID = predecessor[activeNodeID];
             }
+            route.setDuration(duration);
             return route;
         }
         else
@@ -411,20 +433,30 @@ GPSRoute MultithreadedAStarRouter::calculateShortestRouteThreadB(const RoutingNo
         if (closedList->getOverlappingElement() != 0)
         {
             boost::uint64_t activeNodeID = closedList->getOverlappingElement();
+            boost::uint64_t succ = 0;
             GPSRoute route;
-            if (_metric->getMeasurementUnit() == SECONDS)
-                route.setDuration(nodeCosts[activeNodeID]);
-            else
-            {
-                //TODO: Kanten mit Zeit bewerten!
-                route.setDuration(nodeCosts[activeNodeID]/4.0);
-            }
-            
+            double duration = 0.0;
             while (activeNodeID != 0)
             {
+                if ((succ != 0) && (RoutingNode::convertIDToShortFormat(activeNodeID) != RoutingNode::convertIDToShortFormat(succ)))
+                {
+                    QVector<boost::shared_ptr<RoutingEdge> > edges = _db->getEdgesByEndNodeID(activeNodeID);
+                    boost::shared_ptr<RoutingEdge> rEdge;
+                    for (QVector<boost::shared_ptr<RoutingEdge> >::iterator it = edges.begin(); it != edges.end(); it++)
+                    {
+                        if ((*it)->getStartNodeID() == succ)
+                        {
+                            rEdge = *it;
+                        }
+                    }
+                    duration += _metric->timeEdge(*rEdge, *nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)], *nodeMap[RoutingNode::convertIDToShortFormat(succ)]);
+                }
+                
                 route.insertBackward(*nodeMap[RoutingNode::convertIDToShortFormat(activeNodeID)]);
+                succ = activeNodeID;
                 activeNodeID = successor[activeNodeID];
             }
+            route.setDuration(duration);
             return route;
         }
         else

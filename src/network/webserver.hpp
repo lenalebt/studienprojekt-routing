@@ -132,6 +132,10 @@ http://yourhostgoeshere:yourportgoeshere/yourapikeygoeshere/api/0.3/start_point,
  *      Berechnung des Luftwiderstands, und damit hauptsächlich die Berechnung der Zeit.
  *      Geordnet von viel zu wenig Luftwiderstand sind folgende Werte praxistauglich:
  *      <code>0.5</code>, <code>0.4</code>, <code>0.3</code>, <code>0.25</code>. Standardwert ist <code>0.4</code>.</td></tr>
+ *  <tr><td>nocyclewaypunishmentfactor</td><td>Gibt an, mit welchem Faktor Wege bestraft werden, die nicht über einen Radweg verfügen (oder
+ *      über die unbekannt ist, ob sie über einen Radweg verfügen). Mit diesem Faktor kann gewählt werden, wie stark Wege vermieden
+ *      werden sollen, die sich mit dem Fahrrad nicht gut befahren lassen. Standardwert ist <code>1.5</code>, es sollte kein Wert kleiner
+ *      <code>1.0</code> gewählt werden.</td></tr>
  * </table>
  * @subsubsection routingmetric_simpleheight einfache Höhenvermeidung (simpleheight)
  * Diese Metrik bestraft jeden gefahrenen Höhenmeter mit einem bestimmten Faktor. Dabei
