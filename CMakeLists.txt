@@ -110,7 +110,6 @@ SET(
     src/database/blockingqueue.cpp
     src/database/spatialitedatabase.cpp
     src/database/sqlitedatabase.cpp
-    src/database/ramdatabase.cpp
     src/database/temporarydatabase.cpp
     src/database/zip.cpp
     src/database/sqlite_functions.cpp
@@ -168,7 +167,6 @@ SET(
     src/database/blockingqueue.hpp
     src/database/spatialitedatabase.hpp
     src/database/sqlitedatabase.hpp
-    src/database/ramdatabase.hpp
     src/database/temporarydatabase.hpp
     src/database/zip.hpp
     src/database/sqlite_functions.hpp
@@ -362,8 +360,6 @@ IF(SPATIALITE_FOUND)
     ADD_TEST(spatialitedatabaseconnection     "biker" "--test" "spatialitedatabaseconnection")
 ENDIF()
 ADD_TEST(sqlitedatabaseconnection         "biker" "--test" "sqlitedatabaseconnection")
-#RAM-Database sollte später mal noch möglich werden
-#ADD_TEST(ramdatabaseconnection            "biker" "--test" "ramdatabaseconnection")
 ADD_TEST(temporaryosmdatabaseconnection   "biker" "--test" "temporaryosmdatabaseconnection")
 ADD_TEST(databaseramcache                 "biker" "--test" "databaseramcache")
 ADD_TEST(blockingqueue                    "biker" "--test" "blockingqueue")

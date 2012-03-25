@@ -36,7 +36,6 @@
 #include "bloomfilter.hpp"
 #include "rangetree.hpp"
 #include "routingmetric.hpp"
-#include "ramdatabase.hpp"
 
 //für EXIT_SUCCESS und EXIT_FAILURE
 #include <boost/program_options.hpp>
