@@ -196,8 +196,6 @@ namespace biker_tests
         #endif
         else if (testName == "sqlitedatabaseconnection")
             return biker_tests::testSQLiteDatabaseConnection();
-        else if (testName == "ramdatabaseconnection")
-            return biker_tests::testRAMDatabaseConnection();
         else if (testName == "temporaryosmdatabaseconnection")
             return biker_tests::testTemporaryOSMDatabaseConnection();
         else if (testName == "databaseramcache")
