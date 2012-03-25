@@ -95,6 +95,7 @@ bool DataPreprocessing::preprocess()
     int wayCount=0;
     while(_wayQueue.dequeue(_osmWay))
     {
+        //TODO: in categorize verschieben
         //edges aus way extrahieren
         QVector<OSMEdge> edgeList = _osmWay->getEdgeList();
         for(int i = 0; i < edgeList.size(); i++)
