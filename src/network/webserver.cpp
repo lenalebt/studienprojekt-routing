@@ -218,7 +218,13 @@ bool HttpRequestProcessor::sendFile(const QString& content)
     _socket->flush();
     QByteArray data = content.toUtf8();
     //std::cerr << "content length: " << data.size() << std::endl;
-    _socket->write(data);
+    for (int i=0; i<data.size(); i+=128)
+    {
+        _socket->write(data.mid(i, 128));
+        _socket->waitForBytesWritten();
+        _socket->flush();
+    }
+    //_socket->write(data);
     //TODO: Header, die zum Dateiinhalt passen
     //TODO: Dateiinhalt senden
     //TODO: Bei Fehler false zurückgeben
