@@ -13,7 +13,7 @@
     <script type="text/javascript">
         // Initalisierung der zugreifbaren Variablen 
         var routeLayer = "";
-        //var noRouteLayer = 0;
+        //var 
         var xmlHttp = null;
         var thisLink = "";
         var settingsShown = 0;
@@ -34,7 +34,6 @@
         var markerGreen = new OpenLayers.Icon("img/marker-green.png", iconSize, iconOffset);
         var markerPurple = new OpenLayers.Icon("img/marker-purple.png", iconSize, iconOffset);
         var markerYellow = new OpenLayers.Icon("img/marker-yellow.png", iconSize, iconOffset);
-        //var iconlist = [markerBlue, markerPurple, markerRed, markerYellow, markerGreen, markerCyan];
         var markers = new OpenLayers.Layer.Markers( "Markers" );
         OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                
                 defaultHandlerOptions: {
@@ -90,13 +89,6 @@
                 numZoomLevels:20,
                 displayProjection:new OpenLayers.Projection("EPSG:4326")
                 });
-            var osmdeutsch = new OpenLayers.Layer.OSM("OSM deutscher Stil", [
-               "http://a.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
-               "http://b.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
-               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],
-               {attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>',
-                transitionEffect: 'resize'});
-            map.addLayer(osmdeutsch);
             var osm=new OpenLayers.Layer.OSM(
                 "OSM Mapnik",
                 ["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
@@ -110,6 +102,13 @@
                 transitionEffect: 'resize'}
                 );
             map.addLayer(osm);
+            var osmdeutsch = new OpenLayers.Layer.OSM("OSM deutscher Stil", [
+               "http://a.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
+               "http://b.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png",
+               "http://c.tile.openstreetmap.de/tiles/osmde/${z}/${x}/${y}.png"],
+               {attribution: 'Tile server sponsored by STRATO / <b>Europe only</b> / <a href="./germanstyle.html">About style</a>',
+                transitionEffect: 'resize'});
+            map.addLayer(osmdeutsch);
             oepnv = new OpenLayers.Layer.OSM("&Ouml;PNVkarte",
                 "http://tile.memomaps.de/tilegen/${z}/${x}/${y}.png",
                 {attribution:"Data CC-By-SA by <a href=http://www.openstreetmap.org>OpenStreetMap</a><br>Original map can be seen at <a href=http://www.xn--pnvkarte-m4a.de>www.&ouml;pnvkarte.de</a>",
@@ -146,7 +145,6 @@
             map.addLayer(cyclemap);
             routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
             map.addLayer(routeLayer);
-            //noRouteLayer = 1;
             xmlHttp = new XMLHttpRequest();
             var vectorLayer = new OpenLayers.Layer.Vector("Vector Layer", {displayInLayerSwitcher:false});
             map.addLayer(vectorLayer);
@@ -236,25 +234,13 @@
             map.addLayer(gsat);*/   //Google-Karten in Kombination mit OSM geht irgendwie nicht. Warum?
             
             map.addLayer(markers);
-            //var lonLat = new OpenLayers.LonLat( 7.2662, 51.447 )
-            //      .transform(
-            //        new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-            //        map.getProjectionObject() // to Spherical Mercator Projection
-            //      );
-            //markers.addMarker(new OpenLayers.Marker(lonLat, markerCyan));
-            
             map.setCenter(
                 new OpenLayers.LonLat(7.2662, 51.447).transform(
                     new OpenLayers.Projection("EPSG:4326"),
                     map.getProjectionObject()
                 ), 11
             );
-            
             gpxlayer = null;
-            
-            //displayGPX("../1341253652/api/0.3/51.4568,7.2684,51.445,7.2645/bike/euclidian.gpx");
-            //displayGPX("route.gpx");
-            
             var click = new OpenLayers.Control.Click();
             map.addControl(click);
             click.activate();
@@ -262,58 +248,45 @@
         // Funktion zum Anzeigen der JSON-Datei
         function displayJSON(jsonfile)
         {
-            //
             if (jsonfile == "")
             {
                 return;
             }
-            
-            //alert(jsonfile);
             xmlHttp.open('GET', jsonfile, false);
-            xmlHttp.send();
-            xmlHttp.readyState = 4;
-            //xmlHttp.onreadystatechange = function() {
-                //if (xmlHttp.readyState == 4) {
-                    //TODO: JSON malen
-                    //
-                    
-                    //if (xmlHttp.readyState==4) {
-                    //    alert(xmlHttp.responseText);
-                    //    }
-                    //    else{alert("readystate = " + xmlHttp.readyState);}
+            //xmlHttp.send();
+            //xmlHttp.readyState = 4;
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState==4) {
                     var jsonRoute = JSON.parse(xmlHttp.responseText);
-                    //xmlHttp.responseText);
                     if (jsonRoute) {
-                        //alert("Zeit in Minuten: " + jsonRoute.route_summary.total_time/60.0);
                         document.getElementById("time").innerHTML = Math.round(jsonRoute.route_summary.total_time/60.0) + " min";
                         document.getElementById("distance").innerHTML = Math.round(jsonRoute.route_summary.total_distance)/1000.0 + " km";
                         var points = [];
                         for (var i = 0; i < jsonRoute.route_geometry.length; i++) {
                             var point = new OpenLayers.Geometry.Point(
-                                    jsonRoute.route_geometry[i][1], 
-                                    jsonRoute.route_geometry[i][0]);
+                            jsonRoute.route_geometry[i][1], 
+                            jsonRoute.route_geometry[i][0]);
                             points.push(point.transform(
                                 new OpenLayers.Projection("EPSG:4326"),
                                 map.getProjectionObject()));
                         }
                         var geometry = new OpenLayers.Geometry.LineString(points);
-                        //alert("1");
                         var feature = new OpenLayers.Feature.Vector(geometry, null, {
                             strokeColor: "#0033ff",
                             strokeOpacity: 0.7,
                             strokeWidth: 5
                         });
-                        //alert("2");
                         if (routeLayer != null)
                         {
                             map.removeLayer(routeLayer);
                         }
                         routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
                         map.addLayer(routeLayer);
-                        //alert("3");    
                         routeLayer.addFeatures(feature);
-                        //alert("4");
                     }
+                }
+            }
+            xmlHttp.send();
         }
         // Funktion zum Anzeigen der GPX-Datei
         function displayGPX(gpxfile)
@@ -433,7 +406,7 @@
            + "MapQuest-Karten können evtl. auch benutzt werden, die sehen auch ganz nett aus (<a href="+"http://www.mapquest.com/"+">guckst du</a>)<br>"
         + "Diese Datei muss unter CC-Lizenz stehen, denn sie enthält Code, der vorher unter CC-Lizenz stand (von www.openstreetmap.org)<br>");
         }
-        // Funktion zum Reseten der Route
+        // Funktion zum Reseten der Route (GPX)
         function resetRoute()
         {
             lastmarker = [];
@@ -441,6 +414,7 @@
             pointlist = [];
             calcRoute();
         }
+        // Funktion zum Reseten der Route (JSON)
         function resetRouteJSON()
         {
             lastmarker = [];
@@ -450,8 +424,10 @@
             routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
             map.addLayer(routeLayer);
             calcRouteJson();
+            document.getElementById("time").innerHTML = "0 min";
+            document.getElementById("distance").innerHTML = "0.0 km";
         }
-        // Funktion zum Entfernen des letzten Elements
+        // Funktion zum Entfernen des letzten Elements (GPX-Modus)
         function removeLastElement()
         {
             if(pointlist.length >= 1)
@@ -462,6 +438,7 @@
                 calcRoute();
             }
         }
+        // Funktion zum Entfernen des letzten Elements (JSON)
         function removeLastElementJSON()
         {
             if(pointlist.length > 2)
@@ -480,6 +457,11 @@
                 routeLayer = new OpenLayers.Layer.Vector("Route Layer", {displayInLayerSwitcher:false}, {maxResolution: 156543.0339});
                 map.addLayer(routeLayer);
                 calcRouteJson();
+                if(pointlist.length == 1)
+                {
+                    document.getElementById("time").innerHTML = "0 min";
+                    document.getElementById("distance").innerHTML = "0.0 km";
+                }
             }
         }
         // Funktion verweist auf die Adresse der GPX-Datei
@@ -493,20 +475,28 @@
             if(settingsShown == 0)
             {
                 settingsShown = 1;
-                document.getElementById("allSettings").style.visibility = "visible";
+                document.getElementById("mainSettings").style.visibility = "visible";
                 clickMetric();
             }
             else
             {
                 settingsShown = 0;
-                document.getElementById("allSettings").style.visibility = "hidden";
+                document.getElementById("mainSettings").style.visibility = "hidden";
                 document.getElementById("settingsSimpleheight").style.visibility = "hidden";
                 document.getElementById("settingsPowermetric").style.visibility = "hidden";
                 document.getElementById("settingsNew").style.visibility = "hidden";
                 document.getElementById("settingsBikers").style.visibility = "hidden";
             }
         }
-        //
+        // Funktion zum umkehren der Route
+        function reverseRouteJson()
+        {
+            pointlist.reverse();
+            markerlist.reverse();
+            setMarkers();
+            calcRouteJson();
+        }
+        // Funktion zum Abfragen, welcher Algorithmus ausgewählt wurde
         function getCheckedRoutingAlgorithm()
         {
             for(i=0; i<document.algorithm.algorithm.length; i++)
@@ -517,7 +507,7 @@
                 }
             }
         }
-        //
+        // Funktion zum Abfragen, welche Routingmetrik ausgewählt wurde
         function getCheckedRoutingMetric()
         {
             for(i=0; i<document.routingmetric.routingmetric.length; i++)
@@ -573,40 +563,41 @@
             }
         }
         //
-
     </script>
   </head>
   <body onload="init()">
     <div id="map" class="smallmap"></div>
     <div id= "controlButton">
         <button id="b1" type="reset" onclick="resetRouteJSON()">Reset</button>
-        <button id="b2" type="reset" onclick="removeLastElementJSON()">Remove last Marker</button>
-        <button id="b2" type="reset" onclick="calcRouteJson()">Recalculate Route</button>
-        <a id = "tag">Link zur GPX-Datei</a>
+        <button id="b2" type="reset" onclick="removeLastElementJSON()">Remove Last Marker</button>
+        <button id="b5" type="reset" onclick="reverseRouteJson()">Reverse Route</button>
+        <button id="b6" type="reset" onclick="calcRouteJson()">Recalculate Route</button>
+        <a id = "tag">GPX-File</a>
         <button id="b3" type="button" onclick="setSettings()">Settings</button>
         <button id="b4" type="button" onclick="about()">About</button>
     </div>
-    <div id = "allSettings">
+    <div id = "mainSettings">
     <div id ="radioAlgorithm">
         <form name="algorithm">
             <table>
-                <tr><td>Algorithmenauswahl: </td></tr>
+                <tr><td>Algorithm Selection: </td></tr>
                 <tr><td><input type="radio" name="algorithm" value="astar"> A*</td></tr>
                 <tr><td><input type="radio" name="algorithm" value="dijkstra"> Dijkstra</td></tr>
-                <tr><td><input type="radio" name="algorithm" value="multithreadedastar"> Mehrthread-A*</td></tr>
-                <tr><td><input type="radio" name="algorithm" value="multithreadeddijkstra"> Mehrthread-Dijkstra</td></tr>
-                <tr><td><input type="radio" name="algorithm" value="standard" checked> Standardalgorithmus</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="multithreadedastar"> Multithread-A*</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="multithreadeddijkstra"> Multithread-Dijkstra</td></tr>
+                <tr><td><input type="radio" name="algorithm" value="standard" checked> Standard Algorithm</td></tr>
             </table>
         </form>
     </div>
     <div id = "radioRoutingmetric">
         <form name="routingmetric">
             <table>
-                <tr><td>Routingmetriken: </td></tr>
-                <tr><td><input type="radio" name="routingmetric" value="bike/euclidian" onclick="clickMetric()"> euklidische Entfernung</td></tr>
-                <tr><td><input type="radio" name="routingmetric" value="bike/simpleheight" onclick="clickMetric()"> einfache Höhenvermeidung</td></tr>
-                <tr><td><input type="radio" name="routingmetric" value="bike/power" onclick="clickMetric()" checked> Leistungsmetrik</td></tr>
-                <tr><td><input type="radio" name="routingmetric" value="bike/platzhalter" onclick="clickMetric()"> Platzhalter</td></tr>
+                <tr><td>Routing Metric: </td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/euclidian" onclick="clickMetric()"> Euclidean Distance</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/simpleheight" onclick="clickMetric()"> Simple Hight Avoidance</td></tr>
+                <tr><td><input type="radio" name="routingmetric" value="bike/power" onclick="clickMetric()" checked> Powermetric</td></tr>
+                <!-- ein Platzhalter für eine zukünftige Metrik eingebaut -->
+                <!--<tr><td><input type="radio" name="routingmetric" value="bike/platzhalter" onclick="clickMetric()"> #placeholder#</td></tr>-->
             </table>
         </form>
     </div>
@@ -614,14 +605,14 @@
     <div id="settingsPowermetric">
         <form name="routingmetricsettings">
             <table>
-                <tr><td>Einstellungen: </td></tr>
-                <tr><td>Maximalleistung (in Watt):</td></tr>
+                <tr><td>Settings: </td></tr>
+                <tr><td>Maximum Power (in Watt):</td></tr>
                 <tr><td><input name="maxpower" type="text" value="150.0" size="15"></td></tr>
-                <tr><td>Minimalgeschwindigkeit (in km/h):</td></tr>
+                <tr><td>Minimum Speed (in km/h):</td></tr>
                 <tr><td><input name="minspeed" type="text" value="12.0" size="15"></td></tr>
-                <tr><td>Gewicht (in kg, mit Fahrrad):</td></tr>
+                <tr><td>Weight (in kg, incl. Bike):</td></tr>
                 <tr><td><input name="weight" type="text" value="90.0" size="15"></td></tr>
-                <tr><td>Schiebegeschwindigkeit (in km/h):</td></tr>
+                <tr><td>Walk Speed (in km/h):</td></tr>
                 <tr><td><input name="pushbikespeed" type="text" value="2.5" size="15"></td></tr>
             </table>
         </form>
@@ -629,8 +620,8 @@
     <div id="settingsSimpleheight">
         <form name="routingmetricsimpleheightsettings">
             <table>
-                <tr><td>Einstellungen: </td></tr>
-                <tr><td>Umweg / Höhenmeter:</td></tr>
+                <tr><td>Settings: </td></tr>
+                <tr><td>Detour / Altitude:</td></tr>
                 <tr><td><input name="adddistance" type="text" value="10.0" size="15"></td></tr>
             </table>
         </form>
@@ -638,20 +629,21 @@
     <div id="settingsBikers">
         <form name="routingmetricbikers">
             <table>
-                <tr><td><input type="radio" name="bikers" value="0.5" checked> <img src="img/biker_erect.png" width="30" height="30" value="0.5" alt=""></td>
-                <td><input type="radio" name="bikers" value="0.4"> <img src="img/133212667.png" width="30" height="30" value = "0.4" alt=""></td>
-                <td><input type="radio" name="bikers" value="0.3"> <img src="img/biker_low.png" width="30" height="30" value = "0.3" alt=""></td>
-                <td><input type="radio" name="bikers" value="0.25"> <img src="img/biker_lower.png" width="30" height="30" value = "0.25" alt=""></td></tr>
+                <tr><td><input type="radio" name="bikers" value="0.5"> <img src="img/biker_erect.png" width="30" height="30" alt=""></td>
+                <td><input type="radio" name="bikers" value="0.4" checked> <img src="img/133212667.png" width="30" height="30" alt="" ></td>
+                <td><input type="radio" name="bikers" value="0.3"> <img src="img/biker_low.png" width="30" height="30" alt=""></td>
+                <td><input type="radio" name="bikers" value="0.25"> <img src="img/biker_lower.png" width="30" height="30" alt=""></td></tr>
             </table>
         </form>
     </div>
+    <!-- ein Platzhalter für eine zukünftige Metrik eingebaut -->
     <div id="settingsNew">
         <form name="routingmetricnewsettings">
             <table>
-                <tr><td>Platzhalter 1:</td></tr>
+                <tr><td>#placeholder1#:</td></tr>
                 <tr><td><input name="addparam" type="text" value="10.0" size="15"></td></tr>
-                <tr><td>Platzhalter 2:</td></tr>
-                <tr><td><input name="addparam" type="text" value="10.0" size="15"></td></tr>
+                <tr><td>#placeholder2#:</td></tr>
+                <tr><td><input name="addparamtwo" type="text" value="10.0" size="15"></td></tr>
             </table>
         </form>
     </div>
@@ -659,10 +651,8 @@
         <table>
             <tr><td>Distance</td></tr> 
             <tr><td><div id="distance">0.0 km</div></td></tr>
-            <!--<tr><td><input name="distance" type="text" value="0.0" size="10"></td></tr>-->
             <tr><td>Time </td></tr>
             <tr><td><div id="time">0 min</div></td></tr>
-            <!--<tr><td><input name="time" type="text" value="0.0" size="10"></td></tr>-->
         </table>
     </div>
   </body>
