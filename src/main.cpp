@@ -200,6 +200,11 @@ int main ( int argc, char* argv[] )
         std::cerr << e.what() << ". See help for allowed options." << std::endl;
         return 1;
     }
+    catch (boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::program_options::ambiguous_option> > e)
+    {
+        std::cerr << e.what() << ". See help for allowed options." << std::endl;
+        return 1;
+    }
     
     if (retVal == EXIT_FAILURE)
         return EXIT_FAILURE;
