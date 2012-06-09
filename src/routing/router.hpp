@@ -60,7 +60,7 @@ class RouteCache
 {
 private:
     static RouteCache* instance;
-    RouteCache() : routeCache(100), lock() {}
+    RouteCache() : routeCache(300), lock() {}
     
     QCache<QString, boost::shared_ptr<GPSRoute> > routeCache;
     QReadWriteLock lock;
