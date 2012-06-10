@@ -503,7 +503,7 @@
                 document.getElementById("mainSettings").style.visibility = "hidden";
                 document.getElementById("settingsSimpleheight").style.visibility = "hidden";
                 document.getElementById("settingsPowermetric").style.visibility = "hidden";
-                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikeTourPower").style.visibility = "hidden";
                 document.getElementById("settingsBikers").style.visibility = "hidden";
             }
         }
@@ -558,28 +558,28 @@
             {
                 document.getElementById("settingsSimpleheight").style.visibility = "hidden";
                 document.getElementById("settingsPowermetric").style.visibility = "hidden";
-                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikeTourPower").style.visibility = "hidden";
                 document.getElementById("settingsBikers").style.visibility = "hidden";
             }
             else if(help == "bike/simpleheight")
             {
                 document.getElementById("settingsSimpleheight").style.visibility = "visible";
                 document.getElementById("settingsPowermetric").style.visibility = "hidden";
-                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikeTourPower").style.visibility = "hidden";
                 document.getElementById("settingsBikers").style.visibility = "hidden";
             }
             else if (help == "bike/power")
             {
                 document.getElementById("settingsPowermetric").style.visibility = "visible";
                 document.getElementById("settingsSimpleheight").style.visibility = "hidden";
-                document.getElementById("settingsNew").style.visibility = "hidden";
+                document.getElementById("settingsBikeTourPower").style.visibility = "hidden";
                 document.getElementById("settingsBikers").style.visibility = "visible";
             }
-            else if (help == "bike/platzhalter")
+            else if (help == "bike/biketourpower")
             {
                 document.getElementById("settingsPowermetric").style.visibility = "visible";
                 document.getElementById("settingsSimpleheight").style.visibility = "hidden";
-                document.getElementById("settingsNew").style.visibility = "visible";
+                document.getElementById("settingsBikeTourPower").style.visibility = "hidden";
                 document.getElementById("settingsBikers").style.visibility = "visible";
             }
         }
@@ -622,7 +622,7 @@
                 <tr><td><input type="radio" name="routingmetric" value="bike/simpleheight" onclick="clickMetric()"> Simple Height Avoidance</td></tr>
                 <tr><td><input type="radio" name="routingmetric" value="bike/power" onclick="clickMetric()" checked> Powermetric</td></tr>
                 <!-- ein Platzhalter für eine zukünftige Metrik eingebaut -->
-                <!--<tr><td><input type="radio" name="routingmetric" value="bike/platzhalter" onclick="clickMetric()"> #placeholder#</td></tr>-->
+                <tr><td><input type="radio" name="routingmetric" value="bike/biketourpower" onclick="clickMetric()"> BikeTourPower</td></tr>
             </table>
         </form>
     </div>
@@ -665,13 +665,18 @@
         </form>
     </div>
     <!-- ein Platzhalter für eine zukünftige Metrik eingebaut -->
-    <div id="settingsNew">
-        <form name="routingmetricnewsettings">
+    <div id="settingsBikeTourPower">
+        <form name="routingmetricbiketourpowersettings">
             <table>
-                <tr><td>#placeholder1#:</td></tr>
-                <tr><td><input name="addparam" type="text" value="10.0" size="15"></td></tr>
-                <tr><td>#placeholder2#:</td></tr>
-                <tr><td><input name="addparamtwo" type="text" value="10.0" size="15"></td></tr>
+                <tr><td>Settings: </td></tr>
+                <tr><td>Maximum Power (in Watt):</td></tr>
+                <tr><td><input name="maxpower" type="text" value="150.0" size="15"></td></tr>
+                <tr><td>Minimum Speed (in km/h):</td></tr>
+                <tr><td><input name="minspeed" type="text" value="7.0" size="15"></td></tr>
+                <tr><td>Weight (in kg, incl. Bike):</td></tr>
+                <tr><td><input name="weight" type="text" value="90.0" size="15"></td></tr>
+                <tr><td>Walk Speed (in km/h):</td></tr>
+                <tr><td><input name="pushbikespeed" type="text" value="2.5" size="15"></td></tr>
             </table>
         </form>
     </div>
