@@ -541,9 +541,9 @@ class BikeTourPowerRoutingMetric : public PowerRoutingMetric
                                                                 streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.5 : 2.0); break;
                                                             }
                     case STREETTYPE_HIGHWAY_PEDESTRIAN:     speed = pushBikeSpeed; return; break;
-                    case STREETTYPE_HIGHWAY_PRIMARY:        streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.2 : 1.2); break;
+                    case STREETTYPE_HIGHWAY_PRIMARY:        streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.5 : 1.5); break;
                     case STREETTYPE_HIGHWAY_RESIDENTIAL:    streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
-                    case STREETTYPE_HIGHWAY_SECONDARY:      streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.15 : 1.15); break;
+                    case STREETTYPE_HIGHWAY_SECONDARY:      streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.25 : 1.25); break;
                     case STREETTYPE_HIGHWAY_SERVICE:        streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.0 : 1.0); break;
                     case STREETTYPE_HIGHWAY_UNCLASSIFIED:
                     case STREETTYPE_HIGHWAY_TERTIARY:       streetTypeFactor = (edge.getStreetSurfaceType()!=STREETSURFACETYPE_UNKNOWN ? 1.1 : 1.1); break;
@@ -621,24 +621,24 @@ class BikeTourPowerRoutingMetric : public PowerRoutingMetric
         }
         if (edge.hasStairs())
         {
-            //Bestrafung für eine Treppe: Länge * 2 in Sekunden + 5 Sekunden
-            timePunishment += distance * 2.0 + 5.0;
+            //Bestrafung für eine Treppe: Länge * 3 in Sekunden + 20 Sekunden
+            timePunishment += distance * 3.0 + 15.0;
         }
         if (edge.hasCycleBarrier())
         {
-            timePunishment += 10.0;
+            timePunishment += 20.0;
         }
         if (edge.hasTrafficCalmingBumps())
         {
-            timePunishment += 12.0;
+            timePunishment += 15.0;
         }
         if (edge.hasStopSign())
         {
-            timePunishment += 10.0;
+            timePunishment += 15.0;
         }
         if (edge.hasTrafficLights())
         {
-            timePunishment += 15.0;
+            timePunishment += 20.0;
         }
         
         power = getPower(minSpeed, inclination, surfaceFactor, haltungskorrekturfaktor, weight);

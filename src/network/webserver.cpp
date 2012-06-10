@@ -624,6 +624,33 @@ void BikerHttpRequestProcessor::processRequest()
                     haltungskorrekturfaktor = numberRegExp.cap(1).toDouble();
                 metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed, pushBikeSpeed, haltungskorrekturfaktor, noCyclewayPunishmentFactor ,maxSpeed));
             }
+            else if ((routeModifier == "biketourpower"))
+            {
+                double weight = 90.0;
+                //double maxPower = 140.0;
+                double maxPower = 100.0;
+                double minSpeed = 2.5;
+                double pushBikeSpeed = 0.5;
+                double haltungskorrekturfaktor = 0.4;
+                double maxSpeed = -1.0;
+                double noCyclewayPunishmentFactor = 7;
+                
+                if (numberRegExp.indexIn(_parameterMap["weight"]) != -1)
+                    weight = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["maxpower"]) != -1)
+                    maxPower = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["minspeed"]) != -1)
+                    minSpeed = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["maxspeed"]) != -1)
+                    maxSpeed = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["pushbikespeed"]) != -1)
+                    pushBikeSpeed = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["nocyclewaypunishmentfactor"]) != -1)
+                    noCyclewayPunishmentFactor = numberRegExp.cap(1).toDouble();
+                if (numberRegExp.indexIn(_parameterMap["haltungskorrekturfaktor"]) != -1)
+                    haltungskorrekturfaktor = numberRegExp.cap(1).toDouble();
+                metric.reset(new BikeTourPowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed, pushBikeSpeed, haltungskorrekturfaktor, noCyclewayPunishmentFactor ,maxSpeed));
+            }
             else
             {
                 std::cerr << "routeModifier \"" << routeModifier << "\" not supported." << std::endl;
