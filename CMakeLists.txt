@@ -57,9 +57,12 @@ FIND_PACKAGE(SQLITE3 REQUIRED)
 #ZZipLib zum Entpacken von ZIP-Archiven
 FIND_PACKAGE(ZZIP)
 #Boost für Kommandozeilenoptionen und so
-SET(Boost_USE_STATIC_LIBS     ON)
+#SET(Boost_USE_STATIC_LIBS     ON)
 SET(Boost_USE_MULTITHREADED   ON)
 SET(Boost_USE_STATIC_RUNTIME  OFF)
+
+
+set(Boost_ADDITIONAL_VERSIONS "1.40.1" "1.44" "1.44.0" "1.46" "1.46.0" "1.46.1")
 FIND_PACKAGE(Boost 1.42.0
     COMPONENTS
     program_options
