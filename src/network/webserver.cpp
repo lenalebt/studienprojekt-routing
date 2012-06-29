@@ -624,7 +624,7 @@ void BikerHttpRequestProcessor::processRequest()
                     haltungskorrekturfaktor = numberRegExp.cap(1).toDouble();
                 metric.reset(new PowerRoutingMetric(altitudeProvider, weight, maxPower, minSpeed, pushBikeSpeed, haltungskorrekturfaktor, noCyclewayPunishmentFactor ,maxSpeed));
             }
-            else if ((routeModifier == "biketourpower"))
+            else if ((routeModifier == "biketourpower") || (routeModifier == "biketour"))
             {
                 double weight = 90.0;
                 //double maxPower = 140.0;
